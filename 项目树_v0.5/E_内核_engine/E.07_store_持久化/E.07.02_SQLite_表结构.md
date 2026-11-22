@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 草稿 |
 | 素材 | 引04 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-23 |
 
 ## 1. 职责
 定义 SQLite 的全部表结构和索引（所有表在这里统一登记，旧文档"表归属分散在各文档"的做法取消）。
@@ -44,7 +44,7 @@
 | `hx_audit` | seq（AUTOINCREMENT） | ts, actor, action, target, effect, mandate_id, reasons, op_id, approval_id, graph_version, taint, prev_hash, hash | (ts DESC) |
 | `hx_ledger` | (scope, field, version) | value, taint, written_by, reason, ts | — |
 | `hx_blobs` | hash | size, media_type, refcount, created_at, last_access | (refcount, last_access) |
-| `hx_sessions` | id | title, pinned, active_graph_id, orchestrator_model, created_at, updated_at, deleted_at | (pinned DESC, updated_at DESC) |
+| `hx_sessions` | id | title, pinned, active_graph_id, orchestrator_model, last_location（JSON，`C.10`）, created_at, updated_at, deleted_at | (pinned DESC, updated_at DESC) |
 | `hx_session_graphs` | (session_id, graph_id) | attached_at | — |
 | `hx_messages` | id | session_id, role, actor, content, content_ref, blocks, selection, status, error, usage, created_at | (session_id, created_at) |
 | `hx_session_events` | (session_id, seq) | ts, kind, actor, data | — |
@@ -82,3 +82,8 @@
 - 允许使用的依赖：`modernc.org/sqlite`、`pressly/goose/v3`、sqlc（开发工具）
 - 禁止事项：`G.02.05` 全部
 - 完成标志：`G.14` 全部条件
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | `hx_sessions` 补 `last_location` 列（`C.10` 在树索引.6 已加该字段，本表漏改） | `P.09` K68 | |

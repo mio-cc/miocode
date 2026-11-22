@@ -34,7 +34,7 @@ web/src/
 ├─ main.tsx  App.tsx                      W.02
 ├─ routes/                                W.02.01  路由表、各路由组件
 ├─ shell/                                 W.02     外壳
-│  ├─ AppShell.tsx  layout.ts             W.02.02  区域挂载、尺寸联动、布局令牌
+│  ├─ AppShell.tsx  layout.ts  breakpoints.ts   W.02.02  区域挂载、尺寸联动、断点
 │  ├─ theme/                              W.02.03  主题（配色 × 明暗）
 │  └─ keys/                               W.02.04  快捷键注册中心
 ├─ state/                                 W.03
@@ -66,7 +66,8 @@ web/src/
 ├─ components/ui/                         W.08
 ├─ pages/                                 W.09
 │  ├─ home/  center/  welcome/  history/
-└─ styles/  tokens.css  base.css
+└─ styles/  tokens.css  themes.css  themes.ts（三者为生成物）  base.css
+web/public/  boot.js（首屏主题，W.02.03）  fonts/
 web/tests/  e2e/  visual/  bench/         W.12、W.11
 ```
 

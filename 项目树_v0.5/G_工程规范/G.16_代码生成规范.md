@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 草稿 |
 | 素材 | 引01§4 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-23 |
 
 ## 1. 目的
 规定哪些文件是生成出来的、怎么重新生成、为什么不能手改。
@@ -19,6 +19,8 @@
 | `gen/*.go` | `schema/*.schema.json`、`schema/builtin/*.yaml` | `go run ./tools/gen` | 是 |
 | `web/src/lib/protocol/generated/*.ts` | 同上 | 同上 | 是 |
 | `web/src/styles/tokens.css` | 设计令牌源 `design/tokens.css`（由设计规范 v0.3 的 `tokens.css` 迁入） | `go run ./tools/gen tokens` | 是 |
+| `web/src/styles/themes.css`、`web/src/styles/themes.ts` | `design/themes/*.css`（`U.03.05` §4） | `go run ./tools/gen tokens` | 是 |
+| `web/src/lib/protocol/generated/tables.ts` 里的快捷键表 | `schema/builtin/shortcuts.yaml`（格式见 `W.02.04`） | `go run ./tools/gen` | 是 |
 | `web/public/fonts/*` | `design/fonts/` 原始字体 | `go run ./tools/gen fonts`（子集化） | 是 |
 | `engine/store/sqlite/queries.go` | `engine/store/sqlite/queries.sql` | `sqlc generate` | 是 |
 | `web/dist/` | 前端源码 | `pnpm -C web build` | **否** |
@@ -32,3 +34,8 @@
 
 ## 4. 为什么不能手改
 手改的内容在下一次生成时会被覆盖；而且手改会让 Go 和 TS 两边的类型不再一致，这正是契约层要防止的问题（INV-17）。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | 生成物清单补上主题文件和快捷键表 | `P.09` K69 | |

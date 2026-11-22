@@ -2586,7 +2586,7 @@
      {
       "id": "W.02.01",
       "name": "路由表",
-      "desc": "/、/c/:sessionId、/settings……",
+      "desc": "/、/welcome、/c/:sessionId/g/:graphId?scope=；进入层、切换会话与浏览器后退",
       "type": "实",
       "src": "引01§3",
       "lvl": 3,

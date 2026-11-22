@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 草稿 |
 | 素材 | 引15 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-23 |
 
 ## 1. 职责
 定义会话、消息、消息里的卡片块，以及用户发消息时附带的画布选中内容。
@@ -28,7 +28,7 @@
     "mandates":        { "type": "array", "items": { "$ref": "mandate.schema.json#/$defs/MandateMount" }, "default": [], "description": "anchor 只能是 session" },
     "orchestrator_model": { "type": "string", "description": "对话 Agent 用的模型；缺省用设置里的默认（P.09 Q17）" },
     "last_location":   { "type": "object", "additionalProperties": false,
-                         "properties": { "graph_id": { "$ref": "common.schema.json#/$defs/Ulid" }, "scope": { "type": "string", "description": "层路径，如 闭环迭代/资料采集；空 = 根图" } },
+                         "properties": { "graph_id": { "$ref": "common.schema.json#/$defs/Ulid" }, "scope": { "type": "string", "pattern": "^(root|[0-9A-HJKMNP-TV-Z]{26})$", "description": "当前层：root = 根图，否则为所在容器节点的 ID（与 Selection.scope、前端路由 ?scope= 同一写法）" } },
                          "description": "用户上次在这个会话里所在的图和层，切回时恢复（U.09.04）" },
     "created_at":      { "$ref": "common.schema.json#/$defs/Timestamp" },
     "updated_at":      { "$ref": "common.schema.json#/$defs/Timestamp" },
@@ -110,3 +110,8 @@
 ### 实施卡
 - 要建的文件：`schema/session.schema.json`；`schema/examples/session/*.json`。
 - 测试用例：`C10-T1`、`C10-T2`。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | `last_location.scope` 从"名称路径"改为 `root` 或容器节点 ID，与 `Selection.scope` 和路由一致；名称会重名、会改名 | `P.09` K68 | |
