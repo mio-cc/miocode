@@ -52,16 +52,16 @@ web/src/
 │  │  ├─ offline.ts                       W.04.05
 │  ├─ i18n/                               W.10
 │  └─ perf/                               W.11
-├─ canvas/                                W.06
-│  ├─ Canvas.tsx                          React 外壳：只渲染一个根 div，挂载引擎
+├─ canvas/                                W.06（文件分工见 W.06 §4.1）
+│  ├─ Canvas.tsx  CanvasOverlays.tsx  adapters.ts   W.06.01  React 外壳：只渲染一个根 div，挂载引擎；两种浮层；适配器
 │  └─ core/                               不 import React（W-R1）
-│     ├─ engine.ts                        W.06.01
+│     ├─ engine.ts types.ts frame.ts emitter.ts scene.ts   W.06.01
 │     ├─ view/                            W.06.02
-│     ├─ render/  node.ts edge.ts lod.ts pool.ts   W.06.03–W.06.06
-│     ├─ interact/ select.ts drag.ts link.ts keyboard.ts   W.06.07–W.06.09
+│     ├─ render/  node.ts widgets.ts note.ts · edge.ts · lod.ts cull.ts · pool.ts   W.06.03–W.06.06
+│     ├─ interact/ pointer.ts select.ts drag.ts drop.ts · link.ts edgeTools.ts · keyboard.ts focus.ts clipboard.ts   W.06.07–W.06.09
 │     ├─ geom/                            W.06.10
 │     ├─ layout/                          W.06.11
-│     ├─ minimap/                         W.06.12
+│     ├─ minimap/  paint.ts（所有简化图的绘制器）minimap.ts   W.06.12
 │     ├─ nest/                            W.06.13  预览浮层、进入 / 返回、父图位置卡
 │     ├─ ghost/                           W.06.14
 │     └─ runBridge.ts                     W.06.15
@@ -79,7 +79,7 @@ web/tests/  e2e/  visual/  bench/         W.12、W.11
 | 编号 | 规则 |
 |---|---|
 | W.01-R5 | 依赖方向只能向下：`routes` → `shell` / `pages` → `panels` → `components/ui`；`panels`、`pages`、`canvas/Canvas.tsx` 可以用 `state`、`ops`、`lib`；`state` 只依赖 `lib`；`lib/protocol` 不依赖 `state` 以外的任何前端目录 |
-| W.01-R6 | `canvas/core` 只能 import：`@/lib/protocol` 导出的类型和常量（不直接引用 `generated/`，`W.04.04-R1`）、`state` 导出的 store **类型**（不是 hook）、`ops` 的 `OpsApi` 类型、`lib/i18n` 的纯函数。store 实例和 `OpsApi` 由 `Canvas.tsx` 在构造引擎时传入（`opsFor(graph)`，`W.05` §4.2） |
+| W.01-R6 | `canvas/core` 只能 import：`@/lib/protocol` 导出的类型和常量（不直接引用 `generated/`，`W.04.04-R1`）、`state` 导出的 store **类型**（不是 hook）、`@/ops/types` 导出的类型（`OpsApi`、`DispatchResult`、`Precheck`、`Gesture`）。文案函数 `t`、`newUlid`、图标、快捷键、主题都由 `Canvas.tsx` 经 `EngineDeps` 注入（`W.06` §4.2，`P.09` K98）。store 实例和 `OpsApi` 由 `Canvas.tsx` 在构造引擎时传入（`opsFor(graph)`，`W.05` §4.2） |
 | W.01-R7 | `components/ui` 不依赖 `state`、`ops`、`lib/protocol`：它只是带样式的控件，数据和回调都从 props 进来 |
 | W.01-R8 | 不建 `utils/`、`common/`、`helpers/`（`G.03-R7`）；被三个以上目录用到的纯函数，按用途在 `lib/` 下新建目录，并在 W 树登记 |
 
@@ -95,7 +95,7 @@ web/tests/  e2e/  visual/  bench/         W.12、W.11
 | 编号 | 规则 |
 |---|---|
 | W.01-R9 | `Canvas.tsx` 只渲染一个空根元素，在 `useEffect` 里 `new CanvasEngine(root, deps)`，卸载时 `destroy()`；它不订阅任何会导致重渲染的 store 字段（`W.06.01`） |
-| W.01-R10 | 画布引擎和 React 面板之间只通过 store 和一个类型安全的事件总线（`W.06.01` 定义 `EngineEvents`）通信，不互相持有对方的组件或 DOM 引用 |
+| W.01-R10 | 画布引擎和 React 面板之间只通过 store、引擎事件 `EngineEvents` 和引擎命令 `EngineCommands`（`W.06` §4.2）通信，不互相持有对方的组件或 DOM 引用。唯一例外是 `cmd.mountSlot`：小地图、父图位置卡的 React 外框把一个空容器交给引擎，引擎只在里面画缩略图（`P.09` K98） |
 | W.01-R11 | 判断指针点到了什么，必须用指针坐标 `document.elementFromPoint` 取真实元素，不能用 `event.target`——拖动用了指针捕获，之后 click / dblclick 的 target 是画布本身（`U.13.06-R7`，demo v0.5.10 的教训） |
 
 ### 3.4 数据流
@@ -169,3 +169,4 @@ demo v0.5.11 是界面参考实现（`sj/demo_v0.5/画布_demo_v0.5.html`，模�
 |---|---|---|
 | 2026-11-23 | R14 补待审批与急停的归属；R17 改为只有当前工作区连 SSE（最多 3 条），后台会话的运行中、待审批、急停由定时刷新得到；§3.2 `state/` 补齐 W.03 的文件 | `P.09` K73 |
 | 2026-11-23 | §3.2 目录树补 `lib/protocol/`、`ops/` 的文件；R6 与 §4 改为只从 `@/lib/protocol` 导入 | `P.09` K85、K88（写 `W.04`、`W.05` 时定稿） |
+| 2026-11-23 | §3.2 `canvas/` 按 `W.06` §4.1 细化文件；R6 改为只 import `@/ops/types` 的类型、其余经 `EngineDeps` 注入；R10 补引擎命令与 `mountSlot` 例外 | `P.09` K98（写 `W.06` 时定稿） |

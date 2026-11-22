@@ -60,7 +60,7 @@ NodeDef 新增（`C.03.01`）：`"dynamic_ports": {"from_param": "value", "patte
 3. 接线后参数格显示"由上游提供"，断开后恢复原值
 
 ### 实施卡
-- 要建 / 要改的文件：`schema/nodedef.schema.json（ParamUI、dynamic_ports）`、`web/src/canvas/params/*.tsx`、`engine/node/ports_dynamic.go`
+- 要建 / 要改的文件：`schema/nodedef.schema.json（ParamUI、dynamic_ports）`、`web/src/canvas/core/render/widgets.ts`（节点上的控件，原生 DOM，`W.06.03`）、`web/src/panels/inspector/`（右栏属性页，`W.07.03`）、`engine/node/ports_dynamic.go`
 - 不许碰的文件：`schema/`、`gen/`、其他包的实现文件（只能 import 它们的导出接口）
 - 测试用例：
   - `C0305-T1 生成界面`
@@ -70,3 +70,8 @@ NodeDef 新增（`C.03.01`）：`"dynamic_ports": {"from_param": "value", "patte
 - 允许使用的依赖：标准库 + `G.10` 已登记依赖
 - 禁止事项：`G.02.05` 全部
 - 完成标志：`G.14` 全部条件
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | 实施卡里前端文件路径改为 `canvas/core/render/widgets.ts` 与 `panels/inspector/` | `P.09` K95：节点上的控件由画布引擎直接写 DOM（`W.01` §3.3），`canvas/params/*.tsx` 不在目录表里 |

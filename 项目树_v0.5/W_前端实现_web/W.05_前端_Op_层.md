@@ -33,7 +33,7 @@
 ### 4.1 给面板和画布引擎
 ```ts
 // web/src/ops/types.ts
-import type { Assign, Op, OpKind, PortRef, Ulid, ApiError } from '@/lib/protocol';
+import type { Assign, Op, OpKind, PortRef, TypeRef, Ulid, ApiError } from '@/lib/protocol';
 import type { ReadonlyStore, Scope } from '@/state/types';
 
 export type OpDraft = Pick<Op, 'kind' | 'payload'> & { target?: Op['target'] };   // id、groupId、coalesceKey 由本层填
@@ -73,6 +73,8 @@ export type OpsApi = {
   dispatch(input: OpDraft | readonly OpDraft[], o?: DispatchOpts): Promise<DispatchResult>;
   check(input: OpDraft, scope: Scope): Precheck;                       // 同步，不发请求
   canConnect(from: PortRef, to: PortRef, scope: Scope): Precheck;      // 拖线变色（W.06.08）
+  portTypes(scope: Scope): ReadonlyMap<string, TypeRef>;               // inferScope 的结果（键 `${nodeId}.${port}`，同一层同一组引用返回同一个 Map）；画布按推断后的类型显示端口颜色和悬停类型（W.06.03、W.06.04，K99）
+  fits(src: TypeRef, dst: TypeRef): boolean;                           // assignable(src, dst).ok；快速添加、插入连线时判断还不在图里的节点的端口（W.06.08 firstFit，K99）
   gesture(kind: 'drag' | 'step' | 'slide', revert: OpDraft): Gesture;  // revert：按下时的原值（取消时提交）
   undo(): Promise<HistoryOutcome>;
   redo(): Promise<HistoryOutcome>;
@@ -350,6 +352,12 @@ type QueueState = {
   - `W05-T22 容器节点`：`dispatch(add_node 循环)` 的 payload 自带一对子图端口；乐观结果的 `scopes` 有这个容器
   - `W05-T23 端到端`：§10 验收 1、2、6（Playwright）
   - `W05-T24 ESLint`：`panels/` 下的反例文件 import `GraphWriter` → 报错
+  - `W05-T25 portTypes 与 fits`：`portTypes(scope)` 与 `inferScope` 结果相同，同一 `model` 下两次调用返回同一个 Map；`fits` 对 `assign_vectors.json` 每条与 `assignable(...).ok` 一致
 - 允许使用的依赖：无第三方运行时依赖（`zustand/vanilla` 只用于 `conflict` 的小 store，`G.10` §3.3）；测试用 `vitest`、`jsdom`、`@playwright/test`。
 - 禁止事项：`G.02.05` 全部（特别是 R1–R3、R6、R14、R28）；另：不在前端计算逆操作、不保存撤销栈；不在 Op 里填 `actor` / `approver` / `reason` / `taint`；不对"等服务端"一栏的 Op 做乐观应用；不用 `tmp:N`；拖动中提交不得快于每 250ms 一次；不在 localStorage 存未提交的修改；不调用解除急停。
 - 完成标志：`G.14` 全部条件；§10 七条验收通过。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | §4.1 `OpsApi` 新增 `portTypes`、`fits`；测试 `W05-T25` | `P.09` K99（画布要显示推断后的端口类型、给不在图里的节点挑端口） |

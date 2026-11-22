@@ -85,6 +85,7 @@ export function useModelStore<T>(sel: (s: ModelState) => T, eq?: (a: T, b: T) =>
 export function useZoomPercent(): number;                 // view store 唯一给 React 的出口（W.03.02）
 export function useAppActions(): AppActions;              // 各 store 的 action 集合（引用稳定，不触发重渲染）
 export function useCanvasStores(): CanvasStores;          // 给 Canvas.tsx 把 store 实例交给画布引擎
+export function useAppStores(): AppStores;                // 只给 Canvas.tsx 这类要把 store 实例交给非 React 代码的地方（ui、catalog 交给画布引擎，W.06.01）；返回的对象引用稳定，不触发重渲染
 ```
 - 返回对象或数组的选择器必须传 `eq`（用 `zustand/shallow` 的 `shallow`），或者在选择器里返回 store 里已有的引用（`G.06.02-R3`）。
 - 没有 `useViewStore`：平移缩放不进 React（`G.06.02-R1`、`R4`）。
@@ -256,3 +257,4 @@ export type LoadStatus = 'idle' | 'loading' | 'ready' | 'error';
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | §4.3 按 `W.04` 定稿补齐：`Query`、`getText`、`download`、`NetError`、`retryAfterMs`、`StreamState`、`onOpen.reconnected`、`onState`、`onError`；§6.2 补图协同流连上 / `resync`、会话流重连三行；§4.5 目录 store 加数据类型 `types` | 写 `W.04`、`W.05` 时对齐（`P.09` K83、K90） |
+| 2026-11-23 | §4.2 新增 `useAppStores()`（画布引擎需要 ui、catalog 的 store 实例） | `P.09` K98（写 `W.06.01` 时发现缺口） |
