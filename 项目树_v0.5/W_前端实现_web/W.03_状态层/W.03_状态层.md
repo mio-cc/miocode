@@ -95,24 +95,31 @@ export function useCanvasStores(): CanvasStores;          // 给 Canvas.tsx 把 
 ```ts
 // web/src/state/deps.ts
 import type { ApiErrorCode, Ulid, RunEvent, GraphEvent, SessionEvent } from '@/lib/protocol';
+export type Query = Record<string, string | number | boolean | readonly string[] | undefined>;   // 键写 camelCase，W.04.03 转成 snake_case；数组用逗号连接
 export type RestClient = {                 // W.04.01；响应已按 W.04.03 转成 camelCase
-  get<T>(path: string, query?: Record<string, string | number | undefined>): Promise<T>;
-  post<T>(path: string, body?: unknown, opts?: { idempotencyKey?: string }): Promise<T>;
+  get<T>(path: string, query?: Query): Promise<T>;
+  post<T>(path: string, body?: unknown, opts?: { idempotencyKey?: string }): Promise<T>;   // 每个 POST 都带幂等键，不传就自动生成
   patch<T>(path: string, body: unknown): Promise<T>;
   put<T>(path: string, body: unknown): Promise<T>;
   del(path: string): Promise<void>;
+  getText(path: string, query?: Query): Promise<string>;   // 原文（GET /blobs/{ref}），不做字段映射
+  download(path: string, query?: Query): Promise<Blob>;    // 导出文件
 };
-export type ApiError = Error & { status: number; code: ApiErrorCode; details?: unknown; requestId?: string };   // W.04.01 抛出
+export type ApiError = Error & { status: number; code: ApiErrorCode; details?: unknown; requestId?: string; retryAfterMs?: number };   // W.04.01：服务端返回了错误响应
+export type NetError = Error & { kind: 'network' | 'timeout' | 'aborted' };   // W.04.01：没有拿到响应（连接状态由 W.04.05 处理）
 export type StreamSpec =
   | { kind: 'session'; id: Ulid; since?: number }
   | { kind: 'graph'; id: Ulid; branch: string }
   | { kind: 'run'; id: Ulid; since?: number };
+export type StreamState = 'connecting' | 'open' | 'ended';   // ended：不会再重连（运行已结束、资源不存在、凭证失效、被同种新流顶替）
 export type StreamHandle = { close(): void; lastSeq(): number };
-export type StreamClient = {               // W.04.02
+export type StreamClient = {               // W.04.02；同种流同时只有 1 条，再开一条时自动关掉旧的
   open<E extends RunEvent | GraphEvent | SessionEvent>(spec: StreamSpec, h: {
     onEvent(ev: E): void;
-    onResync(): void;                      // 收到 resync（B.05.02 第 3 步）：调用方改拉快照
-    onOpen?(info: { graphVersion?: number }): void;   // 图协同流带响应头 X-Graph-Version（C.06.03-R1）
+    onResync(): void;                      // 收到 resync（B.05.02 第 3 步）：W.04.02 已改为只收实时并重新连上，调用方拉快照
+    onOpen?(info: { graphVersion?: number; reconnected: boolean }): void;   // 每次连上都调用；图协同流带响应头 X-Graph-Version（C.06.03-R1）
+    onState?(s: StreamState): void;
+    onError?(err: ApiError): void;         // 不会重连的错误（404、403）
   }): StreamHandle;
 };
 export type StateDeps = {
@@ -131,13 +138,13 @@ export type StateDeps = {
 ```ts
 // web/src/state/catalogStore.ts
 export type CatalogState = {
-  defs: null | { registryHash: string; summaries: readonly NodeDefSummary[]; full: ReadonlyMap<string, NodeDef> };
+  defs: null | { registryHash: string; summaries: readonly NodeDefSummary[]; full: ReadonlyMap<string, NodeDef>; types: ReadonlyMap<string, TypeDef> };   // types：GET /types，W.05 端口兼容预检用（K90）
   models: readonly Model[];                // GET /models（B.04.07），对话框的模型按钮、属性页用
   settings: Settings | null;               // 启动时 GET /settings（W.02 §6 第 3 步）
   status: { defs: LoadStatus; models: LoadStatus };
 };
 export type CatalogActions = {
-  ensureDefs(registryHash: string): Promise<void>;     // 哈希不同才重新拉 GET /nodedefs（B.04.06 带 ETag）
+  ensureDefs(registryHash: string): Promise<void>;     // 哈希不同才重新拉 GET /nodedefs 和 GET /types（B.04.06 带 ETag）
   nodeDef(ref: string): Promise<NodeDef>;              // 按需拉完整定义并缓存
   loadModels(): Promise<void>;
   setSettings(s: Settings): void;                      // bootstrap 和 PATCH /settings 成功后调用
@@ -149,7 +156,7 @@ export type LoadStatus = 'idle' | 'loading' | 'ready' | 'error';
 
 ## 5. 数据结构
 - 协议类型一律从 `@/lib/protocol` 导入：它导出生成类型（`lib/protocol/generated`）按 `W.04.03` 转成 camelCase 后的别名，如 `Graph`、`Node`、`Edge`、`Note`、`Op`、`Diag`、`Proposal`、`ProposalPreview`、`Session`、`Message`、`MessageBlock`、`Selection`、`RunEvent`、`GraphEvent`、`SessionEvent`、`RunStatus`、`NodeState`、`Loc`、`Actor`、`Ulid`。本层不重新声明这些结构（`G.02.05-R2`）。
-- REST 响应结构 `RunMeta`、`RunView`、`NodeStateRow`、`NodeDetail`、`Approval`、`ApprovalGroup`、`Effective`、`Branch`、`OpRecord`、`GraphMeta`、`NodeDefSummary`、`NodeDef`、`Model`、`Settings` 同样按名字从 `@/lib/protocol` 导入；定义在 `schema/api.schema.json`，正文在 `B.04` 各文档（`P.09` K80）。
+- REST 响应结构 `RunMeta`、`RunView`、`NodeStateRow`、`NodeDetail`、`Approval`、`ApprovalGroup`、`Effective`、`Branch`、`OpRecord`、`GraphMeta`、`NodeDefSummary`、`NodeDef`、`TypeDef`、`Model`、`Settings` 同样按名字从 `@/lib/protocol` 导入；定义在 `schema/api.schema.json`，正文在 `B.04` 各文档（`P.09` K80）。
 - 事件里的开放对象（`params`、`meta`、`ui`、`kv`）的键不转 camelCase，原样保留（`C.01-R19`，由 `W.04.03` 保证）。
 - 本层私有的结构只有：`GraphModel`（`W.03.01`）、`View`（`W.03.02`）、`CanvasSelection`（`W.03.03`）、`ExecState` 与 `LiveRun`（`W.03.04`）、`Conversation` 与 `SessionActivity`（`W.03.05`）、`GhostMarks`（`W.03.06`），以及上面 §4.2 的组合类型。
 
@@ -168,6 +175,8 @@ export type LoadStatus = 'idle' | 'loading' | 'ready' | 'error';
 | 流 | 事件 | 去向 |
 |---|---|---|
 | 图协同流 | `op.applied`、`op.coalesced` | `W.05` 的 `ingestRemote`（它在合并本地未确认的 Op 后写 graph store）；graph 的操作历史标记过期 |
+| 图协同流 | 连上（`onOpen`） | `W.05` 的 `onStreamOpen`（按 `graphVersion` 补齐缺口）；`reconnected=true` 时另外：model `refresh()`、`refreshLevel()` 并 `ingest.reconnected()`（清掉停住的 AI 光标）；工作区 `GET /graphs/{id}/validate` → graph `setDiags`（E 级事件不补发，`C.06` §5、`C.06.03-R2`） |
+| 图协同流 | `resync`（`onResync`） | `W.05` 的 `reload()` |
 | 图协同流 | `validate` | graph `setDiags` |
 | 图协同流 | `presence` | graph `setPresence` |
 | 图协同流 | `branch.updated` | graph `setBranch` |
@@ -184,6 +193,7 @@ export type LoadStatus = 'idle' | 'loading' | 'ready' | 'error';
 | 运行流 | `resync`、`engine.illegal_transition` | run 重新拉快照；后者只记 `console.warn` |
 | 会话流 | `session.updated`、`session.graph_attached`、`session.graph_detached` | session 的会话列表项 |
 | 会话流 | `message.*`、`chat.status` | session 的对话 |
+| 会话流 | 连上（`onOpen.reconnected=true`）、`resync` | session 重新拉 `status='streaming'` 的消息；`resync` 时整页重拉（`W.03.05` §6.2） |
 
 ### 6.3 谁能写什么
 | 数据 | 唯一写入方 | 怎么保证 |
@@ -241,3 +251,8 @@ export type LoadStatus = 'idle' | 'loading' | 'ready' | 'error';
 4. 会话 A 运行中切到 B：A 的运行不中断，5 秒内会话列表上 A 显示"● 运行中"；A 的运行请求审批时，A 显示审批角标、通知中心出现这条（`U.09.04-R1`、`U.09.05`）。
 5. 200 节点的图在平移、拖动、30 个节点同时运行时，React Profiler 提交次数为 0（`Q.08`）。
 6. ESLint：在 `panels/` 里 import `graphWriter` 报错；不带选择器调用 `useGraphStore()` 报错（`G.06.02` §2）。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | §4.3 按 `W.04` 定稿补齐：`Query`、`getText`、`download`、`NetError`、`retryAfterMs`、`StreamState`、`onOpen.reconnected`、`onState`、`onError`；§6.2 补图协同流连上 / `resync`、会话流重连三行；§4.5 目录 store 加数据类型 `types` | 写 `W.04`、`W.05` 时对齐（`P.09` K83、K90） |

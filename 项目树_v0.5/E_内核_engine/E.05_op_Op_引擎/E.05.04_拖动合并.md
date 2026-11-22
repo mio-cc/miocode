@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 草稿 |
 | 素材 | 引08 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-23 |
 
 ## 1. 职责
 实现连续拖动、步进、滑块产生的 Op 原地合并（coalesce）。
@@ -27,7 +27,7 @@ func (p *Pipeline) tryCoalesce(tx store.Store, b Batch) (handled bool, res *Resu
 
 ## 5. 行为
 - 条件：批次只含一条 Op；`coalesce_key` 非空；与**同一操作者**在该分支的最近一条 Op 的 `coalesce_key` 相同；时间间隔 < 2s；kind 相同（`move_nodes`、`set_param`）。
-- 动作：更新上一条 Op 的 `to`（保留最初的旧值，所以逆操作不变），更新当前版本的图内容，**不增加版本号**；广播 `op.coalesced`。
+- 动作：更新上一条 Op 的 `to`（保留最初的旧值，所以逆操作不变），更新当前版本的图内容，**不增加版本号**；广播 `op.coalesced{version, op_id: 上一条的 id, to: 合并后的完整 payload}`（`C.06.03-R4`）。
 - 合并后的 Op 仍需通过授权和增量校验；不通过时按普通 Op 失败处理。
 
 ## 6. 不变量
@@ -51,3 +51,8 @@ func (p *Pipeline) tryCoalesce(tx store.Store, b Batch) (handled bool, res *Resu
 - 允许使用的依赖：标准库 + `G.10` 已登记依赖
 - 禁止事项：`G.02.05` 全部
 - 完成标志：`G.14` 全部条件
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | 广播内容写明 `to` 为完整 payload | `P.09` K87 |

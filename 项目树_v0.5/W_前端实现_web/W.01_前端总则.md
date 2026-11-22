@@ -42,11 +42,14 @@ web/src/
 │  ├─ runStore.ts runLive.ts modelStore.ts                                    W.03.04、W.03.06
 │  ├─ sessionStore.ts activityPoller.ts catalogStore.ts appStores.ts          W.03.05
 │  └─ workspace.ts eventRouter.ts WorkspaceProvider.tsx hooks.ts deps.ts types.ts   会话工作区（W.03.05）
-├─ ops/                                   W.05     dispatch / validate / apply / inverse / merge / history
+├─ ops/                                   W.05     queue（dispatch）/ validate / typecheck / apply / merge / gesture / history / presence / hash / registry / useOps（不算逆操作，C.05-R1）
 ├─ lib/
 │  ├─ protocol/                           W.04
 │  │  ├─ generated/                       生成物，禁止手改（G.02.05-R1）
-│  │  ├─ client.ts  events.ts  mapping.ts  offline.ts
+│  │  ├─ index.ts（唯一入口）types.ts mapping.ts assemble.ts   W.04.03
+│  │  ├─ client.ts ulid.ts                W.04.01
+│  │  ├─ events.ts sse.ts                 W.04.02
+│  │  ├─ offline.ts                       W.04.05
 │  ├─ i18n/                               W.10
 │  └─ perf/                               W.11
 ├─ canvas/                                W.06
@@ -76,7 +79,7 @@ web/tests/  e2e/  visual/  bench/         W.12、W.11
 | 编号 | 规则 |
 |---|---|
 | W.01-R5 | 依赖方向只能向下：`routes` → `shell` / `pages` → `panels` → `components/ui`；`panels`、`pages`、`canvas/Canvas.tsx` 可以用 `state`、`ops`、`lib`；`state` 只依赖 `lib`；`lib/protocol` 不依赖 `state` 以外的任何前端目录 |
-| W.01-R6 | `canvas/core` 只能 import：`lib/protocol/generated` 的类型和常量、`state` 导出的 store **类型**（不是 hook）、`ops` 的 `dispatch` 函数类型、`lib/i18n` 的纯函数。store 实例由 `Canvas.tsx` 在构造引擎时传入 |
+| W.01-R6 | `canvas/core` 只能 import：`@/lib/protocol` 导出的类型和常量（不直接引用 `generated/`，`W.04.04-R1`）、`state` 导出的 store **类型**（不是 hook）、`ops` 的 `OpsApi` 类型、`lib/i18n` 的纯函数。store 实例和 `OpsApi` 由 `Canvas.tsx` 在构造引擎时传入（`opsFor(graph)`，`W.05` §4.2） |
 | W.01-R7 | `components/ui` 不依赖 `state`、`ops`、`lib/protocol`：它只是带样式的控件，数据和回调都从 props 进来 |
 | W.01-R8 | 不建 `utils/`、`common/`、`helpers/`（`G.03-R7`）；被三个以上目录用到的纯函数，按用途在 `lib/` 下新建目录，并在 W 树登记 |
 
@@ -153,7 +156,7 @@ demo v0.5.11 是界面参考实现（`sj/demo_v0.5/画布_demo_v0.5.html`，模�
 | W.01-R19 | demo 里有、规范里没有的行为，先上报（`G.02.03`），不直接实现；规范里有、demo 里没有的，照规范实现 |
 
 ## 4. 检查方式
-- ESLint `no-restricted-imports`：`canvas/core/**` 禁止 `react`、`react-dom`、`zustand/react`、`**/panels/**`、`**/components/**`；`components/ui/**` 禁止 `**/state/**`、`**/ops/**`、`**/lib/protocol/**`；全部目录禁止深层引用 `lib/protocol/generated` 以外的生成路径（W.01-R5–R7）。规则写在 `web/eslint.config.js`，由 `G.06.04` 统一维护。
+- ESLint `no-restricted-imports`：`canvas/core/**` 禁止 `react`、`react-dom`、`zustand/react`、`**/panels/**`、`**/components/**`；`components/ui/**` 禁止 `**/state/**`、`**/ops/**`、`**/lib/protocol/**`；`lib/protocol/` 以外禁止 import `lib/protocol/generated/**`（W.01-R5–R7、`W.04.04-R1`）。规则写在 `web/eslint.config.js`，由 `G.06.04` 统一维护。
 - CI 检查 `web/src/` 的一级目录与 §3.2 一致（`G.03-R9`）。
 - 性能基准（`W.11`、`Q.08`）：平移、拖动、运行状态更新期间 React Profiler 提交次数为 0（W.01-R9、`U.17-R10`）。
 - 评审时看：新文件是否放在 §3.2 对应目录；是否有直接改图数据、直接发请求的组件；是否有 `event.target` 判断画布命中。
@@ -165,3 +168,4 @@ demo v0.5.11 是界面参考实现（`sj/demo_v0.5/画布_demo_v0.5.html`，模�
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | R14 补待审批与急停的归属；R17 改为只有当前工作区连 SSE（最多 3 条），后台会话的运行中、待审批、急停由定时刷新得到；§3.2 `state/` 补齐 W.03 的文件 | `P.09` K73 |
+| 2026-11-23 | §3.2 目录树补 `lib/protocol/`、`ops/` 的文件；R6 与 §4 改为只从 `@/lib/protocol` 导入 | `P.09` K85、K88（写 `W.04`、`W.05` 时定稿） |

@@ -130,8 +130,8 @@ export type WorkspaceManager = {
   subscribe(fn: (ws: SessionWorkspace | null) => void): () => void;
 };
 // W.05 注入（W.03 §4.3 StateDeps.ops）：state/ 不 import ops/（W.01-R5）
-export type OpsHandle = { ingestRemote(ev: GraphEvent): void; onStreamOpen(info: { graphVersion?: number }): void; flush(): Promise<void>; dispose(): void };
-export type OpsFactory = (ctx: { graphId: Ulid; branch: string; writer: GraphWriter; store: GraphStoreApi; client: RestClient; ui: UiStoreApi }) => OpsHandle;
+export type OpsHandle = { ingestRemote(ev: GraphEvent): void; onStreamOpen(info: { graphVersion?: number; reconnected: boolean }): void; reload(): Promise<void>; flush(): Promise<void>; dispose(): void };   // W.05 §4.2
+export type OpsFactory = (ctx: { graphId: Ulid; branch: string; writer: GraphWriter; store: GraphStoreApi; client: RestClient; ui: UiStoreApi; catalog: CatalogStoreApi }) => OpsHandle;
 export function createWorkspaceManager(deps: StateDeps, app: { ui: UiStoreApi; session: SessionStoreApi; sessionIngest: SessionIngest; catalog: CatalogStoreApi }): WorkspaceManager;
 ```
 
@@ -188,7 +188,7 @@ export function createWorkspaceManager(deps: StateDeps, app: { ui: UiStoreApi; s
 2. 有当前工作区且不是 `sid`：**停用**它（§6.5）。
 3. 内存里有 `sid` 的工作区：移到最近使用；跳到第 5 步。
 4. 没有：新建，`status='loading'`。并行：`GET /sessions/{sid}`、`openConversation(sid)`、`createRunStore(…)`。图 ID = `loc.graphId` ?? `session.active_graph_id` ?? null；有图时按 §6.7 建当前图的 store。全部完成 `status='ready'`；`GET /sessions/{sid}` 失败为 `error`（`not_found` 由路由处理，`W.02.01` §8）。工作区多于 `MAX_WORKSPACES` 时释放最久没用的那个（不会是这个新的）。
-5. **启用**：`session.setCurrent(sid)`；按顺序打开会话流（`since: conversation.lastSeq`，新建时不带 `since`——先连流再拉消息，事件按 ID 合并，不会漏）、当前图的图协同流（`{kind:'graph', id, branch}`，`onOpen` 交给 Op 队列对齐版本，`C.06.03-R1`）、`run.control.attach()`。
+5. **启用**：`session.setCurrent(sid)`；按顺序打开会话流（`since: conversation.lastSeq`，新建时不带 `since`——先连流再拉消息，事件按 ID 合并，不会漏）、当前图的图协同流（`{kind:'graph', id, branch}`，`onOpen` 交给 Op 队列对齐版本，`C.06.03-R1`；`onResync` 交给 Op 队列 `reload()`；`onOpen.reconnected=true` 时按 `W.03` §6.2 对齐提议、档位、校验结果）、`run.control.attach()`。
 6. 通知订阅者（`WorkspaceProvider` 换 Context）。工作区已在内存时，第 5 步的连接在后台进行，不等它完成就通知——切换会话 ≤ 300ms（`U.17` §1）。
 
 ### 6.5 停用（切走）
@@ -270,3 +270,8 @@ export function createWorkspaceManager(deps: StateDeps, app: { ui: UiStoreApi; s
 - 允许使用的依赖：`react`、`zustand`（`G.10` §3.3）；测试用 `vitest`、`jsdom`、`@playwright/test`。
 - 禁止事项：`G.02.05` 全部（特别是 R14、R20、R28）；另：后台工作区不连任何事件流；除急停横幅确认框外不调用 `releaseEstop`；不在 localStorage 存会话、消息、审批；不在 `state/` 里 import `ops/`。
 - 完成标志：`G.14` 全部条件；§10 七条验收通过。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | `OpsHandle` 加 `reload()`、`onStreamOpen` 带 `reconnected`；`OpsFactory` 传入 `catalog`（端口兼容预检要用节点类型和数据类型）；§6.4 第 5 步补图协同流 `resync` 与重连后的对齐 | 写 `W.05` 时对齐（`P.09` K88、K90） |

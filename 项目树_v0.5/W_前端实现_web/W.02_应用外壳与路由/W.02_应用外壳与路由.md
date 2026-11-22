@@ -58,7 +58,7 @@ export function bootstrap(client: RestClient): Promise<BootState>;
 | # | 时刻 | 做什么 | 落实 |
 |---|---|---|---|
 | 1 | HTML 解析到 `<head>` | 同步执行 `/boot.js`：设 `data-palette`、`data-theme`、`data-motion`；渲染前完成，首屏不闪 | `W.02.03`、`U.03.04-R3` |
-| 2 | `main.tsx` 执行 | 立即渲染外壳骨架（顶部条、左栏框架、空画布区域），不等数据 | `U.14.01-R2` |
+| 2 | `main.tsx` 执行 | 按 `W.04` §6.1 组装协议层（`createProtocol`、`createAppStores`、`bindNet`），然后立即渲染外壳骨架（顶部条、左栏框架、空画布区域），不等数据 | `U.14.01-R2` |
 | 3 | 同时并行请求 | `GET /settings/onboarding`、`GET /settings`、`GET /sessions` | — |
 | 4 | 三个请求返回 | `onboardingDone=false` → 路由到 `/welcome`；否则按 `W.02.01` 解析当前地址 | `B.06.04` |
 | 5 | 设置返回后 | 主题与服务端配置对齐（`W.02.03` §6.3）；快捷键注册中心启用全局键 | — |
@@ -70,7 +70,7 @@ export function bootstrap(client: RestClient): Promise<BootState>;
 ### 6.1 失败分支
 | 情况 | 界面 |
 |---|---|
-| 任意请求 401 | 整页说明"Harness 已重新启动或访问凭证已更换。请回到启动 Harness 时打开的地址，或在命令行运行 `harnessctl open`。"；不显示外壳（`U.14.05`） |
+| 任意请求 401（启动时由 `bootstrap` 返回 `unauthorized`；启动后由 `ui.net === 'closed'` 触发，`W.04.05`） | 整页说明"Harness 已重新启动或访问凭证已更换。请回到启动 Harness 时打开的地址，或在命令行运行 `harnessctl open`。"；不显示外壳（`U.14.05`） |
 | 连不上 harnessd | 外壳保留，顶部条下方黄色横幅（`U.14.05`），每 2 秒重试 `GET /settings/onboarding`，成功后从第 4 步继续 |
 | 其他错误 | 外壳保留，对应区域显示错误和"重试"（`U.14.03`） |
 
@@ -94,3 +94,8 @@ export function bootstrap(client: RestClient): Promise<BootState>;
 2. 断开网络后打开页面：先看到外壳和横幅，服务恢复后自动进入。
 3. 使用过期 token 打开：显示 §6.1 的整页说明，控制台无未处理异常。
 4. 首屏 JS 体积不超过 §9。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | §6 第 2 步写明协议层组装；§6.1 的 401 行补上启动后的触发方式 | `P.09` K91（写 `W.04.05` 时对齐） |

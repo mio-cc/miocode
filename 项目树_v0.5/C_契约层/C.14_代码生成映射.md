@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 草稿 |
 | 素材 | 引01§4 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-23 |
 
 ## 1. 职责
 定义 `schema/` 到 Go 代码和 TypeScript 代码的生成规则，特别是生成器处理不好的情况（判别联合、可空、开放对象）怎么办。生成流程和命令见 `G.16`。
@@ -20,6 +20,7 @@
 | TS 类型 | `json-schema-to-typescript` | `web/src/lib/protocol/generated/*.ts` |
 | 常量（事件名、Op 种类、错误码、诊断码、动作名） | 自研小工具 `tools/gen/consts`，读 schema 里的枚举 | `gen/consts.go`、`generated/consts.ts` |
 | 数据表（容器规则、控件映射、判定表、状态机、类别映射） | `tools/gen/tables`，读 `schema/builtin/*.yaml` | `gen/tables.go`、`generated/tables.ts` |
+| 前端字段映射表（不透明字段、映射字段，§5.1） | `tools/gen/wire`，读全部 `schema/*.schema.json` | `generated/wire.ts`（只有前端用） |
 
 ## 3. 映射规则
 | JSON Schema | Go | TS |
@@ -52,8 +53,13 @@ func DecodeAs[T any](o *Op) (*T, error)
 
 ## 5. 命名
 - **C.14-R5** Go 类型名 = schema 的 `title` 或 `$defs` 名，PascalCase；字段名由生成器从 snake_case 转 PascalCase，缩写按 Go 习惯（`ID`、`URL`、`HTTP`）。
-- **C.14-R6** 常量命名：事件 `EvNodeState`（`node.state`）、Op `OpAddNode`、错误码 `ErrCodeGraphConflict`、诊断码 `DiagV09`、动作 `ActOpAddNode`。TS 里同名常量对象：`Ev.NodeState`、`OpKind.AddNode`。
+- **C.14-R6** 常量命名：事件 `EvNodeState`（`node.state`）、Op `OpAddNode`、错误码 `ErrCodeGraphConflict`、诊断码 `DiagV09`、动作 `ActOpAddNode`。TS 里同名常量对象：`Ev.NodeState`、`OpKind.AddNode`、`ErrCode.GraphConflict`、`DiagCode.V09`、`Act.OpAddNode`、SSE 控制帧 `SseControl.Resync`（`C.06.01` §4）；其他枚举的常量对象与类型同名，如 `RunStatus.Done`（`W.04.04-R7`，`P.09` K85）。
 - **C.14-R7** 中文枚举值（节点类型名）生成常量时用拼音或英文别名，表定义在 `schema/builtin/aliases.yaml`：`资源 → Resource`、`上下文装配 → ContextAssembly`、`扇出 → Fanout`、`汇合 → Join`、`聚合 → Aggregate`、`分支 → Branch`、`循环 → Loop`、`账本 → Ledger`、`人工 → Human`、`子图端口 → SubPort`、`子图引用 → SubRef`、`工具 → Tool`、`Agent → Agent`。
+
+### 5.1 前端字段映射表（`P.09` K84）
+前端在 `lib/protocol/mapping.ts` 把 snake_case 字段名转成 camelCase（`W.04.03`）。哪些位置的值不能转换，由生成器从 schema 算出，前端不手写名单：
+- **C.14-R8** `tools/gen/wire` 输出 `generated/wire.ts`：`OPAQUE_KEYS`（字段的 schema 是开放对象或没有类型约束：值整体原样）、`MAP_KEYS`（只有 `additionalProperties`、没有 `properties` 的对象：键是数据，值继续转换），以及对应的字面量联合类型 `OpaqueKey`、`MapKey`。判别联合里按 `if/then` 收窄的字段（`payload`、`data`）不算不透明。同一个字段名在不同位置分类不同时，取"不透明 > 映射 > 结构"中最保守的一种，并在文件注释里列出这些字段名。
+- **C.14-R9** 生成器检查每个字段名都能无损往返 `snake_case → camelCase → snake_case`：`C.01-R4` 之外，再拒绝"下划线后面紧跟数字"（`x_2`）和连续下划线（`a__b`）。不满足时生成失败。
 
 ## 6. 不允许
 - 手改任何生成文件（`G.02.05-R1`）。生成结果不满意时，改 schema 或改生成工具。
@@ -68,3 +74,8 @@ func DecodeAs[T any](o *Op) (*T, error)
 - 要建的文件：`tools/gen/main.go`、`tools/gen/consts/`、`tools/gen/tables/`、`tools/gen/union/`、`schema/builtin/aliases.yaml`。
 - 测试用例：`C14-T1`（确定性）、`C14-T2`（往返）。
 - 允许使用的依赖：`omissis/go-jsonschema`（作为生成工具，不进运行时）、`json-schema-to-typescript`（开发依赖）。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | §2 加前端字段映射表；R6 补 TS 常量对象名；新增 §5.1（R8、R9） | `P.09` K84、K85（写 `W.04.03`、`W.04.04` 时发现映射规则和 TS 常量名没有定义） |

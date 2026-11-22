@@ -48,7 +48,7 @@ export type CanvasSelection = {
 };
 export type MonitorPrefs = { range: 'session' | 'all'; status: 'all' | 'running' | 'pending' | 'failed' | 'done' };
 export type CenterSection = 'packages' | 'connections' | 'library' | 'settings';
-export type NetState = 'online' | 'reconnecting' | 'down' | 'closed';   // W.04.05：< 3 秒不算 reconnecting（U.14.05）
+export type NetState = 'online' | 'reconnecting' | 'down' | 'closed';   // W.04.05 §6.1：中断 < 3 秒仍是 online；≥ 3 秒 reconnecting；≥ 30 秒 down；401 后 closed（不再重连）
 export type Toast = {
   id: string; level: 'info' | 'ok' | 'wait' | 'error' | 'model';
   text: string; detail?: string;                       // 已经是翻译后的文案（W.10）
@@ -189,3 +189,8 @@ export function canvasReadonly(s: UiState): boolean;                       // ne
 - 允许使用的依赖：`zustand`；测试用 `vitest`、`jsdom`。
 - 禁止事项：`G.02.05` 全部；另：不在选中变化时打开右栏；不持久化选中；不在本 store 里拼接界面文案；不另建一套布局状态（`ShellLayout` 只在这里）。
 - 完成标志：`G.14` 全部条件；§10 六条验收通过。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | `NetState` 注释写明四个值的含义 | `P.09` K91 |

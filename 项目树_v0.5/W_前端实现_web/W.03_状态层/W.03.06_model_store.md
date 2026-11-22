@@ -71,6 +71,7 @@ export type ModelIngest = {                                            // 只给
   toolHint(ev: RunEvent): void;                                        // 当前运行的 orch.tool_call
   serverVersion(v: number): void;                                      // graph store 的 serverVersion 前进时调用
   estop(on: boolean): void;                                            // session store 的急停变化
+  reconnected(): void;                                                 // 图协同流重连：activity 置 null（§6.5）
 };
 export function createModelStore(o: {
   sessionId: Ulid; graphId: Ulid; branch: string; scope: Scope;
@@ -176,3 +177,8 @@ export function levelBadge(s: ModelState): { level: number; isScopeOverride: boo
 - 允许使用的依赖：`zustand`；测试用 `vitest`、`jsdom`。
 - 禁止事项：`G.02.05` 全部（特别是 R6、R14）；另：不在本地应用被采纳的 Op；不乐观修改档位；不提供任何解除急停的入口；不保存别的图或别的分支的提议。
 - 完成标志：`G.14` 全部条件；§10 五条验收通过。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | `ModelIngest` 加 `reconnected()`，落实 §6.5"图协同流重连时也置 null" | 写 `W.04.02` 时对齐（`W.03` §6.2） |

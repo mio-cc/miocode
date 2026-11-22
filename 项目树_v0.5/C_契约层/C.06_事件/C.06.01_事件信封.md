@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 草稿 |
 | 素材 | 引14 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-23 |
 
 ## 1. 职责
 定义所有事件共用的外层结构。
@@ -51,6 +51,7 @@ data: {"seq":118,"ts":"2026-11-22T10:02:03.120Z","kind":"node.progress","actor":
 ```
 - E 级事件不写 `id:` 行。
 - 服务器每 15 秒发一次注释帧 `: ping`。
+- **控制帧**（`P.09` K86）：除事件外，流里只有两种控制帧，它们不是事件、没有信封、不落库：`event: resync`（`data: {"snapshot_url": "…"}`，落后太多时让前端改拉快照，`B.05.02` 第 3 步）和 `event: shutdown`（服务关闭前发出，`B.05.03` §4）。生成器为它们输出常量 `SseControl.Resync`、`SseControl.Shutdown`（Go：`SseResync`、`SseShutdown`），代码里不手写这两个名字（`G.02.05-R3`）。
 
 ## 5. 验收标准
 1. 运行流里连续 10000 条 P 级事件，`seq` 从 1 到 10000 无空洞。
@@ -59,3 +60,8 @@ data: {"seq":118,"ts":"2026-11-22T10:02:03.120Z","kind":"node.progress","actor":
 ### 实施卡
 - 要建的文件：`schema/run-event.schema.json`、`schema/graph-event.schema.json`、`schema/session-event.schema.json` 的公共部分（各自引用 `common.schema.json#/$defs/Event` 的结构，再按 `kind` 约束 `data`）。
 - 测试用例：`C0601-T1`、`C0601-T2`。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | §4 登记两种控制帧 `resync`、`shutdown` 及其常量 | `P.09` K86：`B.05.02`、`B.05.03` 用到了，但 `C.06` 没有登记（`C.06-R7`） |
