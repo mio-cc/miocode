@@ -22,7 +22,9 @@
 | `web/src/styles/themes.css`、`web/src/styles/themes.ts` | `design/themes/*.css`（`U.03.05` §4） | `go run ./tools/gen tokens` | 是 |
 | `web/src/lib/protocol/generated/wire.ts`（前端字段映射表，`C.14-R8`） | `schema/*.schema.json` | `go run ./tools/gen` | 是 |
 | `web/src/lib/protocol/generated/tables.ts` 里的快捷键表 | `schema/builtin/shortcuts.yaml`（格式见 `W.02.04`） | `go run ./tools/gen` | 是 |
+| `generated/tables.ts` 的 `AUTHZ_MATRIX`（档位 × 动作默认判定表，设置 › 授权与安全显示用；后端判定读同一份，`C.09` §7） | `schema/builtin/authz_matrix.yaml` | `go run ./tools/gen` | 是 |
 | `gen/tables.go` 的 `Layout`、`generated/tables.ts` 的 `LAYOUT`（布局常数，`U.05-R3`） | `schema/builtin/layout.yaml`（格式见 `W.06.10` §5.1）；`go run ./tools/gen tokens` 同时检查 `design/tokens.css` 的 `--hx-node-*`、`--hx-grid`、`--hx-port` 与它相等 | `go run ./tools/gen` | 是 |
+| `web/src/styles/icons.ts`（图标表 `ICONS`、`IconName`，`U.08-R2`） | `design/icons/*.svg`、`design/icons/node/*.svg`（文件名用 `schema/builtin/aliases.yaml` 的英文别名，生成时换回 `U.08` 表里的名字）；检查 `U.08-R1`、`R4`，不通过则生成失败 | `go run ./tools/gen icons` | 是 |
 | `web/public/fonts/*` | `design/fonts/` 原始字体 | `go run ./tools/gen fonts`（子集化） | 是 |
 | `engine/store/sqlite/queries.go` | `engine/store/sqlite/queries.sql` | `sqlc generate` | 是 |
 | `web/dist/` | 前端源码 | `pnpm -C web build` | **否** |
@@ -43,3 +45,5 @@
 | 2026-11-23 | 生成物清单补上主题文件和快捷键表 | `P.09` K69 | |
 | 2026-11-23 | 生成物清单补 `generated/wire.ts` | `P.09` K84 |
 | 2026-11-23 | 生成物清单补布局常数（`layout.yaml` → `Layout` / `LAYOUT`）及令牌一致性检查 | `P.09` K102（第 7 棒） |
+| 2026-11-23 | 生成物清单补图标表 `web/src/styles/icons.ts` | 第 9 棒写 `W.08`；`P.09` K122 |
+| 2026-11-23 | 生成物清单补 `AUTHZ_MATRIX` | 第 9 棒写 `W.09.02`；`P.09` K153 |

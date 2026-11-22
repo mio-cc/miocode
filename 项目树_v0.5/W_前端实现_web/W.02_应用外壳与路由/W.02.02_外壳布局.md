@@ -33,6 +33,8 @@
 type AppShellProps = {
   mode: 'session' | 'page';           // page：首次引导等整页界面占画布区域，侧栏可见但不可用（U.18-R2）
   page?: ReactNode;                   // mode=page 时渲染在画布区域
+  canvasOverlay?: ReactNode;          // mode=session：叠在画布之上、浮动层之下，自身 pointer-events:none（空状态、画布导览，W.09.01、W.09.03，K148）
+  cover?: ReactNode;                  // mode=session：盖住画布区域和浮动层（运行历史，W.09.05，K146）；画布保持挂载、不销毁引擎
 };
 export function AppShell({ mode, page }: AppShellProps): JSX.Element;
 
@@ -131,6 +133,10 @@ export function bpOf(width: number): ShellLayout['bp'];
 ### 6.5 页面模式（`mode='page'`）
 首次引导等整页界面渲染在画布区域里；顶部条和左栏照常显示但设 `inert`（不可聚焦、不可点击），右栏收起，浮动层不渲染（`U.18-R2`）。急停按钮除外：首次引导以外的页面里急停必须可用（`U.14.04-R1`），所以只有 `/welcome` 才让顶部条整体 `inert`。
 
+### 6.5a 两个会话页插槽（`P.09` K146、K148）
+- `canvasOverlay`：放在 `CanvasArea` 里 `<Canvas/>` 与 `<FloatLayer/>` 之间，`position: absolute; inset: 0; pointer-events: none`；里面的卡片、按钮自己设 `pointer-events: auto`。
+- `cover`：放在 `CanvasArea` 最上层，`position: absolute; inset: 0`，`bg-1`；有 `cover` 时 `FloatLayer` 不渲染（对话框、浮动回复、停靠栏都不显示），`<Canvas/>` 照常挂载（主画布引擎不销毁，回来时不重建 DOM 池）；顶部条、左右侧栏照常可用。
+
 ### 6.6 横幅位置
 急停横幅、离线横幅、窄屏提示（`bp='xs'`，"窗口太窄，建议加宽到 900 以上使用"）放在 `BannerSlot`（网格第 2 行），出现和消失时主体区域高度变化，画布引擎按视口尺寸变化处理，不额外补偿。
 
@@ -178,3 +184,4 @@ export function bpOf(width: number): ShellLayout['bp'];
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | §4.1：`FloatLayer` 的子元素包在 `FloatReplyProvider` 里；新增 `useCanvasAreaRect`；横幅列出子图库内容提示 | 第 8 棒写 `W.07`；`P.09` K111 |
+| 2026-11-23 | `AppShell` 新增 `canvasOverlay`、`cover` 两个插槽（§4.1、§6.5a） | 第 9 棒写 `W.09`；`P.09` K146、K148 |

@@ -130,7 +130,7 @@ div.hx-node[data-node-id][role=group][tabindex=-1][aria-label]
 - `last=true`（没有选择运行，显示的是上次结果）：加 `is-last`，CSS 降低饱和度，`meta` 前加"上次"（`U.10.02-R2`）。
 - 只改类、文字和 `transform: scaleX`，不重建元素（`U.17-R5`）；状态没变时不写。
 - 状态脚里的按钮带 `data-act`，点击时（用 `elementFromPoint` 找到按钮，`W.06-R6`）发 `node.action`。
-- 减少动效：旋转弧换成静态半圆弧（CSS 在 `html[data-motion="reduce"]` 下替换），`U.07.04` §2。
+- 旋转弧一圈 `--hx-t-spin`（`P.09` K124，与 `W.08.05` `Spinner` 同一令牌）。减少动效：旋转弧换成静态半圆弧（CSS 在 `html[data-motion="reduce"]` 下替换），`U.07.04` §2。
 
 ### 6.4 节点上的参数控件（`widgets.ts`）
 控件列表来自 `shape.widgets`（`W.06.10` 按 `C.03.05` 选出：`group=常用`，按 `order` 排，最多 4 个，`show_if` 为假的不显示）。
@@ -222,3 +222,8 @@ div.hx-node[data-node-id][role=group][tabindex=-1][aria-label]
 - 允许使用的依赖：无运行时依赖；测试用 `vitest`、`jsdom`、`@playwright/test`。
 - 禁止事项：`G.02.05` 全部（特别是 R6、R9、R23、R26）；另：不对任何元素写 `innerHTML`；不在帧任务里读布局（下拉锚点只在点击时读一次）；不在节点上显示"高级"参数；不为某个节点类型名写渲染以外的特殊逻辑；不在节点上直接调用审批、运行接口（只发 `node.action`）。
 - 完成标志：`G.14` 全部条件；§10 六条验收通过。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | 运行中旋转弧的时长写成令牌 `--hx-t-spin` | 第 9 棒写 `W.08`；`P.09` K124 |

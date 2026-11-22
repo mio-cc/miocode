@@ -138,7 +138,7 @@ UiState.composerPrefill: null | { text: string; attachSelection: boolean; seq: n
 
 ### 6.5 节点库（`U.22`）
 - 挂载时 `catalog.loadPresets()`；`status='loading'` 超过 300ms 显示旋转弧。
-- 顶部 `Tabs variant="underline"`：全部 / 收藏 / 最近（`U.22-R2`、`R11`）；下方 `SearchInput`。`/`（`useShortcut('lib.search')`）→ `setLs(true)`、`setLsFold('lib', false)`、聚焦搜索框（`U.09.02` §1）。
+- 顶部 `Tabs variant="underline"`：全部 / 收藏 / 最近（`U.22-R2`、`R11`）；下方 `SearchInput`。`/`（`useShortcut('lib.search')`）→ `setLs(true)`、`setLsFold('lib', false)`、聚焦搜索框（`U.09.02` §1）。订阅 `ui.libQuery`：`seq` 变化时把 `text` 填进搜索框、切到"全部"并按 §6 的搜索显示结果（包详情"在节点库中显示"，`W.09.04`，`P.09` K149）；`revealInLibrary` 已经打开左栏并展开节点库。
 - 全部：分类树最多三层；一级标题 12.5px / 500 / `text-1`，二级 12px / `text-2`，条目 12.5px / `text-1`，逐级缩进（`U.22-R12`）；展开状态存 `hx:lib-open`。每个一级分类底部有入口（`U.22-R6`）：模型 › "连接更多模型…"（`ui.openCenter('connections')`）；工具 › "接入 MCP 服务、安装扩展包…"（`openCenter('packages')`）。`total > 500` 时展开某个分类才 `loadPresets({path})`（`U.22-R10`）。
 - 收藏 / 最近：平铺，每条下方 `text-3` 小字显示分类路径；空时一行 `text-3`"还没有收藏"/"还没有用过"。
 - 搜索（`U.22-R3`）：`total ≤ 500` 时本地匹配名称、说明、分类路径、来源、原子节点类型（大小写、全半角不敏感）；否则 200ms 防抖 `searchPresets(q)`。有搜索词时平铺结果并显示路径；无结果 → `EmptyState`："没有找到「{q}」"、"试试别的词，或者让 AI 帮你做一个"、按钮"让 AI 帮我做" → `ui.prefillComposer({text: t('ls.lib.askAi', {q})})`（`U.14.02`）。
@@ -223,3 +223,4 @@ UiState.composerPrefill: null | { text: string; attachSelection: boolean; seq: n
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | 首版 | 第 8 棒；`P.09` K114 |
+| 2026-11-23 | 节点库订阅 `ui.libQuery`（包详情"在节点库中显示"） | 第 9 棒写 `W.09.04`；`P.09` K149 |

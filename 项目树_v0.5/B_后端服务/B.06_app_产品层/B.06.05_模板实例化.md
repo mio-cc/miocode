@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 草稿 |
 | 素材 | 新 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-23 |
 
 ## 1. 职责
 把模板实例化成一张新图：替换占位 ID、填入用户回答、检查依赖、挂到会话。
@@ -29,7 +29,7 @@ func (a *App) Instantiate(ctx context.Context, name string, inputs map[string]js
 2. 生成 ID 映射：所有占位 ULID → 新 ULID；整份文档按映射替换（节点、连线、便签、子图、`mandates` 挂载的节点引用）。
 3. 按 `inputs` 写参数或根图入口值；类型不符 → 400。
 4. 创建图（`meta.template = 名@版本`）：作为一条 `import_apply` 复合 Op 提交，actor 为调用者（用户，或对话 Agent 的模型实例——此时按 `op.add_node` 授权）。
-5. 有 `sessionID`：`AttachGraph(makeActive=true)`。
+5. 有 `sessionID`：`AttachGraph(makeActive=true)`；会话标题仍是缺省的"新会话"时改为模板标题（`U.09.04-R9`）。
 
 ## 6. 不变量
 - 实例化两次得到 ID 完全不同、结构完全相同的图（`C1304-T2`）
@@ -52,3 +52,8 @@ func (a *App) Instantiate(ctx context.Context, name string, inputs map[string]js
 - 允许使用的依赖：标准库 + `G.10` 已登记依赖
 - 禁止事项：`G.02.05` 全部
 - 完成标志：`G.14` 全部条件
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | §5 第 5 步补自动改名 | 第 9 棒写 `W.09.01`；`U.09.04-R9` |

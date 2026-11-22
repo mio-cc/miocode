@@ -110,6 +110,7 @@ CurrentRun.pendingPatches: readonly PendingPatch[];               // RunView.pen
    | 暂停 / 继续 | `running` / `paused`（`U.14.04` §1） | `run.pause()` / `resume()` |
    | 重新运行 | 已结束 | `run.start()`（当前图的新一次运行） |
    | 从失败处继续 | `failed` | 确认框"从「{失败节点}」之前的检查点继续？前面完成的节点不再执行"→ `run.fork({nodeId, scopes})`（`U.19.05` 第 4 步、`E.16.05`） |
+   | 在运行历史中打开 | 任何状态（`ghost` 按钮） | `ui.openHistory({sessionId, runId})`：画布区域换成运行历史页，可以拖动进度条回放（`W.09.05`，`P.09` K146） |
    - 急停中：重新运行、从失败处继续置灰，提示"急停中不能运行"（`U.19.04` §3）；停止照常可用。
    - fork 出来的运行在列表顶部出现，详情里第一行 `text-3`"从运行 #12 分叉"（`U.19.05` 第 5 步）。
 
@@ -201,3 +202,4 @@ CurrentRun.pendingPatches: readonly PendingPatch[];               // RunView.pen
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | 首版 | 第 8 棒；`P.09` K114、K117 |
+| 2026-11-23 | 运行详情的操作加"在运行历史中打开" | 第 9 棒写 `W.09.05`；`P.09` K146 |

@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 草稿 |
 | 素材 | 新 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-23 |
 
 ## 1. 目的
 统一配置的来源、优先级和命名。
@@ -42,6 +42,33 @@
 | `tools.allowed_hosts` | `[]` | — | 是 |
 | `mcp.servers` | `[]` | — | 是（重新连接） |
 | `telemetry.enabled` | `false` | — | 是 |
+| `general.send_key` | `enter`（可选 `mod`） | — | 是 |
+| `notify.approval` · `notify.run` · `notify.connection` · `notify.budget` | `true` | — | 是 |
+| `notify.desktop` | `false` | — | 是 |
+| `models.orchestrator` | 空（= 用 `models.default`） | — | 是 |
+| `models.default_effort` | `medium`（`off` / `minimal` / `low` / `medium` / `high` / `xhigh` / `max`） | — | 是 |
+| `models.demo_mode` | `false`（`--fake-llm` 时为 `true`） | `--fake-llm` | 是 |
+| `authz.default_level` | `1` | — | 是（只影响新会话） |
+| `approval.merge_similar` | `true` | — | 是 |
+| `approval.timeout_minutes` | `0`（不限） | — | 下次运行 |
+| `sandbox.backend` | `wazero`（可选 `docker`） | — | 下次运行 |
+| `sandbox.timeout_s` · `sandbox.memory_mb` | `10` · `256`（上限 30 · 512，`S.06`） | — | 下次运行 |
+| `sandbox.network` | `false` | — | 下次运行 |
+| `tools.file_roots` | `[]` | — | 是 |
+| `mcp.allow_local_http` | `false` | — | 是 |
+| `budget.monthly_micros` | `0`（不设；只用于进度和提醒） | — | 是 |
+| `budget.run_default_micros` | `0`（不设） | — | 下次运行 |
+| `packages.<包 id>.<key>` | 按包的 `SettingDef.default`（`C.15`） | — | 按包声明 |
+| `onboarding.step` | `welcome`（`B.06.04`） | — | 是 |
+| `security.taint_guard` | `true`，只读（INV-16） | — | — |
+| `server.local_only` | `true`，只读（INV-21） | — | — |
+
+- 设置页显示哪些项、怎么分组，见 `W.09.02` §5.2；上表是唯一的路径来源（`P.09` K142）。
 
 ## 4. 检查方式
 单元测试：每个登记的配置项都能通过三种方式设置，优先级正确；`harnessctl doctor` 打印最终生效的配置（密钥名显示，密钥值不显示）。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | §3 补登设置页的全部配置路径（发送键、通知、默认模型与思考强度、演示模式、默认档位、审批、沙箱、文件目录、本机 HTTP MCP、预算、包的设置、引导进度、两个只读项） | 第 9 棒写 `W.09.02`；`P.09` K115 定稿为 K142 |

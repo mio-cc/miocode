@@ -33,7 +33,10 @@
 // 1) 读 boot.js 已经设好的 <html data-*>；2) 创建路由；3) 渲染 <App/>。不做任何网络请求之外的初始化。
 
 // web/src/App.tsx
-export function App(): JSX.Element;               // <AppBootstrap> 包住 <RouterProvider>
+export function App(): JSX.Element;               // <UiEnvProvider value={shellUiEnv}> 包住 <AppBootstrap> 包住 <RouterProvider>
+
+// web/src/shell/uiEnv.ts —— 给基础组件库的界面环境（W.08 §4.3，P.09 K121）
+export const shellUiEnv: UiEnv;                   // pushOverlay → keys.pushOverlay；reducedMotion → themeController.get().reducedMotion；portalRoot → body 末尾的 <div id="hx-layers">（没有就建）
 
 // web/src/shell/bootstrap.ts
 export type BootState =
@@ -49,6 +52,7 @@ export function bootstrap(client: RestClient): Promise<BootState>;
 | `W.04.01` `RestClient` | `GET /settings/onboarding`、`GET /settings`、`GET /sessions` |
 | `W.03` 各 store 工厂、`W.03.05` 会话工作区 | 路由进入会话时创建 / 复用工作区 |
 | `W.10` `useT` | 文案 |
+| `W.08.04` `UiEnvProvider`、`UiEnv` 类型；`W.02.04` `keys`；`W.02.03` `themeController` | `shell/uiEnv.ts` 组装界面环境 |
 | 生成类型 `Settings`、`Session`、`Page<T>` | `lib/protocol/generated`（`W.04.04`） |
 
 ## 5. 数据结构
@@ -65,7 +69,7 @@ export function bootstrap(client: RestClient): Promise<BootState>;
 | 6 | 进入会话路由 | 创建会话工作区，连会话流、图协同流（`W.04.02`），画布挂载 | `W.01-R15` |
 
 - 第 2–6 步之间的任何加载状态按 `U.14.01`：300ms 内不显示，300ms–2s 局部旋转弧，超过 2s 写明在加载什么。
-- 首屏可交互（打开到能操作）≤ 1.5 秒（`U.17` §1）。首屏不加载的模块用动态 `import()`：中心窗口（`W.09.02`、`W.09.04`）、首次引导（`W.09.03`）、运行历史（`W.09.05`）、命令面板（`W.07.11`）。
+- 首屏可交互（打开到能操作）≤ 1.5 秒（`U.17` §1）。首屏不加载的模块用动态 `import()`：中心窗口（`W.09.02`、`W.09.04`）、首次引导（`W.09.03`）、运行历史（`W.09.05`）、命令面板（`W.07.11`）。`App.tsx` 在 `ui.center` 第一次非空时 `lazy(() => import('@/pages/center/CenterHost'))` 并渲染在路由之外的顶层（中心窗口不进 URL，`W.09` §6.1，`P.09` K141）。
 
 ### 6.1 失败分支
 | 情况 | 界面 |
@@ -99,3 +103,5 @@ export function bootstrap(client: RestClient): Promise<BootState>;
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | §6 第 2 步写明协议层组装；§6.1 的 401 行补上启动后的触发方式 | `P.09` K91（写 `W.04.05` 时对齐） |
+| 2026-11-23 | §4.1 新增 `shell/uiEnv.ts` 的 `shellUiEnv`，`App.tsx` 外层放 `UiEnvProvider` | 第 9 棒写 `W.08`；`P.09` K121 |
+| 2026-11-23 | §6 写明 `App.tsx` 懒加载中心窗口的方式 | 第 9 棒写 `W.09.02`；`P.09` K141 |

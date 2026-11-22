@@ -113,7 +113,7 @@ deleteBranch(name: string): Promise<void>;                                 // DE
 
 ### 6.5 编排者模型胶囊（`U.12` §5、`U.09.03`）
 - 只在 `bp = 'xl'`（≥ 1180）显示。文字：当前会话的编排者模型名（`session.orchestrator_model`，缺省取设置里的默认模型，`P.09` Q17）。
-- `model.activity.state ∈ {thinking, editing}`：左侧模型色呼吸点（透明度 0.4 ↔ 1，周期 1.2 秒，减少动效时静态），文字换成"AI 正在编辑…"（`thinking` 时"AI 正在思考…"）；同时 `useAnnounce` 播报一次（polite），给看不到 AI 光标的读屏用户（`W.06.14` §6.5）。
+- `model.activity.state ∈ {thinking, editing}`：左侧模型色呼吸点（透明度 0.4 ↔ 1，周期 `--hx-t-breath`（1.2 秒，`P.09` K124），减少动效时静态），文字换成"AI 正在编辑…"（`thinking` 时"AI 正在思考…"）；同时 `useAnnounce` 播报一次（polite），给看不到 AI 光标的读屏用户（`W.06.14` §6.5）。
 - 点击 → 打开 `W.07.07` 的 `ModelPicker`（锚在胶囊下方）。
 
 ### 6.6 档位胶囊与授权面板（`U.12` §6、`U.14.04` §3）
@@ -125,7 +125,8 @@ deleteBranch(name: string): Promise<void>;                                 // DE
   - 急停中：五档都置灰，提示"急停中，解除后再调整"（解除只在横幅，`W.07.10`）。
 
 ### 6.7 运行按钮与运行状态（`U.14.04` §1–§2、`U.14.03` §1）
-- `RunButton`：`Button variant="primary"`，图标 play + "运行"；`useShortcut('run.start', …)` 注册 `Mod+Enter`（焦点在对话框里时由 `composer` 层先处理成发送，`W.02.04` §6.1）。
+- 演示模式标记：`settingOf(settings, 'models.demo_mode', false)` 为真时，会话名后显示 `Badge neutral`"演示模式"，提示框"所有模型输出是示例数据 · 点这里管理模型"，点击 → `ui.openCenter('settings', 'models')`（`U.18` §2 第 2 步、`B.06.04` §5，`P.09` K147）。
+- `RunButton`：`Button variant="primary"`，图标 play + "运行"；根元素带 `data-tour="run"`（画布导览读取位置，`W.09.03`，K147）；`useShortcut('run.start', …)` 注册 `Mod+Enter`（焦点在对话框里时由 `composer` 层先处理成发送，`W.02.04` §6.1）。
   | 状态 | 外观 | 点击 |
   |---|---|---|
   | 没有图、急停中、离线 | 置灰，提示框写原因（`useEditBlock` + `estop.global`；急停："急停中不能运行"，`U.19.04` §3） | 无 |
@@ -227,3 +228,5 @@ deleteBranch(name: string): Promise<void>;                                 // DE
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | 首版 | 第 8 棒；`P.09` K111、K116、K118 |
+| 2026-11-23 | 模型胶囊呼吸点的周期写成令牌 `--hx-t-breath` | 第 9 棒写 `W.08`；`P.09` K124 |
+| 2026-11-23 | 加演示模式标记；运行按钮加 `data-tour="run"` | 第 9 棒写 `W.09.03`；`P.09` K147 |

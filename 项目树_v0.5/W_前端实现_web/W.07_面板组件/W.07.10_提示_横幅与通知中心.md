@@ -77,7 +77,7 @@ SessionState.inbox: { runs: readonly RunMeta[]; connections: readonly { id: stri
 SessionActions.loadInbox(): Promise<void>;   // GET /runs?status=done,failed,cancelled&since=24h&limit=50（全部会话）、GET /mcp-servers、GET /providers 里 state ≠ ok 的
 ```
 - localStorage：`hx:inbox-read`（最后一次"全部已读"或打开"全部"标签的时间戳，毫秒），登记在 `W.03` §6.4。
-- 设置项（K115）：`notify.approval`、`notify.run`、`notify.connection`、`notify.budget`（缺省都 `true`）、`notify.desktop`（缺省 `false`），字段名由 `W.09.02` 定稿时核对。
+- 设置项（K115，已由 `W.09.02` §5.2 定稿、登记 `G.11` §3，K142）：`notify.approval`、`notify.run`、`notify.connection`、`notify.budget`（缺省都 `true`）、`notify.desktop`（缺省 `false`）；用 `settingOf(catalog.settings, path, 缺省)` 读。
 
 ### 4.3 依赖
 `W.03` §4.2 的 hook；`W.03.03`（`toasts`、`dismiss`、`net`、`layout.bp`、`setRs`、`openCenter`）；`W.03.05`（`estop`、`approvals`、`inbox`、`onActivity`、`loadInbox`、`releaseEstop`、`sessionMeta`）；`W.03.04`（`current.budget`、`current.pendingPatches`、`hotpatch`、`focus`）；`W.03.01`（`change`、`model`、`crumbs`）；`W.05` 的 `useOps()`（`conflict`、`resolveConflict`、`revertOp`）；`W.02.01` 的 `useNav`；`W.07` §4.2 的 `useLocate`、`describeOp`；`W.07.09` 的 `ApprovalCard`；`W.08` 的 `Toast`、`Dialog`、`Popover`、`Tabs`、`IconButton`、`Button`、`ScrollArea`、`Icon`；`W.10` 的 `useT`、`fmtRelTime`。
@@ -209,3 +209,4 @@ SessionActions.loadInbox(): Promise<void>;   // GET /runs?status=done,failed,can
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | 首版 | 第 8 棒；`P.09` K114、K115、K117 |
+| 2026-11-23 | §4.2 设置项名已定稿（K142），改用 `settingOf` 读 | 第 9 棒写 `W.09.02`；`P.09` K142 |

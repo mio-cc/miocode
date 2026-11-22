@@ -30,9 +30,10 @@
 | GET | `/recipes` · `/recipes/{ref}` | 配方 | → 列表 / `Recipe` |
 | GET | `/rolecards` · `/rolecards/{ref}` | 角色卡（含继承解析后的结果） | → 列表 / `RoleCard` |
 | POST | `/rolecards` | 新建或保存新版本（保存前检查，`C.13.02` §4） | `RoleCard` → 201 |
-| GET | `/library?q=` | 子图库 | → `LibraryItem[]` |
+| GET | `/library?q=` | 子图库：每项 `{name, version, versions[], description, ports {in[], out[]}, updated_at}`；`ports` 的每项 `PortSig {name, type, multi, role}`（`role` ∈ entry / exit / summary / escalation），由后端按该版本子图里的子图端口算出（`P.09` K145） | → `LibraryItem[]` |
 | POST | `/library` | 把一个子图存入子图库（新版本） | `{graph_id, scope, name, version, description}` → 201 |
-| GET | `/library/{name}/{version}` | 子图内容 | → `Subgraph` |
+| GET | `/library/{name}/{version}` | 子图内容；`?as=graph` 时返回只读预览用的 `{graph, registry_hash, diags}`（把子图包成一张图，图 ID 由 `名@版本` 确定性派生，不落库，`W.09.02` §6.9） | → `Subgraph` / `GraphRead` |
+| GET | `/library/{name}/{version}/ports` | 只取端口签名（画布上只有 `ref` 的子图引用节点用，`W.06.10`） | → `{in: PortSig[], out: PortSig[]}` |
 
 ## 5. 行为
 - 节点库响应按注册表哈希做 ETag，前端缓存（`W.04.01`）。
@@ -64,3 +65,4 @@
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | §4 新增 `GET /node-presets` | 第 8 棒写 `W.07.02`：`U.22-R10` 引用的接口没有登记；`P.09` K113 |
+| 2026-11-23 | `/library` 返回 `ports`、`versions`、`updated_at`；`/library/{name}/{version}` 支持 `?as=graph`；新增 `…/ports` | 第 9 棒写 `W.09.02`（子图库与只有 `ref` 的子图引用的端口签名）；`P.09` K145 |

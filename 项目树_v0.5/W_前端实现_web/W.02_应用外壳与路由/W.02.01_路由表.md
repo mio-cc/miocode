@@ -25,7 +25,7 @@
 ### 4.1 路由表
 | 路径 | 页面 | 解析规则 |
 |---|---|---|
-| `/` | 会话首页（`W.09.01`） | 引导未完成 → 替换为 `/welcome`；有会话 → 替换为最近打开的会话（localStorage `hx:last-session`，不存在时取会话列表第一项）的 `/c/:sessionId`；没有会话 → 留在 `/`，显示第一次打开的空状态（`U.14.02`） |
+| `/` | 会话首页（`W.09.01` 的 `HomePage`） | 引导未完成 → 替换为 `/welcome`；有会话 → 替换为最近打开的会话（localStorage `hx:last-session`，不存在时取会话列表第一项）的 `/c/:sessionId`；没有会话 → 留在 `/`，显示第一次打开的空状态（`U.14.02`） |
 | `/welcome` | 首次引导（`W.09.03`） | 引导已完成 → 替换为 `/` |
 | `/c/:sessionId` | 会话页 | 会话有当前图 → 替换为 `/c/:sessionId/g/:activeGraphId`，带上 `?scope=` = `last_location.scope`（是 `root` 时省略）；没有图 → 留在本路径，画布显示"空白画布"空状态（`U.14.02`） |
 | `/c/:sessionId/g/:graphId` | 会话页 | 查询参数 `scope`：省略 = 根图；否则为当前层的容器节点 ID（K68）。`graphId` 不属于这个会话 → 替换为 `/c/:sessionId`；`scope` 在图里不存在 → 替换为根图并提示"那一层已经不存在了" |
@@ -50,6 +50,12 @@ export function useNav(): {
 ```
 ### 4.3 依赖
 `react-router`（`G.10` §3.3）：`createBrowserRouter`、`useNavigate`、`useLocation`。`W.03.05` 会话列表与 `Session`、`saveLastLocation`、工作区 `activate` / `setLocation`。
+
+### 4.4 会话页挂载的页面（`P.09` K146–K148）
+`SessionRoute` 渲染 `<AppShell mode="session" canvasOverlay={…} cover={…} />`：
+- `canvasOverlay`：`ui.tour` 为真 → 懒加载 `pages/welcome/Tour`（`W.09.03`）；否则 `pages/home/CanvasEmpty`（`W.09.01`，它自己判断显示哪一种空状态）。
+- `cover`：`ui.history` 非空且 `history.sessionId` 是当前会话 → 懒加载 `pages/history/HistoryCover`（`W.09.05`）；地址里的会话或图变化时调 `ui.closeHistory()`。
+- `/welcome`：`<AppShell mode="page" page={<WelcomePage/>} />`，`WelcomePage` 懒加载（`W.09.03`）。
 
 ## 5. 数据结构
 `Location` 见 §4.2。路由参数 `sessionId`、`graphId`、`scope` 都必须匹配 ULID 正则 `^[0-9A-HJKMNP-TV-Z]{26}$`（`scope` 另可为省略），不匹配按"其他"处理。
@@ -117,3 +123,4 @@ export function useNav(): {
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | §6.3 第 2 步改为调用 `W.03.05` 的 `saveLastLocation`（节流在 session store 里做），路由不直接发请求 | `W.01-R13`；写 `W.03.05` 时对齐 |
+| 2026-11-23 | 新增 §4.4：`SessionRoute` 挂载空状态、画布导览、运行历史；`/welcome` 懒加载引导页 | 第 9 棒写 `W.09`；`P.09` K146–K148 |

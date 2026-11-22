@@ -105,13 +105,13 @@ export function describeOp(op: Op, m: GraphModel | null, t: (k: string, v?: Reco
 | W.08.03 | `Segmented` | `value`、`items: {value, label, tip?}[]`、`onChange`（选中背景滑动 `--hx-t-2`，减少动效直接切换） | 主题明暗、思考强度、监控页状态 |
 | W.08.03 | `Switch` | `checked`、`onChange`、`label` | 列表视图、减少动效、属性页布尔参数 |
 | W.08.03 | `Tabs` | `value`、`items: {value, label, badge?}[]`、`onChange`、`variant: 'underline' \| 'pill'`（`underline` = 纯文字 + 当前项 1.5px 下划线，`U.22-R11`） | 右侧栏标签页、节点库筛选、通知中心、监控页小标签 |
-| W.08.03 | `Picker` | `groups: {title?, items: {id, icon?, label, desc?, right?, disabled?}[]}[]`、`activeId`、`onPick`、`onActiveChange`、`emptyText`、`footer?`（键盘上下、Enter、Tab 选择） | 附件菜单、`/` 命令、`@` 引用、模型选择、快速添加 |
-| W.08.04 | `Overlay` | `layer: 'popover' \| 'modal' \| 'toast' \| 'tooltip' \| 'pane'`（映射 `--hx-z-*`，`U.06` §3）、`open`、`onClose`、`trapFocus?`、`restoreFocus?`（默认 true，`U.16-R6`）、`closeOnOutside?`、`children`；打开时调 `keys.pushOverlay(layer === 'modal' ? 'modal' : 'popover', …)` 由调用方传入的 `onKey` 处理 | 所有浮层（`G.06.01-R9`） |
+| W.08.03 | `Picker` | `groups: {title?, items: {id, icon?, label, desc?, right?, disabled?}[]}[]`、`activeId`、`onPick`、`onActiveChange`、`emptyText`、`footer?`、`listId?`、`query?`、`ref: PickerHandle`（键盘上下、Enter、Tab 选择；焦点留在调用方的输入框时，输入框的 `onKeyDown` 交给 `ref.current.key(e)`，`P.09` K126） | 附件菜单、`/` 命令、`@` 引用、模型选择、快速添加 |
+| W.08.04 | `Overlay` | `layer: 'popover' \| 'modal' \| 'toast' \| 'tooltip' \| 'pane'`（映射 `--hx-z-*`，`U.06` §3）、`open`、`onClose`、`trapFocus?`、`restoreFocus?`（默认 true，`U.16-R6`）、`closeOnOutside?`、`onKey?`、`initialFocus?`、`scrim?`、`anchorEl?`、`children`；打开时经界面环境 `UiEnv.pushOverlay(layer === 'modal' ? 'modal' : 'popover', …)` 压栈（`components/ui` 不 import `shell`，`W.02` 注入 `keys.pushOverlay`），`Esc` / `Tab` 之外的键交给 `onKey`（`W.08` §4.3，`P.09` K121、K126） | 所有浮层（`G.06.01-R9`） |
 | W.08.04 | `Popover` | `anchor: HTMLElement \| DOMRect`、`placement`、`offset?`、`open`、`onClose`、`width?`、`glass?`（玻璃材质，`U.23-R6`）、`children`；用 `@floating-ui/dom` 定位 | 主题菜单、档位面板、分支菜单、上下文用量、类型图例、通知中心 |
-| W.08.04 | `Menu` | `at: {x, y}`、`items: MenuItem[]`（`{id, label, icon?, shortcut?, disabled?, disabledReason?, danger?, children?: MenuItem[]} \| 'sep' \| {group: string}`）、`onPick(id)`、`onClose`（宽 220、项高 28；方向键、Enter、Esc、→ 展开子菜单，`U.13.05-R1`） | 右键菜单、会话项菜单、账户菜单 |
-| W.08.04 | `Dialog` | `title`、`width: 400 \| 560`、`open`、`onClose`、`actions: {label, variant, onClick, autoFocus?}[]`（危险按钮在右，`U.11` §2）、`children` | 冲突框、解除急停确认、删除会话确认、合并预览 |
+| W.08.04 | `Menu` | `at: {x, y} \| HTMLElement`、`items: MenuItem[]`（`{id, label, icon?, shortcut?, disabled?, disabledReason?, danger?, model?, checked?, children?: MenuItem[], run?()} \| 'sep' \| {group: string}`；选中时先 `run()` 再 `onPick(id)`）、`onPick(id)`、`onClose`（宽 220、项高 28；方向键、Enter、Esc、→ 展开子菜单，`U.13.05-R1`） | 右键菜单、会话项菜单、账户菜单 |
+| W.08.04 | `Dialog` | `title`、`width: 400 \| 560`、`open`、`onClose`、`actions: {label, variant, onClick, autoFocus?}[]`（危险按钮在右，`U.11` §2）、`dismissible?`（false：`Esc`、点遮罩不关闭，冲突框）、`busy?`、`error?`、`children` | 冲突框、解除急停确认、删除会话确认、合并预览 |
 | W.08.04 | `Tooltip` | `content`、`shortcut?`、`delay?`（默认 400ms）、`children` | 全部图标按钮（经 `IconButton`）、截断的文字 |
-| W.08.05 | `Toast` | `level: 'info' \| 'ok' \| 'wait' \| 'error' \| 'model'`、`text`、`detail?`、`action?: {label, onClick}`、`onClose`、`glass?` | `W.07.10` 提示堆叠 |
+| W.08.05 | `Toast` | `level: 'info' \| 'ok' \| 'wait' \| 'error' \| 'model'`、`text`、`detail?`、`actions?: {label, onClick}[]`（最多 3 个，`W.07.10` §6.3；原 `action?` 改为数组，`P.09` K126）、`onClose`、`glass?`、`onHover?(on)`（悬停暂停计时） | `W.07.10` 提示堆叠 |
 | W.08.05 | `Badge` | `tone: 'neutral' \| 'accent' \| 'ok' \| 'danger' \| 'wait' \| 'model'`、`text`（弱色底 + 实色字，`U.03.02-R1`） | 运行状态徽标、AI 字样、来源标记 |
 | W.08.05 | `StatusDot` | `state: NodeState 的界面类别 'idle' \| 'running' \| 'waiting' \| 'failed' \| 'done'`、`breathing?`（减少动效时静态，`U.07.04`）、`label`（读屏文字，`U.16-R2`） | 会话列表、结构树、监控页 |
 | W.08.05 | `Spinner` | `size: 12 \| 16`（旋转弧；减少动效改静态半圆弧） | 加载 300ms–2s（`U.14.01`） |
@@ -122,6 +122,7 @@ export function describeOp(op: Op, m: GraphModel | null, t: (k: string, v?: Reco
 | W.08 | `ErrorBoundary` | `fallback: (retry: () => void) => ReactNode`、`children`、`name`（写进 `console.error`） | 每个区域外包一层（§8） |
 | W.08 | `ScrollArea` | `children`、`gutter?: 'stable'`（滚动条平时隐藏，指针进入才出现 6px 半透明滑块，`U.23-R20`、`U.09.02-R10`） | 侧栏、右侧栏各页、通知中心、命令面板结果 |
 
+- 以上是必须有的 props；`W.08` 在叶子里补充的可选 props 列在 `W.08` §4.5（`P.09` K126），名称和类型以 `W.08.0x` §4 的代码块为准。
 - 以上没列出的控件需求出现时，叶子先上报（`G.02.03`），由 `W.08` 补，不在 `panels/` 里自建通用控件。
 - 控件一律不加边框，靠填充色和明暗分层；只有键盘焦点显示外环（`U.23-R5`；`U.11` §1 的"悬停外框 `line-3`"按 `U.23-R5` 不再使用，`P.09` K118）。
 
@@ -269,3 +270,4 @@ export function describeOp(op: Op, m: GraphModel | null, t: (k: string, v?: Reco
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | 首版：目录与分工、共用 hook、`W.08` 需求表、引擎事件与命令的去向、视觉规则与 `U.24` 落实表 | 第 8 棒；`P.09` K111–K120 |
+| 2026-11-23 | §4.3：`Overlay` 经 `UiEnv` 压栈并加 `onKey` 等；`Menu` 的 `at` 可为元素、`MenuItem` 加 `run` / `model` / `checked`；`Picker` 加 `PickerHandle`；`Dialog` 加 `dismissible` / `busy` / `error`；`Toast` 的 `action` 改为 `actions` 并加 `onHover`；指向 `W.08` §4.5 | 第 9 棒写 `W.08`；`P.09` K121、K126 |

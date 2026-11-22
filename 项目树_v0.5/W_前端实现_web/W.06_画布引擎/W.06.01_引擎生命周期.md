@@ -119,7 +119,7 @@ export function createScene(root: HTMLDivElement, kind: CanvasKind, t: EngineDep
 `destroy()`：取消待办帧 → 按创建的逆序调用模块 `dispose` → 退订全部 store → 清空 `emitter` → 断开 `ResizeObserver` → 清空根元素的子节点和类名。第二次调用什么也不做。之后调用 `cmd.*` → 开发模式抛错，生产模式忽略。
 
 ### 6.8 `CanvasOverlays.tsx`
-- `popover.select`：在 `anchor` 处打开 `W.08.04` 的 Popover 下拉；`options` 是字符串 `'connection' | 'model' | 'rolecard'` 时从 store 取选项：模型来自目录 store 的 `models`；连接、角色卡来自连接与资源库的数据（所在 store 在 `W.09.04`、`W.09.02` 定稿时确定，定稿前连接下拉只显示"新建连接…"、角色卡下拉只显示当前值）；连接下拉最后一项总是"新建连接…"（`U.10.07-R5`），选中后打开中心窗口的新建连接表单；选中调 `pick(v)`，关闭调 `close()`。
+- `popover.select`：在 `anchor` 处打开 `W.08.04` 的 Popover 下拉；`options` 是字符串 `'connection' | 'model' | 'rolecard'` 时从 store 取选项：模型来自目录 store 的 `models`；连接来自 `hubStore.connections`（按参数声明的连接类型过滤）、角色卡来自 `hubStore.rolecards`（`W.03` §4.6；打开下拉时 `hub.load(…)`，`P.09` K143）；连接下拉最后一项总是"新建连接…"（`U.10.07-R5`），选中后 `ui.openCenter('connections', 'new:' + 连接类型)` 并记下 `hub.lastCreatedConnection.seq`，之后看到 `seq` 增加且类型相同就 `pick(id)`（就地创建并选中，`C.16` §8 验收 2、`W.09.04` §6.12，K144）；选中调 `pick(v)`，关闭调 `close()`。
 - `hovercard.open` / `close`：AI 角标卡显示理由、时间、操作者、"撤销"按钮；"撤销"调 `ops.revertOp(origin.opId)`，结果为 `done` 时 `cmd.locate(touched[0])`（`U.13.03-R3`、`R6`）。
 - 这两个浮层的打开与关闭本身就是 React 提交，它们只在用户点击、悬停停留 400ms 后发生，不在热路径上。
 
@@ -176,3 +176,4 @@ export function createScene(root: HTMLDivElement, kind: CanvasKind, t: EngineDep
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | `bind` 第 ⑤ 步补 `runBridge.resync`、`ghost.sync`，新增第 ⑦ 步 `nest.docSwitched`；`adaptKeys` 补 `overlay`；预览浮层不再是第二个引擎，§4.1、§10 验收 3、`W0601-T12` 改用回放画布 / 子图库预览 | 第 7 棒写 `W.06.09`–`W.06.15`；`P.09` K103、K104 |
+| 2026-11-23 | §6.8 连接、角色卡下拉的数据来源定为 `hubStore`；"新建连接…"创建后回填 | 第 9 棒写 `W.09.02`、`W.09.04`；`P.09` K143、K144 |

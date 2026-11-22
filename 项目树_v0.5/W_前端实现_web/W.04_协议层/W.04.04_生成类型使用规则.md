@@ -84,7 +84,15 @@
 | `PromptPreview` | `POST /graphs/{id}/nodes/{node_id}/prompt-preview` | `segments[] {kind, text, tokens, placeholders[]}` | `W.07.03` |
 | `ContextUsage` | `GET /sessions/{sid}/context` | `window`、`used`、`parts[] {kind, tokens}`、`auto_compact_at` | `W.07.07` |
 | `Upload`、`SessionFile` | `POST /sessions/{sid}/uploads`、`GET /sessions/{sid}/files` | `ref`、`name`、`size`；`path`、`name`、`size`、`source` | `W.07.07` |
-| `LibraryItem` | `GET /library?q=` | `name`、`version`、`description` | `W.07.11` |
+| `LibraryItem` | `GET /library?q=` | `name`、`version`、`versions`、`description`、`ports {in[], out[]}`（`PortSig {name, type, multi, role}`）、`updated_at` | `W.07.11`、`W.09.02`、`W.06.10`（K145） |
+| `Package` | `GET /packages`、`/packages/{id}`、`enable` / `disable` | `id`、`kind`、`name`、`version`、`enabled`、`locked`、`contributes`、`requires_connections`、`permissions`、`sign_state`、`source`、`skill_md`、`mcp {state, last_error, new_tools}`；`enable|disable` 外层 `registry_hash` | `W.09.04`、`W.09.02`（K150） |
+| `ConnectionType`、`Connection` | `GET /connection-types`、`/connections` | `C.16` §4 全部字段，含 `fields[].suggestions`、`secret_tails`、`models[]` | `W.09.04`、`W.09.03`、`W.06.01`（K144） |
+| `ConnectionTest`、`ConnectionUsages` | `POST /connections/{id}/test`、`GET …/usages` | `ok`、`state`、`error`、`models`；`graphs[] {graph_id, title, session_id, nodes[]}`、`packages[]` | `W.09.04` |
+| `ToolDef`、`McpServer`、`Extension`、`ExtensionInstall` | `B.04.08`、`B.04.12` | `id`、`name`、`risk`、`risk_floor`、`source`、`enabled`；`name`、`transport`、`command`、`args`、`env`（只有变量名与引用）、`url`、`state`、`last_error`；`name`、`version`、`sign_state`、`perms`、`perms_added`、`status` | `W.09.04` |
+| `Usage` | `GET /usage` | `month_micros`、`today_micros`、`tokens`、`runs`、`daily[]`、`by_model[]`、`recent_runs[]` | `W.09.02`（K152） |
+| `RunView`、`RunMeta`、`Bar` 补充 | `B.04.03` | `last_seq`、`graph_version_at`；`replay_of`、`fork_of`；`start_seq`、`end_seq` | `W.09.05`（K146） |
+| `Template`、`TemplateDetail` | `GET /templates`、`/templates/{name}` | `name`、`version`、`title`、`summary`、`tags`、`cost_hint`、`inputs`、`requires`；详情另有 `readme` | `W.09.01`、`W.09.02`、`W.09.03` |
+| `DataUsage`、`SecretsState`、`Diagnostics`、`AuditVerify`、`PricingTable` | `B.04.10`、`B.04.14`、`B.04.11`、`B.04.07` | 各接口响应的全部字段 | `W.09.02` |
 | `NodeDefSummary` | `GET /nodedefs`（在 `nodedef.schema.json`） | `ref`、`name`、`category`、`package`、`icon`、`tags` | `W.03` §4.5、`W.07.02` |
 | `TypeDef` 列表 | `GET /types`（在 `typedef.schema.json` / `types.schema.json`） | `ref`、`layer`、`extends`、`producer`、`migrations` | `W.05`（`Assignable`，`C.04.02`） |
 `Session`、`Message`、`Proposal`、`ProposalPreview`、`Settings`、`NodeDef`、`Mandate` 已由各自的 schema 定义（`C.10`、`C.08`、`G.11`、`C.03`、`C.09`），不重复列出。
@@ -110,3 +118,4 @@
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | §3.5 补 `W.07` 用到的字段与结构：`RunMeta`、`RunView`、`Approval`、`Model` 加字段；新增 `Bar`、`NodePresetItem`、`MergePreview`、`Resolution`、`PromptPreview`、`ContextUsage`、`Upload`、`SessionFile`、`LibraryItem` | 第 8 棒；`P.09` K113、K116、K117 |
+| 2026-11-23 | §3.5 补 `W.09` 用到的结构：`LibraryItem.ports`、`Package`、`ConnectionType` / `Connection`、`ConnectionTest`、`ConnectionUsages`、MCP 与扩展包、`Usage`、运行历史字段、模板、设置页的诊断类响应 | 第 9 棒（B）；`P.09` K144–K146、K150、K152 |

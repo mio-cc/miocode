@@ -71,7 +71,7 @@ web/src/
 ├─ components/ui/                         W.08
 ├─ pages/                                 W.09
 │  ├─ home/  center/  welcome/  history/
-└─ styles/  tokens.css  themes.css  themes.ts（三者为生成物）  base.css
+└─ styles/  tokens.css  themes.css  themes.ts  icons.ts（四者为生成物）  base.css
 web/public/  boot.js（首屏主题，W.02.03）  fonts/
 web/tests/  e2e/  visual/  bench/         W.12、W.11
 ```
@@ -80,7 +80,7 @@ web/tests/  e2e/  visual/  bench/         W.12、W.11
 |---|---|
 | W.01-R5 | 依赖方向只能向下：`routes` → `shell` / `pages` → `panels` → `components/ui`；`panels`、`pages`、`canvas/Canvas.tsx` 可以用 `state`、`ops`、`lib`；`state` 只依赖 `lib`；`lib/protocol` 不依赖 `state` 以外的任何前端目录 |
 | W.01-R6 | `canvas/core` 只能 import：`@/lib/protocol` 导出的类型和常量（不直接引用 `generated/`，`W.04.04-R1`）、`state` 导出的 store **类型**（不是 hook）、`@/ops/types` 导出的类型（`OpsApi`、`DispatchResult`、`Precheck`、`Gesture`）。文案函数 `t`、`newUlid`、图标、快捷键、主题都由 `Canvas.tsx` 经 `EngineDeps` 注入（`W.06` §4.2，`P.09` K98）。store 实例和 `OpsApi` 由 `Canvas.tsx` 在构造引擎时传入（`opsFor(graph)`，`W.05` §4.2） |
-| W.01-R7 | `components/ui` 不依赖 `state`、`ops`、`lib/protocol`：它只是带样式的控件，数据和回调都从 props 进来 |
+| W.01-R7 | `components/ui` 不依赖 `state`、`ops`、`lib/protocol`：它只是带样式的控件，数据和回调都从 props 进来。它只能 import `react`、`react-dom`、`@floating-ui/dom`（只在 `overlay/position.ts`）、`@/lib/i18n`、`@/styles/icons` 和自己目录里的文件；需要外壳的能力（浮层按键压栈、减少动效、浮层容器）由 `W.02` 经界面环境 `UiEnv` 注入（`W.08` §4.3，`P.09` K121）。目录外只从 `@/components/ui` 导入 |
 | W.01-R8 | 不建 `utils/`、`common/`、`helpers/`（`G.03-R7`）；被三个以上目录用到的纯函数，按用途在 `lib/` 下新建目录，并在 W 树登记 |
 
 ### 3.3 画布与 React 的分工
@@ -156,7 +156,7 @@ demo v0.5.11 是界面参考实现（`sj/demo_v0.5/画布_demo_v0.5.html`，模�
 | W.01-R19 | demo 里有、规范里没有的行为，先上报（`G.02.03`），不直接实现；规范里有、demo 里没有的，照规范实现 |
 
 ## 4. 检查方式
-- ESLint `no-restricted-imports`：`canvas/core/**` 禁止 `react`、`react-dom`、`zustand/react`、`**/panels/**`、`**/components/**`；`components/ui/**` 禁止 `**/state/**`、`**/ops/**`、`**/lib/protocol/**`；`lib/protocol/` 以外禁止 import `lib/protocol/generated/**`（W.01-R5–R7、`W.04.04-R1`）。规则写在 `web/eslint.config.js`，由 `G.06.04` 统一维护。
+- ESLint `no-restricted-imports`：`canvas/core/**` 禁止 `react`、`react-dom`、`zustand/react`、`**/panels/**`、`**/components/**`；`components/ui/**` 禁止 `**/state/**`、`**/ops/**`、`**/lib/protocol/**`、`**/shell/**`、`**/panels/**`、`**/pages/**`、`**/canvas/**`、`**/routes/**`；`components/ui` 以外禁止 `@/components/ui/*`（只能 `@/components/ui`）；`lib/protocol/` 以外禁止 import `lib/protocol/generated/**`（W.01-R5–R7、`W.04.04-R1`）。规则写在 `web/eslint.config.js`，由 `G.06.04` 统一维护。
 - CI 检查 `web/src/` 的一级目录与 §3.2 一致（`G.03-R9`）。
 - 性能基准（`W.11`、`Q.08`）：平移、拖动、运行状态更新期间 React Profiler 提交次数为 0（W.01-R9、`U.17-R10`）。
 - 评审时看：新文件是否放在 §3.2 对应目录；是否有直接改图数据、直接发请求的组件；是否有 `event.target` 判断画布命中。
@@ -170,3 +170,4 @@ demo v0.5.11 是界面参考实现（`sj/demo_v0.5/画布_demo_v0.5.html`，模�
 | 2026-11-23 | R14 补待审批与急停的归属；R17 改为只有当前工作区连 SSE（最多 3 条），后台会话的运行中、待审批、急停由定时刷新得到；§3.2 `state/` 补齐 W.03 的文件 | `P.09` K73 |
 | 2026-11-23 | §3.2 目录树补 `lib/protocol/`、`ops/` 的文件；R6 与 §4 改为只从 `@/lib/protocol` 导入 | `P.09` K85、K88（写 `W.04`、`W.05` 时定稿） |
 | 2026-11-23 | §3.2 `canvas/` 按 `W.06` §4.1 细化文件；R6 改为只 import `@/ops/types` 的类型、其余经 `EngineDeps` 注入；R10 补引擎命令与 `mountSlot` 例外 | `P.09` K98（写 `W.06` 时定稿） |
+| 2026-11-23 | §3.2 `styles/` 补图标表 `icons.ts`；R7 写明 `components/ui` 能 import 什么、外壳能力经 `UiEnv` 注入；§4 ESLint 补对应限制 | 第 9 棒写 `W.08`；`P.09` K121、K122 |

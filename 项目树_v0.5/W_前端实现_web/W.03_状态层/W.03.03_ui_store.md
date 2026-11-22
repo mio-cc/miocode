@@ -67,6 +67,9 @@ export type UiState = {
   net: NetState;
   toasts: readonly Toast[];
   composerPrefill: null | { text: string; attachSelection: boolean; seq: number };   // 别处预填对话框（W.07.07 §6.9，K114）
+  history: null | { sessionId: Ulid; runId?: Ulid; seq?: number };   // 运行历史页（W.09.05，K146）；切换会话、切换图时置 null
+  tour: boolean;                                       // 画布导览进行中（W.09.03，K147）；持久化 hx:tour
+  libQuery: null | { text: string; seq: number };      // 让左栏节点库搜索这段文字（包详情"在节点库中显示"，W.09.04，K149）
 };
 export type UiActions = {
   // 布局（语义见 W.02.02 §6.4）
@@ -91,6 +94,9 @@ export type UiActions = {
   notify(t: Omit<Toast, 'id'>): string;                            // 返回 id
   dismiss(id: string): void;
   prefillComposer(p: { text: string; attachSelection?: boolean }): void;   // seq 加 1；右键"让 AI 解释"、节点库"让 AI 帮我做"（K114）
+  openHistory(h: { sessionId: Ulid; runId?: Ulid; seq?: number }): void;  closeHistory(): void;   // K146
+  setTour(on: boolean): void;                                              // K147
+  revealInLibrary(text: string): void;   // 打开左栏（setLs(true)）、展开节点库分区、libQuery.seq 加 1（K149）
 };
 export type UiStoreApi = ReadonlyStore<UiState> & { actions: UiActions };
 export function createUiStore(o: { width: number; storage?: Storage }): UiStoreApi;
@@ -115,7 +121,8 @@ export function canvasReadonly(s: UiState): boolean;                       // ne
 | `layout.lsFold` | `hx:ls-fold` | JSON `{"sess":false,"tree":false,"lib":true}` | 全部展开，节点库折叠 |
 | `listView` | `hx:list-view` | `"1"` / `"0"` | `"0"` |
 | `monitor` | `hx:mon` | JSON `{"range":"session","status":"all"}` | 同左（`U.09.07-R1`） |
-不持久化：`focus`、`bp`、`fitInsets`、`selections`（只保留本次打开页面期间，`U.09.04` §2）、`tool`、`center`、`net`、`toasts`。
+| `tour` | `hx:tour` | `"1"` / 不存在 | 不存在（K147） |
+不持久化：`focus`、`bp`、`fitInsets`、`selections`（只保留本次打开页面期间，`U.09.04` §2）、`tool`、`center`、`history`、`libQuery`、`net`、`toasts`。
 
 ### 5.2 选中的键
 `SelectionKey` 为会话 ID（主画布），回放页为 `replay:<运行 ID>`；子图库预览没有键（不能选中）；预览浮层不是画布实例、本来就不能选中（`U.13.06-R1`，`P.09` K103）。工作区被释放（`W.03.05` §6.6）时选中**不**清除，所以第 6 个会话挤掉的会话再打开时选中仍能恢复。
@@ -200,3 +207,4 @@ export function canvasReadonly(s: UiState): boolean;                       // ne
 | 2026-11-23 | `NetState` 注释写明四个值的含义 | `P.09` K91 |
 | 2026-11-23 | `selectionKey` 为空的例子改为子图库预览 | `P.09` K103（第 7 棒） |
 | 2026-11-23 | `Toast` 加 `actions`、`sticky`；新增 `composerPrefill` 与 `prefillComposer` | 第 8 棒写 `W.07.07`、`W.07.10`；`P.09` K114 |
+| 2026-11-23 | 新增 `history` / `openHistory` / `closeHistory`、`tour` / `setTour`（`hx:tour`）、`libQuery` / `revealInLibrary` | 第 9 棒写 `W.09.03`–`W.09.05`；`P.09` K146、K147、K149 |

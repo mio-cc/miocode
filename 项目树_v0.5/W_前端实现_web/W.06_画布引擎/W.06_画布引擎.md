@@ -288,6 +288,7 @@ div.hx-canvas[tabindex=0][role=application]   ← 根；.lod-2 / .lod-3（W.06.0
 | ui `selections.get(selectionKey)` | 选择器 + 引用相等 | `nodes` / `edges` 画选中 |
 | ui `tool`、`net`、`layout.fitInsets` | 选择器 | 光标样式、只读、适应画布避让 |
 | catalog `defs.registryHash` | 选择器 | 全部节点重算 `shape`，`sig` 变了的重建 |
+| catalog `libSigs` | 选择器 + 引用相等 | 只有 `ref` 的子图引用节点重算 `shape`（`W.06.10` §6.2，K145） |
 | model（W.06.14）、run `live`（W.06.15） | 各自接口 | 各叶子 |
 | theme | `deps.theme.subscribe` | 缩略图、小地图重画；`motion` 变化时转场与流动动画按新开关 |
 
@@ -368,3 +369,4 @@ URL 变化 → 工作区 `setLocation` → view `enterScope(scope)` → 引擎�
 | 2026-11-23 | 首版：目录、共用类型、模块接口、帧阶段、订阅表 | 第 6 棒；`P.09` K94–K101 |
 | 2026-11-23 | `CanvasKind` 去掉 `peek`（预览浮层是 canvas 简化图）；接口补 `CanvasKeys.overlay`、`PointerApi.last`、`DragApi.moveBy` 的 `groupId`、`Geom.forModel`、`NestApi.docSwitched`、`cmd.exec`、`tree.locate`；§6.2 `patch` 阶段加 W.06.14；§6.4 第 2 步补 `runBridge.resync`、`ghost.sync`；R2、R10 措辞 | 第 7 棒写 `W.06.09`–`W.06.15`；`P.09` K103–K105 |
 | 2026-11-23 | §4.2 `addNode` 的 `d` 加 `meta`；新增引擎命令 `addNote` | 第 8 棒写 `W.07.02`、`W.07.11`；`P.09` K111、K114 |
+| 2026-11-23 | §6.3 订阅表加 catalog `libSigs`（只有 `ref` 的子图引用的端口签名，替代 K104 的临时做法） | 第 9 棒写 `W.09.02`；`P.09` K145 |

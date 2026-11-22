@@ -124,7 +124,7 @@ place: { gap_x: 72, gap_y: 36, scan_max: 50 }                          # U.05-R6
    | 被提升的参数（`rec.promoted`） | 接在声明端口之后，`promoted: true`，名称后显示 `⇢`（`U.10.02` §1），类型取参数类型 | — |
    | `dynamic_ports`（提示词节点，`C.03.05`） | `promptVars(params[from_param], max)` 的每个变量一个端口，`variable: true`，类型为 `dynamic_ports.type`；接在提升端口之后 | — |
    | 容器节点的子图（`boundaryPorts`，`C.02.04-R3`） | 子图里 NodeDef `category = 边界` 且 `params.role = entry` 的节点，按子图里的文档顺序；名称 `params.port_name`，缺省 `in`、第二个起 `in_2`… | `role = exit` 同理（`out`、`out_2`…），`summary`、`escalation` 各一个 |
-   - 只有 `ref`、没有 `children` 的子图引用：端口签名在子图库里，定稿前（`W.09.02`）按连到它的连线推出端口名（输入 = 连线的 `to.port`，输出 = `from.port`），没有连线时只画头部（`P.09` K104）。
+   - 只有 `ref`、没有 `children` 的子图引用：端口签名取 `deps.catalog.getState().libSigs.get(ref + '@' + version)`（`in` → 输入、`out` → 输出，按数组顺序；`role` 为 `summary` / `escalation` 的放在输出最后，`W.03` §4.5、`W.09.02` §6.10，`P.09` K145）；还没有时调 `catalog.actions.ensureLibSig(ref, version)` 并暂时按连到它的连线推出端口名（输入 = 连线的 `to.port`，输出 = `from.port`），没有连线时只画头部；签名到达后 `libSigs` 变化 → 这些节点重算 `shape`（`sig` 变了就重建，`W.06` §6.3）。
    - 数据类型：`types.get(`${id}.${port}`)`（`OpsApi.portTypes(scope)` 的推断结果，K99），没有就用声明类型；显示类别 `cat` = `PortDef.category ?? displayCategory(type, defs.types)`（`C.04.01-R4`；`W.06.04` 的 `edgeCategory` 直接读 `PortSlot.cat`）。
    - `label`：`PortDef.label`，缺省为端口名；`required`、`multi` 取 `PortDef`（`C.04.04`）。
 4. **节点上的参数**（`widgets`，`C.03.05`）：`ParamDef.ui.group = 常用` 的参数，去掉被提升的，按 `ui.order`、再按声明顺序排；`show_if` 为假的去掉（`evalShowIf`）；取前 `LAYOUT.max_widgets` 个（K95）。每项：`widget` = `ui.widget`；`tall` = widget 为 `area` 或 `code`；`boundFrom` = `ui.bind` 端口上有连线时连线的源节点 ID（否则 null）；`locked` = `ParamDef.lock` 为 `def` / `kernel`。
@@ -231,3 +231,4 @@ collapsed：h = head
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | `W0610-T8` 改为读共用用例 `schema/examples/show_if_vectors.json`（属性页 `W.07.03` 另有一份 `evalShowIf` 实现，两边跑同一组用例） | 第 8 棒；`P.09` K119 |
+| 2026-11-23 | §6.2 第 3 步：只有 `ref` 的子图引用的端口签名改为读目录 store 的 `libSigs`（原临时做法保留为加载前的过渡） | 第 9 棒写 `W.09.02`；`P.09` K104 收尾、K145 |

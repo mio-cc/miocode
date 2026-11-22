@@ -38,12 +38,13 @@
 | POST | `/runs/{id}/nodes/{exec_key}/replay` | 单节点重放 | `{live: false}` → `NodeReplay` |
 | POST | `/runs/{id}/hotpatch/{patch_id}/confirm` · `/discard` | 确认或丢弃运行中改图（`E.16.02` 第 3 步） | → 204 |
 | GET | `/blobs/{ref}` | 读工作区原文（支持 Range） | → 原文 |
+| GET | `/usage?days=14` | 用量汇总（设置 › 预算与用量，`U.21-R7`）：`{month_micros, today_micros, tokens, runs, daily[{date, cost_micros}], by_model[{model, cost_micros, tokens, priced}], recent_runs[RunMeta]}`；`days` ≤ 90，按本地日期分组由前端传 `tz` | → `Usage` |
 
 ## 5. 行为
 - 启动：急停中返回 423；校验不通过 422 带诊断；没有可用模型 503（演示模式除外）。
 - `GET /blobs/{ref}`：只能读当前用户可见的图、运行、会话引用过的内容；返回前再脱敏一次（防止旧数据里残留密钥）。
 - `NodeDetail` 里的大内容只给引用，前端按需加载（`W.07.03`）。
-- 列表和概览给监控页用的字段（`W.07.05`，`P.09` K113、K117）：`RunMeta` 带 `no`（这张图的第几次运行）、`headline {kind: failed_at|waiting_at|running_at|steps, node_label?, steps?}`、`steps {done, total}`、`cost_micros`；`RunView` 带 `pending_patches[{patch_id, summary, scope_path, op_ids}]`（可以热更新、等用户确认的修改，`E.16.02` §5 第 3 步）；`/timeline` 的每一项 `Bar = {exec_key, node_id, loc, state, started_at, ended_at?, error?}`。
+- 列表和概览给监控页用的字段（`W.07.05`，`P.09` K113、K117）：`RunMeta` 带 `no`（这张图的第几次运行）、`headline {kind: failed_at|waiting_at|running_at|steps, node_label?, steps?}`、`steps {done, total}`、`cost_micros`；`RunView` 带 `pending_patches[{patch_id, summary, scope_path, op_ids}]`（可以热更新、等用户确认的修改，`E.16.02` §5 第 3 步）；`/timeline` 的每一项 `Bar = {exec_key, node_id, loc, state, started_at, ended_at?, error?, start_seq, end_seq?}`。运行历史页（`W.09.05`，`P.09` K146）另用：`RunView.last_seq`（事件日志最大 seq）、`RunView.graph_version_at`（`at_seq` 那一刻生效的图快照版本，含热更新与运行时展开）、`RunMeta.replay_of`、`RunMeta.fork_of`；`/view?at_seq=` 遇到录制缺失时返回 404 `not_found`（`details.resource = "run_record"`，`details.missing` 说明缺哪一段，不新增错误码）（`E.16.05` §7）。
 
 ## 6. 不变量
 - 响应结构与 OpenAPI 声明一致
@@ -73,3 +74,4 @@
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | §5 写明监控页用到的 `RunMeta`、`RunView`、`Bar` 字段 | 第 8 棒写 `W.07.05`；`P.09` K113、K117 |
+| 2026-11-23 | §4 新增 `GET /usage`；§5 补运行历史页用到的 `last_seq`、`graph_version_at`、`replay_of`、`fork_of`、`Bar.start_seq` / `end_seq` 与录制缺失的返回 | 第 9 棒写 `W.09.02`、`W.09.05`；`P.09` K146、K152 |

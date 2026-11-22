@@ -29,13 +29,15 @@
     "fields": { "type": "array", "items": { "required": ["key", "label", "type"],
       "properties": { "key": {}, "label": {}, "type": { "enum": ["text", "secret", "number", "url", "select"] }, "placeholder": {}, "help": {}, "default": {}, "required": { "type": "boolean" } } } },
     "test": { "description": "测试方法：http_get / tool_call / provider_list_models" }
+    // fields[].suggestions: [{label, value}]（C.16-R8）
   }
 },
 "Connection": {
   "required": ["id", "type", "name"],
   "properties": { "id": {}, "type": {}, "name": { "description": "节点下拉框里显示的名字，同类型可以有多个" },
     "values": { "type": "object", "description": "非密钥字段的值；secret 字段存密钥名，如 conn:gh:token" },
-    "state": { "enum": ["ok", "error", "untested"] }, "error": {}, "updated_at": {} }
+    "state": { "enum": ["ok", "error", "untested"] }, "error": {}, "updated_at": {},
+    "secret_tails": { "type": "object", "description": "secret 字段的末 4 位（C.16-R6）" }, "models": { "type": "array", "description": "模型连接，C.16-R7" } }
 }
 ```
 
@@ -45,6 +47,10 @@
 - **C.16-R3** MCP 服务的环境变量、扩展包需要的密钥，都用 `${secret=[REDACTED_PASSWORD] 或"选择连接"引用，不允许直接写明文（保存时扫描，`S.03-R5`）。
 - **C.16-R5** 模型连接测试时，为每个模型读取它支持的思考强度，存为 `models[].effort`（取值见 `U.09.06-R5`）；不支持调节的模型不写这个字段。
 - **C.16-R4** 连接的"谁在用"由后端扫描所有图和包计算（`GET /connections/{id}/usages`）。
+- **C.16-R6** 请求与响应里的密钥（`P.09` K144）：`POST /connections` 的请求体 `{type, name, values, secrets}`、`PUT /connections/{id}` 的请求体 `{name?, values?, secrets?}`；`secrets` 是"字段 key → 明文"，只在这一次请求里出现，后端写入密钥库（密钥名 `conn:<连接 id>:<字段 key>`）后把 `values[key]` 记为密钥名，请求体立即丢弃、不进日志（同 `B.04.07` §5）；`secrets[key] = null` 表示删除这个密钥（"断开"），缺省表示不改。响应的 `Connection` 不含任何明文，另带 `secret_tails`（字段 key → 末 4 位，INV-22、`S.03-R5`）。
+- **C.16-R7** 模型连接（`llm.*`）的 `Connection` 带 `models[]`（最近一次测试读到的模型：`ref`、`window`、`caps`、`effort`、`priced`）；`POST /connections/{id}/test` 返回 `ConnectionTest {ok, state, error?, models?}`；`GET /connections/{id}/usages` 返回 `ConnectionUsages {graphs[{graph_id, title, session_id?, nodes[{id, label, scope}]}], packages[{id, name}]}`。
+- **C.16-R8** 连接字段可以声明 `suggestions: [{label, value}]`（例如 OpenAI 兼容的常见厂商地址），前端在输入框下方列出可点的预设（`U.19.07` 第 2 步）。
+- **C.16-R9** 前端只通过 `/connections` 管理模型提供方；`B.04.07` 的 `/providers` 保留给 `harnessctl` 和旧路径别名，二者是同一份数据。
 - 接口：`GET/POST /api/v1/connections`、`GET/PUT/DELETE /connections/{id}`、`POST /connections/{id}/test`、`GET /connection-types`。
 
 ## 6. 不变量
@@ -69,3 +75,8 @@
 - 允许使用的依赖：标准库 + `G.10` 已登记依赖
 - 禁止事项：`G.02.05` 全部
 - 完成标志：`G.14` 全部条件
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | 新增 R6（请求体 `secrets`、响应 `secret_tails`）、R7（模型列表、测试与"谁在用"的响应）、R8（字段预设 `suggestions`）、R9（前端只用 `/connections`） | 第 9 棒写 `W.09.04`；`P.09` K144 |

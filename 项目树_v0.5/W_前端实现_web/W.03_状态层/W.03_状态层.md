@@ -65,6 +65,7 @@ export type AppStores = {
   ui: UiStoreApi;                  // W.03.03
   session: SessionStoreApi;        // W.03.05
   catalog: CatalogStoreApi;        // §4.5
+  hub: HubStoreApi;                // §4.6（K143）
   workspaces: WorkspaceManager;    // W.03.05
 };
 export function createAppStores(deps: StateDeps, opts: { width: number; storage?: Storage }): AppStores;
@@ -79,6 +80,7 @@ export function CanvasStoresProvider(p: { stores: CanvasStores; children: ReactN
 export function useUiStore<T>(sel: (s: UiState) => T, eq?: (a: T, b: T) => boolean): T;
 export function useSessionStore<T>(sel: (s: SessionState) => T, eq?: (a: T, b: T) => boolean): T;
 export function useCatalogStore<T>(sel: (s: CatalogState) => T, eq?: (a: T, b: T) => boolean): T;
+export function useHubStore<T>(sel: (s: HubState) => T, eq?: (a: T, b: T) => boolean): T;          // §4.6
 export function useGraphStore<T>(sel: (s: GraphState) => T, eq?: (a: T, b: T) => boolean): T;
 export function useRunStore<T>(sel: (s: RunState) => T, eq?: (a: T, b: T) => boolean): T;
 export function useModelStore<T>(sel: (s: ModelState) => T, eq?: (a: T, b: T) => boolean): T;
@@ -145,7 +147,9 @@ export type CatalogState = {
   status: { defs: LoadStatus; models: LoadStatus };
   presets: { items: readonly PresetItem[]; total: number; status: LoadStatus };   // 节点库条目（GET /node-presets，W.07.02 §4.2，K114）
   skills: readonly { packageId: string; name: string; desc?: string; enabled: boolean }[];   // GET /packages?kind=skill（对话框 @ 引用，W.07.07）
+  libSigs: ReadonlyMap<string, LibrarySig>;   // 键 '名@版本'：子图库条目的端口签名（只有 ref 的子图引用节点用，W.06.10、W.09.02 §6.10，K145）
 };
+export type LibrarySig = { in: readonly PortSig[]; out: readonly PortSig[] };   // PortSig：@/lib/protocol（B.04.06）
 export type CatalogActions = {
   ensureDefs(registryHash: string): Promise<void>;     // 哈希不同才重新拉 GET /nodedefs 和 GET /types（B.04.06 带 ETag）
   nodeDef(ref: string): Promise<NodeDef>;              // 按需拉完整定义并缓存
@@ -156,11 +160,62 @@ export type CatalogActions = {
   loadSkills(): Promise<void>;
   searchLibrary(q: string): Promise<readonly LibraryItem[]>;  // GET /library?q=（命令面板，W.07.11）
   countTokens(text: string, model?: string): Promise<number>; // POST /models/count-tokens（大编辑器，W.07.03）
+  ensureLibSig(name: string, version: string): Promise<void>;  // GET /library/{name}/{version}/ports；已有或进行中不重复请求；失败 30 秒内不重试（K145）
 };
+// 读设置项：path 是 G.11 的配置路径（snake_case），按 W.04.03 的映射找到 camelCase 嵌套字段；packages.<包 id>.<key> 的包 ID 与 key 不转换（K142）
+export function settingOf<T>(s: Settings | null, path: string, fallback: T): T;
 export type LoadStatus = 'idle' | 'loading' | 'ready' | 'error';
 ```
 - 图加载后，工作区用图的 `registry_hash` 调 `ensureDefs`；扩展包启用、停用后（`W.09.04`）再调一次。
-- `settings` 里的主题字段只由 `W.02.03` 读；本 store 不自己发 `PATCH /settings`。
+- `settings` 里的主题字段只由 `W.02.03` 读；本 store 不自己发 `PATCH /settings`（设置页经 `hubStore.patchSettings`，成功后调本 store 的 `setSettings`）。
+
+### 4.6 中心窗口与页面的数据：`hubStore`（应用级，`P.09` K143）
+包、连接、资源库、设置页用到的服务器数据和动作。接口在这里，实现文件和测试写在 `W.03.05` 的实施卡里（同 K81 的做法）。页面只经它取数据、发请求（`W.01-R13`）。
+```ts
+// web/src/state/hubStore.ts
+export type HubKind = 'packages' | 'mcpServers' | 'extensions' | 'tools' | 'connectionTypes' | 'connections'
+  | 'rolecards' | 'recipes' | 'types' | 'library' | 'templates';
+export type Loadable<T> = { items: readonly T[]; status: LoadStatus; error?: string; at: number };
+export type HubState = {
+  packages: Loadable<Package>;  packageDetail: ReadonlyMap<string, Package>;
+  mcpServers: Loadable<McpServer>;  extensions: Loadable<Extension>;  tools: Loadable<ToolDef>;
+  connectionTypes: Loadable<ConnectionType>;  connections: Loadable<Connection>;   // Connection 里没有任何密钥明文，只有 secretTails（C.16-R6）
+  rolecards: Loadable<RoleCard>;  recipes: Loadable<Recipe>;  types: Loadable<TypeDef>;  library: Loadable<LibraryItem>;  templates: Loadable<Template>;
+  lastCreatedConnection: null | { id: string; type: string; seq: number };   // 节点参数上"新建连接…"的回填（W.09.04 §6.12）
+};
+export type HubActions = {
+  load(kind: HubKind, o?: { force?: boolean }): Promise<void>;   // 已 ready 且不到 60 秒不重拉；扩展包启停后 packages / tools / connectionTypes 自动标记过期
+  newGraph(sessionId: Ulid, title?: string): Promise<Ulid>;      // POST /graphs + POST /sessions/{sid}/graphs（设为当前图，W.09.01 §6.3）
+  // 包与工具（C.15、B.04.08、B.04.12）
+  loadPackage(id: string): Promise<Package>;
+  setPackageEnabled(id: string, on: boolean): Promise<void>;     // 成功后 catalog.ensureDefs(registryHash)、loadPresets()（技能另 loadSkills）
+  setToolEnabled(id: string, on: boolean): Promise<void>;  setToolRisk(id: string, risk: Risk): Promise<void>;
+  addMcpServer(spec: McpServerSpec): Promise<McpServer>;  updateMcpServer(name: string, spec: McpServerSpec): Promise<McpServer>;
+  confirmMcpServer(name: string): Promise<McpServer>;  reconnectMcpServer(name: string): Promise<McpServer>;  removeMcpServer(name: string): Promise<void>;
+  installPackage(file: File, kind: 'extension' | 'skill'): Promise<ExtensionInstall>;   // POST /extensions/install（multipart）
+  confirmExtension(name: string): Promise<Extension>;  removeExtension(name: string, o?: { force?: boolean }): Promise<void>;
+  // 连接（C.16）——secrets 只穿过这一次请求，不写进任何状态（W-R10）
+  createConnection(d: { type: string; name: string; values: Record<string, unknown>; secrets: Record<string, string> }): Promise<Connection>;
+  updateConnection(id: string, d: { name?: string; values?: Record<string, unknown>; secrets?: Record<string, string | null> }): Promise<Connection>;
+  testConnection(id: string): Promise<ConnectionTest>;  connectionUsages(id: string): Promise<ConnectionUsages>;  removeConnection(id: string): Promise<void>;
+  // 设置（B.04.10、B.04.11、B.04.14、B.04.07 /pricing、B.04.03 /usage）
+  patchSettings(changes: Readonly<Record<string, unknown>>): Promise<SettingsPatched>;   // 成功后 catalog.setSettings(res.settings)
+  onboarding(): Promise<OnboardingState>;  completeOnboarding(): Promise<void>;
+  usage(o: { days: number }): Promise<Usage>;  pricing(): Promise<PricingTable>;  savePricing(t: PricingTable): Promise<PricingTable>;
+  dataUsage(): Promise<DataUsage>;  exportData(o: { includeBlobs: boolean }): Promise<Blob>;  purgeData(confirm: string): Promise<void>;
+  rotateToken(): Promise<{ url: string }>;  secretsState(): Promise<SecretsState>;  unlockSecrets(password: string): Promise<boolean>;   // password 不进状态
+  diagnostics(): Promise<Diagnostics>;  diagnosticsBundle(): Promise<Blob>;  verifyAudit(): Promise<AuditVerify>;
+  effective(graphId: Ulid, scope: Scope): Promise<Effective>;  mandatesAt(a: { graphId: Ulid; scope: Scope }): Promise<readonly Mandate[]>;  saveMandate(m: MandateDraft): Promise<Mandate>;
+  // 资源库（B.04.06、B.04.13）
+  saveRoleCard(rc: RoleCardDraft): Promise<RoleCard>;  libraryGraph(name: string, version: string): Promise<GraphRead>;   // ?as=graph
+  templateDetail(name: string): Promise<TemplateDetail>;
+  instantiateTemplate(name: string, o: { sessionId: Ulid | null; inputs: Record<string, unknown> }): Promise<{ graphId: Ulid }>;
+};
+export type HubStoreApi = ReadonlyStore<HubState> & { actions: HubActions };
+export function createHubStore(o: { client: RestClient; catalog: CatalogStoreApi }): HubStoreApi;
+```
+- `AppStores` 加 `hub: HubStoreApi`（§4.2），`useHubStore(sel, eq?)` 与其他 hook 同规则（`G.06.02-R3`）。
+- `W.06.01` 的 `CanvasOverlays` 从这里取连接、角色卡下拉的选项（`connections` 按参数声明的连接类型过滤、`rolecards`）。
 
 ## 5. 数据结构
 - 协议类型一律从 `@/lib/protocol` 导入：它导出生成类型（`lib/protocol/generated`）按 `W.04.03` 转成 camelCase 后的别名，如 `Graph`、`Node`、`Edge`、`Note`、`Op`、`Diag`、`Proposal`、`ProposalPreview`、`Session`、`Message`、`MessageBlock`、`Selection`、`RunEvent`、`GraphEvent`、`SessionEvent`、`RunStatus`、`NodeState`、`Loc`、`Actor`、`Ulid`。本层不重新声明这些结构（`G.02.05-R2`）。
@@ -224,6 +279,7 @@ export type LoadStatus = 'idle' | 'loading' | 'ready' | 'error';
 | `hx:pos:dock`、`hx:pos:mini`、`hx:pos:nest`、`hx:nestcard-min`、`hx:legend` | 浮动面板的位置（按画布比例）、父图位置卡收起、类型图例展开 | `W.07.06`（K114） |
 | `hx:lib-fav`、`hx:lib-recent`、`hx:lib-open` | 节点库收藏、最近 10 个、展开的分类 | `W.07.02`（`U.22-R5`） |
 | `hx:inbox-read` | 通知中心最后一次全部已读的时间 | `W.07.10` |
+| `hx:tour` | 画布导览进行中 | `W.03.03`、`W.09.03` |
 不在 localStorage 存图、消息、运行、提议、审批（`G.06.02-R7`）；不存任何密钥（INV-22、`W-R10`）。
 
 ### 6.5 高频数据怎么走
@@ -270,3 +326,4 @@ export type LoadStatus = 'idle' | 'loading' | 'ready' | 'error';
 | 2026-11-23 | §4.2 新增 `useAppStores()`（画布引擎需要 ui、catalog 的 store 实例） | `P.09` K98（写 `W.06.01` 时发现缺口） |
 | 2026-11-23 | 预览浮层不再算画布实例（view 行、`CanvasStores.selectionKey` 注释、生命周期表）；运行状态路径写为 `live.subscribe` | `P.09` K103、K108（第 7 棒） |
 | 2026-11-23 | §4.5 目录 store 新增 `presets`、`skills` 和五个 action；§6.4 登记 `W.07` 用到的 localStorage 键 | 第 8 棒写 `W.07`；`P.09` K114 |
+| 2026-11-23 | §4.5 目录 store 加 `libSigs`、`ensureLibSig`、`settingOf`；新增 §4.6 `hubStore`（中心窗口与页面的数据）；`AppStores` 加 `hub`、新增 `useHubStore` | 第 9 棒写 `W.09`；`P.09` K142、K143、K145 |

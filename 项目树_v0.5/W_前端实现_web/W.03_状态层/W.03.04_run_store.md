@@ -98,6 +98,8 @@ export type RunActions = {
   nodeDetail(execKey: string): Promise<NodeDetail>;                   // GET /runs/{id}/nodes/{exec_key}；最近 20 个缓存
   timeline(runId: Ulid): Promise<readonly Bar[]>;                      // GET /runs/{id}/timeline（监控页瀑布，W.07.05）
   blob(ref: string, o?: { maxBytes?: number }): Promise<{ text: string; truncated: boolean }>;   // GET /blobs/{ref}，Range，缺省最多 256KB（节点执行详情，W.07.03）
+  nodeReplay(execKey: string, o: { live: boolean }): Promise<NodeReplay>;   // POST /runs/{id}/nodes/{exec_key}/replay（单节点重放，不进事件日志，E.16.05；运行历史页，W.09.05，K146）
+  seek(atSeq: number): Promise<void>;   // 只在 snapshot 模式：重新拉 /view?at_seq=，投影整体替换并发 reset（W.09.05，K146）
 };
 export type RunStoreApi = ReadonlyStore<RunState> & { actions: RunActions; live: LiveRun };
 
@@ -248,3 +250,4 @@ export function createRunStore(o: {
 |---|---|---|
 | 2026-11-23 | `ExecState` 增加 `activeOuts`（`node.state{to:done}` 的 `active_outs`）；`RunBridge` 的订阅写为 `live.subscribe` | `P.09` K108（第 7 棒，`W.06.15` 判断未激活的连线） |
 | 2026-11-23 | `LiveRun.all`、`CurrentRun.pendingPatches`、`timeline`、`blob` | 第 8 棒写 `W.07.03`、`W.07.05`；`P.09` K114、K117 |
+| 2026-11-23 | `RunActions` 加 `nodeReplay`、`seek`（快照模式按 seq 跳转） | 第 9 棒写 `W.09.05`；`P.09` K146 |

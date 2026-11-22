@@ -52,7 +52,7 @@ export type PaletteGroup = 'command' | 'node' | 'nodeType' | 'session' | 'librar
 export type PaletteItem = { id: string; group: PaletteGroup; label: string; sub?: string; icon?: string; shortcut?: string; run(): void | Promise<void> };
 export function parseQuery(q: string): { scope: PaletteGroup | null; text: string };   // '>' 只搜命令、'@' 只搜节点、'#' 只搜会话（U.13.05 §2）
 export const COMMANDS: readonly { id: string; labelKey: string; shortcut?: ShortcutId; icon: string; when?: (s: AppSnapshot) => boolean; run: (a: AppActionsBag) => void }[];
-export const SETTING_ITEMS: readonly { section: CenterSection; item: string; labelKey: string }[];   // U.21 §1 的分区与子项；W.09.02 定稿时保持 item 一致
+export const SETTING_ITEMS: readonly { section: CenterSection; item: string; labelKey: string }[];   // 与 W.09.02 §5.1 一致（settings、library 的固定页与锚点 notify / pricing / help；W0902-T3 比对，K141）
 export function rank(items: readonly PaletteItem[], text: string): PaletteItem[];   // 前缀 > 词首 > 包含；同分按最近使用
 ```
 
@@ -101,7 +101,7 @@ export function rank(items: readonly PaletteItem[], text: string): PaletteItem[]
 - 结果按组显示，每组最多 5 条，组底部"显示更多"（展开到 20 条）：
   | 组 | 来源 | 选中后 |
   |---|---|---|
-  | 命令 | `COMMANDS`：运行、急停、新建会话、切换主题（每个配色一条 + 浅色 / 深色 / 跟随系统）、打开中心窗口的四个分区、左侧栏、右侧栏属性 / 对话 / 监控、专注模式、适应画布、整理布局、撤销、重做、列表视图、快捷键速查；右侧显示快捷键 | 执行（画布动作经 `cmd.exec`，其余调对应 action）；"急停"→ `session.triggerEstop()`；命令里没有"解除急停"（`W-R6`） |
+  | 命令 | `COMMANDS`：运行、急停、新建会话、切换主题（每个配色一条 + 浅色 / 深色 / 跟随系统）、打开中心窗口的四个分区、左侧栏、右侧栏属性 / 对话 / 监控、专注模式、适应画布、整理布局、撤销、重做、列表视图、快捷键速查、打开运行历史（`ui.openHistory({sessionId: 当前会话})`，`W.09.05`，K146）；右侧显示快捷键 | 执行（画布动作经 `cmd.exec`，其余调对应 action）；"急停"→ `session.triggerEstop()`；命令里没有"解除急停"（`W-R6`） |
   | 节点 | 当前图所有层的节点（`model.nodes`），第二行是所在层路径（`crumbs`） | `useLocate({scope, nodes: [id], look: 'look'})`：进入那一层并高亮（`U.10.05` §2"搜索结果"） |
   | 节点类型 | `catalog.presets` 启用的条目 | `cmd.addNode(…, {at: 'center'})`（`U.13.05` §2"添加到画布中心"） |
   | 会话 | 会话列表 | `useNav().switchSession(id)` |
@@ -172,3 +172,4 @@ export function rank(items: readonly PaletteItem[], text: string): PaletteItem[]
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | 首版 | 第 8 棒；`P.09` K104、K111、K114 |
+| 2026-11-23 | `SETTING_ITEMS` 注明与 `W.09.02` §5.1 一致；命令加"打开运行历史" | 第 9 棒写 `W.09.02`、`W.09.05`；`P.09` K141、K146 |

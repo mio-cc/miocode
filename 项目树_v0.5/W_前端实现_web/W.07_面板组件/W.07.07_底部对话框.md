@@ -86,7 +86,7 @@ loadSkills(): Promise<void>;  CatalogState.skills: readonly { packageId: string;
 `ContextUsage = { window: number; used: number; parts: { kind: 'system' | 'graph' | 'history' | 'selection' | 'refs' | 'draft'; tokens: number }[]; auto_compact_at: number }`；`Model` 前端读取的字段加 `effort`（`C.16`）。都登记在 `W.04.04` §3.5。
 
 ### 4.3 设置项（`P.09` K115）
-从 `catalog.settings` 读：`general.send_key`（`'enter'` | `'mod'`，缺省 `'enter'`，`U.09.06-R3`）、`models.default_model`、`models.default_effort`（缺省 `'medium'`，`U.09.06-R6`）。字段名以 `B.04.10` / `G.11` 的设置表为准，`W.09.02` 定稿设置页时核对。
+用 `settingOf(catalog.settings, path, 缺省)`（`W.03` §4.5）读：`general.send_key`（`'enter'` | `'mod'`，缺省 `'enter'`，`U.09.06-R3`）、`models.orchestrator`（编排者默认模型；空时用 `models.default`）、`models.default_effort`（缺省 `'medium'`，`U.09.06-R6`）。字段名已在 `W.09.02` §5.2 定稿并登记 `G.11` §3（`P.09` K142；原暂定名 `models.default_model` 改为 `models.orchestrator`）。
 
 ### 4.4 依赖
 `W.03` §4.2 的 hook；`W.03.03` 的 `selectionOf`、`attachable`、`composerPrefill`；`W.03.05` 的 `SessionActions`、`effortFor`、`sessionMeta`、`lastAssistant`；`W.03.01` 的 `nodesIn`、`crumbs`（`@` 节点的路径）；`W.03` §4.5 目录 store 的 `models`、`skills`、`settings`；`W.03.04` 的 `RunActions.start`、`currentId`；`W.06.01` 的 `useCanvasCommands`（`tidy`）；`W.07` §4.2 的 `useShortcut`、`useEditBlock`；`W.07.04` 的 `ChatStatusLine`；`W.07.08` 的 `FloatReplyTail`、`useFloatReply`；`W.08` 的 `TextArea`、`Picker`、`Popover`、`Segmented`、`IconButton`、`Button`、`Badge`、`Dialog`、`Tooltip`、`Icon`、`Overlay`；`W.02.04` 的 `keys.pushOverlay`；`W.10` 的 `useT`、`fmtTokens`。
@@ -107,6 +107,8 @@ loadSkills(): Promise<void>;  CatalogState.skills: readonly { packageId: string;
 ```
 - 不放常驻快捷指令和说明文字（`U.09.06-R1`、`U.23-R5`）；占位文字是唯一的提示。
 - 控件不加边框；整个对话框是玻璃材质、`r-xl`、`shadow-float`（`U.09.01` ④、`U.23-R6`）。
+
+- 根元素带 `data-tour="composer"`：画布导览只读取它的位置（`W.09.03` §6.7，`P.09` K147），不改它。
 
 ### 6.2 输入与发送（`U.09.06-R3`、`U.13.04` §4、R6）
 - 快捷键（`useShortcut`，`composer` 层只在焦点在输入框里时生效，`W.02.04` §6.1 ④）：
@@ -197,6 +199,7 @@ loadSkills(): Promise<void>;  CatalogState.skills: readonly { packageId: string;
 | `compact` / `clearMessages` 失败 | 提示服务端说明 |
 | 切换模型 / 强度失败 | store 已回退；提示一次 |
 | 没有可用模型 | 模型按钮 `danger` 字；发送照常（服务端会回复"还没有可用的模型"，由 `U.14.02` 的空状态和 `W.09` 引导配置） |
+| 没有当前会话（首页 `/`，`W.09.01` §6.2） | 第一次发送时先 `session.create()`、`useNav().switchSession(新 ID)`，等工作区就绪后再发送；输入的文字和附件不丢（`P.09` K148） |
 
 ## 9. 性能与资源
 - 输入时每次按键只更新本组件状态；上下文估算 800ms 防抖、草稿 500ms 防抖。
@@ -244,3 +247,4 @@ loadSkills(): Promise<void>;  CatalogState.skills: readonly { packageId: string;
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | 首版 | 第 8 棒；`P.09` K113–K115 |
+| 2026-11-23 | §4.3 设置项名定稿（`models.default_model` → `models.orchestrator`，用 `settingOf` 读）；§6.1 根元素加 `data-tour`；§8 补"没有当前会话时先建会话再发送" | 第 9 棒写 `W.09`；`P.09` K142、K147、K148 |
