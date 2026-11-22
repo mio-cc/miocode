@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 草稿 |
 | 素材 | 引_关键决定 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-23 |
 
 ## 1. 职责
 把各家模型的能力差异写成数据表，适配器和上层逻辑只查表、不写特判（INV-18）。
@@ -47,6 +47,7 @@ func (t Table) For(providerKind, model string) Entry
 - 匹配按文件顺序累积：通用规则在前，具体规则在后，后者覆盖前者的同名字段。
 - 用户覆盖（设置里"能力"一栏）优先级最高。
 - 新增厂商、新模型只改这个文件（以及必要时的 cassette），不改适配器代码。
+- 思考强度：上层统一传 7 级之一（off / minimal / low / medium / high / xhigh / max，`U.09.06-R5`、`E.14.02`）。`reasoning.values` 列出这个模型支持的级；请求的级不在列表里时，先查 `map`，`map` 里没有就取列表里最接近的一级（同样接近时取较高的一级），并记 warn。`values` 也是连接测试时写进 `models[].effort` 的来源（`C.16-R5`）。没有 `reasoning` 的模型不支持调节，请求里不带这个参数。
 
 ## 6. 不变量
 - 适配器代码里没有厂商名、模型名字符串比较（`quirkscheck` 检查）
@@ -55,7 +56,7 @@ func (t Table) For(providerKind, model string) Entry
 表格式错误：启动失败并指出行号。
 
 ## 8. 验收标准
-1. `reasoning: medium` 对 zai-glm 映射为 high 并记 warn
+1. `reasoning: medium` 对 zai-glm 映射为 high 并记 warn；`xhigh` 对 gpt-* 取最接近的 high 并记 warn；`off` 对没有 `reasoning` 的模型不带参数
 2. 用户覆盖生效
 3. quirkscheck 对故意写的特判报错
 
@@ -64,7 +65,7 @@ func (t Table) For(providerKind, model string) Entry
 - 不许碰的文件：`schema/`、`gen/`、其他包的实现文件（只能 import 它们的导出接口）
 - 测试用例：
   - `E1005-T1 合并顺序`
-  - `E1005-T2 推理强度映射`
+  - `E1005-T2 思考强度映射`
   - `E1005-T3 用户覆盖`
   - `E1005-T4 lint`
 - 允许使用的依赖：标准库 + `G.10` 已登记依赖

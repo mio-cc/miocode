@@ -8,7 +8,7 @@
 | 下级 | E.14.02.01 工具调用循环、E.14.02.02 生命周期、E.14.02.03 输出类型校验 |
 | 状态 | 草稿 |
 | 素材 | 引03 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-23 |
 
 ## 1. 职责
 Agent 节点：**唯一调用模型的节点**（INV-05）。拿上下文包、模型、角色卡、工具，执行"模型调用 ↔ 工具调用"的循环，产出符合 `output_schema` 的结果。
@@ -27,7 +27,7 @@ Agent 节点：**唯一调用模型的节点**（INV-05）。拿上下文包、�
 | `output_schema` | type_ref | 方案@1 | 内联 |
 | `lifecycle` | enum：ephemeral / resident | ephemeral | 内联；见 `E.14.02.02` |
 | `temperature` | number 0–1 | 0.7 | — |
-| `reasoning` | enum：''/low/medium/high/max | '' | 推理强度，按 quirks 映射 |
+| `reasoning` | enum：''/off/minimal/low/medium/high/xhigh/max | '' | 思考强度，和对话框同一套 7 级（`U.09.06-R5`）。`''` = 用设置里的默认强度（缺省 medium，`U.09.06-R6`）；属性页只列出所选模型支持的强度（`C.16-R5`）；模型不支持时按 quirks 映射到最接近的一级并记 warn（`E.10.05`）。`P.09` Q24 |
 | `max_tool_calls` | integer 1–50 | 10 | 见 `E.14.02.01` |
 | `max_turns` | integer 1–50 | 12 | 模型调用轮数上限 |
 | `repair_retry` | integer 0–3 | 2 | 见 `E.14.02.03` |

@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 草稿 |
 | 素材 | 引05 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-23 |
 
 ## 1. 职责
 实现 OpenAI 兼容 提供方适配：把统一的 `llm.Req` 转成该家的请求，把流式响应转回统一的 `Delta` / `Resp`。
@@ -30,7 +30,7 @@ func NewOpenAICompat(cfg ProviderConfig, secrets engine.SecretResolver, q quirks
 - 流式：解析 SSE；工具调用参数是按 `index` 分片的字符串，累积拼接，结束后再解析 JSON。
 - 结构化输出：`response_format: {type: json_schema, json_schema: {name, schema, strict}}`；quirks 标记不支持时走第二 / 三级策略（`E.10.06`）。
 - 用量：请求带 `stream_options.include_usage`；`prompt_tokens_details.cached_tokens` → `Cached`；`completion_tokens_details.reasoning_tokens` → `Reasoning`。
-- 推理强度：`reasoning_effort`，取值按 quirks 映射（例如某些模型只接受 low / high / max，`medium` 自动映射为 high 并记 warn，`P.08.05`）。
+- 思考强度：`reasoning_effort`，取值按 quirks 映射（例如某些模型只接受 low / high / max，`medium` 自动映射为 high 并记 warn，`P.08.05`）。
 - 图片：工作区引用读出后转 data URL。
 
 ## 6. 不变量
