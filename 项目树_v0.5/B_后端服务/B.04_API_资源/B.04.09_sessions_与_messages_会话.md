@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 草稿 |
 | 素材 | 引15 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-23 |
 
 ## 1. 职责
 会话和消息：会话的增删改、挂图、消息列表、发送消息（交给对话 Agent）、中止回复。
@@ -25,7 +25,7 @@
 | GET | `/sessions?q=&cursor=` | 列表（置顶在前，按更新时间倒序） | → `Page<Session>` |
 | POST | `/sessions` | 新建 `{title?}` | → 201 `Session` |
 | GET | `/sessions/{sid}` | 详情 | → `Session` |
-| PATCH | `/sessions/{sid}` | 改标题、置顶、当前图、编排者模型、`last_location`（`C.10-R3`） | → `Session` |
+| PATCH | `/sessions/{sid}` | 改标题、置顶、当前图、编排者模型、思考强度 `orchestrator_effort`（`C.10-R6`）、`last_location`（`C.10-R3`） | → `Session` |
 | DELETE | `/sessions/{sid}` | 软删除（不删除图，`C.10-R1`） | → 204 |
 | POST | `/sessions/{sid}/graphs` · DELETE `/sessions/{sid}/graphs/{gid}` | 挂上、取下图 | → `Session` |
 | GET | `/sessions/{sid}/messages?cursor=&before=` | 消息（倒序分页，用于向上滚动加载） | → `Page<Message>` |
@@ -58,3 +58,8 @@
 - 允许使用的依赖：标准库 + `G.10` 已登记依赖
 - 禁止事项：`G.02.05` 全部
 - 完成标志：`G.14` 全部条件
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | PATCH 可改 `orchestrator_effort` | `P.09` K74 |

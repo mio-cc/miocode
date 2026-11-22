@@ -44,7 +44,7 @@
 | `hx_audit` | seq（AUTOINCREMENT） | ts, actor, action, target, effect, mandate_id, reasons, op_id, approval_id, graph_version, taint, prev_hash, hash | (ts DESC) |
 | `hx_ledger` | (scope, field, version) | value, taint, written_by, reason, ts | — |
 | `hx_blobs` | hash | size, media_type, refcount, created_at, last_access | (refcount, last_access) |
-| `hx_sessions` | id | title, pinned, active_graph_id, orchestrator_model, last_location（JSON，`C.10`）, created_at, updated_at, deleted_at | (pinned DESC, updated_at DESC) |
+| `hx_sessions` | id | title, pinned, active_graph_id, orchestrator_model, orchestrator_effort（JSON，`C.10-R6`）, last_location（JSON，`C.10`）, created_at, updated_at, deleted_at | (pinned DESC, updated_at DESC) |
 | `hx_session_graphs` | (session_id, graph_id) | attached_at | — |
 | `hx_messages` | id | session_id, role, actor, content, content_ref, blocks, selection, status, error, usage, created_at | (session_id, created_at) |
 | `hx_session_events` | (session_id, seq) | ts, kind, actor, data | — |
@@ -87,3 +87,4 @@
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | `hx_sessions` 补 `last_location` 列（`C.10` 在树索引.6 已加该字段，本表漏改） | `P.09` K68 | |
+| 2026-11-23 | `hx_sessions` 补 `orchestrator_effort` 列 | `P.09` K74 |

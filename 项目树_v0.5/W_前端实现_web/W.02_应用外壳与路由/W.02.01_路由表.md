@@ -49,7 +49,7 @@ export function useNav(): {
 };
 ```
 ### 4.3 依赖
-`react-router`（`G.10` §3.3）：`createBrowserRouter`、`useNavigate`、`useLocation`。`W.03.05` 会话列表与 `Session`；`W.04.01` `PATCH /sessions/{sid}`。
+`react-router`（`G.10` §3.3）：`createBrowserRouter`、`useNavigate`、`useLocation`。`W.03.05` 会话列表与 `Session`、`saveLastLocation`、工作区 `activate` / `setLocation`。
 
 ## 5. 数据结构
 `Location` 见 §4.2。路由参数 `sessionId`、`graphId`、`scope` 都必须匹配 ULID 正则 `^[0-9A-HJKMNP-TV-Z]{26}$`（`scope` 另可为省略），不匹配按"其他"处理。
@@ -71,7 +71,7 @@ export function useNav(): {
 
 ### 6.3 地址变了以后
 1. `parseUrl` → 和当前会话工作区比较：会话不同 → 切换工作区（`W.03.05`）；图不同 → 加载新图；只有 `scope` 不同 → 通知画布引擎切换层（`W.06.13`）。
-2. `scope` 变化后 1 秒内没有再变，就 `PATCH /sessions/{sid}` 写 `last_location: {graph_id, scope}`（节流 1 秒，`C.10-R3`）。
+2. 调 `W.03.05` 的 `saveLastLocation(sid, {graphId, scope})`：它在 1 秒内没有再变时 `PATCH /sessions/{sid}` 写 `last_location`（节流 1 秒，`C.10-R3`）；路由代码不直接发请求（`W.01-R13`）。
 3. 写 localStorage `hx:last-session = sessionId`。
 4. 页面标题：`{会话名} · Harness`；有待审批时前面加"（待审批）"（`U.14.04` §2）。
 
@@ -112,3 +112,8 @@ export function useNav(): {
 - 允许使用的依赖：`react`、`react-router`、`zustand`（`G.10` §3.3）；测试用 `vitest`、`@playwright/test`。
 - 禁止事项：`G.02.05` 全部；另：不把中心窗口、预览、右栏标签放进 URL；不在 `nav.ts` 以外改 URL。
 - 完成标志：`G.14` 全部条件；§10 五条验收通过。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | §6.3 第 2 步改为调用 `W.03.05` 的 `saveLastLocation`（节流在 session store 里做），路由不直接发请求 | `W.01-R13`；写 `W.03.05` 时对齐 |

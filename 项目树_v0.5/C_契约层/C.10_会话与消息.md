@@ -27,6 +27,8 @@
     "active_graph_id": { "$ref": "common.schema.json#/$defs/Ulid", "description": "画布当前显示的图" },
     "mandates":        { "type": "array", "items": { "$ref": "mandate.schema.json#/$defs/MandateMount" }, "default": [], "description": "anchor 只能是 session" },
     "orchestrator_model": { "type": "string", "description": "对话 Agent 用的模型；缺省用设置里的默认（P.09 Q17）" },
+    "orchestrator_effort": { "type": "object", "default": {}, "additionalProperties": { "enum": ["off", "minimal", "low", "medium", "high", "xhigh", "max"] },
+                         "description": "按模型记住的思考强度：模型引用 → 强度（U.09.06-R7）；没有记录的模型用设置里的默认强度" },
     "last_location":   { "type": "object", "additionalProperties": false,
                          "properties": { "graph_id": { "$ref": "common.schema.json#/$defs/Ulid" }, "scope": { "type": "string", "pattern": "^(root|[0-9A-HJKMNP-TV-Z]{26})$", "description": "当前层：root = 根图，否则为所在容器节点的 ID（与 Selection.scope、前端路由 ?scope= 同一写法）" } },
                          "description": "用户上次在这个会话里所在的图和层，切回时恢复（U.09.04）" },
@@ -39,6 +41,7 @@
 - **C.10-R1** 一个会话可以挂多张图；图是独立文档，会话只保存引用。删除会话不删除图（图可以被别的会话引用，或者在"所有图"里找到）。
 - **C.10-R2** 画布居中的布局下（ADR-008），一个会话任何时候只有一张"当前图"（`active_graph_id`），显示在画布上。
 - **C.10-R3** `last_location` 由前端在进入、离开某一层时更新（`PATCH /sessions/{id}`，节流 1 秒）；它只是界面现场，不写会话事件以外的任何记录，不影响图文档和运行。视图位置不在这里（存浏览器，`U.09.04` §2）。
+- **C.10-R6** `orchestrator_effort` 由前端在用户选择思考强度时更新（`PATCH /sessions/{id}`）；对话 Agent 调用模型时取 `orchestrator_effort[orchestrator_model]`，没有记录时用设置里的默认强度（`U.09.06-R6`），模型不支持这一级时按 `E.10.05` 映射（`P.09` K74）。
 
 ## 3. 消息 Message
 ```json
@@ -71,7 +74,7 @@
 | `proposal` | `proposal_id, summary, counts: {add, modify, remove}` | 提议卡片：采纳全部 / 拒绝全部 / 在画布上查看 |
 | `applied` | `graph_id, version, op_ids, summary` | "已修改"卡片：撤销 / 在画布上定位 |
 | `approval` | `approval_id, summary, kind` | 审批卡片：批准 / 驳回 |
-| `run` | `run_id, status` | 运行卡片：状态、用时、费用，点击打开运行页 |
+| `run` | `run_id, status` | 运行卡片：状态、用时、费用，点击打开监控页 |
 | `focus` | `graph_id, scope, node_ids` | "看这里"：点击后画布进入对应层并高亮节点 |
 | `error` | `code, message` | 错误提示 |
 
@@ -100,8 +103,8 @@
   }
 }
 ```
-- **C.10-R3** 即使没选中节点，也附带 `scope`（用户所在的层），让编排者知道用户在看哪一层。
-- **C.10-R4** 选中超过 50 个节点时只附带前 50 个，并在 `content` 前加一句"（已选中 N 个节点，只附带前 50 个）"。
+- **C.10-R4** 即使没选中节点，也附带 `scope`（用户所在的层），让编排者知道用户在看哪一层。
+- **C.10-R5** 选中超过 50 个节点时只附带前 50 个，并在 `content` 前加一句"（已选中 N 个节点，只附带前 50 个）"。
 
 ## 6. 验收标准
 1. 每种 MessageBlock 一个示例，通过校验。
@@ -115,3 +118,5 @@
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | `last_location.scope` 从"名称路径"改为 `root` 或容器节点 ID，与 `Selection.scope` 和路由一致；名称会重名、会改名 | `P.09` K68 | |
+| 2026-11-23 | 新增 `orchestrator_effort` 和 R6：思考强度按"会话 × 模型"记住，原来没有地方存、发消息也带不上 | `P.09` K74 |
+| 2026-11-23 | §5 的两条规则原编号与 §2 的 R3 重复，改为 R4、R5（这两条此前没有被引用） | `P.09` K78 |

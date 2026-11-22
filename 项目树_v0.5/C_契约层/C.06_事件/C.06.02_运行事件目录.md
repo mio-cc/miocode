@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 草稿 |
 | 素材 | 引14 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-23 |
 
 ## 1. 职责
 运行流的全部事件。名字、级别、数据字段以本表为准；实现时生成常量（`gen.EvNodeState` 等）。
@@ -30,7 +30,7 @@
 | `node.input` | P | `port, value_ref` | 节点详情 |
 | `node.output` | P | `port, value_ref, partial` | 节点详情、下游就绪判定 |
 | `node.throttled` | S | `pool, waiting` | 在资源池排队 |
-| `node.log` | P（info 及以上） | `level, msg, kv` | 运行页日志 |
+| `node.log` | P（info 及以上） | `level, msg, kv` | 监控页日志 |
 
 `node.state` 按 `to` 附加的字段：
 | to | 附加字段 |
@@ -102,7 +102,7 @@
 |---|---|
 | `node.state`、`node.progress`、`edge.flow`、`node.throttled`、`pool.usage` | 高频：按帧合并后直接画到画布，不进 React |
 | `run.*`、`approval.*`、`escalation.*`、`brief.updated`、`estop.*`、`budget.warn` | 低频：进状态 store，驱动顶部条、审批卡片、提示 |
-| `node.log`、`llm.call`、`tool.*`、`ctx.assembled`、`prompt.rendered` | 写进运行页和节点详情，大内容按需加载 |
+| `node.log`、`llm.call`、`tool.*`、`ctx.assembled`、`prompt.rendered` | 写进监控页和节点详情，大内容按需加载 |
 
 ## 10. 验收标准
 1. `run-event.schema.json` 的 `kind` 枚举与本文 §2–§8 完全一致（脚本比对）。
@@ -111,3 +111,8 @@
 ### 实施卡
 - 要改的文件：`schema/run-event.schema.json`；`schema/examples/events/run/*.json`。
 - 测试用例：`C0602-T1`（枚举比对）、`C0602-T2`（示例校验）。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | 旧称"运行页"统一为"监控页"（右侧栏第三个标签，`U.09.07`） | `P.09` K77 |

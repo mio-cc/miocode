@@ -38,8 +38,10 @@ web/src/
 │  ├─ theme/                              W.02.03  主题（配色 × 明暗）
 │  └─ keys/                               W.02.04  快捷键注册中心
 ├─ state/                                 W.03
-│  ├─ graphStore.ts viewStore.ts uiStore.ts runStore.ts sessionStore.ts modelStore.ts
-│  └─ workspace.ts  WorkspaceProvider.tsx         会话工作区（每个会话一套 store）
+│  ├─ graphStore.ts graphModel.ts graphSelectors.ts viewStore.ts uiStore.ts   W.03.01–W.03.03
+│  ├─ runStore.ts runLive.ts modelStore.ts                                    W.03.04、W.03.06
+│  ├─ sessionStore.ts activityPoller.ts catalogStore.ts appStores.ts          W.03.05
+│  └─ workspace.ts eventRouter.ts WorkspaceProvider.tsx hooks.ts deps.ts types.ts   会话工作区（W.03.05）
 ├─ ops/                                   W.05     dispatch / validate / apply / inverse / merge / history
 ├─ lib/
 │  ├─ protocol/                           W.04
@@ -106,7 +108,7 @@ web/tests/  e2e/  visual/  bench/         W.12、W.11
 |---|---|
 | W.01-R12 | 服务器数据只有两个入口：REST 响应和 SSE 事件，都先经过 `mapping.ts` 转成 camelCase（`W.04.03`），再写进 store |
 | W.01-R13 | 组件不直接发请求（`G.06.01-R4`）：调用 store 的 action 或 `dispatch(op)` |
-| W.01-R14 | 同一份服务器数据只存一处：图在 graph store、运行在 run store、会话和消息在 session store、提议在 model store；派生数据（结构树、类型推断、校验结果）用纯函数按版本号缓存，不另存状态（`G.06.02-R6`） |
+| W.01-R14 | 同一份服务器数据只存一处：图在 graph store、运行在 run store、会话和消息在 session store、提议在 model store；待审批和急停状态是全局的，只在 session store 存一份（`W.03.05`）；派生数据（结构树、类型推断、校验结果）用纯函数按版本号缓存，不另存状态（`G.06.02-R6`） |
 
 ### 3.5 会话工作区
 切换会话时，图、所在层、视图、撤销、档位、对话、提议、运行信息整体切换，回来时恢复现场（`U.09.04`、`P.09` K40）。
@@ -115,7 +117,7 @@ web/tests/  e2e/  visual/  bench/         W.12、W.11
 |---|---|
 | W.01-R15 | 每个打开过的会话对应一个 `SessionWorkspace`：持有它自己的 graph / view / run / model store 和对话数据（`W.03` 定义）；ui store 和主题、侧栏开合等全局界面状态不属于任何会话 |
 | W.01-R16 | 内存里最多保留最近 5 个会话的工作区，超过时释放最久没用的（关闭它的 SSE 流、清空 DOM 池引用）；再切回来时从服务端重新加载，并按 `last_location` 和 localStorage 的视图记录恢复现场 |
-| W.01-R17 | 后台会话的运行不中断（`U.09.04-R1`）：后台工作区只保留会话流（用于列表上的"● 运行中"和审批角标），图协同流和运行流在切走时关闭，切回时续传（`B.05.04` 的连接数上限） |
+| W.01-R17 | 后台会话的运行不中断（`U.09.04-R1`）。只有当前会话的工作区连 SSE：会话流、当前图的图协同流、当前运行的运行流，合计最多 3 条（`B.05.04`：同源 HTTP/1.1 最多 6 条连接，要给 REST 请求留位置）；切走时三条全部关闭并记下各自的续传位置，切回时续传。会话列表上的"● 运行中"、待审批角标和急停状态不靠后台会话流（会话流里也没有这些事件，`C.06.04`），由 session store 定时刷新 `/runs`、`/approvals`、`/estop` 得到（`W.03.05`，`P.09` K73） |
 
 ### 3.6 demo 迁移对照
 demo v0.5.11 是界面参考实现（`sj/demo_v0.5/画布_demo_v0.5.html`，模块在 `src/`，基础模块来自 `设计规范_v0.3/src/` 和 `布局demo_v0.4/src/`）。迁移时按下表把逻辑放到对应节点，**重写成 TypeScript 模块，不整段复制**；demo 里的示例数据（模型名、价格、用量）一律不进产品代码。
@@ -158,3 +160,8 @@ demo v0.5.11 是界面参考实现（`sj/demo_v0.5/画布_demo_v0.5.html`，模�
 
 ## 5. 例外
 无例外。确需调整目录或依赖方向时，先改本文并在 `P.09` 登记。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | R14 补待审批与急停的归属；R17 改为只有当前工作区连 SSE（最多 3 条），后台会话的运行中、待审批、急停由定时刷新得到；§3.2 `state/` 补齐 W.03 的文件 | `P.09` K73 |
