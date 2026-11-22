@@ -60,8 +60,8 @@ export function createDrag(ctx: EngineCtx): DragApi & {
 export function guides(primary: Rect, others: readonly Rect[]): { x: number[]; y: number[] };   // 对齐参考线（U.10.01-R7）
 
 // web/src/canvas/core/interact/drop.ts
-export const PRESET_MIME = 'application/x-hx-preset';   // W.07.02 放进 dataTransfer 的 JSON：{type, params?, label?, tags?}
-export function createDrop(ctx: EngineCtx): { addNode: EngineCommands['addNode']; dispose(): void };
+export const PRESET_MIME = 'application/x-hx-preset';   // W.07.02 放进 dataTransfer 的 JSON：{type, params?, label?, tags?, meta?}（meta.preset，C.15-R1，K114）
+export function createDrop(ctx: EngineCtx): { addNode: EngineCommands['addNode']; addNote: EngineCommands['addNote']; dispose(): void };
 ```
 ### 4.1 依赖
 `W.06` §4.3 的 `EngineCtx`（`vp`、`geom`、`nodes`、`edges`、`lod`、`link`、`nest`、`emit`、`deps.newId`、`deps.t`）；`W.03.03` 的 `selectionOf`、`ui.actions.select`、`ui.getState().tool`；`W.05` 的 `OpsApi.dispatch`、`gesture`、`canConnect`；`@/lib/protocol` 的 `OpKind`（常量）。
@@ -145,10 +145,12 @@ type Active =                                            // 同一时刻只有�
 ### 6.8 `cmd.addNode(d, o)`（快速添加、放下、节点库点击共用）
 1. 只读 → 返回 `{status:'blocked', reason:'readonly'}`。
 2. `at = 'center'`：可见区域（扣掉 `fitInsets`）中心；位置吸附成整数。
-3. 新节点 `id = deps.newId()`；`ops` 组成一批：`add_node{scope, node:{id, type, pos, params, label, tags}}`（容器节点的子图端口由 `W.05` 补，`W.05` §5.2）。
+3. 新节点 `id = deps.newId()`；`ops` 组成一批：`add_node{scope, node:{id, type, pos, params, label, tags, meta}}`（`meta` 原样带上，只用于显示来源）（容器节点的子图端口由 `W.05` 补，`W.05` §5.2）。
 4. `connectFrom`：`link.firstFit(源端口的数据类型, 新节点的 NodeDef, 'in')` 找新节点上第一个能接的输入端口（按 NodeDef 顺序；新节点还不在图里，所以按 NodeDef 的端口类型判断，`W.06.08`），有就加一条 `connect{edge:{id: newId(), from, to}}`；没有就只放节点。
 5. `insertInto`：原连线 `from → to`；`link.firstFit` 找到新节点兼容的输入和输出 → 加 `disconnect{ids:[原连线]}`、`connect(from → 新.输入)`、`connect(新.输出 → to)`；任一端不兼容 → 只放节点，不改连线，提示"类型不兼容，已放在旁边"。
 6. 一次 `ops.dispatch(批)`（`C.05-R3`）；结果 `applied` / `merged` → `sel.set({nodeIds:[id]})`。
+
+- `cmd.addNote({at})`（`W.07.11` 右键空白处"添加便签"，`P.09` K111）：只读 → `blocked`；`at` 换成世界坐标、吸附；一次 `dispatch(add_note{scope, note:{id: deps.newId(), pos, text: '', size 缺省}})`；成功后选中新便签。
 
 ### 6.9 `drag.moveBy(ids, dx, dy, o?)`（给方向键用）
 `dispatch(move_nodes{moves}, {groupId: o?.groupId})` 一次（不走手势），`dx`、`dy` 是世界像素（`W.06.09` 传 20 或 100），结果吸附到网格；`frozen` 的节点跳过。`W.06.09` 把连续的方向键传同一个 `groupId`，撤销一次回到原位（`P.09` K104）。
@@ -219,3 +221,4 @@ type Active =                                            // 同一时刻只有�
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | `drag.moveBy` 增加 `groupId`；新增 §6.10 `pointer.last()`；`selectionKey = null` 的例子改为子图库预览 | 第 7 棒；`P.09` K103、K104 |
+| 2026-11-23 | `PRESET_MIME` 的 JSON 与 `add_node` 带 `meta`；`createDrop` 同时实现 `cmd.addNote`（屏幕坐标换世界坐标、吸附后一次 `add_note`，便签缺省尺寸 `L.noteW` × `L.noteH`） | 第 8 棒写 `W.07`；`P.09` K111、K114 |

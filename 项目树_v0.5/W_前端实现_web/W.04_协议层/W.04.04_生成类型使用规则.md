@@ -64,20 +64,27 @@
 | `GraphConflictDetails` | 409 `graph_conflict` 的 `details` | `head`、`missed_ops[]`（每项是带 `version` 的 `OpRecord`）、`conflicts[] {op_id, object}` | `W.05` §6.6 |
 | `OpRecord` | `GET /graphs/{id}/ops` | `version`、`op`（完整 `Op`，含服务器填写的 `actor`、`target`、`group_id`）、`undone` | `W.03.01`、`W.05` |
 | `Branch` | `GET /graphs/{id}/branches` | `name`、`head`、`behind`、`ahead` | `W.03.01` |
-| `RunMeta` | `GET /runs`、控制类 POST 的响应 | `id`、`session_id`、`kind`、`status`、`graph_id`、`graph_version`、`branch`、`created_at`、`ended_at` | `W.03.04`、`W.03.05` §6.3 |
+| `RunMeta` | `GET /runs`、控制类 POST 的响应 | `id`、`session_id`、`kind`、`status`、`graph_id`、`graph_version`、`branch`、`created_at`、`ended_at`、`no`、`headline`、`steps {done, total}`、`cost_micros` | `W.03.04`、`W.03.05` §6.3、`W.07.05` |
 | `RunStarted` | `POST /runs` | `run_id`、`graph_version`、`status` | `W.03.04` |
-| `RunView` | `GET /runs/{id}`、`/view?at_seq=` | `meta`（`RunMeta`）、`usage {in, out, cached}`、`cost_micros`、`current_path`、`pending_approvals` | `W.03.04` |
+| `RunView` | `GET /runs/{id}`、`/view?at_seq=` | `meta`（`RunMeta`）、`usage {in, out, cached}`、`cost_micros`、`current_path`、`pending_approvals`、`pending_patches[]` | `W.03.04`、`W.07.05` |
+| `Bar` | `GET /runs/{id}/timeline` | `exec_key`、`node_id`、`loc`、`state`、`started_at`、`ended_at`、`error` | `W.07.05` |
 | `NodeSnapshot` | `GET /runs/{id}/nodes` | `seq`、`items[]`（`NodeStateRow`） | `W.03.04` §6.2 |
 | `NodeStateRow` | 同上 | `exec_key`、`node_id`、`loc`、`state`、`attempt`、`progress`、`round`、`started_at`、`ended_at`、`error` | `W.03.04` |
 | `NodeDetail` | `GET /runs/{id}/nodes/{exec_key}` | `exec_key`、`inputs`、`outputs`、`ctx_ref`、`prompt_ref`、`llm_calls[]`、`tool_calls[]`、`error`、`cost_micros` | `W.07.03` |
-| `Approval` | `GET /approvals/{aid}`、`resolve` 的响应 | `id`、`session_id`、`run_id`、`loc`、`kind`、`risk`、`status`、`summary`、`taint`、`created_at` | `W.03.05`、`W.07.09` |
+| `Approval` | `GET /approvals/{aid}`、`resolve` 的响应 | `id`、`session_id`、`run_id`、`loc`、`kind`、`risk`、`status`、`summary`、`taint`、`created_at`、`tool`、`params_preview`、`options`、`input_schema`、`group_key`、`outcome`、`resolved_at` | `W.03.05`、`W.07.09` |
 | `ApprovalGroup` | `GET /approvals` | `key`、`items[]`（`Approval`）、`count` | `W.03.05` |
 | `EstopState` | `GET /estop` | `global`、`runs[]` | `W.03.05` |
 | `Effective` | `GET /authz/effective`、`POST /sessions/{sid}/level` | `level`、`mandate_id`、`anchor`、`chain[]` | `W.03.06` |
 | `MessageSent` | `POST /sessions/{sid}/messages` | `user_message`、`assistant_message_id` | `W.03.05` |
 | `OnboardingState` | `GET /settings/onboarding` | `step`、`done` | `W.02` |
 | `SettingsPatched` | `PATCH /settings` | `settings`、`applied`、`restart_required`、`next_run` | `W.02.03` |
-| `Model` | `GET /models` | `ref`、`provider`、`window`、`caps`、`priced` | `W.03`、`W.07.07` |
+| `Model` | `GET /models` | `ref`、`provider`、`window`、`caps`、`priced`、`effort` | `W.03`、`W.07.07` |
+| `NodePresetItem` | `GET /node-presets` | `preset`（`C.15` `NodePreset`）、`package_id`、`package_name`、`source`、`enabled`、`disabled_reason`；外层 `total` | `W.03` §4.5、`W.07.02` |
+| `MergePreview`、`Resolution` | `POST /graphs/{id}/branches/{name}/merge/preview`、`…/merge` | `base`、`ours`、`theirs`、`auto[]`、`conflicts[]`、`diags[]`；`Resolution {conflict_id, pick: ours\|theirs\|value, value?}` | `W.07.01` |
+| `PromptPreview` | `POST /graphs/{id}/nodes/{node_id}/prompt-preview` | `segments[] {kind, text, tokens, placeholders[]}` | `W.07.03` |
+| `ContextUsage` | `GET /sessions/{sid}/context` | `window`、`used`、`parts[] {kind, tokens}`、`auto_compact_at` | `W.07.07` |
+| `Upload`、`SessionFile` | `POST /sessions/{sid}/uploads`、`GET /sessions/{sid}/files` | `ref`、`name`、`size`；`path`、`name`、`size`、`source` | `W.07.07` |
+| `LibraryItem` | `GET /library?q=` | `name`、`version`、`description` | `W.07.11` |
 | `NodeDefSummary` | `GET /nodedefs`（在 `nodedef.schema.json`） | `ref`、`name`、`category`、`package`、`icon`、`tags` | `W.03` §4.5、`W.07.02` |
 | `TypeDef` 列表 | `GET /types`（在 `typedef.schema.json` / `types.schema.json`） | `ref`、`layer`、`extends`、`producer`、`migrations` | `W.05`（`Assignable`，`C.04.02`） |
 `Session`、`Message`、`Proposal`、`ProposalPreview`、`Settings`、`NodeDef`、`Mandate` 已由各自的 schema 定义（`C.10`、`C.08`、`G.11`、`C.03`、`C.09`），不重复列出。
@@ -98,3 +105,8 @@
 - `web/src/lib/protocol/` 内部的文件（`mapping.ts`、`client.ts`、`events.ts`、`types.ts`、`index.ts`）可以导入 `generated/` 并使用 snake_case 原始类型——这是它们的职责。
 - 测试夹具（`*.test.ts` 读取 `schema/examples/`）可以用原始类型和 `as Ulid`。
 - 其他例外：无。确需例外时在 `P.09` 登记后改本文。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | §3.5 补 `W.07` 用到的字段与结构：`RunMeta`、`RunView`、`Approval`、`Model` 加字段；新增 `Bar`、`NodePresetItem`、`MergePreview`、`Resolution`、`PromptPreview`、`ContextUsage`、`Upload`、`SessionFile`、`LibraryItem` | 第 8 棒；`P.09` K113、K116、K117 |

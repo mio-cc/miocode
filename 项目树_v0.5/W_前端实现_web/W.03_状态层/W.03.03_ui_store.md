@@ -53,6 +53,8 @@ export type Toast = {
   id: string; level: 'info' | 'ok' | 'wait' | 'error' | 'model';
   text: string; detail?: string;                       // 已经是翻译后的文案（W.10）
   action?: { label: string; run: () => void };         // 例："撤销"
+  actions?: readonly { label: string; run: () => void }[];   // 两个以上按钮（"查看 · 全部撤销""应用 · 不应用"，W.07.10，K114）；有它时忽略 action
+  sticky?: boolean;                                    // 不自动消失（error 默认如此）
   groupKey?: string;                                   // 同一 groupKey 的新提示替换旧的（"AI 修改了 N 处"）
 };
 export type UiState = {
@@ -64,6 +66,7 @@ export type UiState = {
   center: null | { section: CenterSection; item?: string };
   net: NetState;
   toasts: readonly Toast[];
+  composerPrefill: null | { text: string; attachSelection: boolean; seq: number };   // 别处预填对话框（W.07.07 §6.9，K114）
 };
 export type UiActions = {
   // 布局（语义见 W.02.02 §6.4）
@@ -87,6 +90,7 @@ export type UiActions = {
   setNet(n: NetState): void;
   notify(t: Omit<Toast, 'id'>): string;                            // 返回 id
   dismiss(id: string): void;
+  prefillComposer(p: { text: string; attachSelection?: boolean }): void;   // seq 加 1；右键"让 AI 解释"、节点库"让 AI 帮我做"（K114）
 };
 export type UiStoreApi = ReadonlyStore<UiState> & { actions: UiActions };
 export function createUiStore(o: { width: number; storage?: Storage }): UiStoreApi;
@@ -195,3 +199,4 @@ export function canvasReadonly(s: UiState): boolean;                       // ne
 |---|---|---|
 | 2026-11-23 | `NetState` 注释写明四个值的含义 | `P.09` K91 |
 | 2026-11-23 | `selectionKey` 为空的例子改为子图库预览 | `P.09` K103（第 7 棒） |
+| 2026-11-23 | `Toast` 加 `actions`、`sticky`；新增 `composerPrefill` 与 `prefillComposer` | 第 8 棒写 `W.07.07`、`W.07.10`；`P.09` K114 |

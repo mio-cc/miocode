@@ -39,8 +39,12 @@ export function AppShell({ mode, page }: AppShellProps): JSX.Element;
 // 各区域的插槽组件，由 AppShell 摆放；内容组件从 W.07 引入
 // <TopBar/>         W.07.01   <LeftSidebar/>  W.07.02   <RightSidebar/> W.07.03–05
 // <CanvasArea>      本文      里面依次：<Canvas/> W.06、<FloatLayer/>（停靠栏、小地图、父图位置卡 W.07.06；
-//                            提议栏 W.07.09；浮动回复 W.07.08；对话框 W.07.07）
-// <BannerSlot/>     本文      顶部条下方：急停横幅、离线横幅、窄屏提示（W.07.10）
+//                            提议栏 W.07.09；浮动回复 W.07.08；对话框 W.07.07；FloatLayer 的子元素整体包在
+//                            W.07.08 的 <FloatReplyProvider> 里，对话框的 Esc 要先收拢浮动回复，P.09 K111）
+// <BannerSlot/>     本文      顶部条下方：急停横幅、离线横幅、子图库内容提示、窄屏提示（W.07.10）
+
+// web/src/shell/CanvasArea.tsx 另导出（P.09 K111）
+export function useCanvasAreaRect(): () => DOMRect | null;   // 画布区域的页面矩形：引擎事件的 at（相对画布根元素）换成页面坐标时用（W.07.11）
 ```
 ### 4.2 布局状态（放在 `uiStore`，`W.03.03`）
 ```ts
@@ -169,3 +173,8 @@ export function bpOf(width: number): ShellLayout['bp'];
 - 允许使用的依赖：`react`、`zustand`；测试用 `vitest`、`jsdom`、`@playwright/test`。
 - 禁止事项：`G.02.05` 全部；另：不对宽度、高度、`left`、`top` 做动画；不写宽度媒体查询；不在外壳里改画布视图。
 - 完成标志：`G.14` 全部条件（含浅色、深色截图）；§10 七条验收通过。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | §4.1：`FloatLayer` 的子元素包在 `FloatReplyProvider` 里；新增 `useCanvasAreaRect`；横幅列出子图库内容提示 | 第 8 棒写 `W.07`；`P.09` K111 |

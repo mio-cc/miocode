@@ -143,12 +143,19 @@ export type CatalogState = {
   models: readonly Model[];                // GET /models（B.04.07），对话框的模型按钮、属性页用
   settings: Settings | null;               // 启动时 GET /settings（W.02 §6 第 3 步）
   status: { defs: LoadStatus; models: LoadStatus };
+  presets: { items: readonly PresetItem[]; total: number; status: LoadStatus };   // 节点库条目（GET /node-presets，W.07.02 §4.2，K114）
+  skills: readonly { packageId: string; name: string; desc?: string; enabled: boolean }[];   // GET /packages?kind=skill（对话框 @ 引用，W.07.07）
 };
 export type CatalogActions = {
   ensureDefs(registryHash: string): Promise<void>;     // 哈希不同才重新拉 GET /nodedefs 和 GET /types（B.04.06 带 ETag）
   nodeDef(ref: string): Promise<NodeDef>;              // 按需拉完整定义并缓存
   loadModels(): Promise<void>;
   setSettings(s: Settings): void;                      // bootstrap 和 PATCH /settings 成功后调用
+  loadPresets(o?: { path?: readonly string[] }): Promise<void>;
+  searchPresets(q: string): Promise<readonly PresetItem[]>;   // 条目 > 500 时搜索在后端做（U.22-R10）
+  loadSkills(): Promise<void>;
+  searchLibrary(q: string): Promise<readonly LibraryItem[]>;  // GET /library?q=（命令面板，W.07.11）
+  countTokens(text: string, model?: string): Promise<number>; // POST /models/count-tokens（大编辑器，W.07.03）
 };
 export type LoadStatus = 'idle' | 'loading' | 'ready' | 'error';
 ```
@@ -214,6 +221,9 @@ export type LoadStatus = 'idle' | 'loading' | 'ready' | 'error';
 | `hx:theme-palette`、`hx:theme-mode`、`hx:motion` | 主题 | `W.02.03` |
 | `hx:last-session` | 最近打开的会话 | `W.02.01` |
 | `hx:draft:<会话 ID>` | 没发出去的文字 | `W.07.07` |
+| `hx:pos:dock`、`hx:pos:mini`、`hx:pos:nest`、`hx:nestcard-min`、`hx:legend` | 浮动面板的位置（按画布比例）、父图位置卡收起、类型图例展开 | `W.07.06`（K114） |
+| `hx:lib-fav`、`hx:lib-recent`、`hx:lib-open` | 节点库收藏、最近 10 个、展开的分类 | `W.07.02`（`U.22-R5`） |
+| `hx:inbox-read` | 通知中心最后一次全部已读的时间 | `W.07.10` |
 不在 localStorage 存图、消息、运行、提议、审批（`G.06.02-R7`）；不存任何密钥（INV-22、`W-R10`）。
 
 ### 6.5 高频数据怎么走
@@ -259,3 +269,4 @@ export type LoadStatus = 'idle' | 'loading' | 'ready' | 'error';
 | 2026-11-23 | §4.3 按 `W.04` 定稿补齐：`Query`、`getText`、`download`、`NetError`、`retryAfterMs`、`StreamState`、`onOpen.reconnected`、`onState`、`onError`；§6.2 补图协同流连上 / `resync`、会话流重连三行；§4.5 目录 store 加数据类型 `types` | 写 `W.04`、`W.05` 时对齐（`P.09` K83、K90） |
 | 2026-11-23 | §4.2 新增 `useAppStores()`（画布引擎需要 ui、catalog 的 store 实例） | `P.09` K98（写 `W.06.01` 时发现缺口） |
 | 2026-11-23 | 预览浮层不再算画布实例（view 行、`CanvasStores.selectionKey` 注释、生命周期表）；运行状态路径写为 `live.subscribe` | `P.09` K103、K108（第 7 棒） |
+| 2026-11-23 | §4.5 目录 store 新增 `presets`、`skills` 和五个 action；§6.4 登记 `W.07` 用到的 localStorage 键 | 第 8 棒写 `W.07`；`P.09` K114 |

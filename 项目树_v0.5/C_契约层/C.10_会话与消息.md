@@ -58,6 +58,7 @@
     "content_ref":{ "$ref": "common.schema.json#/$defs/WsRef", "description": "超长时内容放工作区" },
     "blocks":     { "type": "array", "items": { "$ref": "#/$defs/MessageBlock" }, "default": [] },
     "selection":  { "$ref": "#/$defs/Selection", "description": "只有 user 消息有：发送时附带的画布选中" },
+    "refs":       { "type": "array", "items": { "$ref": "#/$defs/MessageRef" }, "maxItems": 20, "default": [], "description": "只有 user 消息有：对话框里 @ 引用和 + 附件（C.10-R7）" },
     "status":     { "enum": ["streaming", "done", "failed"] },
     "error":      { "type": "object", "properties": { "code": { "type": "string" }, "message": { "type": "string" } } },
     "usage":      { "type": "object", "properties": { "in": { "type": "integer" }, "out": { "type": "integer" }, "cost_micros": { "type": "integer" } } },
@@ -106,6 +107,20 @@
 - **C.10-R4** 即使没选中节点，也附带 `scope`（用户所在的层），让编排者知道用户在看哪一层。
 - **C.10-R5** 选中超过 50 个节点时只附带前 50 个，并在 `content` 前加一句"（已选中 N 个节点，只附带前 50 个）"。
 
+## 5.1 引用 MessageRef（新增，`P.09` K113）
+```json
+"MessageRef": {
+  "type": "object", "required": ["kind"],
+  "oneOf": [
+    { "properties": { "kind": { "const": "node" },    "graph_id": { "$ref": "common.schema.json#/$defs/Ulid" }, "scope": { "type": "string" }, "node_id": { "$ref": "common.schema.json#/$defs/Ulid" } }, "required": ["graph_id", "scope", "node_id"] },
+    { "properties": { "kind": { "const": "file" },    "ref": { "$ref": "common.schema.json#/$defs/WsRef", "description": "上传到会话工作区的文件" }, "path": { "type": "string", "description": "允许目录里的文件（S.06）" } } },
+    { "properties": { "kind": { "const": "session" }, "session_id": { "$ref": "common.schema.json#/$defs/Ulid" } }, "required": ["session_id"] },
+    { "properties": { "kind": { "const": "skill" },   "package_id": { "type": "string" } }, "required": ["package_id"] }
+  ]
+}
+```
+- **C.10-R7** 用户消息可以带最多 20 个引用（对话框的 `@` 引用与 `+` 附件，`U.09.06` §2）。`file` 必须恰好有 `ref` 或 `path` 之一；`path` 只能在允许目录内（`S.06`），越界的引用被拒绝（400）。引用只是告诉对话 Agent "用户指的是这些"，进上下文时由对话 Agent 按预算取用（`B.06.02.01`）。
+
 ## 6. 验收标准
 1. 每种 MessageBlock 一个示例，通过校验。
 2. 删除会话后，它挂的图仍可以通过 `GET /graphs/{id}` 读到。
@@ -120,3 +135,4 @@
 | 2026-11-23 | `last_location.scope` 从"名称路径"改为 `root` 或容器节点 ID，与 `Selection.scope` 和路由一致；名称会重名、会改名 | `P.09` K68 | |
 | 2026-11-23 | 新增 `orchestrator_effort` 和 R6：思考强度按"会话 × 模型"记住，原来没有地方存、发消息也带不上 | `P.09` K74 |
 | 2026-11-23 | §5 的两条规则原编号与 §2 的 R3 重复，改为 R4、R5（这两条此前没有被引用） | `P.09` K78 |
+| 2026-11-23 | Message 新增 `refs`；新增 §5.1 `MessageRef` 与 R7 | 第 8 棒写 `W.07.07`：对话框的 `@` 引用、附件没有契约；`P.09` K113 |

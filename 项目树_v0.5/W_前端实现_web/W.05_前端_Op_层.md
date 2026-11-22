@@ -251,7 +251,7 @@ type QueueState = {
 | `onStreamOpen({graphVersion})` | `graphVersion > confirmedVersion` → 按"缺口"补齐；`graphVersion < confirmedVersion`（服务端被回退，不应发生）→ `reload()` |
 | `reload()` | `GET /graphs/{id}?branch=` → `confirmed = fromDoc(graph)`、`confirmedVersion = graph.version`、`recent` 清空、`writer.load(doc, meta)`；`acked` 条目中响应版本 ≤ `graph.version` 的已包含在新文档里 → 移出并以 `applied` 完成；其余条目照常重放；重算显示 |
 - 别人的 Op 应用后，正在显示的乐观条目照常重放在上面；若因此失败，按 §6.4 处理。
-- 模型的 Op 到达时 `change.actor` 是模型，画布据此闪模型色、`W.07.10` 合并成"AI 修改了 N 处"（`W.03.01` §6.3）。
+- 模型的 Op 到达时 `change.actor` 是模型，画布据此闪模型色、`W.07.10` 合并成"AI 修改了 N 处"（`W.03.01` §6.3）；远端提交写 graph store 时 `change.opIds` 填这批 Op 的 ID、`groupId` 填 Op 的 `group_id`（"全部撤销"逐条 `revertOp`，`P.09` K114）。
 
 ### 6.8 手势：连续拖动、步进、滑块（`C.05.04` §4、`U.13.02-R1`）
 1. `gesture(kind, revert)`：生成 `coalesceKey = '<kind>:' + newUlid()` 和一个 `groupId`。
@@ -361,3 +361,4 @@ type QueueState = {
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | §4.1 `OpsApi` 新增 `portTypes`、`fits`；测试 `W05-T25` | `P.09` K99（画布要显示推断后的端口类型、给不在图里的节点挑端口） |
+| 2026-11-23 | §6.7：远端 Op 写 graph store 时填 `change.opIds`、`groupId` | 第 8 棒写 `W.07.10`；`P.09` K114 |

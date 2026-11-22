@@ -29,9 +29,14 @@
 | DELETE | `/sessions/{sid}` | 软删除（不删除图，`C.10-R1`） | → 204 |
 | POST | `/sessions/{sid}/graphs` · DELETE `/sessions/{sid}/graphs/{gid}` | 挂上、取下图 | → `Session` |
 | GET | `/sessions/{sid}/messages?cursor=&before=` | 消息（倒序分页，用于向上滚动加载） | → `Page<Message>` |
-| POST | `/sessions/{sid}/messages` | 发送用户消息：`{content, selection?}`；立即返回用户消息和"回复中"的助手消息，回复通过会话流推送 | → 202 `{user_message, assistant_message_id}` |
+| POST | `/sessions/{sid}/messages` | 发送用户消息：`{content, selection?, refs?}`（`refs` 见 `C.10-R7`）；立即返回用户消息和"回复中"的助手消息，回复通过会话流推送 | → 202 `{user_message, assistant_message_id}` |
 | POST | `/sessions/{sid}/messages/{mid}/stop` | 中止正在生成的回复 | → 204 |
 | POST | `/sessions/{sid}/messages/{mid}/retry` | 重新生成这条回复 | → 202 |
+| POST | `/sessions/{sid}/messages/clear` | 清空对话记录（软删除消息和会话摘要；图、运行不受影响） | → 204 |
+| POST | `/sessions/{sid}/uploads` | 上传附件（multipart，单个 ≤ 20MB）到会话工作区 | → 201 `{ref, name, size}` |
+| GET | `/sessions/{sid}/files?q=` | 可引用的文件：本会话上传的 + 允许目录里的（`S.06`），最多 50 条 | → `{items: [{path, name, size, source: session\|allowed}]}` |
+| GET | `/sessions/{sid}/context?draft_chars=&selection=&refs=` | 估算下一次发送的上下文用量（按当前编排者模型的窗口和配方，`B.06.02.01`） | → `ContextUsage {window, used, parts[{kind, tokens}], auto_compact_at}` |
+| POST | `/sessions/{sid}/compact` | 立即把较早的对话压缩成摘要（`digest`），并写一条系统消息 | → 202 |
 
 ## 5. 行为
 - 发送消息：写入用户消息 → 写 `message.created` → 交给 `app/chat`（`B.06.02`）异步处理 → 返回 202。
@@ -63,3 +68,4 @@
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | PATCH 可改 `orchestrator_effort` | `P.09` K74 |
+| 2026-11-23 | §4 新增清空、上传、可引用文件、上下文估算、压缩五个接口；发送消息带 `refs` | 第 8 棒写 `W.07.07`；`P.09` K113 |

@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 草稿 |
 | 素材 | 设05 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-23 |
 
 ## 1. 时长与曲线
 | 场景 | 时长 | 曲线 |
@@ -19,11 +19,17 @@
 | 离开 | `--hx-t-2` | `--hx-ease-in` |
 | 视图过渡：适应画布、聚焦节点、进入 / 返回子图 | `--hx-t-4` | `--hx-ease-out` |
 | 侧栏收展 | `--hx-t-3` | `--hx-ease-out` |
+| 浮动回复的线条收拢（展开为它的 0.85 倍） | `--hx-t-flow`（1200ms，新增） | `--hx-ease-flow`（`cubic-bezier(.6,0,.25,1)`，新增） |
 
 ## 2. 允许做动画的属性
-`transform`、`opacity`；以及 `stroke-dashoffset`（连线流动）、`background-color`、`border-color`、`box-shadow`（只在选中或运行状态变化时）。
+`transform`、`opacity`；以及 `stroke-dashoffset`（连线流动、浮动回复线条）、`stroke-dasharray`（只用于浮动回复线条，`W.07.08`）、`background-color`、`border-color`、`box-shadow`（只在选中或运行状态变化时）。
 
 - **U.07.01-R1** 禁止对 `width`、`height`、`top`、`left`、`margin`、`padding` 做动画。侧栏收展：网格列宽一次性改变，侧栏内容用 `transform` + `opacity` 做进出动画（demo 的做法）。
 - **U.07.01-R2** 进度条用 `transform: scaleX()`。
-- **U.07.01-R3** 任何动画不超过 `--hx-t-4`，持续动画（运行中旋转弧、连线流动、呼吸点）除外。
+- **U.07.01-R3** 任何动画不超过 `--hx-t-4`，持续动画（运行中旋转弧、连线流动、呼吸点）和浮动回复的线条收拢 / 展开（`--hx-t-flow`，`U.09.06-R4` 规定约 1.2 秒）除外。减少动效时 `--hx-t-flow` 同样为 0（直接切换）。
 - **U.07.01-R4** 动画不能阻塞操作：动画进行中用户点击、按键立即生效。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | §1 新增 `--hx-t-flow`、`--hx-ease-flow`；§2 允许 `stroke-dasharray`（只用于浮动回复线条）；R3 加浮动回复线条的例外 | 第 8 棒写 `W.07.08`；`P.09` K112 |

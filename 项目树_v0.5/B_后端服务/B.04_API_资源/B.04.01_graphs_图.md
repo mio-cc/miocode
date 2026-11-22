@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 草稿 |
 | 素材 | 引09 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-23 |
 
 ## 1. 职责
 图的增删查、校验、版本、比较、导入导出。
@@ -34,6 +34,7 @@
 | GET | `/graphs/{id}/export?format=json\|yaml&version=` | 导出（带依赖清单，`C.12-R8`） | → 文件 |
 | POST | `/graphs/import` | 导入（multipart，≤ 50MB） | → `{graph_id, missing?}`；依赖缺失时 422 并列出 |
 | GET | `/graphs/{id}/cost?since=` | 历次运行的费用汇总 | → `{runs, tokens, cost_micros}` |
+| POST | `/graphs/{id}/nodes/{node_id}/prompt-preview` | 预览 Agent / 提示词节点最终发给模型的内容：按角色卡、指令、上下文、可用工具、输出格式分段，变量用占位标出，每段估算 tokens（`U.10.07` §3；不调用模型） | `{branch}` → `PromptPreview {segments[{kind, text, tokens, placeholders[]}]}` |
 
 ## 5. 行为
 - 导入：先迁移到当前格式（`C.12-R9`），检查依赖，再创建新图（新 ID），不覆盖已有图。
@@ -61,3 +62,8 @@
 - 允许使用的依赖：标准库 + `G.10` 已登记依赖
 - 禁止事项：`G.02.05` 全部
 - 完成标志：`G.14` 全部条件
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | §4 新增 `prompt-preview` | 第 8 棒写 `W.07.03`："预览最终提示词"没有接口；`P.09` K113 |

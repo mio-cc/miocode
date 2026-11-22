@@ -58,6 +58,7 @@ export type LiveRun = {
   scopeStatus(scope: Scope): ScopeStatus;              // 结构树状态点；按 loc.scopes 往外汇总
   pools(): readonly { name: string; used: number; cap: number; queued: number }[];
   subscribe(fn: (batch: readonly LiveDelta[]) => void): () => void;   // 同步回调，每个事件一批；合并由 RunBridge 做
+  all(): Iterable<ExecState>;                          // 投影里的全部执行（监控页合并步骤用，W.07.05，K114）
 };
 
 // web/src/state/runStore.ts
@@ -74,6 +75,7 @@ export type CurrentRun = {
   swaps: readonly { fromVersion: number; toVersion: number; scopePath: string; source: 'user' | 'model' }[];
   expansions: readonly { patchId: Ulid; versionBefore: number; versionAfter: number }[];
   logs: readonly LogLine[];                            // node.log，最多 2000 行，超出丢最旧的
+  pendingPatches: readonly { patchId: Ulid; summary: string; scopePath: string; opIds: readonly Ulid[] }[];   // RunView.pending_patches：可以热更新、等用户确认（E.16.02 §5 第 3 步，K117）
 };
 export type LogLine = { seq: number; ts: string; level: string; msg: string; path: string; nodeId: Ulid };
 export type RunState = {
@@ -94,6 +96,8 @@ export type RunActions = {
   replay(): Promise<Ulid>;
   hotpatch(patchId: Ulid, act: 'confirm' | 'discard'): Promise<void>;
   nodeDetail(execKey: string): Promise<NodeDetail>;                   // GET /runs/{id}/nodes/{exec_key}；最近 20 个缓存
+  timeline(runId: Ulid): Promise<readonly Bar[]>;                      // GET /runs/{id}/timeline（监控页瀑布，W.07.05）
+  blob(ref: string, o?: { maxBytes?: number }): Promise<{ text: string; truncated: boolean }>;   // GET /blobs/{ref}，Range，缺省最多 256KB（节点执行详情，W.07.03）
 };
 export type RunStoreApi = ReadonlyStore<RunState> & { actions: RunActions; live: LiveRun };
 
@@ -102,6 +106,7 @@ export type RunControl = {              // 只给工作区和事件路由
   attach(): void;                       // 工作区成为当前：当前运行没结束就连运行流
   detach(): void;                       // 切走：关运行流，记住 lastSeq
   setGraph(graphId: Ulid, branch: string): void;   // 工作区换图：当前运行不属于新图时清空
+  refreshView(): void;                  // 图前进后重拉当前运行的概览（pendingPatches，K117）
   dispose(): void;
 };
 export function createRunStore(o: {
@@ -147,6 +152,7 @@ export function createRunStore(o: {
 | `run.status` | `status = to`；到 `done` / `failed` / `cancelled`：`stream='ended'`（服务端 5 秒后自己关流，前端到时关闭句柄）、`cancelRequested=false`、调 `onTerminal`、更新 `list` 里同 ID 的项 |
 | `run.cancel_requested` | `cancelRequested = true` |
 | `run.graph_swapped` | 追加到 `swaps` |
+| `control.refreshView()`（工作区在当前图的 `serverVersion` 前进、且当前运行在进行时调用，`W.03.05` §6.7） | 1 秒防抖后重新 `GET /runs/{id}`，用 `pending_patches` 更新 `pendingPatches`（`E.16.02` §5 第 3 步没有专门的事件，K117）；`hotpatch` 成功后同样重拉 |
 | `node.state` | 按 `loc` 算执行键，更新或新建 `ExecState`（`from` 不对时也以 `to` 为准，C.07-R5 的非法转换由后端处理）；`waiting` 记 `approval_id`；`done` 记 `active_outs`（有就记）；`failed` 记 `error`；离开 `queued` 时清 `pool` |
 | `node.progress` | 更新 `pct`、`note`、`sub` |
 | `node.throttled` | 记 `pool` |
@@ -241,3 +247,4 @@ export function createRunStore(o: {
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | `ExecState` 增加 `activeOuts`（`node.state{to:done}` 的 `active_outs`）；`RunBridge` 的订阅写为 `live.subscribe` | `P.09` K108（第 7 棒，`W.06.15` 判断未激活的连线） |
+| 2026-11-23 | `LiveRun.all`、`CurrentRun.pendingPatches`、`timeline`、`blob` | 第 8 棒写 `W.07.03`、`W.07.05`；`P.09` K114、K117 |

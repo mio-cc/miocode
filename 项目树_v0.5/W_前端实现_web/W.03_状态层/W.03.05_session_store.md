@@ -50,6 +50,8 @@ export type SessionState = {
   approvals: { groups: readonly ApprovalGroup[]; byId: ReadonlyMap<Ulid, Approval> };   // 全部会话的待审批（K73）
   estop: EstopState;
   conversations: ReadonlyMap<Ulid, Conversation>;   // 只有内存里有工作区的会话才有
+  graphMeta: ReadonlyMap<Ulid, GraphMeta>;          // GET /graphs?limit=200：会话列表第二行、结构区图切换（W.07.02，K114）
+  inbox: { runs: readonly RunMeta[]; connections: readonly { id: string; target: 'mcp' | 'provider'; error: string; at: string }[]; at: number; status: 'idle' | 'loading' | 'ready' | 'error' };   // 通知中心"动态"（W.07.10，K114）
 };
 export type SessionActions = {
   // 列表（C.06.04-R1：增删不走会话流，本地操作后刷新）
@@ -64,10 +66,19 @@ export type SessionActions = {
   setEffort(sid: Ulid, model: string, effort: Effort): Promise<void>;          // orchestrator_effort（C.10-R6）
   saveLastLocation(sid: Ulid, loc: { graphId: Ulid; scope: Scope }): void;     // 1 秒尾随节流后 PATCH（C.10-R3）
   // 对话
-  send(sid: Ulid, content: string, selection?: Selection): Promise<void>;
+  send(sid: Ulid, content: string, o?: { selection?: Selection; refs?: readonly MessageRef[] }): Promise<void>;   // refs：C.10-R7（K113）
   stop(sid: Ulid, messageId: Ulid): Promise<void>;
   retry(sid: Ulid, messageId: Ulid): Promise<void>;
   loadOlder(sid: Ulid): Promise<void>;
+  reloadConversation(sid: Ulid): Promise<void>;     // 对话首页拉取失败后的"重试"（W.07.04）
+  upload(sid: Ulid, file: File, onProgress?: (p: number) => void): Promise<{ ref: string; name: string; size: number }>;   // POST /sessions/{sid}/uploads
+  listFiles(sid: Ulid, q: string): Promise<readonly { path: string; name: string; size: number; source: 'session' | 'allowed' }[]>;
+  contextUsage(sid: Ulid, draft: { chars: number; selection: number; refs: readonly MessageRef[] }): Promise<ContextUsage>;
+  compact(sid: Ulid): Promise<void>;
+  clearMessages(sid: Ulid): Promise<void>;          // 成功后清空本地 Conversation.messages
+  loadGraphMeta(): Promise<void>;                    // 300ms 防抖；session.updated / graph_attached 后也调
+  loadInbox(): Promise<void>;                        // GET /runs?status=done,failed,cancelled&since=24h&limit=50、GET /mcp-servers、GET /providers（只取出错的）
+  getApproval(aid: Ulid): Promise<Approval>;         // 已不在待审批里的（对话里的旧卡片）；最近 50 个缓存
   // 审批与急停
   resolveApproval(aid: Ulid, r: { outcome: string; scope?: 'once' | 'always'; note?: string; value?: unknown; trustSources?: readonly string[] }): Promise<void>;
   resolveBatch(ids: readonly Ulid[], r: { outcome: string; scope?: 'once' | 'always' }): Promise<void>;
@@ -167,7 +178,7 @@ export function createWorkspaceManager(deps: StateDeps, app: { ui: UiStoreApi; s
 | `message.completed` | `status='done'`；有 `content_ref` 时用 `GET /blobs/{ref}`（`B.04.03`）取回完整内容替换 `content` |
 | `message.failed` | `status='failed'`、`error` |
 | `chat.status` | `chat`（对话框上方"思考中…"） |
-| `send` | `POST /sessions/{sid}/messages {content, selection?}` → 202 返回的用户消息插入、助手消息按 `assistant_message_id` 建 `status='streaming'` 的占位（会话流里的 `message.created` 到达时替换） |
+| `send` | `POST /sessions/{sid}/messages {content, selection?, refs?}` → 202 返回的用户消息插入、助手消息按 `assistant_message_id` 建 `status='streaming'` 的占位（会话流里的 `message.created` 到达时替换） |
 | `stop` / `retry` | `POST …/stop`、`…/retry`；结果以事件为准 |
 | `loadOlder` | `GET …/messages?before=` 前插；`hasOlder` 按 `next_cursor` 判断 |
 | 会话流 `resync` 或重连 | `status='streaming'` 的消息逐条重新拉（`C.06.04-R2`）；`resync` 时整页重拉 |
@@ -205,7 +216,7 @@ export function createWorkspaceManager(deps: StateDeps, app: { ui: UiStoreApi; s
 | 图从 A 变为 B（或从无到有） | 旧图：`view.flush()`、Op 队列 `flush` 后 `dispose`、关图协同流、销毁 graph / model / view。新图：`createGraphStore` → `GET /graphs/{id}?branch=main` → `writer.load` → `catalog.ensureDefs(registryHash)`；`createModelStore`（拉提议和档位）；`createViewStore({persist:true, scope})`；`deps.ops({ … })` 建 Op 队列；`run.control.setGraph(B)`；工作区是当前时打开新图的图协同流。会话的 `active_graph_id` 不是 B 时 `PATCH`（`U.09.04-R4`） |
 | 只有层变化 | `view.actions.enterScope(scope)`；`model` 重新取这一层的有效档位；`session.saveLastLocation` |
 | 图有变化后（graph `change` 涉及删除）与切回会话时 | `ui.pruneSelection(sid, …)`；当前层的容器节点已不存在时通知路由（`W.02.01` §8"那一层已经不存在了"） |
-- 工作区把几个 store 连起来：graph store 的 `serverVersion` 前进时调 `model.ingest.serverVersion(v)`；session store 的 `estop.global` 变化时调 `model.ingest.estop(on)`；run store 的 `onTerminal` 接 `refreshActivity()`、`onRouted` 接事件路由。
+- 工作区把几个 store 连起来：graph store 的 `serverVersion` 前进时调 `model.ingest.serverVersion(v)` 和 `run.control.refreshView()`（运行中改图待确认，K117）；session store 的 `estop.global` 变化时调 `model.ingest.estop(on)`；run store 的 `onTerminal` 接 `refreshActivity()`、`onRouted` 接事件路由。
 - `graphId=null`（会话还没有图）：`canvas()` 返回 null，画布显示空白画布空状态（`U.14.02`）；从模板创建或对话里建图后，`session.graph_attached` / `session.updated` 带来新的 `active_graph_id`，路由据此 `replaceLocation`（`W.02.01`）。
 
 ### 6.8 Provider
@@ -275,3 +286,4 @@ export function createWorkspaceManager(deps: StateDeps, app: { ui: UiStoreApi; s
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | `OpsHandle` 加 `reload()`、`onStreamOpen` 带 `reconnected`；`OpsFactory` 传入 `catalog`（端口兼容预检要用节点类型和数据类型）；§6.4 第 5 步补图协同流 `resync` 与重连后的对齐 | 写 `W.05` 时对齐（`P.09` K88、K90） |
+| 2026-11-23 | §4.1 新增 `graphMeta`、`inbox` 状态和 `reloadConversation`、`upload`、`listFiles`、`contextUsage`、`compact`、`clearMessages`、`loadGraphMeta`、`loadInbox`、`getApproval`；`send` 改为带 `selection`、`refs` 的选项对象 | 第 8 棒写 `W.07`；`P.09` K113、K114 |

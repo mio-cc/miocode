@@ -130,8 +130,9 @@ export type EngineCommands = {                              // 引擎命令（P.
   fit(o?: { animate?: boolean }): Promise<View>;                                  // W.06.02
   focusNodes(ids: readonly Ulid[], o?: { animate?: boolean }): Promise<View>;     // W.06.02
   zoomBy(f: number): void;                                                        // 停靠栏 + / −，以视口中心
-  addNode(d: { type: string; params?: Record<string, unknown>; label?: string; tags?: readonly string[] },
-          o: { at: Pt | 'center'; connectFrom?: PortRef; insertInto?: Ulid }): Promise<DispatchResult>;   // W.06.07；快速添加、节点库点击添加
+  addNode(d: { type: string; params?: Record<string, unknown>; label?: string; tags?: readonly string[]; meta?: Record<string, unknown> },
+          o: { at: Pt | 'center'; connectFrom?: PortRef; insertInto?: Ulid }): Promise<DispatchResult>;   // W.06.07；快速添加、节点库点击添加；meta.preset 只用于显示来源（C.15-R1，K114）
+  addNote(o: { at: Pt }): Promise<DispatchResult>;                                // W.06.07：右键空白处"添加便签"（at 为屏幕坐标；没有对应快捷键，不能经 exec，K111）
   tidy(ids?: readonly Ulid[]): Promise<DispatchResult>;                           // W.06.11
   locate(t: { scope: Scope; nodes: readonly Ulid[] }): void;                      // W.06.13：撤销后定位、监控页步骤、"看这里"
   highlight(ids: readonly Ulid[], kind: 'look' | 'model'): void;                  // W.06.13；U.10.05 §2
@@ -366,3 +367,4 @@ URL 变化 → 工作区 `setLocation` → view `enterScope(scope)` → 引擎�
 |---|---|---|
 | 2026-11-23 | 首版：目录、共用类型、模块接口、帧阶段、订阅表 | 第 6 棒；`P.09` K94–K101 |
 | 2026-11-23 | `CanvasKind` 去掉 `peek`（预览浮层是 canvas 简化图）；接口补 `CanvasKeys.overlay`、`PointerApi.last`、`DragApi.moveBy` 的 `groupId`、`Geom.forModel`、`NestApi.docSwitched`、`cmd.exec`、`tree.locate`；§6.2 `patch` 阶段加 W.06.14；§6.4 第 2 步补 `runBridge.resync`、`ghost.sync`；R2、R10 措辞 | 第 7 棒写 `W.06.09`–`W.06.15`；`P.09` K103–K105 |
+| 2026-11-23 | §4.2 `addNode` 的 `d` 加 `meta`；新增引擎命令 `addNote` | 第 8 棒写 `W.07.02`、`W.07.11`；`P.09` K111、K114 |

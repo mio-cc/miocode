@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 草稿 |
 | 素材 | 引09 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-23 |
 
 ## 1. 职责
 提供节点库数据：节点类型、数据类型、类型兼容判断、配方、角色卡、子图库。
@@ -24,6 +24,7 @@
 |---|---|---|---|
 | GET | `/nodedefs?category=&q=` | 全部节点类型（含扩展、技能、MCP 分组） | → `NodeDefSummary[]` |
 | GET | `/nodedefs/{ref}` | 完整定义（端口、参数、控件映射） | → `NodeDef` |
+| GET | `/node-presets?q=&path=` | 节点库条目（所有包的 `node_presets`，含未启用包的、带原因，`C.15-R1`、`R3`）；不带参数时条目 ≤ 500 全部返回，超过时只返回第一层分类和总数；`path` 取某一类、`q` 搜索（`U.22-R10`） | → `{total, items: NodePresetItem[]}`（`NodePresetItem = {preset, package_id, package_name, source, enabled, disabled_reason?}`） |
 | GET | `/types?layer=system\|business` · `/types/{ref}` | 类型列表、详情（字段、继承链、版本） | → 列表 / `TypeDef` |
 | POST | `/types/compat` | 两个类型能否连接 | `{src, dst}` → `Assign` |
 | GET | `/recipes` · `/recipes/{ref}` | 配方 | → 列表 / `Recipe` |
@@ -58,3 +59,8 @@
 - 允许使用的依赖：标准库 + `G.10` 已登记依赖
 - 禁止事项：`G.02.05` 全部
 - 完成标志：`G.14` 全部条件
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | §4 新增 `GET /node-presets` | 第 8 棒写 `W.07.02`：`U.22-R10` 引用的接口没有登记；`P.09` K113 |

@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 草稿 |
 | 素材 | 引09 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-23 |
 
 ## 1. 职责
 列出可用模型，管理模型提供方（含密钥）、测试连接、价格表。
@@ -22,7 +22,8 @@
 ## 4. 接口
 | 方法 | 路径 | 说明 | 请求 → 响应 |
 |---|---|---|---|
-| GET | `/models` | 可用模型（不含密钥）：`{ref, provider, window, caps, priced}` | → `Model[]` |
+| GET | `/models` | 可用模型（不含密钥）：`{ref, provider, window, caps, priced, effort}`（`effort`：这个模型支持的思考强度，`C.16`） | → `Model[]` |
+| POST | `/models/count-tokens` | 估算一段文字的 tokens（按模型的分词器，没有时按通用估算） | `{text, model?}` → `{tokens, exact}` |
 | GET | `/providers` | 提供方列表（密钥只显示末 4 位） | → `Provider[]` |
 | POST | `/providers` | 新增 `{name, kind, base_url?, backend?, secret?, caps_override?}`；`secret` 直接写入密钥库，不进配置文件 | → 201 |
 | PUT | `/providers/{name}` | 修改；`secret` 缺省表示不改 | → `Provider` |
@@ -55,3 +56,8 @@
 - 允许使用的依赖：标准库 + `G.10` 已登记依赖
 - 禁止事项：`G.02.05` 全部
 - 完成标志：`G.14` 全部条件
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | §4 `/models` 写明 `effort`；新增 `count-tokens` | 第 8 棒写 `W.07.03`、`W.07.07`；`P.09` K113 |

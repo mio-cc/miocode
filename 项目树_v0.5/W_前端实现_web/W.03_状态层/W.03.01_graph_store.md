@@ -72,6 +72,7 @@ export type GraphChange = {
   scopes: ReadonlySet<Scope>;           // 结构变了的层（增删节点、打包为子图、解散子图）
   actor?: Actor;                        // remote 时为这批 Op 的操作者（模型改动的提示、闪光用，U.12 §4）
   groupId?: Ulid;
+  opIds?: readonly Ulid[];              // remote 时这批 Op 的 ID（"AI 修改了 N 处 · 全部撤销"逐条 revert_op，W.07.10，K114；W.05 §6.7 填写）
 };
 export type Presence = { actor: Actor; editing: readonly Ulid[]; scope: Scope; cursor?: { x: number; y: number }; at: number };
 export type SyncState = { pending: number; state: 'idle' | 'saving' | 'conflict' | 'offline' };   // W.05 写
@@ -93,6 +94,11 @@ export type GraphState = {
 export type GraphActions = {
   loadHistory(opts?: { refresh?: boolean }): Promise<void>;   // GET /graphs/{id}/ops?branch=&cursor=（监控页 › 操作历史）
   loadBranches(): Promise<void>;                              // GET /graphs/{id}/branches
+  rebaseBranch(name: string): Promise<void>;                  // POST …/branches/{name}/rebase（AI 草稿分支，W.07.01，K116）
+  mergePreview(name: string): Promise<MergePreview>;          // POST …/branches/{name}/merge/preview
+  mergeBranch(name: string, resolutions: readonly Resolution[]): Promise<void>;   // POST …/merge {into:'main', resolutions}；成功后 loadBranches
+  deleteBranch(name: string): Promise<void>;                  // DELETE …/branches/{name}
+  promptPreview(nodeId: Ulid): Promise<PromptPreview>;        // POST /graphs/{id}/nodes/{node_id}/prompt-preview（W.07.03，K113）
 };
 export type GraphStoreApi = ReadonlyStore<GraphState> & { actions: GraphActions };
 
@@ -232,3 +238,4 @@ const tree  = useGraphStore((s) => (s.model ? structureTree(s.model) : null));
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | §4.3 新增 `boundaryLinks`（父图位置卡的连接行） | `P.09` K109（第 7 棒写 `W.06.13` 时发现：连接行由 React 画，需要纯函数） |
+| 2026-11-23 | `GraphChange` 加 `opIds`；`GraphActions` 新增草稿分支的 rebase / 合并预览 / 合并 / 删除和 `promptPreview` | 第 8 棒写 `W.07.01`、`W.07.03`、`W.07.10`；`P.09` K113、K114、K116 |

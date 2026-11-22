@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 草稿 |
 | 素材 | 引09 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-23 |
 
 ## 1. 职责
 启动、控制、查询运行；节点详情、时间线、时间旅行、回放与分叉。
@@ -43,6 +43,7 @@
 - 启动：急停中返回 423；校验不通过 422 带诊断；没有可用模型 503（演示模式除外）。
 - `GET /blobs/{ref}`：只能读当前用户可见的图、运行、会话引用过的内容；返回前再脱敏一次（防止旧数据里残留密钥）。
 - `NodeDetail` 里的大内容只给引用，前端按需加载（`W.07.03`）。
+- 列表和概览给监控页用的字段（`W.07.05`，`P.09` K113、K117）：`RunMeta` 带 `no`（这张图的第几次运行）、`headline {kind: failed_at|waiting_at|running_at|steps, node_label?, steps?}`、`steps {done, total}`、`cost_micros`；`RunView` 带 `pending_patches[{patch_id, summary, scope_path, op_ids}]`（可以热更新、等用户确认的修改，`E.16.02` §5 第 3 步）；`/timeline` 的每一项 `Bar = {exec_key, node_id, loc, state, started_at, ended_at?, error?}`。
 
 ## 6. 不变量
 - 响应结构与 OpenAPI 声明一致
@@ -67,3 +68,8 @@
 - 允许使用的依赖：标准库 + `G.10` 已登记依赖
 - 禁止事项：`G.02.05` 全部
 - 完成标志：`G.14` 全部条件
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | §5 写明监控页用到的 `RunMeta`、`RunView`、`Bar` 字段 | 第 8 棒写 `W.07.05`；`P.09` K113、K117 |
