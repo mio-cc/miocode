@@ -1,0 +1,184 @@
+/* ===== 15_art.css · 美学打磨第二轮（demo v0.5.3） =====
+   色彩：90% 中性色 + 1 个主色 + 1 个模型色；红、黄只在"真的需要你注意"时出现。
+   层级：底（bg-0）→ 画布（bg-1）→ 卡片（bg-3，柔和投影）→ 卡片内的凹槽（bg-1 调和）→ 控件（bg-3，凸起）。
+   文字：能用图标、颜色、位置表达的就不写字；说明放进悬停提示。 */
+
+/* ---------- 顶部条：安静 ---------- */
+.hx-l4top{gap:6px !important;height:50px !important;padding:0 10px 0 8px !important}
+.hx-l4top>*{flex-shrink:0;white-space:nowrap}
+.hx-l4top .hx-crumb{flex-shrink:1}
+.hx-l4top .hx-top__div{width:1px;height:16px;margin:0 4px;background:color-mix(in srgb,var(--hx-text-1) 9%,transparent)}
+.hx-l4logo{width:22px !important;height:22px !important;border-radius:7px !important;font-size:11px !important;
+  background:linear-gradient(145deg,color-mix(in srgb,var(--hx-primary) 88%,#fff 12%),var(--hx-primary)) !important;box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 1px 2px color-mix(in srgb,var(--hx-primary) 35%,transparent)}
+.hx-l4title{font-size:13px !important;font-weight:600 !important;letter-spacing:-.01em;max-width:200px !important}
+.hx-branch{display:none !important}
+.hx-crumb.is-root,.hx-crumb.is-root+.hx-branch{display:none !important}
+.hx-l4top .hx-crumb.is-root~.hx-top__div:first-of-type{display:none}
+.hx-crumb button{height:24px !important;font-size:12.5px}
+/* 档位：只剩 5 格刻度 + 数字，说明放在悬停提示里 */
+.hx-level{height:26px !important;gap:6px !important;padding:0 9px 0 8px !important;border-radius:var(--hx-r-full) !important;background:transparent !important}
+.hx-level:hover{background:var(--hx-bg-4) !important}
+.hx-level #levelTxt{font-size:0 !important;line-height:0}
+.hx-level #levelTxt b{font:600 12px/1 var(--hx-font-mono);color:var(--hx-model)}
+.hx-level__ticks{gap:2px !important}
+.hx-level__ticks i{width:3px !important;height:11px !important;border-radius:2px !important}
+/* 运行状态：没在跑就不显示 */
+[data-run="idle"] #runStat{display:none !important}
+#runStat{min-width:0 !important;height:26px;padding:0 10px;border-radius:var(--hx-r-full);font-size:12px !important;cursor:pointer;transition:background-color var(--hx-t-1) var(--hx-ease)}
+#runStat:hover{background:var(--hx-bg-4)}
+/* 运行：唯一的实心按钮，但小而圆、不带快捷键文字 */
+#runBtn{height:28px !important;padding:0 14px 0 11px !important;border-radius:var(--hx-r-full) !important;font-size:12.5px !important;gap:6px !important;
+  background:var(--hx-primary) !important;color:var(--hx-primary-fg) !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 1px 2px color-mix(in srgb,var(--hx-primary) 28%,transparent),0 4px 12px -4px color-mix(in srgb,var(--hx-primary) 45%,transparent) !important;
+  transition:transform var(--hx-t-1) var(--hx-ease),filter var(--hx-t-1) var(--hx-ease),box-shadow var(--hx-t-2) var(--hx-ease)}
+#runBtn:hover{filter:brightness(1.06)}
+#runBtn:active{transform:scale(.97)}
+#runBtn kbd{display:none !important}
+#runBtn svg{width:12px !important;height:12px !important}
+#runBtn[disabled]{opacity:.55 !important;box-shadow:none !important}
+/* 急停：平时是一个安静的图标；运行中才亮出来 */
+#stopBtn{width:28px;height:28px !important;padding:0 !important;border-radius:var(--hx-r-full) !important;font-size:0 !important;gap:0 !important;
+  background:transparent !important;color:var(--hx-text-3) !important;box-shadow:none !important;transition:all var(--hx-t-2) var(--hx-ease)}
+#stopBtn svg{width:13px !important;height:13px !important}
+#stopBtn:hover{background:var(--hx-danger-weak) !important;color:var(--hx-danger) !important}
+[data-run="running"] #stopBtn,[data-run="waiting"] #stopBtn{width:auto;padding:0 12px 0 10px !important;gap:6px !important;font-size:12.5px !important;
+  background:var(--hx-danger-weak) !important;color:var(--hx-danger) !important}
+#themeBtn{display:none !important}
+/* 主题：只剩三粒色点 */
+.hx-pal__btn{height:28px !important;width:40px;padding:0 !important;justify-content:center;border-radius:var(--hx-r-full) !important;background:transparent !important}
+.hx-pal__btn:hover{background:var(--hx-bg-4) !important}
+.hx-pal__btn>span:not(.hx-pal__dots){display:none !important}
+.hx-pal__dots i{width:9px !important;height:9px !important}
+/* 通知：小圆点，不放数字 */
+.hx-bell b{min-width:0 !important;width:7px !important;height:7px !important;padding:0 !important;right:6px !important;top:6px !important;font-size:0 !important;
+  background:var(--hx-accent) !important;box-shadow:0 0 0 2px var(--hx-bg-0) !important}
+.hx-bell b.is-wait{background:var(--hx-wait) !important}
+.hx-bell b.is-bad{background:var(--hx-danger) !important}
+.hx-l4top .hx-iconbtn{width:30px;height:30px;border-radius:var(--hx-r-full);color:var(--hx-text-2)}
+.hx-l4top .hx-iconbtn svg{width:15px;height:15px}
+.hx-modelpill{height:24px !important;font-size:11.5px !important}
+@media (max-width:1180px){.hx-l4title{max-width:140px !important}#runStat span{display:none}}
+
+/* ---------- 左栏 ---------- */
+.hx-lib__search .hx-input{padding-left:30px !important;padding-right:30px !important}
+.hx-lib__search svg{top:50% !important;transform:translateY(-50%)}
+.hx-lib__search kbd{top:50% !important;transform:translateY(-50%);background:transparent;box-shadow:none;color:var(--hx-text-3)}
+.hx-ls__sech{height:30px !important;font-size:11px !important;color:var(--hx-text-3) !important}
+.hx-ls__sech svg{opacity:.5}
+.hx-ls__sub{color:var(--hx-text-3) !important;opacity:.8}
+.hx-lib2__cnt{display:none}
+.hx-ls__me{height:32px !important}
+
+/* ---------- 右栏 ---------- */
+.hx-rs__head .hx-seg{background:var(--hx-bg-4) !important;padding:2px !important;border-radius:var(--hx-r-md) !important}
+.hx-rs__head .hx-seg button{height:24px !important;font-size:12px !important}
+.hx-rs__head .hx-seg__thumb{box-shadow:0 1px 2px color-mix(in srgb,var(--hx-text-1) 10%,transparent) !important;border:0 !important}
+.hx-insp.is-off::before{content:"选中一个节点" !important;display:block;padding:38% 0 0 !important;text-align:center;font-size:12.5px !important;color:var(--hx-text-3) !important}
+.hx-insp.is-off::after{content:"它的参数和运行记录会显示在这里";display:block;margin-top:4px;text-align:center;font-size:11.5px;color:var(--hx-text-3);opacity:.7}
+
+/* ---------- 停靠栏：竖在画布左侧，不再压住节点 ---------- */
+.hx-l4 .hx-dock{left:12px !important;top:50% !important;bottom:auto !important;transform:translateY(-50%) !important;flex-direction:column;gap:1px !important;padding:4px !important;border-radius:14px !important}
+.hx-l4 .hx-dock .hx-iconbtn{width:30px !important;height:30px !important;border-radius:9px !important;color:var(--hx-text-2)}
+.hx-l4 .hx-dock .hx-iconbtn svg{width:15px !important;height:15px !important}
+.hx-l4 .hx-dock .hx-iconbtn.is-on{background:var(--hx-bg-4);color:var(--hx-text-1)}
+.hx-l4 .hx-dock .hx-dock__div{width:16px !important;height:1px !important;margin:3px auto !important;background:color-mix(in srgb,var(--hx-text-1) 9%,transparent) !important}
+.hx-l4 .hx-nest{left:58px !important}
+.hx-l4 .hx-mini{width:168px !important;border-radius:12px !important;overflow:hidden}
+.hx-l4 .hx-mini__cv{height:96px !important}
+.hx-l4 .hx-mini__bar{height:28px !important;border-top:0 !important}
+
+/* ---------- 画布：点阵更轻 ---------- */
+:root{--hx-grid-dot:color-mix(in srgb,var(--hx-text-1) 11%,transparent)}
+:root[data-theme="dark"]{--hx-grid-dot:rgba(255,255,255,.065)}
+
+/* ---------- 节点卡片：像一件被打磨过的物件 ---------- */
+.hx-l4 .hx-node{--cc:var(--hx-type-gen);border-radius:14px !important;
+  background:
+    radial-gradient(140% 54px at 0 0,color-mix(in srgb,var(--cc) 9%,transparent),transparent 72%),
+    linear-gradient(180deg,color-mix(in srgb,var(--hx-bg-3) 94%,#fff 6%),var(--hx-bg-3) 52px) !important;
+  box-shadow:0 0 0 1px var(--nb),var(--ng),inset 0 1px 0 color-mix(in srgb,#fff 55%,transparent),var(--hx-shadow-node) !important}
+:root[data-theme="dark"] .hx-l4 .hx-node{box-shadow:0 0 0 1px var(--nb),var(--ng),inset 0 1px 0 rgba(255,255,255,.05),var(--hx-shadow-node) !important}
+.hx-l4 .hx-node:hover{box-shadow:0 0 0 1px var(--nb),var(--ng),inset 0 1px 0 color-mix(in srgb,#fff 55%,transparent),var(--hx-shadow-node-drag) !important}
+.hx-l4 .hx-node.is-dragging{box-shadow:0 0 0 1px var(--nb),inset 0 1px 0 color-mix(in srgb,#fff 55%,transparent),var(--hx-shadow-node-drag) !important}
+.hx-l4 .hx-node.is-selected{outline:0 !important;--nb:color-mix(in srgb,var(--hx-accent) 75%,transparent) !important;--ng:0 0 0 4px color-mix(in srgb,var(--hx-accent) 13%,transparent) !important}
+.hx-l4 .hx-node__head{height:var(--hx-node-head);padding:0 10px 0 11px !important;gap:9px !important;border:0 !important}
+.hx-l4 .hx-node__ico{width:24px !important;height:24px !important;border-radius:8px !important;color:var(--cc) !important;
+  background:color-mix(in srgb,var(--cc) 13%,var(--hx-bg-3)) !important;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--cc) 14%,transparent) !important}
+.hx-l4 .hx-node__ico svg{width:13px !important;height:13px !important}
+.hx-l4 .hx-node__name{font-size:13px !important;font-weight:600 !important;letter-spacing:-.012em !important;color:var(--hx-text-1)}
+.hx-l4 .hx-node__type{font:400 10.5px/1.2 var(--hx-font-ui) !important;color:var(--hx-text-3) !important;margin-top:1px !important}
+.hx-l4 .hx-node__ports{padding:4px 0 6px !important}
+.hx-l4 .hx-port{font-size:11.5px !important;color:var(--hx-text-2)}
+.hx-l4 .hx-port__dot{width:9px !important;height:9px !important;margin-top:-4.5px !important;background:var(--hx-bg-3) !important;
+  box-shadow:inset 0 0 0 2px var(--pc),0 0 0 2.5px var(--hx-bg-3) !important}
+.hx-l4 .hx-port.is-in .hx-port__dot{left:-4.5px !important}
+.hx-l4 .hx-port.is-out .hx-port__dot{right:-4.5px !important}
+.hx-l4 .hx-port.is-linked .hx-port__dot{background:var(--pc) !important}
+/* 参数区：卡片里的一块"凹槽"，控件在凹槽里凸起 */
+.hx-l4 .hx-node__widgets{margin:0 6px 5px !important;padding:4px 7px 4px !important;border-radius:10px !important;border:0 !important;
+  background:color-mix(in srgb,var(--hx-bg-1) 72%,var(--hx-bg-3)) !important;box-shadow:inset 0 1px 1px color-mix(in srgb,var(--hx-text-1) 4%,transparent)}
+:root[data-theme="dark"] .hx-l4 .hx-node__widgets{background:color-mix(in srgb,var(--hx-bg-1) 60%,var(--hx-bg-3)) !important;box-shadow:inset 0 1px 2px rgba(0,0,0,.25)}
+.hx-l4 .hx-w__lbl{font-size:11.5px !important}
+.hx-l4 .hx-node__widgets .hx-select,.hx-l4 .hx-node__widgets .hx-step,.hx-l4 .hx-node__widgets .hx-input,.hx-l4 .hx-node__widgets .hx-area__t{background:var(--hx-bg-3) !important;
+  box-shadow:0 1px 1px color-mix(in srgb,var(--hx-text-1) 6%,transparent),0 0 0 1px color-mix(in srgb,var(--hx-text-1) 3.5%,transparent) !important}
+:root[data-theme="dark"] .hx-l4 .hx-node__widgets .hx-select,:root[data-theme="dark"] .hx-l4 .hx-node__widgets .hx-step,:root[data-theme="dark"] .hx-l4 .hx-node__widgets .hx-area__t{background:var(--hx-bg-4) !important;box-shadow:inset 0 1px 0 rgba(255,255,255,.04) !important}
+.hx-l4 .hx-node__widgets .hx-area__t:focus{box-shadow:0 0 0 2px color-mix(in srgb,var(--hx-accent) 30%,transparent) !important}
+.hx-l4 .hx-node__widgets .hx-seg{background:color-mix(in srgb,var(--hx-text-1) 5%,transparent) !important}
+.hx-l4 .hx-node__thumb{margin:0 6px 6px !important;border-radius:10px !important;background:color-mix(in srgb,var(--hx-bg-1) 72%,var(--hx-bg-3)) !important;box-shadow:inset 0 1px 1px color-mix(in srgb,var(--hx-text-1) 4%,transparent) !important}
+/* 子图：后面再垫两张更淡的卡片 */
+.hx-l4 .hx-node.is-sub{box-shadow:0 0 0 1px var(--nb),var(--ng),inset 0 1px 0 color-mix(in srgb,#fff 55%,transparent),5px 5px 0 -1px color-mix(in srgb,var(--hx-bg-3) 92%,var(--hx-text-1)),9px 9px 0 -2px color-mix(in srgb,var(--hx-bg-3) 85%,var(--hx-text-1) 4%),var(--hx-shadow-node) !important}
+/* 状态 */
+.hx-l4 .hx-node.is-running{--nb:color-mix(in srgb,var(--hx-accent) 60%,transparent);--ng:0 0 0 5px color-mix(in srgb,var(--hx-accent) 12%,transparent),0 0 28px -4px color-mix(in srgb,var(--hx-accent) 40%,transparent)}
+.hx-l4 .hx-node.is-failed{--nb:color-mix(in srgb,var(--hx-danger) 70%,transparent);--ng:0 0 0 5px var(--hx-danger-weak)}
+.hx-l4 .hx-node.is-done .hx-node__st{color:var(--hx-ok)}
+/* 缩小时：不再是空白方块，而是像素级的骨架 */
+.hx-viewport.lod-2 .hx-port__name,.hx-viewport.lod-2 .hx-node__type,.hx-viewport.lod-2 .hx-w__lbl{visibility:visible !important;color:transparent !important;
+  background:color-mix(in srgb,var(--hx-text-1) 9%,transparent);border-radius:4px;display:inline-block;height:7px;line-height:7px;overflow:hidden;max-width:60%}
+.hx-viewport.lod-2 .hx-node__type{max-width:44%;height:6px;margin-top:4px !important}
+.hx-viewport.lod-2 .hx-node__widgets>*{visibility:visible !important}
+.hx-viewport.lod-2 .hx-w__ctl{opacity:.55;pointer-events:none}
+.hx-viewport.lod-2 .hx-w__ctl *{color:transparent !important}
+.hx-viewport.lod-2 .hx-node__thumb>*{visibility:visible !important}
+.hx-viewport.lod-2 .hx-node__name{font-size:15px !important}
+/* 连线 */
+.hx-l4 .hx-edge{stroke-width:2 !important;stroke-opacity:.78 !important}
+
+/* ---------- 对话框：一条干净的输入栏 ---------- */
+#chips{display:none !important}
+.hx-l4 .hx-composer{width:min(660px,calc(100% - 200px)) !important;min-width:min(420px,calc(100% - 24px)) !important;padding:5px !important;border-radius:20px !important}
+.hx-l4comp .hx-composer__box{padding:8px 8px 6px 14px !important;border-radius:16px !important;background:transparent !important}
+.hx-l4comp textarea#ta{font-size:14px !important;line-height:1.55 !important;min-height:22px !important;padding:2px 0 !important}
+.hx-l4comp textarea#ta::placeholder{color:var(--hx-text-3)}
+.hx-composer__row{gap:4px !important;margin-top:4px}
+#compHint{flex:none;min-width:0}
+#compHint:empty{display:none}
+#compHint .hx-att{height:22px}
+#sendBtn{width:30px !important;height:30px !important;padding:0 !important;border-radius:50% !important;font-size:0 !important;gap:0 !important;margin-left:4px}
+#sendBtn svg{width:15px !important;height:15px !important}
+#sendBtn kbd{display:none !important}
+.hx-composer:not(.has-text) #sendBtn{background:var(--hx-bg-5) !important;color:var(--hx-text-3) !important;box-shadow:none !important}
+.hx-cbtn{height:26px !important;border-radius:var(--hx-r-full) !important;padding:0 8px !important;color:var(--hx-text-3) !important}
+.hx-cbtn:hover,.hx-cbtn.is-on{color:var(--hx-text-1) !important}
+#attBtn{width:26px;padding:0 !important;justify-content:center}
+/* 浮动回复：只留最近一条，像一枚轻轻浮着的气泡 */
+.hx-l4 .hx-float{width:min(600px,calc(100% - 240px)) !important;min-width:0 !important;max-height:none !important;background:transparent !important;box-shadow:none !important;
+  -webkit-backdrop-filter:none !important;backdrop-filter:none !important;bottom:calc(var(--hx-comp-h,112px) + 26px) !important;overflow:visible !important;cursor:pointer}
+.hx-l4 .hx-float__bar{display:none !important}
+.hx-l4 .hx-float__list{padding:0 !important;overflow:visible !important;display:flex;flex-direction:column;align-items:flex-start}
+.hx-l4 .hx-float__list>*:not(:last-child){display:none !important}
+.hx-l4 .hx-float .hx-msg{margin:0 !important;padding:8px 14px 8px 8px !important;gap:9px !important;align-items:flex-start;max-width:100%;border-radius:16px;
+  background:var(--hx-glass);-webkit-backdrop-filter:blur(18px) saturate(1.6);backdrop-filter:blur(18px) saturate(1.6);box-shadow:var(--hx-shadow-float);font-size:13px !important;line-height:1.55}
+.hx-l4 .hx-float .hx-msg.is-user{align-self:flex-end;padding-left:14px !important}
+.hx-l4 .hx-float .hx-msg.is-user .hx-msg__body{background:none !important;box-shadow:none !important;padding:0 !important;max-width:none !important}
+.hx-l4 .hx-float .hx-msg__av{width:20px !important;height:20px !important;border-radius:50% !important;font-size:0 !important;margin-top:1px;
+  background:radial-gradient(circle at 35% 30%,color-mix(in srgb,var(--hx-model) 55%,#fff),var(--hx-model)) !important;box-shadow:0 0 0 3px var(--hx-model-weak) !important}
+.hx-l4 .hx-float .hx-msg__body{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.hx-l4 .hx-float .hx-msg__body p{margin:0 !important;display:inline}
+.hx-l4 .hx-float .hx-msg__acts{display:inline-flex !important;margin:0 0 0 8px !important;vertical-align:middle}
+.hx-l4 .hx-float .hx-msg:hover{box-shadow:var(--hx-shadow-pop)}
+.hx-float.is-idle .hx-msg{opacity:.0;transform:translateY(6px);transition:opacity .6s var(--hx-ease),transform .6s var(--hx-ease)}
+.hx-float .hx-msg{transition:opacity var(--hx-t-3) var(--hx-ease),transform var(--hx-t-3) var(--hx-ease),box-shadow var(--hx-t-2) var(--hx-ease)}
+.hx-l4 .hx-proposal{border-radius:14px !important}
+
+/* ---------- 浮在画布上的提示（toast） ---------- */
+.hx-toast{border-radius:14px !important;background:var(--hx-glass) !important;-webkit-backdrop-filter:blur(18px) saturate(1.5);backdrop-filter:blur(18px) saturate(1.5);box-shadow:var(--hx-shadow-pop) !important}

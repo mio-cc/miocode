@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>多 Agent 积木式架构 · 演示</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+<header class="hero">
+  <div class="kicker">多 Agent 协同 · 原子节点架构 v0.1</div>
+  <h1>13 个通用节点，<br>能拼出任何多 Agent 流程</h1>
+  <p class="lead">主脑、智囊团、决策者都不是系统的固定部件，它们只是某一张图里的节点标签。系统本身只有三样东西：<b>节点库</b>、<b>内核规则</b>、<b>运行时</b>。</p>
+</header>
+<style>
+:root{
+  --page-bg:#15171c; --page-panel:#1d2027; --page-panel2:#232730; --page-line:#2e323c;
+  --page-text:#e6e4df; --page-muted:#8b8f98; --page-amber:#f0a83c; --page-teal:#5bb8a9;
+  --page-sans:'Noto Sans SC','Microsoft YaHei','PingFang SC',sans-serif;
+  --page-mono:'JetBrains Mono',Consolas,'Courier New',monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--page-bg);color:var(--page-text);font-family:var(--page-sans);line-height:1.6}
+body{background-image:radial-gradient(var(--page-line) 1px,transparent 1px);background-size:22px 22px}
+.hero,section{max-width:1100px;margin:0 auto;padding:0 24px}
+.hero{padding-top:56px;padding-bottom:28px}
+.kicker{font-family:var(--page-mono);font-size:12px;color:var(--page-teal);letter-spacing:.04em}
+h1{font-size:clamp(30px,5.4vw,58px);line-height:1.15;font-weight:900;margin:14px 0 18px;letter-spacing:-.01em}
+.lead{max-width:680px;color:var(--page-muted);font-size:16px;margin:0}
+.lead b{color:var(--page-text);font-weight:500}
+section{padding-top:44px;padding-bottom:8px}
+h2{font-size:clamp(20px,2.6vw,26px);margin:0 0 6px;font-weight:700}
+.sub{color:var(--page-muted);font-size:14px;margin:0 0 20px}
+.mono{font-family:var(--page-mono)}
+
+/* layers */
+.layers{border:1px solid var(--page-line);background:var(--page-panel)}
+.layer{display:grid;grid-template-columns:150px 1fr 120px;gap:16px;padding:14px 18px;border-top:1px solid var(--page-line);align-items:baseline}
+.layer:first-child{border-top:none}
+.layer>*{min-width:0}
+.layer .ln{font-weight:700}
+.layer .ld{color:var(--page-muted);font-size:14px}
+.layer .lk{font-family:var(--page-mono);font-size:12px;text-align:right}
+.layer.kernel{background:var(--page-panel2)}
+.layer.kernel .lk{color:var(--page-amber)}
+.layer .lk.free{color:var(--page-teal)}
+
+/* canvas */
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.tab{font-family:var(--page-sans);font-size:14px;background:transparent;color:var(--page-muted);border:1px solid var(--page-line);padding:6px 14px;cursor:pointer}
+.tab.on{color:var(--page-bg);background:var(--page-amber);border-color:var(--page-amber);font-weight:500}
+.canvas-wrap{border:1px solid var(--page-line);background:#121419;overflow-x:auto}
+#graph{display:block;min-width:900px;width:100%}
+.gn{cursor:pointer}
+.nbox{fill:var(--page-panel);stroke:var(--page-line);stroke-width:1}
+.gn:hover .nbox{stroke:var(--page-muted)}
+.gn.sel .nbox{stroke:var(--page-amber);stroke-width:2}
+.ncat{font-family:var(--page-mono);font-size:10.5px;fill:var(--page-muted)}
+.nlab{font-family:var(--page-sans);font-size:14px;font-weight:500;fill:var(--page-text)}
+.pin{fill:var(--page-teal)} .pout{fill:var(--page-amber)}
+.e{fill:none;stroke:#555a66;stroke-width:1.4}
+.e.hl{stroke:var(--page-amber);stroke-width:1.8}
+.e.dash{stroke-dasharray:5 4}
+.el{font-family:var(--page-sans);font-size:11px;fill:var(--page-muted);paint-order:stroke;stroke:#121419;stroke-width:5px;stroke-linejoin:round}
+.el.hl{fill:var(--page-amber)}
+.frame{fill:none;stroke:var(--page-teal);stroke-dasharray:6 5;stroke-width:1}
+.fl{font-family:var(--page-mono);font-size:11px;fill:var(--page-teal)}
+.cdetail{border:1px solid var(--page-line);border-top:none;background:var(--page-panel);padding:14px 18px;font-size:14px;min-height:64px;color:var(--page-muted)}
+.cdetail b{color:var(--page-text)}
+.cdetail .go{margin-left:8px;background:none;border:none;color:var(--page-teal);cursor:pointer;font-size:13px;padding:0;text-decoration:underline}
+.gnote{font-size:13px;color:var(--page-muted);margin:10px 0 0}
+
+/* library */
+.lib{display:grid;grid-template-columns:260px 1fr;border:1px solid var(--page-line);background:var(--page-panel)}
+.lib>*{min-width:0}
+.list{border-right:1px solid var(--page-line);padding:8px 0}
+.grp{font-family:var(--page-mono);font-size:11px;color:var(--page-muted);padding:10px 16px 4px}
+.item{display:flex;justify-content:space-between;width:100%;text-align:left;background:none;border:none;color:var(--page-text);font-family:var(--page-sans);font-size:14px;padding:6px 16px;cursor:pointer;border-left:2px solid transparent}
+.item:hover{background:var(--page-panel2)}
+.item.on{border-left-color:var(--page-amber);background:var(--page-panel2);color:var(--page-amber)}
+.item .no{font-family:var(--page-mono);font-size:11px;color:var(--page-muted)}
+.detail{padding:20px 24px}
+.detail h3{margin:0;font-size:24px}
+.detail .dcat{font-family:var(--page-mono);font-size:12px;color:var(--page-teal)}
+.detail .dsum{color:var(--page-muted);margin:6px 0 16px;font-size:15px}
+.ports{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.ports>*{min-width:0}
+.ph{font-family:var(--page-mono);font-size:11px;color:var(--page-muted);margin-bottom:6px}
+.port{font-family:var(--page-mono);font-size:12.5px;padding:5px 0;border-bottom:1px solid var(--page-line);display:flex;gap:8px;align-items:center;word-break:break-all}
+.dot{width:8px;height:8px;border-radius:50%;flex:none}
+.dot.i{background:var(--page-teal)} .dot.o{background:var(--page-amber)}
+.params{width:100%;border-collapse:collapse;font-size:13px}
+.params td{padding:6px 8px 6px 0;border-bottom:1px solid var(--page-line);vertical-align:top}
+.params td:first-child{font-family:var(--page-mono);color:var(--page-text);white-space:nowrap;width:1%;padding-right:16px}
+.params td:last-child{color:var(--page-muted)}
+.lock{margin-top:14px;font-size:13px;border-left:3px solid var(--page-amber);padding:6px 12px;background:var(--page-panel2)}
+.lock .lt{font-family:var(--page-mono);font-size:11px;color:var(--page-amber);display:block}
+.auto{margin-top:10px;font-size:12.5px;color:var(--page-muted)}
+
+/* mechanisms */
+.mech{border-top:1px solid var(--page-line)}
+.mrow{display:grid;grid-template-columns:200px 1fr 1fr;gap:20px;padding:14px 0;border-bottom:1px solid var(--page-line)}
+.mrow>*{min-width:0}
+.mrow .mn{font-weight:700}
+.mrow .md{color:var(--page-muted);font-size:14px}
+.mrow .mx{font-family:var(--page-mono);font-size:12px;color:var(--page-teal);word-break:break-all}
+
+/* kernel */
+.rules{counter-reset:r;list-style:none;padding:0;margin:0;border:1px solid var(--page-line);background:var(--page-panel)}
+.rules li{display:grid;grid-template-columns:44px 170px 1fr;gap:12px;padding:12px 16px;border-top:1px solid var(--page-line);font-size:14px}
+.rules li:first-child{border-top:none}
+.rules li>*{min-width:0}
+.rules .rn{font-family:var(--page-mono);color:var(--page-amber)}
+.rules .rw{color:var(--page-muted)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chip{font-size:13px;border:1px solid var(--page-line);padding:3px 10px;color:var(--page-muted)}
+footer{max-width:1100px;margin:0 auto;padding:40px 24px 60px;color:var(--page-muted);font-size:12px;font-family:var(--page-mono)}
+
+@media (max-width:760px){
+  .layer{grid-template-columns:1fr;gap:2px}.layer .lk{text-align:left}
+  .lib{grid-template-columns:1fr}.list{border-right:none;border-bottom:1px solid var(--page-line);display:flex;flex-wrap:wrap;padding:8px}
+  .grp{display:none}.item{width:auto;border-left:none;border-bottom:2px solid transparent;padding:6px 10px}.item.on{border-bottom-color:var(--page-amber)}.item .no{display:none}
+  .ports{grid-template-columns:1fr}
+  .mrow{grid-template-columns:1fr;gap:4px}
+  .rules li{grid-template-columns:32px 1fr}.rules .rw{grid-column:2}
+}
+@media (prefers-reduced-motion:no-preference){
+  .fade{opacity:0;transform:translateY(6px);transition:opacity .35s ease-out,transform .35s ease-out}
+  .fade.in{opacity:1;transform:none}
+}
+</style>
+
+<section>
+  <h2>内核规定怎么连，用户决定连什么</h2>
+  <p class="sub">四层结构。越往下越自由：内核固定不变，模板只是用户拼好的一张图。</p>
+  <div class="layers">
+    <div class="layer kernel"><div class="ln">内核</div><div class="ld">信封格式、基础类型、类型检查、字段属性词表，以及运行时服务：校验、留痕、预算、权限、检查点</div><div class="lk">固定</div></div>
+    <div class="layer"><div class="ln">原子节点 ×13</div><div class="ld">通用能力，不带任何业务含义。参数由 schema 定义，任何参数都能转成端口</div><div class="lk free">参数可配</div></div>
+    <div class="layer"><div class="ln">扩展包</div><div class="ld">用户自定义的节点（script / prompt / http / mcp）、类型、上下文配方、策略、参数预设</div><div class="lk free">完全自定义</div></div>
+    <div class="layer"><div class="ln">模板</div><div class="ld">扩展包加一张连好的图。"闭环迭代"就是其中一个，可以复制、修改</div><div class="lk free">可复制可改</div></div>
+  </div>
+</section>
+
+<section>
+  <h2>同一批节点，三种拼法</h2>
+  <p class="sub">切换模板看看：节点类型没变，变的只是连线和配置。点击任意节点查看它由哪个原子节点配置而成。</p>
+  <div class="tabs" id="tabs"></div>
+  <div class="canvas-wrap"><svg id="graph" xmlns="http://www.w3.org/2000/svg"></svg></div>
+  <div class="cdetail" id="cdetail">点击图中的节点</div>
+  <p class="gnote" id="gnote"></p>
+</section>
+
+<section>
+  <h2>节点库：13 个原子节点</h2>
+  <p class="sub"><span style="color:var(--page-teal)">●</span> 输入端口　<span style="color:var(--page-amber)">●</span> 输出端口。每个节点还会由内核自动加上「升级」和「留痕」两个端口。</p>
+  <div class="lib">
+    <div class="list" id="list"></div>
+    <div class="detail" id="ldetail"></div>
+  </div>
+</section>
+
+<section>
+  <h2>自定义靠这五个机制，不靠改节点</h2>
+  <p class="sub">业务含义通过类型引用、配方/策略引用、表达式三种"插槽"填进去。</p>
+  <div class="mech">
+    <div class="mrow"><div class="mn">参数可转端口</div><div class="md">任何参数既能手填，也能接上游的输出，相当于 ComfyUI 的 widget → input</div><div class="mx">Agent(调度员).concurrency → 扇出.concurrency</div></div>
+    <div class="mrow"><div class="mn">三级锁</div><div class="md">kernel：谁都改不了；def：节点作者锁定；none：实例上随意改</div><div class="mx">risk: {lock: kernel(只能调高)}</div></div>
+    <div class="mrow"><div class="mn">标签（tags）</div><div class="md">节点里不写角色。"主脑"只是一个标签，类型的字段属性、账本权限、升级路由都通过标签引用它</div><div class="mx">intent: {readonly_except: [tag:主脑]}</div></div>
+    <div class="mrow"><div class="mn">钩子（hooks）</div><div class="md">审核、限流、脱敏等策略挂在实例上，不用改节点本身</div><div class="mx">hooks: {before: [白名单], on_error: [上报]}</div></div>
+    <div class="mrow"><div class="mn">类型变量</div><div class="md">端口类型跟着参数和连线走，选了什么输出类型，输出端口就变成什么</div><div class="mx">Agent.result: T  (T = output_schema)</div></div>
+  </div>
+</section>
+
+<section>
+  <h2>内核锁死的只有这 7 条</h2>
+  <p class="sub">除此之外全部可以配置。</p>
+  <ol class="rules">
+    <li><span class="rn">01</span><span>Agent</span><span class="rw">context 端口只接受上下文包，每个 Agent 看到什么都画在画布上</span></li>
+    <li><span class="rn">02</span><span>上下文装配</span><span class="rw">类型里标了 inherit 的字段必须透传，关键约束不会被裁掉</span></li>
+    <li><span class="rn">03</span><span>工具</span><span class="rw">风险等级只能调高；必须保留原文指针；L3 工具前必须接人工节点</span></li>
+    <li><span class="rn">04</span><span>聚合 · 分支</span><span class="rw">结果确定，不调用模型，可以缓存，方便排错</span></li>
+    <li><span class="rn">05</span><span>循环</span><span class="rw">只有循环节点能形成环，而且至少有一个有限出口</span></li>
+    <li><span class="rn">06</span><span>账本</span><span class="rw">写入要遵守字段属性，每次写入都留痕</span></li>
+    <li><span class="rn">07</span><span>子图引用</span><span class="rw">权限 = 授予 ∩ 声明 ∩ 父级；嵌套深度有上限</span></li>
+  </ol>
+  <div class="chips">
+    <span class="chip">以下由运行时统一处理，不做成节点：</span>
+    <span class="chip">端口校验与修复</span><span class="chip">信封封装</span><span class="chip">原文存工作区 + 指针</span><span class="chip">留痕与重放</span><span class="chip">预算计量</span><span class="chip">权限检查</span><span class="chip">图检查</span><span class="chip">检查点</span><span class="chip">层级路径 ID</span>
+  </div>
+</section>
+
+<footer>多 Agent 协同积木式架构 · 演示页 · 2026-11-21 · 配套文档：多Agent协同积木式架构设计文档.docx</footer>
+
+<script>
+const NODES = {
+ '资源':{no:1,cat:'资源',sum:'定义可复用的资源：模型、提示词、列表、常量，或用户注册的任意资源类型。本身不执行。',
+   inp:[],out:['ref: 资源引用<T>'],
+   params:[['kind','资源类型（模型 / 提示词 / 列表 / 常量 / 自定义）'],['source','inline / library / file / url'],['value','选了 kind 后表单自动切换'],['pin','snapshot 锁定版本 / link 跟随更新']],lock:''},
+ 'Agent':{no:2,cat:'智能体',sum:'唯一调用模型的节点。它是"智囊"还是"执行者"，全看接进来的上下文、模型、提示词和输出类型。',
+   inp:['context: 上下文包','model: 资源引用<模型>','prompt: 资源引用<提示词>','tools: 工具端点（可多连）'],out:['result: T（= output_schema）'],
+   params:[['output_schema','输出类型引用'],['output_mode','single / list / stream'],['lifecycle','ephemeral 用完即弃 / resident 长驻'],['limits','工具调用次数、内部轮数、超时'],['repair','格式不合格时的修复策略'],['memory_policy','长驻时何时压缩、从哪重建']],
+   lock:'context 端口只接受上下文包'},
+ '上下文装配':{no:3,cat:'状态',sum:'按配方组装 Agent 能看到的全部内容。配方完全由用户定义。',
+   inp:['in_*: 任意（动态插口）','target_model: 资源引用<模型>','summarizer: 资源引用<模型>?'],out:['context: 上下文包','dropped: 指针[]'],
+   params:[['recipe','配方引用：分几段、每段从哪来、各占多少预算'],['budget','按目标模型窗口的比例'],['on_overflow','pointer / summarize / truncate / reject']],
+   lock:'类型里标了 inherit 的字段必须透传'},
+ '工具':{no:4,cat:'工具',sum:'手脚。可以连给 Agent 由它调用，也可以在流程里固定执行一次。',
+   inp:['request: 工具请求（direct 模式）'],out:['endpoint: 工具端点','result: 工具结果'],
+   params:[['tool','内置工具，或 MCP / HTTP / 脚本注册的工具'],['mode','endpoint / direct'],['risk','L0 只读 ~ L3 不可逆'],['policies','限流、白名单、审核、脱敏'],['trim','结果裁剪策略']],
+   lock:'风险只能调高；必须保留原文指针；L3 前须接人工'},
+ '扇出':{no:5,cat:'拓扑',sum:'一份变 N 份，并行跑同一个子图。"智囊团""执行池"都是它。',
+   inp:['items: 列表[T]（与 n 二选一）','n: 整数','shared_*: 任意'],out:['results: 列表[U]','meta: 运行统计'],
+   params:[['body','每份要跑的子图'],['concurrency','并发上限'],['isolation','各份互相看不到'],['vary','每份改 body 里任意参数，如换模型、换温度'],['collect','等全部 / 等 K 个 / 超时'],['budget_split','equal / weighted / on_demand']],lock:''},
+ '汇合':{no:6,cat:'拓扑',sum:'把多个独立分支收成一份，每连一根线多一个插口。',
+   inp:['in_*: 任意（动态插口）'],out:['collected: 列表 / 元组 / 字典','meta'],
+   params:[['shape','list / tuple / dict'],['wait','all / k_of_n / first / timeout'],['on_fail','skip / retry / fail / default_value']],lock:''},
+ '聚合':{no:7,cat:'聚合',sum:'把列表变成一份结构化结果，纯规则运算。语义判断交给前面的 Agent。',
+   inp:['items: 列表[T]'],out:['result: U（由 op 推断）'],
+   params:[['op','count / group / ratio / vote / dedupe / sort / top_k / filter / divergence / 表达式 / 脚本'],['key','按哪个字段算'],['levels','分几级、每级叫什么、什么条件，由用户定']],
+   lock:'不调用模型，结果确定'},
+ '分支':{no:8,cat:'控制',sum:'按表达式把数据分到不同出口。',
+   inp:['value: T'],out:['每个 case 一个出口','default'],
+   params:[['cases','[{name, when: 表达式}]'],['match','first 只走第一个 / all 多路同时触发']],
+   lock:'表达式只能读字段，不调模型，无副作用'},
+ '循环':{no:9,cat:'控制',sum:'图里唯一能形成环的节点。按轮运行（闭环），或按事件唤醒（主脑）。',
+   inp:['init: T'],out:['final: T','exit: 出口名'],
+   params:[['body','循环体子图'],['trigger','rounds / event'],['exits','用户自定义的出口条件'],['carry','只有这些字段带到下一轮'],['stall','无进展检测'],['events','端口到达 / 定时 / 账本 watch / 外部回调'],['checkpoint','per_round / per_event / off']],
+   lock:'至少一个有限出口（轮数、预算或超时）'},
+ '账本':{no:10,cat:'状态',sum:'外置状态的读写口。账本长什么样由用户定义的类型决定。',
+   inp:['value: T（写入时）'],out:['value: T + 版本号','ack','changed: 事件'],
+   params:[['store','账本引用'],['scope','local / parent / named'],['op','read / write / append / cas / watch'],['path','字段路径']],
+   lock:'写入遵守字段属性，每次写入留痕'},
+ '人工':{no:11,cat:'人工',sum:'让人审批、输入或选择。',
+   inp:['request: T'],out:['每种处理结果一个出口'],
+   params:[['mode','approve / input / choose / review'],['view','给人看什么，默认摘要 + 指针'],['channel','应用内 / 邮件 / IM'],['assignee','用户或标签'],['timeout / on_timeout','超时时间与超时后走哪个出口']],lock:''},
+ '子图端口':{no:12,cat:'边界',sum:'定义一个子图对外长什么样。',
+   inp:[],out:[],
+   params:[['role','entry / exit / summary / escalation / event'],['type','端口类型'],['summary','摘要格式、触发时机、字数预算'],['escalation','升级路由：本层处理或往上抛']],
+   lock:'每个子图至少一个入口和一个出口'},
+ '子图引用':{no:13,cat:'组合',sum:'把封装好的子图当作一个节点使用，嵌套就靠它。',
+   inp:['根据子图端口自动生成'],out:['根据子图端口自动生成'],
+   params:[['ref','子图@版本'],['pin','snapshot / link'],['exposed','子图暴露出来的参数'],['overrides','不打开子图也能换掉里面的模型、配方'],['grant','授予的工具权限'],['budget','父级划拨的额度']],
+   lock:'权限取交集；嵌套深度有上限'}
+};
+const GROUPS=[['资源',['资源']],['智能体',['Agent']],['状态',['上下文装配','账本']],['工具',['工具']],['拓扑',['扇出','汇合']],['聚合',['聚合']],['控制',['分支','循环']],['人工',['人工']],['边界 · 组合',['子图端口','子图引用']]];
+
+const GRAPHS = {
+ loop:{name:'闭环迭代',h:460,
+  note:'主脑是一个 lifecycle=resident 的 Agent，靠循环节点的 event 模式被简报和升级唤醒。智囊团、执行池都是扇出节点，只是 vary 和 concurrency 配置不同。',
+  frames:[{x:190,y:104,w:790,h:250,label:'循环节点 · 最多 5 轮 · 连续 2 轮无进展即停 · 预算上限',lx:380,ly:96}],
+  nodes:[
+   {id:'r',t:'资源',label:'模型列表[]',x:210,y:20,note:'列了几个模型，智囊团就跑几份，每份可以是不同厂商的模型。'},
+   {id:'m',t:'Agent',label:'主脑',x:20,y:200,tag:'resident',note:'长驻 Agent，打着"主脑"标签。只读账本和简报，定目标和验收标准，不进入循环。'},
+   {id:'l',t:'账本',label:'目标账本',x:20,y:385,note:'外置状态。目标、验收标准的字段属性 readonly_except: [tag:主脑]，别的节点改不了。'},
+   {id:'a',t:'扇出',label:'智囊团 ×N',x:210,y:134,note:'body = 上下文装配 → Agent；isolation=true；vary 让每份用不同模型。'},
+   {id:'b',t:'Agent',label:'聚类员',x:400,y:134,note:'只做语义判断：给每份方案打簇标签，输出 簇标注。'},
+   {id:'c',t:'聚合',label:'按比例分级',x:590,y:134,note:'op=group_ratio，levels 设成 共识 / 多数 / 独有 / 冲突，纯规则运算。'},
+   {id:'d',t:'Agent',label:'决策者',x:800,y:134,note:'合并同向、排列异向，产出 任务卡[]。'},
+   {id:'e',t:'扇出',label:'执行池',x:800,y:274,note:'concurrency=3；body 里是接小模型的 Agent，lifecycle=ephemeral 用完即弃。'},
+   {id:'t',t:'工具',label:'检索 / 代码执行',x:800,y:385,note:'endpoint 模式，连给执行池里的 Agent，连上线就等于授权。'},
+   {id:'f',t:'Agent',label:'验收者',x:590,y:274,note:'对照验收标准判定，并按抽检率回取原文核对。输出 判定 + 差距报告。'},
+   {id:'g',t:'分支',label:'达成？',x:400,y:274,note:'表达式读 判定.achieved：达成就出循环，否则带着差距报告进入下一轮。'},
+   {id:'p',t:'子图端口',label:'摘要端口',x:400,y:385,note:'role=summary，每轮一份简报，限 300 字，只发给主脑。'}
+  ],
+  edges:[
+   {f:'r',t:'a',l:'模型引用[]'},
+   {f:'m',t:'a',fs:'r.3',l:'目标 + 验收标准'},
+   {f:'a',t:'b',l:'方案[]',hl:1},{f:'b',t:'c',l:'簇标注',hl:1},{f:'c',t:'d',l:'分级结果',hl:1},
+   {f:'d',t:'e',l:'任务卡[]',hl:1},{f:'t',t:'e',l:'工具端点'},
+   {f:'e',t:'f',l:'执行结果[]',hl:1},{f:'f',t:'g',l:'判定',hl:1},
+   {f:'g',t:'a',fs:'l',ts:'b',l:'未达成 · 差距报告',hl:1,dash:1},
+   {f:'g',t:'p',l:'达成 / 每轮'},
+   {f:'p',t:'m',fs:'l',ts:'b.75',l:'简报 ≤300字'},
+   {f:'l',t:'m',fs:'t',ts:'b.25',l:'读 / 写'}
+  ]},
+ review:{name:'代码评审',h:470,
+  note:'没有用到任何新节点，只新增了用户自己的类型（评审意见）和配方（评审配方）。',
+  frames:[{x:370,y:40,w:410,h:210,label:'扇出 · 每个变更文件一份 · 并发 8',lx:380,ly:32}],
+  nodes:[
+   {id:'r',t:'资源',label:'仓库 + 分支',x:20,y:90,note:'kind=常量，指向要评审的仓库和分支。'},
+   {id:'t1',t:'工具',label:'列出变更文件',x:195,y:90,note:'direct 模式，L0 只读，在流程里固定执行一次。'},
+   {id:'c1',t:'上下文装配',label:'评审配方',x:390,y:90,note:'用户自定义配方：只放该文件的 diff、代码规范、相关接口说明。'},
+   {id:'a1',t:'Agent',label:'评审员',x:600,y:90,note:'output_schema = 评审意见@用户，字段里有 severity。'},
+   {id:'rm',t:'资源',label:'小模型',x:600,y:180,note:'每个文件用一个便宜的小模型就够了。'},
+   {id:'g1',t:'聚合',label:'按严重度分组',x:830,y:90,note:'op=group，key=severity。'},
+   {id:'b1',t:'分支',label:'有严重问题？',x:830,y:290,note:'cases: 有 high 级别 → 人工；否则直接发评论。'},
+   {id:'h1',t:'人工',label:'人工审批',x:600,y:290,note:'mode=approve，给人看的是分组摘要加指针。'},
+   {id:'t2',t:'工具',label:'发评审评论',x:830,y:395,note:'L2 外部副作用，挂着白名单和频率策略。'}
+  ],
+  edges:[
+   {f:'r',t:'t1',l:'仓库引用'},{f:'t1',t:'c1',l:'文件列表[]',hl:1},
+   {f:'c1',t:'a1',l:'上下文包',hl:1},{f:'rm',t:'a1',l:'模型引用'},
+   {f:'a1',t:'g1',l:'评审意见[]',hl:1},{f:'g1',t:'b1',l:'分组结果',hl:1},
+   {f:'b1',t:'h1',l:'有严重问题',hl:1},{f:'b1',t:'t2',l:'无'},
+   {f:'h1',t:'t2',fs:'b',ts:'l',l:'批准后'}
+  ]},
+ gen:{name:'生成-评审',h:440,
+  note:'最常见的写作 / 出方案流程：循环节点包住"生成 → 评审 → 判断"，不通过就带着修改意见回去重写。',
+  frames:[{x:200,y:60,w:580,h:290,label:'循环节点 · 最多 4 轮 · carry: [修改意见]',lx:210,ly:52}],
+  nodes:[
+   {id:'r',t:'资源',label:'需求 + 提示词',x:20,y:120,note:'需求文本和生成者的提示词。'},
+   {id:'g',t:'Agent',label:'生成者',x:230,y:120,note:'接大模型，输出草稿。'},
+   {id:'v',t:'Agent',label:'评审者',x:590,y:120,note:'换一个不同厂商的模型来评审，避免互相附和。'},
+   {id:'b',t:'分支',label:'通过？',x:590,y:260,note:'读 评审结论.pass。'},
+   {id:'l',t:'账本',label:'版本记录',x:230,y:260,note:'op=append，每一版草稿都存档，可回溯。'},
+   {id:'o',t:'子图端口',label:'出口',x:820,y:260,note:'role=exit，交出最终稿。'},
+   {id:'h',t:'人工',label:'终审（可选）',x:820,y:370,note:'需要的话接一个人工节点做最后确认。'}
+  ],
+  edges:[
+   {f:'r',t:'g',l:'任务'},{f:'g',t:'v',l:'草稿',hl:1},{f:'v',t:'b',l:'评审结论',hl:1},
+   {f:'b',t:'g',fs:'l',ts:'b.7',l:'不通过 · 修改意见',hl:1,dash:1},
+   {f:'g',t:'l',fs:'b.25',ts:'t.25',l:'每版存档'},
+   {f:'b',t:'o',l:'通过'},{f:'o',t:'h',l:'最终稿'}
+  ]}
+};
+
+const W=150,H=58;
+const svg=document.getElementById('graph');
+let cur='loop';
+
+function side(n,spec){
+  const s=spec[0]; const f=spec.length>1?parseFloat('0'+spec.slice(1)):0.5;
+  if(s==='r') return {p:[n.x+W,n.y+H*f],v:[1,0]};
+  if(s==='l') return {p:[n.x,n.y+H*f],v:[-1,0]};
+  if(s==='t') return {p:[n.x+W*f,n.y],v:[0,-1]};
+  return {p:[n.x+W*f,n.y+H],v:[0,1]};
+}
+function auto(a,b){
+  if(b.x>=a.x+W) return ['r','l'];
+  if(b.x+W<=a.x) return ['l','r'];
+  return b.y>a.y?['b','t']:['t','b'];
+}
+function draw(key){
+  cur=key; const G=GRAPHS[key]; const byId={};
+  G.nodes.forEach(n=>byId[n.id]=n);
+  svg.setAttribute('viewBox','0 0 1000 '+G.h);
+  let s='<defs>'+
+   '<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555a66"/></marker>'+
+   '<marker id="arh" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f0a83c"/></marker></defs>';
+  G.frames.forEach(fr=>{
+    s+='<rect class="frame" x="'+fr.x+'" y="'+fr.y+'" width="'+fr.w+'" height="'+fr.h+'" rx="4"/>';
+    s+='<text class="fl" x="'+fr.lx+'" y="'+fr.ly+'">'+fr.label+'</text>';
+  });
+  let labels='';
+  G.edges.forEach(e=>{
+    const a=byId[e.f], b=byId[e.t]; const au=auto(a,b);
+    const A=side(a,e.fs||au[0]), B=side(b,e.ts||au[1]);
+    const dx=B.p[0]-A.p[0], dy=B.p[1]-A.p[1];
+    const k=Math.max(30,Math.hypot(dx,dy)/2.4);
+    const c1=[A.p[0]+A.v[0]*k,A.p[1]+A.v[1]*k], c2=[B.p[0]+B.v[0]*k,B.p[1]+B.v[1]*k];
+    const cls='e'+(e.hl?' hl':'')+(e.dash?' dash':'');
+    s+='<path class="'+cls+'" marker-end="url(#'+(e.hl?'arh':'ar')+')" d="M'+A.p[0]+','+A.p[1]+' C'+c1[0]+','+c1[1]+' '+c2[0]+','+c2[1]+' '+B.p[0]+','+B.p[1]+'"/>';
+    const mx=(A.p[0]+3*c1[0]+3*c2[0]+B.p[0])/8, my=(A.p[1]+3*c1[1]+3*c2[1]+B.p[1])/8;
+    labels+='<text class="el'+(e.hl?' hl':'')+'" text-anchor="middle" x="'+mx.toFixed(1)+'" y="'+(my-5).toFixed(1)+'">'+e.l+'</text>';
+  });
+  G.nodes.forEach(n=>{
+    s+='<g class="gn" data-id="'+n.id+'"><rect class="nbox" x="'+n.x+'" y="'+n.y+'" width="'+W+'" height="'+H+'" rx="5"/>'+
+      '<text class="ncat" x="'+(n.x+12)+'" y="'+(n.y+19)+'">'+n.t+(n.tag?' · '+n.tag:'')+'</text>'+
+      '<text class="nlab" x="'+(n.x+12)+'" y="'+(n.y+42)+'">'+n.label+'</text>'+
+      '<circle class="pin" cx="'+n.x+'" cy="'+(n.y+H/2)+'" r="4"/><circle class="pout" cx="'+(n.x+W)+'" cy="'+(n.y+H/2)+'" r="4"/></g>';
+  });
+  svg.innerHTML=s+labels;
+  svg.querySelectorAll('.gn').forEach(g=>g.addEventListener('click',()=>pick(g.dataset.id)));
+  document.getElementById('gnote').textContent=G.note;
+  document.getElementById('cdetail').innerHTML='点击图中的节点';
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.k===key));
+}
+function pick(id){
+  const n=GRAPHS[cur].nodes.find(x=>x.id===id);
+  svg.querySelectorAll('.gn').forEach(g=>g.classList.toggle('sel',g.dataset.id===id));
+  document.getElementById('cdetail').innerHTML='<b>'+n.label+'</b>　由原子节点「'+n.t+'」配置而成。'+n.note+
+   '<button class="go" data-t="'+n.t+'">在节点库中查看「'+n.t+'」</button>';
+  document.querySelector('#cdetail .go').addEventListener('click',e=>{
+    showNode(e.target.dataset.t);
+    document.getElementById('list').scrollIntoView({behavior:'smooth',block:'start'});
+  });
+}
+const tabs=document.getElementById('tabs');
+Object.keys(GRAPHS).forEach(k=>{
+  const b=document.createElement('button'); b.className='tab'; b.dataset.k=k; b.textContent=GRAPHS[k].name;
+  b.addEventListener('click',()=>draw(k)); tabs.appendChild(b);
+});
+
+function showNode(name){
+  const d=NODES[name];
+  document.querySelectorAll('.item').forEach(i=>i.classList.toggle('on',i.dataset.n===name));
+  const ports=(arr,c)=>arr.length?arr.map(p=>'<div class="port"><span class="dot '+c+'"></span>'+p+'</div>').join(''):'<div class="port" style="color:var(--page-muted)">无</div>';
+  let h='<div class="dcat">#'+String(d.no).padStart(2,'0')+' · '+d.cat+'</div><h3>'+name+'</h3><p class="dsum">'+d.sum+'</p>';
+  if(d.inp.length||d.out.length){
+    h+='<div class="ports"><div><div class="ph">输入端口</div>'+ports(d.inp,'i')+'</div><div><div class="ph">输出端口</div>'+ports(d.out,'o')+'</div></div>';
+  }
+  h+='<div class="ph">可配置参数（都可以转成端口）</div><table class="params">'+d.params.map(p=>'<tr><td>'+p[0]+'</td><td>'+p[1]+'</td></tr>').join('')+'</table>';
+  h+=d.lock?'<div class="lock"><span class="lt">内核锁定</span>'+d.lock+'</div>':'<div class="lock" style="border-left-color:var(--page-teal)"><span class="lt" style="color:var(--page-teal)">内核锁定</span>无，全部可配置</div>';
+  h+='<div class="auto">自动端口：升级（报警灯）· 留痕（日志指针）</div>';
+  document.getElementById('ldetail').innerHTML=h;
+}
+const list=document.getElementById('list');
+GROUPS.forEach(g=>{
+  const gh=document.createElement('div'); gh.className='grp'; gh.textContent=g[0]; list.appendChild(gh);
+  g[1].forEach(n=>{
+    const b=document.createElement('button'); b.className='item'; b.dataset.n=n;
+    b.innerHTML='<span>'+n+'</span><span class="no">'+String(NODES[n].no).padStart(2,'0')+'</span>';
+    b.addEventListener('click',()=>showNode(n)); list.appendChild(b);
+  });
+});
+
+draw('loop');
+showNode('Agent');
+document.querySelectorAll('section').forEach(s=>s.classList.add('fade'));
+requestAnimationFrame(()=>document.querySelectorAll('.fade').forEach(s=>s.classList.add('in')));
+</script>
+</body>
+</html>

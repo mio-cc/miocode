@@ -1,0 +1,607 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>Harness · 配色候选对比</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet">
+<style>/* ==========================================================================
+   Harness · 积木编排 设计令牌 tokens.css  v0.3.2
+   唯一事实来源。所有页面、组件只能引用这里的变量，不得写裸色值。
+   命名：--hx-<类别>-<名称>。
+   主题：默认浅色（:root）。深色通过 <html data-theme="dark"> 启用。
+   细则见 docs/02_色彩系统与主题.md
+   ========================================================================== */
+
+/* ---------------- 浅色（默认） ---------------- */
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+
+  /* 表面：从底到顶。浅色下越往上越"白"，层级主要靠外框和阴影区分 */
+  --hx-bg-0: #f3f3f1;          /* 应用最底层：侧栏、对话背景 */
+  --hx-bg-1: #f8f8f6;          /* 画布底色 */
+  --hx-bg-2: #ffffff;          /* 浮动面板、检查器、停靠栏 */
+  --hx-bg-3: #ffffff;          /* 节点主体、卡片 */
+  --hx-bg-4: #f2f2ef;          /* 输入框、悬停态 */
+  --hx-bg-5: #e8e8e4;          /* 按下态、分段控件选中项 */
+
+  /* 线 */
+  --hx-line-1: rgba(24,24,32,.06);   /* 内部分区 */
+  --hx-line-2: rgba(24,24,32,.11);   /* 节点、面板外框 */
+  --hx-line-3: rgba(24,24,32,.20);   /* 悬停外框 */
+  --hx-highlight: rgba(255,255,255,.9);
+
+  /* 文字（对白色背景：均按 WCAG 实测：text-3、accent-strong、ok、wait 作小号文字 ≥ 4.5:1，见 docs/16） */
+  --hx-text-1: #16171b;
+  --hx-text-2: #4f535c;
+  --hx-text-3: #6b6f78;
+  --hx-text-inv: #1c1404;      /* 强调色背景上的文字：两种主题都用深色字压在琥珀色上 */
+
+  /* 语义色 */
+  --hx-accent: #f0a01e;        /* 运行中 / 主路径 / 主按钮底色 */
+  --hx-accent-strong: #9a5c00; /* 浅色下用作文字、细线的琥珀色（对白 ≥ 4.5:1） */
+  --hx-accent-weak: rgba(240,160,30,.14);
+  --hx-accent-line: rgba(200,125,0,.55);
+  --hx-ok: #1d8250;
+  --hx-ok-weak: rgba(35,144,90,.11);
+  --hx-danger: #d0414a;
+  --hx-danger-weak: rgba(208,65,74,.10);
+  --hx-wait: #94700a;
+  --hx-wait-weak: rgba(200,150,20,.14);
+  --hx-model: #4f5fd6;         /* 模型操作者身份色 */
+  --hx-model-weak: rgba(79,95,214,.10);
+  --hx-model-line: rgba(79,95,214,.55);
+  --hx-focus: #16171b;
+
+  /* 端口数据类型色（白底上均 ≥ 3:1） */
+  --hx-type-any: #80848d;
+  --hx-type-ctx: #9f7a0e;
+  --hx-type-ref: #2f75c0;
+  --hx-type-list: #13897a;
+  --hx-type-tool: #c35f3c;
+  --hx-type-gen: #6f6a5e;
+  --hx-type-ctrl: #c24774;
+  --hx-type-state: #7656b8;
+
+  /* 画布 */
+  --hx-grid-dot: rgba(24,24,32,.14);
+  --hx-marquee: rgba(24,24,32,.05);       /* 框选：中性色，模型色只表示模型 */
+  --hx-marquee-line: rgba(24,24,32,.38);
+  --hx-scrim: rgba(243,243,241,.7);
+
+  /* 阴影：浅色下是层级的主要手段，必须细腻 */
+  --hx-shadow-node: 0 0 0 1px rgba(24,24,32,.02), 0 1px 2px rgba(24,24,32,.06), 0 3px 10px rgba(24,24,32,.05);
+  --hx-shadow-node-drag: 0 2px 4px rgba(24,24,32,.06), 0 16px 36px rgba(24,24,32,.14);
+  --hx-shadow-float: 0 0 0 1px var(--hx-line-2), 0 2px 4px rgba(24,24,32,.04), 0 12px 32px rgba(24,24,32,.09);
+  --hx-shadow-pop: 0 0 0 1px var(--hx-line-3), 0 4px 8px rgba(24,24,32,.06), 0 20px 48px rgba(24,24,32,.16);
+}
+
+/* ---------------- 深色（可选） ---------------- */
+[data-theme="dark"] {
+  color-scheme: dark;
+  --hx-bg-0: #0a0b0e;
+  --hx-bg-1: #101217;
+  --hx-bg-2: #15171d;
+  --hx-bg-3: #1b1e25;
+  --hx-bg-4: #22262e;
+  --hx-bg-5: #2a2f39;
+  --hx-line-1: rgba(255,255,255,.055);
+  --hx-line-2: rgba(255,255,255,.09);
+  --hx-line-3: rgba(255,255,255,.15);
+  --hx-highlight: rgba(255,255,255,.04);
+  --hx-text-1: #ecebe6;
+  --hx-text-2: #a7aab2;
+  --hx-text-3: #7a7e88;
+  --hx-text-inv: #121317;
+  --hx-accent: #f5a524;
+  --hx-accent-strong: #f5a524;
+  --hx-accent-weak: rgba(245,165,36,.14);
+  --hx-accent-line: rgba(245,165,36,.45);
+  --hx-ok: #5fc48a;
+  --hx-ok-weak: rgba(95,196,138,.14);
+  --hx-danger: #ec6a6f;
+  --hx-danger-weak: rgba(236,106,111,.14);
+  --hx-wait: #e9c46a;
+  --hx-wait-weak: rgba(233,196,106,.14);
+  --hx-model: #93a5ff;
+  --hx-model-weak: rgba(147,165,255,.14);
+  --hx-model-line: rgba(147,165,255,.5);
+  --hx-focus: #ecebe6;
+  --hx-type-any: #7e828c;
+  --hx-type-ctx: #e3c46b;
+  --hx-type-ref: #6fa8dc;
+  --hx-type-list: #4fb6a5;
+  --hx-type-tool: #d98e73;
+  --hx-type-gen: #cbc7bd;
+  --hx-type-ctrl: #e07b9a;
+  --hx-type-state: #a58bd6;
+  --hx-grid-dot: rgba(255,255,255,.075);
+  --hx-marquee: rgba(255,255,255,.06);
+  --hx-marquee-line: rgba(255,255,255,.38);
+  --hx-scrim: rgba(6,7,9,.6);
+  --hx-shadow-node: inset 0 1px 0 var(--hx-highlight), 0 1px 2px rgba(0,0,0,.45), 0 4px 14px rgba(0,0,0,.25);
+  --hx-shadow-node-drag: inset 0 1px 0 var(--hx-highlight), 0 14px 34px rgba(0,0,0,.55);
+  --hx-shadow-float: inset 0 1px 0 var(--hx-highlight), 0 0 0 1px var(--hx-line-2), 0 12px 32px rgba(0,0,0,.45);
+  --hx-shadow-pop: inset 0 1px 0 var(--hx-highlight), 0 0 0 1px var(--hx-line-3), 0 18px 48px rgba(0,0,0,.6);
+}
+
+/* ---------------- 与主题无关的令牌 ---------------- */
+:root {
+  --hx-font-ui: "Geist", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --hx-font-mono: "Geist Mono", "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+
+  /* 字号：只允许这 8 档 */
+  --hx-fs-10: 10.5px; --hx-fs-11: 11px; --hx-fs-12: 12px; --hx-fs-13: 13px;
+  --hx-fs-14: 14px;   --hx-fs-16: 16px; --hx-fs-20: 20px; --hx-fs-28: 28px;
+
+  /* 间距：4 的倍数 */
+  --hx-s-1: 2px; --hx-s-2: 4px; --hx-s-3: 6px; --hx-s-4: 8px; --hx-s-5: 12px;
+  --hx-s-6: 16px; --hx-s-7: 20px; --hx-s-8: 24px; --hx-s-9: 32px; --hx-s-10: 48px;
+
+  /* 圆角 */
+  --hx-r-xs: 3px; --hx-r-sm: 5px; --hx-r-md: 7px; --hx-r-lg: 10px; --hx-r-xl: 14px; --hx-r-full: 999px;
+
+  /* 尺寸 */
+  --hx-node-w: 236px; --hx-node-w-sm: 184px; --hx-node-head: 38px; --hx-node-row: 24px;
+  --hx-node-widget: 28px; --hx-port: 10px; --hx-ctl-h: 28px; --hx-ctl-h-sm: 24px; --hx-grid: 20px;
+
+  /* 动效 */
+  --hx-ease: cubic-bezier(.2,.8,.2,1);
+  --hx-ease-out: cubic-bezier(.16,1,.3,1);
+  --hx-ease-in: cubic-bezier(.4,0,1,1);
+  --hx-t-1: 90ms; --hx-t-2: 160ms; --hx-t-3: 240ms; --hx-t-4: 380ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --hx-t-1: 0ms; --hx-t-2: 0ms; --hx-t-3: 0ms; --hx-t-4: 0ms; }
+}
+
+[data-theme]{--hx-primary:var(--hx-accent);--hx-primary-fg:var(--hx-text-inv)}
+/* ===== 09_palettes.css · 配色候选（Q21）：宣纸（Claude）、石墨（Codex）、墨鲸（DeepSeek Harness）=====
+   用 <html data-palette="…" data-theme="light|dark"> 组合切换；data-palette 缺省 = 现行琥珀（tokens.css）。
+   新增令牌 --hx-primary / --hx-primary-fg：主按钮可以和"运行中"主色分开（石墨用墨色主按钮）。 */
+:root{--hx-primary:var(--hx-accent);--hx-primary-fg:var(--hx-text-inv)}
+/* ---- 宣纸（参考 Claude）：暖调纸面 · 陶土橙主色 · 所有灰都偏暖 ---- */
+[data-palette="paper"],[data-palette="paper"][data-theme="light"]{
+  color-scheme:light;
+  --hx-bg-0:#ebe8df;
+  --hx-bg-1:#f4f2ec;
+  --hx-bg-2:#fdfcf9;
+  --hx-bg-3:#fffefb;
+  --hx-bg-4:#f1efe8;
+  --hx-bg-5:#e4e1d6;
+  --hx-text-1:#1f1d18;
+  --hx-text-2:#524f47;
+  --hx-text-3:#6c695f;
+  --hx-text-inv:#fffaf4;
+  --hx-accent:#b9573a;
+  --hx-accent-strong:#9b4428;
+  --hx-ok:#3d7448;
+  --hx-danger:#a8323e;
+  --hx-wait:#82651a;
+  --hx-model:#46659c;
+  --hx-focus:#1f1d18;
+  --hx-line-1:rgba(58,48,30,0.075); --hx-line-2:rgba(58,48,30,0.13); --hx-line-3:rgba(58,48,30,0.24);
+  --hx-highlight:rgba(255,255,255,.85);
+  --hx-accent-weak:rgba(185,87,58,0.12); --hx-accent-line:rgba(185,87,58,0.5);
+  --hx-ok-weak:rgba(61,116,72,0.12); --hx-danger-weak:rgba(168,50,62,0.11); --hx-wait-weak:rgba(130,101,26,0.13);
+  --hx-model-weak:rgba(70,101,156,0.11); --hx-model-line:rgba(70,101,156,0.55);
+  --hx-type-any:#86837a;
+  --hx-type-ctx:#9a7414;
+  --hx-type-ref:#46659c;
+  --hx-type-list:#3f7a6a;
+  --hx-type-tool:#b9573a;
+  --hx-type-gen:#6c665a;
+  --hx-type-ctrl:#a8466a;
+  --hx-type-state:#7a5c99;
+  --hx-grid-dot:rgba(58,48,30,.17);
+  --hx-marquee:rgba(58,48,30,0.05); --hx-marquee-line:rgba(58,48,30,0.38);
+  --hx-scrim:rgba(235,232,223,0.7);
+  --hx-primary:#b9573a; --hx-primary-fg:#fffaf4;
+  --hx-shadow-node:0 0 0 1px rgba(52,40,20,0.025),0 1px 2px rgba(52,40,20,0.06),0 3px 10px rgba(52,40,20,0.05);
+  --hx-shadow-node-drag:0 2px 4px rgba(52,40,20,0.06),0 16px 36px rgba(52,40,20,0.15);
+  --hx-shadow-float:0 0 0 1px var(--hx-line-2),0 2px 4px rgba(52,40,20,0.04),0 12px 32px rgba(52,40,20,0.09);
+  --hx-shadow-pop:0 0 0 1px var(--hx-line-3),0 4px 8px rgba(52,40,20,0.06),0 20px 48px rgba(52,40,20,0.16);
+}
+[data-palette="paper"][data-theme="dark"]{
+  color-scheme:dark;
+  --hx-bg-0:#141413;
+  --hx-bg-1:#1a1a18;
+  --hx-bg-2:#21211f;
+  --hx-bg-3:#272725;
+  --hx-bg-4:#30302d;
+  --hx-bg-5:#3b3b37;
+  --hx-text-1:#f0eee6;
+  --hx-text-2:#b4b1a7;
+  --hx-text-3:#9a978d;
+  --hx-text-inv:#1c1208;
+  --hx-accent:#d97757;
+  --hx-accent-strong:#e88d6d;
+  --hx-ok:#8fb47c;
+  --hx-danger:#f07a7c;
+  --hx-wait:#dbb45e;
+  --hx-model:#8fb0e3;
+  --hx-focus:#f0eee6;
+  --hx-line-1:rgba(250,240,220,0.06); --hx-line-2:rgba(250,240,220,0.1); --hx-line-3:rgba(250,240,220,0.17);
+  --hx-highlight:rgba(250,240,220,.045);
+  --hx-accent-weak:rgba(217,119,87,0.15); --hx-accent-line:rgba(217,119,87,0.5);
+  --hx-ok-weak:rgba(143,180,124,0.15); --hx-danger-weak:rgba(240,122,124,0.13999999999999999); --hx-wait-weak:rgba(219,180,94,0.16);
+  --hx-model-weak:rgba(143,176,227,0.15); --hx-model-line:rgba(143,176,227,0.5);
+  --hx-type-any:#8d8a80;
+  --hx-type-ctx:#d9b45e;
+  --hx-type-ref:#8fb0e3;
+  --hx-type-list:#7fb8a6;
+  --hx-type-tool:#e0896a;
+  --hx-type-gen:#cfcbbf;
+  --hx-type-ctrl:#e08aa6;
+  --hx-type-state:#b59ad8;
+  --hx-grid-dot:rgba(250,240,220,.07);
+  --hx-marquee:rgba(250,240,220,0.06); --hx-marquee-line:rgba(250,240,220,0.38);
+  --hx-scrim:rgba(20,20,19,0.6);
+  --hx-primary:#d97757; --hx-primary-fg:#1c1208;
+  --hx-shadow-node:inset 0 1px 0 var(--hx-highlight),0 1px 2px rgba(0,0,0,.45),0 4px 14px rgba(0,0,0,.25);
+  --hx-shadow-node-drag:inset 0 1px 0 var(--hx-highlight),0 14px 34px rgba(0,0,0,.55);
+  --hx-shadow-float:inset 0 1px 0 var(--hx-highlight),0 0 0 1px var(--hx-line-2),0 12px 32px rgba(0,0,0,.45);
+  --hx-shadow-pop:inset 0 1px 0 var(--hx-highlight),0 0 0 1px var(--hx-line-3),0 18px 48px rgba(0,0,0,.6);
+}
+/* ---- 石墨（参考 Codex）：冷灰哑光 · 墨色主按钮 · 蓝色只表示运行与焦点 ---- */
+[data-palette="graphite"],[data-palette="graphite"][data-theme="light"]{
+  color-scheme:light;
+  --hx-bg-0:#efeff1;
+  --hx-bg-1:#f8f8f9;
+  --hx-bg-2:#ffffff;
+  --hx-bg-3:#ffffff;
+  --hx-bg-4:#f2f2f4;
+  --hx-bg-5:#e5e5e9;
+  --hx-text-1:#111215;
+  --hx-text-2:#4a4d56;
+  --hx-text-3:#686c76;
+  --hx-text-inv:#ffffff;
+  --hx-accent:#2f6bdc;
+  --hx-accent-strong:#1f55b5;
+  --hx-ok:#167a3b;
+  --hx-danger:#cc3535;
+  --hx-wait:#9a5d06;
+  --hx-model:#7048d6;
+  --hx-focus:#111215;
+  --hx-line-1:rgba(15,17,23,0.07); --hx-line-2:rgba(15,17,23,0.12); --hx-line-3:rgba(15,17,23,0.21);
+  --hx-highlight:rgba(255,255,255,.9);
+  --hx-accent-weak:rgba(47,107,220,0.12); --hx-accent-line:rgba(47,107,220,0.5);
+  --hx-ok-weak:rgba(22,122,59,0.12); --hx-danger-weak:rgba(204,53,53,0.11); --hx-wait-weak:rgba(154,93,6,0.13);
+  --hx-model-weak:rgba(112,72,214,0.11); --hx-model-line:rgba(112,72,214,0.55);
+  --hx-type-any:#80838c;
+  --hx-type-ctx:#a0700c;
+  --hx-type-ref:#2f6bdc;
+  --hx-type-list:#0f8378;
+  --hx-type-tool:#c4552e;
+  --hx-type-gen:#5f6370;
+  --hx-type-ctrl:#c23f72;
+  --hx-type-state:#7048d6;
+  --hx-grid-dot:rgba(15,17,23,.13);
+  --hx-marquee:rgba(15,17,23,0.05); --hx-marquee-line:rgba(15,17,23,0.38);
+  --hx-scrim:rgba(239,239,241,0.7);
+  --hx-primary:#18191d; --hx-primary-fg:#ffffff;
+  --hx-shadow-node:0 0 0 1px rgba(15,17,23,0.025),0 1px 2px rgba(15,17,23,0.06),0 3px 10px rgba(15,17,23,0.05);
+  --hx-shadow-node-drag:0 2px 4px rgba(15,17,23,0.06),0 16px 36px rgba(15,17,23,0.15);
+  --hx-shadow-float:0 0 0 1px var(--hx-line-2),0 2px 4px rgba(15,17,23,0.04),0 12px 32px rgba(15,17,23,0.09);
+  --hx-shadow-pop:0 0 0 1px var(--hx-line-3),0 4px 8px rgba(15,17,23,0.06),0 20px 48px rgba(15,17,23,0.16);
+}
+[data-palette="graphite"][data-theme="dark"]{
+  color-scheme:dark;
+  --hx-bg-0:#0f0f11;
+  --hx-bg-1:#151517;
+  --hx-bg-2:#1b1b1e;
+  --hx-bg-3:#212125;
+  --hx-bg-4:#29292e;
+  --hx-bg-5:#333339;
+  --hx-text-1:#ececee;
+  --hx-text-2:#a2a4ab;
+  --hx-text-3:#8a8d95;
+  --hx-text-inv:#0c0e13;
+  --hx-accent:#5c92f4;
+  --hx-accent-strong:#7ea8f7;
+  --hx-ok:#58c180;
+  --hx-danger:#ef6e6e;
+  --hx-wait:#e2b347;
+  --hx-model:#a78bfa;
+  --hx-focus:#ececee;
+  --hx-line-1:rgba(255,255,255,0.055); --hx-line-2:rgba(255,255,255,0.09); --hx-line-3:rgba(255,255,255,0.15);
+  --hx-highlight:rgba(255,255,255,.04);
+  --hx-accent-weak:rgba(92,146,244,0.15); --hx-accent-line:rgba(92,146,244,0.5);
+  --hx-ok-weak:rgba(88,193,128,0.15); --hx-danger-weak:rgba(239,110,110,0.13999999999999999); --hx-wait-weak:rgba(226,179,71,0.16);
+  --hx-model-weak:rgba(167,139,250,0.15); --hx-model-line:rgba(167,139,250,0.5);
+  --hx-type-any:#80838c;
+  --hx-type-ctx:#e2b347;
+  --hx-type-ref:#7ea8f7;
+  --hx-type-list:#4fc0b0;
+  --hx-type-tool:#ec8f6a;
+  --hx-type-gen:#c6c8ce;
+  --hx-type-ctrl:#ec7fa6;
+  --hx-type-state:#a78bfa;
+  --hx-grid-dot:rgba(255,255,255,.07);
+  --hx-marquee:rgba(255,255,255,0.06); --hx-marquee-line:rgba(255,255,255,0.38);
+  --hx-scrim:rgba(15,15,17,0.6);
+  --hx-primary:#ececee; --hx-primary-fg:#111113;
+  --hx-shadow-node:inset 0 1px 0 var(--hx-highlight),0 1px 2px rgba(0,0,0,.45),0 4px 14px rgba(0,0,0,.25);
+  --hx-shadow-node-drag:inset 0 1px 0 var(--hx-highlight),0 14px 34px rgba(0,0,0,.55);
+  --hx-shadow-float:inset 0 1px 0 var(--hx-highlight),0 0 0 1px var(--hx-line-2),0 12px 32px rgba(0,0,0,.45);
+  --hx-shadow-pop:inset 0 1px 0 var(--hx-highlight),0 0 0 1px var(--hx-line-3),0 18px 48px rgba(0,0,0,.6);
+}
+/* ---- 墨鲸（参考 DeepSeek Harness）：黑白墨色底 · 深海蓝主色 · 冷调石板灰 ---- */
+[data-palette="whale"],[data-palette="whale"][data-theme="light"]{
+  color-scheme:light;
+  --hx-bg-0:#f1f3f7;
+  --hx-bg-1:#f9fafc;
+  --hx-bg-2:#ffffff;
+  --hx-bg-3:#ffffff;
+  --hx-bg-4:#f0f2f6;
+  --hx-bg-5:#e2e6ee;
+  --hx-text-1:#0f1115;
+  --hx-text-2:#454d63;
+  --hx-text-3:#636c84;
+  --hx-text-inv:#ffffff;
+  --hx-accent:#4361f0;
+  --hx-accent-strong:#2f4cd6;
+  --hx-ok:#0f7a55;
+  --hx-danger:#c5303b;
+  --hx-wait:#93630c;
+  --hx-model:#8a3fd1;
+  --hx-focus:#0f1115;
+  --hx-line-1:rgba(16,24,48,0.07); --hx-line-2:rgba(16,24,48,0.12); --hx-line-3:rgba(16,24,48,0.21);
+  --hx-highlight:rgba(255,255,255,.9);
+  --hx-accent-weak:rgba(67,97,240,0.12); --hx-accent-line:rgba(67,97,240,0.5);
+  --hx-ok-weak:rgba(15,122,85,0.12); --hx-danger-weak:rgba(197,48,59,0.11); --hx-wait-weak:rgba(147,99,12,0.13);
+  --hx-model-weak:rgba(138,63,209,0.11); --hx-model-line:rgba(138,63,209,0.55);
+  --hx-type-any:#7f8699;
+  --hx-type-ctx:#a0700c;
+  --hx-type-ref:#4361f0;
+  --hx-type-list:#0f8a7c;
+  --hx-type-tool:#c85a32;
+  --hx-type-gen:#5c6478;
+  --hx-type-ctrl:#c63d78;
+  --hx-type-state:#8a3fd1;
+  --hx-grid-dot:rgba(16,24,48,.13);
+  --hx-marquee:rgba(16,24,48,0.05); --hx-marquee-line:rgba(16,24,48,0.38);
+  --hx-scrim:rgba(241,243,247,0.7);
+  --hx-primary:#4361f0; --hx-primary-fg:#ffffff;
+  --hx-shadow-node:0 0 0 1px rgba(16,24,48,0.025),0 1px 2px rgba(16,24,48,0.06),0 3px 10px rgba(16,24,48,0.05);
+  --hx-shadow-node-drag:0 2px 4px rgba(16,24,48,0.06),0 16px 36px rgba(16,24,48,0.15);
+  --hx-shadow-float:0 0 0 1px var(--hx-line-2),0 2px 4px rgba(16,24,48,0.04),0 12px 32px rgba(16,24,48,0.09);
+  --hx-shadow-pop:0 0 0 1px var(--hx-line-3),0 4px 8px rgba(16,24,48,0.06),0 20px 48px rgba(16,24,48,0.16);
+}
+[data-palette="whale"][data-theme="dark"]{
+  color-scheme:dark;
+  --hx-bg-0:#0c0d11;
+  --hx-bg-1:#121318;
+  --hx-bg-2:#181a20;
+  --hx-bg-3:#1e2028;
+  --hx-bg-4:#262932;
+  --hx-bg-5:#30343f;
+  --hx-text-1:#eceef4;
+  --hx-text-2:#a3a9ba;
+  --hx-text-3:#888fa3;
+  --hx-text-inv:#0b0d16;
+  --hx-accent:#6d86ff;
+  --hx-accent-strong:#8a9dff;
+  --hx-ok:#4fc290;
+  --hx-danger:#f26b72;
+  --hx-wait:#e4b64e;
+  --hx-model:#c58cfb;
+  --hx-focus:#eceef4;
+  --hx-line-1:rgba(220,228,255,0.06); --hx-line-2:rgba(220,228,255,0.095); --hx-line-3:rgba(220,228,255,0.16);
+  --hx-highlight:rgba(220,228,255,.04);
+  --hx-accent-weak:rgba(109,134,255,0.15); --hx-accent-line:rgba(109,134,255,0.5);
+  --hx-ok-weak:rgba(79,194,144,0.15); --hx-danger-weak:rgba(242,107,114,0.13999999999999999); --hx-wait-weak:rgba(228,182,78,0.16);
+  --hx-model-weak:rgba(197,140,251,0.15); --hx-model-line:rgba(197,140,251,0.5);
+  --hx-type-any:#7f8699;
+  --hx-type-ctx:#e4b64e;
+  --hx-type-ref:#8a9dff;
+  --hx-type-list:#4cc4b3;
+  --hx-type-tool:#ef9068;
+  --hx-type-gen:#c7cbd8;
+  --hx-type-ctrl:#ef80aa;
+  --hx-type-state:#c58cfb;
+  --hx-grid-dot:rgba(220,228,255,.07);
+  --hx-marquee:rgba(220,228,255,0.06); --hx-marquee-line:rgba(220,228,255,0.38);
+  --hx-scrim:rgba(12,13,17,0.6);
+  --hx-primary:#6d86ff; --hx-primary-fg:#0b0d16;
+  --hx-shadow-node:inset 0 1px 0 var(--hx-highlight),0 1px 2px rgba(0,0,0,.45),0 4px 14px rgba(0,0,0,.25);
+  --hx-shadow-node-drag:inset 0 1px 0 var(--hx-highlight),0 14px 34px rgba(0,0,0,.55);
+  --hx-shadow-float:inset 0 1px 0 var(--hx-highlight),0 0 0 1px var(--hx-line-2),0 12px 32px rgba(0,0,0,.45);
+  --hx-shadow-pop:inset 0 1px 0 var(--hx-highlight),0 0 0 1px var(--hx-line-3),0 18px 48px rgba(0,0,0,.6);
+}
+
+
+body{margin:0;background:#e9e9e6;font:13px/1.5 var(--hx-font-ui);color:#16171b;padding:28px 32px 60px}
+h1{font-size:20px;margin:0 0 4px} .lead{color:#555;margin:0 0 24px}
+section{margin-bottom:34px} section header{display:flex;align-items:baseline;gap:14px;margin-bottom:10px}
+h2{font-size:16px;margin:0} h2 em{font:normal 12px var(--hx-font-ui);color:#777;margin-left:8px} section header p{margin:0;color:#555} section header a{margin-left:auto;color:#335;font-size:12px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.pv{background:var(--hx-bg-0);color:var(--hx-text-1);border-radius:12px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.08),0 8px 24px rgba(0,0,0,.08);font-size:12px;display:flex;flex-direction:column}
+.pv-top{display:flex;align-items:center;gap:8px;height:38px;padding:0 10px;border-bottom:1px solid var(--hx-line-1)}
+.logo{width:20px;height:20px;border-radius:5px;display:grid;place-items:center;background:var(--hx-primary);color:var(--hx-primary-fg);font-weight:600;font-size:11px}
+.crumb{color:var(--hx-text-3)} .sp{flex:1}
+.lv{display:inline-flex;align-items:center;gap:2px;color:var(--hx-model);background:var(--hx-model-weak);padding:2px 8px;border-radius:99px;font-size:11px}
+.lv i{width:3px;height:9px;border-radius:2px;background:var(--hx-model-line);opacity:.35} .lv i.on{opacity:1;background:var(--hx-model)}
+.st{display:inline-flex;align-items:center;gap:6px;color:var(--hx-text-2);font-size:11px} .st i{width:7px;height:7px;border-radius:50%;background:var(--hx-accent);box-shadow:0 0 0 3px var(--hx-accent-weak)}
+.btn{height:22px;padding:0 10px;border-radius:5px;display:inline-flex;align-items:center;font-size:11px;font-weight:500}
+.btn.pri{background:var(--hx-primary);color:var(--hx-primary-fg)} .btn.dan{background:var(--hx-danger-weak);color:var(--hx-danger)}
+.pv-body{display:grid;grid-template-columns:110px 1fr;height:220px}
+.pv-ls{padding:8px 6px;border-right:1px solid var(--hx-line-1)} .pv-ls .h{font-size:10.5px;color:var(--hx-text-3);padding:6px 6px 3px}
+.pv-ls .it{padding:4px 6px;border-radius:5px;color:var(--hx-text-2);white-space:nowrap;overflow:hidden} .pv-ls .it.on{background:var(--hx-bg-4);color:var(--hx-text-1);font-weight:500}
+.pv-cv{position:relative;background:var(--hx-bg-1);background-image:radial-gradient(var(--hx-grid-dot) 1px,transparent 1.2px);background-size:16px 16px}
+.node{position:absolute;width:156px;background:var(--hx-bg-3);border-radius:8px;box-shadow:var(--hx-shadow-node);border:1px solid var(--hx-line-2);z-index:1}
+.nh{display:flex;align-items:center;gap:6px;height:28px;padding:0 8px;border-bottom:1px solid var(--hx-line-1);font-weight:600} .ic{color:var(--hx-text-2)}
+.tag{margin-left:auto;font-size:10px;font-weight:500;padding:1px 6px;border-radius:99px;background:var(--hx-accent-weak);color:var(--hx-accent-strong)}
+.tag.okt{background:var(--hx-ok-weak);color:var(--hx-ok)} .tag.ai{background:var(--hx-model-weak);color:var(--hx-model)} .tag.wt{background:var(--hx-wait-weak);color:var(--hx-wait)}
+.row{display:flex;align-items:center;gap:6px;height:20px;padding:0 8px;color:var(--hx-text-2);font-size:11px} .row i{width:7px;height:7px;border-radius:50%} .row .v{margin-left:auto;color:var(--hx-text-3);font-family:var(--hx-font-mono)}
+.node.run{box-shadow:0 0 0 1.5px var(--hx-accent-line),var(--hx-shadow-node)}
+.node.wait{box-shadow:0 0 0 1.5px color-mix(in srgb,var(--hx-wait) 55%,transparent),var(--hx-shadow-node)}
+.node.ghost{background:color-mix(in srgb,var(--hx-bg-3) 70%,transparent);border:1px dashed var(--hx-model-line);box-shadow:none}
+.bar{height:3px;margin:4px 8px 8px;border-radius:3px;background:var(--hx-bg-4);overflow:hidden} .bar b{display:block;height:100%;width:62%;background:var(--hx-accent)}
+.edges{position:absolute;inset:0;width:100%;height:100%} .e{fill:none;stroke-width:1.6} .e.run{stroke:var(--hx-accent)} .e.ai{stroke:var(--hx-model);stroke-dasharray:4 3}
+.pv-comp{margin:-50px auto 10px;position:relative;z-index:2;width:72%;display:flex;align-items:center;gap:8px;padding:7px 8px 7px 10px;border-radius:12px;background:var(--hx-bg-2);box-shadow:var(--hx-shadow-float)}
+.chip{font-size:10.5px;padding:1px 7px;border-radius:99px;background:var(--hx-bg-4);color:var(--hx-text-2)} .ph{color:var(--hx-text-3);flex:1}
+.send{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;background:var(--hx-primary);color:var(--hx-primary-fg);font-weight:600}
+.pv-tx{display:flex;gap:12px;align-items:center;padding:8px 12px;border-top:1px solid var(--hx-line-1);background:var(--hx-bg-2);font-size:11.5px}
+.types{margin-left:auto;display:flex;gap:3px} .types i{width:10px;height:10px;border-radius:3px}
+</style></head><body>
+<h1>配色候选对比（Q21）</h1><p class="lead">每套都有浅色和深色。四种颜色各有固定含义，不能混用：<b>主色</b>表示运行中和主路径，<b>模型色</b>表示 AI 做的事，<b>琥珀/黄</b>表示等待审批，<b>红</b>表示错误和急停。正文、次要、辅助文字在三层背景上都达到 WCAG AA。</p>
+<section><header><h2>1 · 琥珀<em>参考 现行 v0.3</em></h2><p>中性灰底 · 琥珀主色 · 靛蓝表示模型</p><a href="画布_配色demo.html?palette=amber" target="_blank">在完整 demo 中打开 →</a></header><div class="pair"><div class="pv" data-theme="light">
+ <div class="pv-top"><span class="logo">H</span><b>竞品定价调研</b><span class="crumb">根图 › 闭环迭代</span><span class="sp"></span>
+  <span class="lv"><i class="on"></i><i class="on"></i><i></i><i></i><i></i> 2 档</span><span class="st"><i></i>运行中 · 第 2 轮</span><span class="btn pri">运行</span><span class="btn dan">急停</span></div>
+ <div class="pv-body">
+  <div class="pv-ls"><div class="h">会话</div><div class="it on">竞品定价调研</div><div class="it">周报自动整理</div><div class="it">合同条款比对</div><div class="h">节点库</div><div class="it">◎ Agent</div><div class="it">≋ 上下文装配</div><div class="it">⑂ 扇出</div></div>
+  <div class="pv-cv">
+   <div class="node run" style="left:18px;top:22px"><div class="nh"><span class="ic">◎</span>决策者<span class="tag">运行中</span></div>
+    <div class="row"><i style="background:var(--hx-type-ctx)"></i>上下文<span class="v">3.2k</span></div><div class="row"><i style="background:var(--hx-type-list)"></i>候选方案<span class="v">列表·5</span></div>
+    <div class="bar"><b></b></div></div>
+   <div class="node ok" style="left:196px;top:14px"><div class="nh"><span class="ic">▤</span>账本<span class="tag okt">完成</span></div>
+    <div class="row"><i style="background:var(--hx-type-state)"></i>状态<span class="v">v12</span></div><div class="row"><i style="background:var(--hx-type-ref)"></i>引用<span class="v">4</span></div></div>
+   <div class="node ghost" style="left:196px;top:108px"><div class="nh"><span class="ic">✋</span>人工复核<span class="tag ai">AI 提议</span></div>
+    <div class="row"><i style="background:var(--hx-type-ctrl)"></i>放行<span class="v">—</span></div></div>
+   <div class="node wait" style="left:18px;top:128px"><div class="nh"><span class="ic">⚑</span>验收者<span class="tag wt">待审批</span></div>
+    <div class="row"><i style="background:var(--hx-type-tool)"></i>工具<span class="v">web.fetch</span></div></div>
+   <svg class="edges" viewBox="0 0 380 200"><path d="M174 60 C 186 60, 184 52, 196 52" class="e run"/><path d="M174 150 C 190 150, 180 130, 196 130" class="e ai"/></svg>
+  </div>
+ </div>
+ <div class="pv-comp"><span class="chip">选中附带 · 2 个节点</span><span class="ph">告诉 AI 要改什么…</span><span class="send">↑</span></div>
+ <div class="pv-tx"><span style="color:var(--hx-text-1)">正文</span><span style="color:var(--hx-text-2)">次要</span><span style="color:var(--hx-text-3)">辅助</span><span style="color:var(--hx-danger)">错误</span><span style="color:var(--hx-ok)">成功</span><span style="color:var(--hx-model)">模型</span><span class="types"><i style="background:var(--hx-type-any)"></i><i style="background:var(--hx-type-ctx)"></i><i style="background:var(--hx-type-ref)"></i><i style="background:var(--hx-type-list)"></i><i style="background:var(--hx-type-tool)"></i><i style="background:var(--hx-type-gen)"></i><i style="background:var(--hx-type-ctrl)"></i><i style="background:var(--hx-type-state)"></i></span></div>
+</div><div class="pv" data-theme="dark">
+ <div class="pv-top"><span class="logo">H</span><b>竞品定价调研</b><span class="crumb">根图 › 闭环迭代</span><span class="sp"></span>
+  <span class="lv"><i class="on"></i><i class="on"></i><i></i><i></i><i></i> 2 档</span><span class="st"><i></i>运行中 · 第 2 轮</span><span class="btn pri">运行</span><span class="btn dan">急停</span></div>
+ <div class="pv-body">
+  <div class="pv-ls"><div class="h">会话</div><div class="it on">竞品定价调研</div><div class="it">周报自动整理</div><div class="it">合同条款比对</div><div class="h">节点库</div><div class="it">◎ Agent</div><div class="it">≋ 上下文装配</div><div class="it">⑂ 扇出</div></div>
+  <div class="pv-cv">
+   <div class="node run" style="left:18px;top:22px"><div class="nh"><span class="ic">◎</span>决策者<span class="tag">运行中</span></div>
+    <div class="row"><i style="background:var(--hx-type-ctx)"></i>上下文<span class="v">3.2k</span></div><div class="row"><i style="background:var(--hx-type-list)"></i>候选方案<span class="v">列表·5</span></div>
+    <div class="bar"><b></b></div></div>
+   <div class="node ok" style="left:196px;top:14px"><div class="nh"><span class="ic">▤</span>账本<span class="tag okt">完成</span></div>
+    <div class="row"><i style="background:var(--hx-type-state)"></i>状态<span class="v">v12</span></div><div class="row"><i style="background:var(--hx-type-ref)"></i>引用<span class="v">4</span></div></div>
+   <div class="node ghost" style="left:196px;top:108px"><div class="nh"><span class="ic">✋</span>人工复核<span class="tag ai">AI 提议</span></div>
+    <div class="row"><i style="background:var(--hx-type-ctrl)"></i>放行<span class="v">—</span></div></div>
+   <div class="node wait" style="left:18px;top:128px"><div class="nh"><span class="ic">⚑</span>验收者<span class="tag wt">待审批</span></div>
+    <div class="row"><i style="background:var(--hx-type-tool)"></i>工具<span class="v">web.fetch</span></div></div>
+   <svg class="edges" viewBox="0 0 380 200"><path d="M174 60 C 186 60, 184 52, 196 52" class="e run"/><path d="M174 150 C 190 150, 180 130, 196 130" class="e ai"/></svg>
+  </div>
+ </div>
+ <div class="pv-comp"><span class="chip">选中附带 · 2 个节点</span><span class="ph">告诉 AI 要改什么…</span><span class="send">↑</span></div>
+ <div class="pv-tx"><span style="color:var(--hx-text-1)">正文</span><span style="color:var(--hx-text-2)">次要</span><span style="color:var(--hx-text-3)">辅助</span><span style="color:var(--hx-danger)">错误</span><span style="color:var(--hx-ok)">成功</span><span style="color:var(--hx-model)">模型</span><span class="types"><i style="background:var(--hx-type-any)"></i><i style="background:var(--hx-type-ctx)"></i><i style="background:var(--hx-type-ref)"></i><i style="background:var(--hx-type-list)"></i><i style="background:var(--hx-type-tool)"></i><i style="background:var(--hx-type-gen)"></i><i style="background:var(--hx-type-ctrl)"></i><i style="background:var(--hx-type-state)"></i></span></div>
+</div></div></section><section><header><h2>2 · 宣纸<em>参考 Claude</em></h2><p>暖调纸面 · 陶土橙主色 · 所有灰都偏暖</p><a href="画布_配色demo.html?palette=paper" target="_blank">在完整 demo 中打开 →</a></header><div class="pair"><div class="pv" data-palette="paper" data-theme="light">
+ <div class="pv-top"><span class="logo">H</span><b>竞品定价调研</b><span class="crumb">根图 › 闭环迭代</span><span class="sp"></span>
+  <span class="lv"><i class="on"></i><i class="on"></i><i></i><i></i><i></i> 2 档</span><span class="st"><i></i>运行中 · 第 2 轮</span><span class="btn pri">运行</span><span class="btn dan">急停</span></div>
+ <div class="pv-body">
+  <div class="pv-ls"><div class="h">会话</div><div class="it on">竞品定价调研</div><div class="it">周报自动整理</div><div class="it">合同条款比对</div><div class="h">节点库</div><div class="it">◎ Agent</div><div class="it">≋ 上下文装配</div><div class="it">⑂ 扇出</div></div>
+  <div class="pv-cv">
+   <div class="node run" style="left:18px;top:22px"><div class="nh"><span class="ic">◎</span>决策者<span class="tag">运行中</span></div>
+    <div class="row"><i style="background:var(--hx-type-ctx)"></i>上下文<span class="v">3.2k</span></div><div class="row"><i style="background:var(--hx-type-list)"></i>候选方案<span class="v">列表·5</span></div>
+    <div class="bar"><b></b></div></div>
+   <div class="node ok" style="left:196px;top:14px"><div class="nh"><span class="ic">▤</span>账本<span class="tag okt">完成</span></div>
+    <div class="row"><i style="background:var(--hx-type-state)"></i>状态<span class="v">v12</span></div><div class="row"><i style="background:var(--hx-type-ref)"></i>引用<span class="v">4</span></div></div>
+   <div class="node ghost" style="left:196px;top:108px"><div class="nh"><span class="ic">✋</span>人工复核<span class="tag ai">AI 提议</span></div>
+    <div class="row"><i style="background:var(--hx-type-ctrl)"></i>放行<span class="v">—</span></div></div>
+   <div class="node wait" style="left:18px;top:128px"><div class="nh"><span class="ic">⚑</span>验收者<span class="tag wt">待审批</span></div>
+    <div class="row"><i style="background:var(--hx-type-tool)"></i>工具<span class="v">web.fetch</span></div></div>
+   <svg class="edges" viewBox="0 0 380 200"><path d="M174 60 C 186 60, 184 52, 196 52" class="e run"/><path d="M174 150 C 190 150, 180 130, 196 130" class="e ai"/></svg>
+  </div>
+ </div>
+ <div class="pv-comp"><span class="chip">选中附带 · 2 个节点</span><span class="ph">告诉 AI 要改什么…</span><span class="send">↑</span></div>
+ <div class="pv-tx"><span style="color:var(--hx-text-1)">正文</span><span style="color:var(--hx-text-2)">次要</span><span style="color:var(--hx-text-3)">辅助</span><span style="color:var(--hx-danger)">错误</span><span style="color:var(--hx-ok)">成功</span><span style="color:var(--hx-model)">模型</span><span class="types"><i style="background:var(--hx-type-any)"></i><i style="background:var(--hx-type-ctx)"></i><i style="background:var(--hx-type-ref)"></i><i style="background:var(--hx-type-list)"></i><i style="background:var(--hx-type-tool)"></i><i style="background:var(--hx-type-gen)"></i><i style="background:var(--hx-type-ctrl)"></i><i style="background:var(--hx-type-state)"></i></span></div>
+</div><div class="pv" data-palette="paper" data-theme="dark">
+ <div class="pv-top"><span class="logo">H</span><b>竞品定价调研</b><span class="crumb">根图 › 闭环迭代</span><span class="sp"></span>
+  <span class="lv"><i class="on"></i><i class="on"></i><i></i><i></i><i></i> 2 档</span><span class="st"><i></i>运行中 · 第 2 轮</span><span class="btn pri">运行</span><span class="btn dan">急停</span></div>
+ <div class="pv-body">
+  <div class="pv-ls"><div class="h">会话</div><div class="it on">竞品定价调研</div><div class="it">周报自动整理</div><div class="it">合同条款比对</div><div class="h">节点库</div><div class="it">◎ Agent</div><div class="it">≋ 上下文装配</div><div class="it">⑂ 扇出</div></div>
+  <div class="pv-cv">
+   <div class="node run" style="left:18px;top:22px"><div class="nh"><span class="ic">◎</span>决策者<span class="tag">运行中</span></div>
+    <div class="row"><i style="background:var(--hx-type-ctx)"></i>上下文<span class="v">3.2k</span></div><div class="row"><i style="background:var(--hx-type-list)"></i>候选方案<span class="v">列表·5</span></div>
+    <div class="bar"><b></b></div></div>
+   <div class="node ok" style="left:196px;top:14px"><div class="nh"><span class="ic">▤</span>账本<span class="tag okt">完成</span></div>
+    <div class="row"><i style="background:var(--hx-type-state)"></i>状态<span class="v">v12</span></div><div class="row"><i style="background:var(--hx-type-ref)"></i>引用<span class="v">4</span></div></div>
+   <div class="node ghost" style="left:196px;top:108px"><div class="nh"><span class="ic">✋</span>人工复核<span class="tag ai">AI 提议</span></div>
+    <div class="row"><i style="background:var(--hx-type-ctrl)"></i>放行<span class="v">—</span></div></div>
+   <div class="node wait" style="left:18px;top:128px"><div class="nh"><span class="ic">⚑</span>验收者<span class="tag wt">待审批</span></div>
+    <div class="row"><i style="background:var(--hx-type-tool)"></i>工具<span class="v">web.fetch</span></div></div>
+   <svg class="edges" viewBox="0 0 380 200"><path d="M174 60 C 186 60, 184 52, 196 52" class="e run"/><path d="M174 150 C 190 150, 180 130, 196 130" class="e ai"/></svg>
+  </div>
+ </div>
+ <div class="pv-comp"><span class="chip">选中附带 · 2 个节点</span><span class="ph">告诉 AI 要改什么…</span><span class="send">↑</span></div>
+ <div class="pv-tx"><span style="color:var(--hx-text-1)">正文</span><span style="color:var(--hx-text-2)">次要</span><span style="color:var(--hx-text-3)">辅助</span><span style="color:var(--hx-danger)">错误</span><span style="color:var(--hx-ok)">成功</span><span style="color:var(--hx-model)">模型</span><span class="types"><i style="background:var(--hx-type-any)"></i><i style="background:var(--hx-type-ctx)"></i><i style="background:var(--hx-type-ref)"></i><i style="background:var(--hx-type-list)"></i><i style="background:var(--hx-type-tool)"></i><i style="background:var(--hx-type-gen)"></i><i style="background:var(--hx-type-ctrl)"></i><i style="background:var(--hx-type-state)"></i></span></div>
+</div></div></section><section><header><h2>3 · 石墨<em>参考 Codex</em></h2><p>冷灰哑光 · 墨色主按钮 · 蓝色只表示运行与焦点</p><a href="画布_配色demo.html?palette=graphite" target="_blank">在完整 demo 中打开 →</a></header><div class="pair"><div class="pv" data-palette="graphite" data-theme="light">
+ <div class="pv-top"><span class="logo">H</span><b>竞品定价调研</b><span class="crumb">根图 › 闭环迭代</span><span class="sp"></span>
+  <span class="lv"><i class="on"></i><i class="on"></i><i></i><i></i><i></i> 2 档</span><span class="st"><i></i>运行中 · 第 2 轮</span><span class="btn pri">运行</span><span class="btn dan">急停</span></div>
+ <div class="pv-body">
+  <div class="pv-ls"><div class="h">会话</div><div class="it on">竞品定价调研</div><div class="it">周报自动整理</div><div class="it">合同条款比对</div><div class="h">节点库</div><div class="it">◎ Agent</div><div class="it">≋ 上下文装配</div><div class="it">⑂ 扇出</div></div>
+  <div class="pv-cv">
+   <div class="node run" style="left:18px;top:22px"><div class="nh"><span class="ic">◎</span>决策者<span class="tag">运行中</span></div>
+    <div class="row"><i style="background:var(--hx-type-ctx)"></i>上下文<span class="v">3.2k</span></div><div class="row"><i style="background:var(--hx-type-list)"></i>候选方案<span class="v">列表·5</span></div>
+    <div class="bar"><b></b></div></div>
+   <div class="node ok" style="left:196px;top:14px"><div class="nh"><span class="ic">▤</span>账本<span class="tag okt">完成</span></div>
+    <div class="row"><i style="background:var(--hx-type-state)"></i>状态<span class="v">v12</span></div><div class="row"><i style="background:var(--hx-type-ref)"></i>引用<span class="v">4</span></div></div>
+   <div class="node ghost" style="left:196px;top:108px"><div class="nh"><span class="ic">✋</span>人工复核<span class="tag ai">AI 提议</span></div>
+    <div class="row"><i style="background:var(--hx-type-ctrl)"></i>放行<span class="v">—</span></div></div>
+   <div class="node wait" style="left:18px;top:128px"><div class="nh"><span class="ic">⚑</span>验收者<span class="tag wt">待审批</span></div>
+    <div class="row"><i style="background:var(--hx-type-tool)"></i>工具<span class="v">web.fetch</span></div></div>
+   <svg class="edges" viewBox="0 0 380 200"><path d="M174 60 C 186 60, 184 52, 196 52" class="e run"/><path d="M174 150 C 190 150, 180 130, 196 130" class="e ai"/></svg>
+  </div>
+ </div>
+ <div class="pv-comp"><span class="chip">选中附带 · 2 个节点</span><span class="ph">告诉 AI 要改什么…</span><span class="send">↑</span></div>
+ <div class="pv-tx"><span style="color:var(--hx-text-1)">正文</span><span style="color:var(--hx-text-2)">次要</span><span style="color:var(--hx-text-3)">辅助</span><span style="color:var(--hx-danger)">错误</span><span style="color:var(--hx-ok)">成功</span><span style="color:var(--hx-model)">模型</span><span class="types"><i style="background:var(--hx-type-any)"></i><i style="background:var(--hx-type-ctx)"></i><i style="background:var(--hx-type-ref)"></i><i style="background:var(--hx-type-list)"></i><i style="background:var(--hx-type-tool)"></i><i style="background:var(--hx-type-gen)"></i><i style="background:var(--hx-type-ctrl)"></i><i style="background:var(--hx-type-state)"></i></span></div>
+</div><div class="pv" data-palette="graphite" data-theme="dark">
+ <div class="pv-top"><span class="logo">H</span><b>竞品定价调研</b><span class="crumb">根图 › 闭环迭代</span><span class="sp"></span>
+  <span class="lv"><i class="on"></i><i class="on"></i><i></i><i></i><i></i> 2 档</span><span class="st"><i></i>运行中 · 第 2 轮</span><span class="btn pri">运行</span><span class="btn dan">急停</span></div>
+ <div class="pv-body">
+  <div class="pv-ls"><div class="h">会话</div><div class="it on">竞品定价调研</div><div class="it">周报自动整理</div><div class="it">合同条款比对</div><div class="h">节点库</div><div class="it">◎ Agent</div><div class="it">≋ 上下文装配</div><div class="it">⑂ 扇出</div></div>
+  <div class="pv-cv">
+   <div class="node run" style="left:18px;top:22px"><div class="nh"><span class="ic">◎</span>决策者<span class="tag">运行中</span></div>
+    <div class="row"><i style="background:var(--hx-type-ctx)"></i>上下文<span class="v">3.2k</span></div><div class="row"><i style="background:var(--hx-type-list)"></i>候选方案<span class="v">列表·5</span></div>
+    <div class="bar"><b></b></div></div>
+   <div class="node ok" style="left:196px;top:14px"><div class="nh"><span class="ic">▤</span>账本<span class="tag okt">完成</span></div>
+    <div class="row"><i style="background:var(--hx-type-state)"></i>状态<span class="v">v12</span></div><div class="row"><i style="background:var(--hx-type-ref)"></i>引用<span class="v">4</span></div></div>
+   <div class="node ghost" style="left:196px;top:108px"><div class="nh"><span class="ic">✋</span>人工复核<span class="tag ai">AI 提议</span></div>
+    <div class="row"><i style="background:var(--hx-type-ctrl)"></i>放行<span class="v">—</span></div></div>
+   <div class="node wait" style="left:18px;top:128px"><div class="nh"><span class="ic">⚑</span>验收者<span class="tag wt">待审批</span></div>
+    <div class="row"><i style="background:var(--hx-type-tool)"></i>工具<span class="v">web.fetch</span></div></div>
+   <svg class="edges" viewBox="0 0 380 200"><path d="M174 60 C 186 60, 184 52, 196 52" class="e run"/><path d="M174 150 C 190 150, 180 130, 196 130" class="e ai"/></svg>
+  </div>
+ </div>
+ <div class="pv-comp"><span class="chip">选中附带 · 2 个节点</span><span class="ph">告诉 AI 要改什么…</span><span class="send">↑</span></div>
+ <div class="pv-tx"><span style="color:var(--hx-text-1)">正文</span><span style="color:var(--hx-text-2)">次要</span><span style="color:var(--hx-text-3)">辅助</span><span style="color:var(--hx-danger)">错误</span><span style="color:var(--hx-ok)">成功</span><span style="color:var(--hx-model)">模型</span><span class="types"><i style="background:var(--hx-type-any)"></i><i style="background:var(--hx-type-ctx)"></i><i style="background:var(--hx-type-ref)"></i><i style="background:var(--hx-type-list)"></i><i style="background:var(--hx-type-tool)"></i><i style="background:var(--hx-type-gen)"></i><i style="background:var(--hx-type-ctrl)"></i><i style="background:var(--hx-type-state)"></i></span></div>
+</div></div></section><section><header><h2>4 · 墨鲸<em>参考 DeepSeek Harness</em></h2><p>黑白墨色底 · 深海蓝主色 · 冷调石板灰</p><a href="画布_配色demo.html?palette=whale" target="_blank">在完整 demo 中打开 →</a></header><div class="pair"><div class="pv" data-palette="whale" data-theme="light">
+ <div class="pv-top"><span class="logo">H</span><b>竞品定价调研</b><span class="crumb">根图 › 闭环迭代</span><span class="sp"></span>
+  <span class="lv"><i class="on"></i><i class="on"></i><i></i><i></i><i></i> 2 档</span><span class="st"><i></i>运行中 · 第 2 轮</span><span class="btn pri">运行</span><span class="btn dan">急停</span></div>
+ <div class="pv-body">
+  <div class="pv-ls"><div class="h">会话</div><div class="it on">竞品定价调研</div><div class="it">周报自动整理</div><div class="it">合同条款比对</div><div class="h">节点库</div><div class="it">◎ Agent</div><div class="it">≋ 上下文装配</div><div class="it">⑂ 扇出</div></div>
+  <div class="pv-cv">
+   <div class="node run" style="left:18px;top:22px"><div class="nh"><span class="ic">◎</span>决策者<span class="tag">运行中</span></div>
+    <div class="row"><i style="background:var(--hx-type-ctx)"></i>上下文<span class="v">3.2k</span></div><div class="row"><i style="background:var(--hx-type-list)"></i>候选方案<span class="v">列表·5</span></div>
+    <div class="bar"><b></b></div></div>
+   <div class="node ok" style="left:196px;top:14px"><div class="nh"><span class="ic">▤</span>账本<span class="tag okt">完成</span></div>
+    <div class="row"><i style="background:var(--hx-type-state)"></i>状态<span class="v">v12</span></div><div class="row"><i style="background:var(--hx-type-ref)"></i>引用<span class="v">4</span></div></div>
+   <div class="node ghost" style="left:196px;top:108px"><div class="nh"><span class="ic">✋</span>人工复核<span class="tag ai">AI 提议</span></div>
+    <div class="row"><i style="background:var(--hx-type-ctrl)"></i>放行<span class="v">—</span></div></div>
+   <div class="node wait" style="left:18px;top:128px"><div class="nh"><span class="ic">⚑</span>验收者<span class="tag wt">待审批</span></div>
+    <div class="row"><i style="background:var(--hx-type-tool)"></i>工具<span class="v">web.fetch</span></div></div>
+   <svg class="edges" viewBox="0 0 380 200"><path d="M174 60 C 186 60, 184 52, 196 52" class="e run"/><path d="M174 150 C 190 150, 180 130, 196 130" class="e ai"/></svg>
+  </div>
+ </div>
+ <div class="pv-comp"><span class="chip">选中附带 · 2 个节点</span><span class="ph">告诉 AI 要改什么…</span><span class="send">↑</span></div>
+ <div class="pv-tx"><span style="color:var(--hx-text-1)">正文</span><span style="color:var(--hx-text-2)">次要</span><span style="color:var(--hx-text-3)">辅助</span><span style="color:var(--hx-danger)">错误</span><span style="color:var(--hx-ok)">成功</span><span style="color:var(--hx-model)">模型</span><span class="types"><i style="background:var(--hx-type-any)"></i><i style="background:var(--hx-type-ctx)"></i><i style="background:var(--hx-type-ref)"></i><i style="background:var(--hx-type-list)"></i><i style="background:var(--hx-type-tool)"></i><i style="background:var(--hx-type-gen)"></i><i style="background:var(--hx-type-ctrl)"></i><i style="background:var(--hx-type-state)"></i></span></div>
+</div><div class="pv" data-palette="whale" data-theme="dark">
+ <div class="pv-top"><span class="logo">H</span><b>竞品定价调研</b><span class="crumb">根图 › 闭环迭代</span><span class="sp"></span>
+  <span class="lv"><i class="on"></i><i class="on"></i><i></i><i></i><i></i> 2 档</span><span class="st"><i></i>运行中 · 第 2 轮</span><span class="btn pri">运行</span><span class="btn dan">急停</span></div>
+ <div class="pv-body">
+  <div class="pv-ls"><div class="h">会话</div><div class="it on">竞品定价调研</div><div class="it">周报自动整理</div><div class="it">合同条款比对</div><div class="h">节点库</div><div class="it">◎ Agent</div><div class="it">≋ 上下文装配</div><div class="it">⑂ 扇出</div></div>
+  <div class="pv-cv">
+   <div class="node run" style="left:18px;top:22px"><div class="nh"><span class="ic">◎</span>决策者<span class="tag">运行中</span></div>
+    <div class="row"><i style="background:var(--hx-type-ctx)"></i>上下文<span class="v">3.2k</span></div><div class="row"><i style="background:var(--hx-type-list)"></i>候选方案<span class="v">列表·5</span></div>
+    <div class="bar"><b></b></div></div>
+   <div class="node ok" style="left:196px;top:14px"><div class="nh"><span class="ic">▤</span>账本<span class="tag okt">完成</span></div>
+    <div class="row"><i style="background:var(--hx-type-state)"></i>状态<span class="v">v12</span></div><div class="row"><i style="background:var(--hx-type-ref)"></i>引用<span class="v">4</span></div></div>
+   <div class="node ghost" style="left:196px;top:108px"><div class="nh"><span class="ic">✋</span>人工复核<span class="tag ai">AI 提议</span></div>
+    <div class="row"><i style="background:var(--hx-type-ctrl)"></i>放行<span class="v">—</span></div></div>
+   <div class="node wait" style="left:18px;top:128px"><div class="nh"><span class="ic">⚑</span>验收者<span class="tag wt">待审批</span></div>
+    <div class="row"><i style="background:var(--hx-type-tool)"></i>工具<span class="v">web.fetch</span></div></div>
+   <svg class="edges" viewBox="0 0 380 200"><path d="M174 60 C 186 60, 184 52, 196 52" class="e run"/><path d="M174 150 C 190 150, 180 130, 196 130" class="e ai"/></svg>
+  </div>
+ </div>
+ <div class="pv-comp"><span class="chip">选中附带 · 2 个节点</span><span class="ph">告诉 AI 要改什么…</span><span class="send">↑</span></div>
+ <div class="pv-tx"><span style="color:var(--hx-text-1)">正文</span><span style="color:var(--hx-text-2)">次要</span><span style="color:var(--hx-text-3)">辅助</span><span style="color:var(--hx-danger)">错误</span><span style="color:var(--hx-ok)">成功</span><span style="color:var(--hx-model)">模型</span><span class="types"><i style="background:var(--hx-type-any)"></i><i style="background:var(--hx-type-ctx)"></i><i style="background:var(--hx-type-ref)"></i><i style="background:var(--hx-type-list)"></i><i style="background:var(--hx-type-tool)"></i><i style="background:var(--hx-type-gen)"></i><i style="background:var(--hx-type-ctrl)"></i><i style="background:var(--hx-type-state)"></i></span></div>
+</div></div></section>
+</body></html>

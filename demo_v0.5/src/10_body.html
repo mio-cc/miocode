@@ -1,0 +1,178 @@
+</style>
+</head>
+<body>
+<div class="hx-app hx-l4" id="app">
+
+  <!-- ① 顶部条：全宽 -->
+  <header class="hx-top hx-l4top" id="top">
+    <button class="hx-iconbtn" id="lsToggle" data-tip="收起 / 展开左侧栏 · [" data-ic="panelL"></button>
+    <span class="hx-l4logo">H</span>
+    <span class="hx-l4title" id="sessTitle">竞品定价调研</span>
+    <span class="hx-top__div"></span>
+    <nav class="hx-crumb" id="crumb"></nav>
+    <span class="hx-branch"><span data-ic="branch"></span>main</span>
+    <span class="sp"></span>
+    <span class="hx-modelpill" id="modelPill"><i></i><span id="modelPillTxt">模型正在编辑…</span></span>
+    <button class="hx-level" id="levelBtn" data-tip="模型授权档位"><span class="hx-level__ticks" id="levelTicks"><i></i><i></i><i></i><i></i><i></i></span><span id="levelTxt"></span></button>
+    <span class="hx-top__div"></span>
+    <span class="hx-runstat" id="runStat"><i></i><span id="runTxt">待运行</span></span>
+    <button class="hx-btn is-primary is-sm" id="runBtn"><span data-ic="play"></span><span id="runBtnTxt">运行</span><kbd>⌘↵</kbd></button>
+    <button class="hx-btn is-danger is-sm" id="stopBtn" data-tip="急停 · 立即停止并降到 0 档 · ⌘."><span data-ic="stop"></span>急停</button>
+    <span class="hx-top__div"></span>
+    <button class="hx-iconbtn" id="fullBtn" data-tip="专注画布（收起两侧栏）· F" data-ic="expand"></button>
+    <div class="hx-pal"><button class="hx-pal__btn" id="palBtn" data-tip="主题（配色 × 浅色 / 深色）"><span class="hx-pal__dots" id="palDots"></span><span>主题 · <b id="palName"></b></span></button><div class="hx-pal__menu" id="palMenu" hidden></div></div>
+    <button class="hx-iconbtn" id="themeBtn" data-tip="切换浅色 / 深色" data-ic="moon"></button>
+    <button class="hx-iconbtn" id="rsToggle" data-tip="展开右侧栏 · ]" data-ic="panelR"></button>
+  </header>
+
+  <div class="hx-shell" id="shell">
+
+    <!-- ② 左侧栏：会话 + 节点库（默认展开，可收成 56 宽图标栏） -->
+    <aside class="hx-ls" id="ls">
+      <div class="hx-ls__rail">
+        <button class="hx-iconbtn" data-lsgo="new" data-tip="新建会话" data-ic="plus"></button>
+        <button class="hx-iconbtn" data-lsgo="sess" data-tip="会话" data-ic="chat"></button>
+        <button class="hx-iconbtn" data-lsgo="lib" data-tip="节点库 · /" data-ic="lib"></button>
+        <span class="sp"></span>
+        <button class="hx-iconbtn" data-lsgo="set" data-tip="设置" data-ic="gear"></button>
+      </div>
+      <div class="hx-ls__full">
+        <div class="hx-ls__new">
+          <button class="hx-btn is-sm hx-ls__newbtn" data-lsgo="new"><span data-ic="plus"></span>新建会话</button>
+        </div>
+
+        <section class="hx-ls__sec" id="secSess">
+          <button class="hx-ls__sech" data-fold="secSess"><span>会话</span><span data-ic="chevd"></span></button>
+          <div class="hx-sess" id="sessList"></div>
+        </section>
+
+        <section class="hx-ls__sec" id="secTree">
+          <button class="hx-ls__sech" data-fold="secTree"><span>结构</span><span data-ic="chevd"></span></button>
+          <div class="hx-tree" id="nestTree"></div>
+        </section>
+
+        <section class="hx-ls__sec is-grow" id="secLib">
+          <button class="hx-ls__sech" data-fold="secLib"><span>节点库</span><span data-ic="chevd"></span></button>
+          <aside class="hx-lib" id="lib">
+            <button class="hx-iconbtn is-sm" id="libClose" hidden></button>
+            <div class="hx-lib__search"><span data-ic="search"></span><input class="hx-input is-sm" id="libSearch" placeholder="搜索节点"><kbd>/</kbd></div>
+            <div class="hx-lib__list" id="libList"></div>
+            <div class="hx-lib__tabs"><div class="hx-seg is-fill" id="libTabs"><button class="is-on" data-v="atom">原子节点</button><button data-v="sub">子图库</button><button data-v="ext">扩展包</button><i class="hx-seg__thumb"></i></div></div>
+          </aside>
+        </section>
+
+        <div class="hx-ls__foot">
+          <button class="hx-ls__me" data-lsgo="set"><span class="hx-ls__av">K</span><span>本机 · 单用户</span><span class="sp"></span><span data-ic="gear"></span></button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ③ 中间：画布满铺；对话输入框浮在画布底部居中 -->
+    <main class="hx-main" id="main">
+      <section class="hx-stage" id="stage">
+        <div class="hx-body">
+          <div class="hx-viewport" id="vp" tabindex="0">
+            <div class="hx-layer" id="layer">
+              <div class="hx-world" id="world">
+                <svg class="hx-edges" id="edges"><g id="edgeG"></g><path class="hx-edge-tmp" id="tmpEdge" d=""/></svg>
+                <div class="hx-nodes" id="nodes"></div>
+                <div class="hx-etools" id="etools"><button data-et="insert" data-tip="在此插入节点" data-ic="plus"></button><button class="is-danger" data-et="del" data-tip="删除连线" data-ic="x"></button></div>
+              </div>
+            </div>
+            <div class="hx-marquee" id="marquee" hidden></div>
+            <div class="hx-linkwhy" id="linkWhy" hidden></div>
+            <div class="hx-cursor is-off" id="cursor"><svg viewBox="0 0 16 16"><path d="M2 1.5 13.5 7 8.2 8.4 6 13.8Z" fill="currentColor" stroke="var(--hx-bg-2)" stroke-width="1.2" stroke-linejoin="round"/></svg><span>AI</span></div>
+
+            <button class="hx-iconbtn hx-libfab hx-panel" id="libOpen" hidden></button>
+
+            <!-- 工具停靠栏：画布顶部居中（底部让给对话框） -->
+            <div class="hx-dock" id="dock"></div>
+
+            <!-- 嵌套系统：父图位置卡（左上，进入子系统后出现）、预览浮层（节点旁） -->
+            <div class="hx-panel hx-nest" id="nestCard" hidden></div>
+            <div class="hx-panel hx-peek" id="peek" hidden></div>
+
+            <!-- 小地图：左下 -->
+            <div class="hx-panel hx-mini" id="mini">
+              <div class="hx-mini__cv" id="miniCv"><canvas id="miniCanvas"></canvas><div class="hx-mini__view" id="miniView"></div></div>
+              <div class="hx-mini__bar">
+                <button class="hx-iconbtn is-sm" id="zoomOut" data-tip="缩小" data-ic="minus"></button>
+                <span id="zoomTxt">100%</span>
+                <button class="hx-iconbtn is-sm" id="zoomIn" data-tip="放大" data-ic="plus"></button>
+                <button class="hx-iconbtn is-sm" id="fitBtn" data-tip="适应视图 · 1" data-ic="fit"></button>
+              </div>
+            </div>
+
+            <div class="hx-proposal" id="proposal" hidden></div>
+            <div class="hx-fps" id="fps" hidden></div>
+            <div class="hx-banner" id="banner" hidden></div>
+            <span id="cardStatus" hidden></span><!-- 28_run.js 会写这个徽标；v0.4 没有对话卡片，保留一个隐藏占位 -->
+
+            <!-- 浮动回复：最近几条对话浮在输入框上方，完整记录在右侧栏「对话」 -->
+            <div class="hx-panel hx-float" id="float">
+              <div class="hx-float__bar"><span>最近对话</span><span class="sp"></span><button class="hx-float__all" id="floatAll">查看全部<span data-ic="chevr"></span></button><button class="hx-iconbtn is-sm" id="floatHide" data-tip="收起" data-ic="x"></button></div>
+              <div class="hx-float__list" id="floatList"></div>
+            </div>
+
+            <!-- 对话输入框：底部居中 -->
+            <div class="hx-panel hx-composer hx-l4comp" id="composer">
+              <div class="hx-chips" id="chips"></div>
+              <div class="hx-composer__box">
+                <textarea id="ta" placeholder="和模型说话：描述需求让它搭图，或让它改图、运行、解释节点…"></textarea>
+                <div class="hx-composer__row">
+                  <span class="hx-l4ctx" id="compHint"></span>
+                  <span class="sp"></span>
+                  <span class="hx-l4model" data-tip="编排者使用的模型（设置里修改）"><span data-ic="model"></span>编排者 · 默认模型</span>
+                  <button class="hx-btn is-primary is-sm" id="sendBtn">发送<kbd>↵</kbd></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ④ 右侧栏：属性 / 对话 / 运行（默认收起） -->
+    <aside class="hx-rs is-collapsed" id="rs">
+      <div class="hx-rs__head">
+        <div class="hx-seg is-fill" id="rsTabs"><button class="is-on" data-v="insp">属性</button><button data-v="chat">对话</button><button data-v="run">运行</button><i class="hx-seg__thumb"></i></div>
+        <button class="hx-iconbtn is-sm" id="rsClose" data-tip="收起右侧栏 · ]" data-ic="panelR"></button>
+      </div>
+      <div class="hx-rs__pane" data-pane="insp">
+        <aside class="hx-insp is-off" id="insp"></aside>
+      </div>
+      <div class="hx-rs__pane" data-pane="chat" hidden>
+        <div class="hx-chat" id="chat"></div>
+      </div>
+      <div class="hx-rs__pane" data-pane="run" hidden>
+        <div class="hx-drawer" id="drawer">
+          <div class="hx-drawer__grip" id="grip"></div>
+          <div class="hx-drawer__head">
+            <div class="hx-seg" id="drawerTabs"><button class="is-on" data-v="tl">时间线</button><button data-v="log">日志</button><button data-v="hist">操作历史</button><i class="hx-seg__thumb"></i></div>
+            <button class="hx-iconbtn is-sm" id="drawerToggle" hidden></button>
+            <div class="hx-metrics" id="metrics"></div>
+          </div>
+          <div class="hx-drawer__body" id="drawerBody">
+            <div class="hx-tl" id="paneTl"></div>
+            <div class="hx-log" id="paneLog" hidden></div>
+            <div id="paneHist" hidden></div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<div class="hx-overlay" id="cmdk" hidden>
+  <div class="hx-cmdk">
+    <div class="hx-cmdk__in"><span data-ic="search"></span><input id="cmdkIn" placeholder="搜索节点、命令、设置…"><kbd>Esc</kbd></div>
+    <div class="hx-cmdk__list" id="cmdkList"></div>
+    <div class="hx-cmdk__foot"><span><kbd>↑</kbd> <kbd>↓</kbd> 选择</span><span><kbd>↵</kbd> 执行</span><span><kbd>Esc</kbd> 关闭</span></div>
+  </div>
+</div>
+<div class="hx-menu" id="menu" hidden></div>
+<div class="hx-quick" id="quick" hidden></div>
+<div class="hx-pop" id="pop" hidden></div>
+<div class="hx-toasts" id="toasts"></div>
+<div class="hx-tip" id="tip" hidden></div>
+<script>

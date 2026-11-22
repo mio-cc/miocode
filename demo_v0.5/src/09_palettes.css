@@ -1,0 +1,292 @@
+/* ===== 09_palettes.css · 配色候选（Q21）：宣纸（Claude）、石墨（Codex）、墨鲸（DeepSeek Harness）=====
+   用 <html data-palette="…" data-theme="light|dark"> 组合切换；data-palette 缺省 = 现行琥珀（tokens.css）。
+   新增令牌 --hx-primary / --hx-primary-fg：主按钮可以和"运行中"主色分开（石墨用墨色主按钮）。 */
+:root{--hx-primary:var(--hx-accent);--hx-primary-fg:var(--hx-text-inv)}
+/* ---- 宣纸（参考 Claude）：暖调纸面 · 陶土橙主色 · 所有灰都偏暖 ---- */
+[data-palette="paper"],[data-palette="paper"][data-theme="light"]{
+  color-scheme:light;
+  --hx-bg-0:#ebe8df;
+  --hx-bg-1:#f4f2ec;
+  --hx-bg-2:#fdfcf9;
+  --hx-bg-3:#fffefb;
+  --hx-bg-4:#f1efe8;
+  --hx-bg-5:#e4e1d6;
+  --hx-text-1:#1f1d18;
+  --hx-text-2:#524f47;
+  --hx-text-3:#6c695f;
+  --hx-text-inv:#fffaf4;
+  --hx-accent:#b9573a;
+  --hx-accent-strong:#9b4428;
+  --hx-ok:#3d7448;
+  --hx-danger:#a8323e;
+  --hx-wait:#82651a;
+  --hx-model:#46659c;
+  --hx-focus:#1f1d18;
+  --hx-line-1:rgba(58,48,30,0.075); --hx-line-2:rgba(58,48,30,0.13); --hx-line-3:rgba(58,48,30,0.24);
+  --hx-highlight:rgba(255,255,255,.85);
+  --hx-accent-weak:rgba(185,87,58,0.12); --hx-accent-line:rgba(185,87,58,0.5);
+  --hx-ok-weak:rgba(61,116,72,0.12); --hx-danger-weak:rgba(168,50,62,0.11); --hx-wait-weak:rgba(130,101,26,0.13);
+  --hx-model-weak:rgba(70,101,156,0.11); --hx-model-line:rgba(70,101,156,0.55);
+  --hx-type-any:#86837a;
+  --hx-type-ctx:#9a7414;
+  --hx-type-ref:#46659c;
+  --hx-type-list:#3f7a6a;
+  --hx-type-tool:#b9573a;
+  --hx-type-gen:#6c665a;
+  --hx-type-ctrl:#a8466a;
+  --hx-type-state:#7a5c99;
+  --hx-grid-dot:rgba(58,48,30,.17);
+  --hx-marquee:rgba(58,48,30,0.05); --hx-marquee-line:rgba(58,48,30,0.38);
+  --hx-scrim:rgba(235,232,223,0.7);
+  --hx-primary:#b9573a; --hx-primary-fg:#fffaf4;
+  --hx-shadow-node:0 0 0 1px rgba(52,40,20,0.025),0 1px 2px rgba(52,40,20,0.06),0 3px 10px rgba(52,40,20,0.05);
+  --hx-shadow-node-drag:0 2px 4px rgba(52,40,20,0.06),0 16px 36px rgba(52,40,20,0.15);
+  --hx-shadow-float:0 0 0 1px var(--hx-line-2),0 2px 4px rgba(52,40,20,0.04),0 12px 32px rgba(52,40,20,0.09);
+  --hx-shadow-pop:0 0 0 1px var(--hx-line-3),0 4px 8px rgba(52,40,20,0.06),0 20px 48px rgba(52,40,20,0.16);
+}
+[data-palette="paper"][data-theme="dark"]{
+  color-scheme:dark;
+  --hx-bg-0:#141413;
+  --hx-bg-1:#1a1a18;
+  --hx-bg-2:#21211f;
+  --hx-bg-3:#272725;
+  --hx-bg-4:#30302d;
+  --hx-bg-5:#3b3b37;
+  --hx-text-1:#f0eee6;
+  --hx-text-2:#b4b1a7;
+  --hx-text-3:#9a978d;
+  --hx-text-inv:#1c1208;
+  --hx-accent:#d97757;
+  --hx-accent-strong:#e88d6d;
+  --hx-ok:#8fb47c;
+  --hx-danger:#f07a7c;
+  --hx-wait:#dbb45e;
+  --hx-model:#8fb0e3;
+  --hx-focus:#f0eee6;
+  --hx-line-1:rgba(250,240,220,0.06); --hx-line-2:rgba(250,240,220,0.1); --hx-line-3:rgba(250,240,220,0.17);
+  --hx-highlight:rgba(250,240,220,.045);
+  --hx-accent-weak:rgba(217,119,87,0.15); --hx-accent-line:rgba(217,119,87,0.5);
+  --hx-ok-weak:rgba(143,180,124,0.15); --hx-danger-weak:rgba(240,122,124,0.13999999999999999); --hx-wait-weak:rgba(219,180,94,0.16);
+  --hx-model-weak:rgba(143,176,227,0.15); --hx-model-line:rgba(143,176,227,0.5);
+  --hx-type-any:#8d8a80;
+  --hx-type-ctx:#d9b45e;
+  --hx-type-ref:#8fb0e3;
+  --hx-type-list:#7fb8a6;
+  --hx-type-tool:#e0896a;
+  --hx-type-gen:#cfcbbf;
+  --hx-type-ctrl:#e08aa6;
+  --hx-type-state:#b59ad8;
+  --hx-grid-dot:rgba(250,240,220,.07);
+  --hx-marquee:rgba(250,240,220,0.06); --hx-marquee-line:rgba(250,240,220,0.38);
+  --hx-scrim:rgba(20,20,19,0.6);
+  --hx-primary:#d97757; --hx-primary-fg:#1c1208;
+  --hx-shadow-node:inset 0 1px 0 var(--hx-highlight),0 1px 2px rgba(0,0,0,.45),0 4px 14px rgba(0,0,0,.25);
+  --hx-shadow-node-drag:inset 0 1px 0 var(--hx-highlight),0 14px 34px rgba(0,0,0,.55);
+  --hx-shadow-float:inset 0 1px 0 var(--hx-highlight),0 0 0 1px var(--hx-line-2),0 12px 32px rgba(0,0,0,.45);
+  --hx-shadow-pop:inset 0 1px 0 var(--hx-highlight),0 0 0 1px var(--hx-line-3),0 18px 48px rgba(0,0,0,.6);
+}
+/* ---- 石墨（参考 Codex）：冷灰哑光 · 墨色主按钮 · 蓝色只表示运行与焦点 ---- */
+[data-palette="graphite"],[data-palette="graphite"][data-theme="light"]{
+  color-scheme:light;
+  --hx-bg-0:#efeff1;
+  --hx-bg-1:#f8f8f9;
+  --hx-bg-2:#ffffff;
+  --hx-bg-3:#ffffff;
+  --hx-bg-4:#f2f2f4;
+  --hx-bg-5:#e5e5e9;
+  --hx-text-1:#111215;
+  --hx-text-2:#4a4d56;
+  --hx-text-3:#686c76;
+  --hx-text-inv:#ffffff;
+  --hx-accent:#2f6bdc;
+  --hx-accent-strong:#1f55b5;
+  --hx-ok:#167a3b;
+  --hx-danger:#cc3535;
+  --hx-wait:#9a5d06;
+  --hx-model:#7048d6;
+  --hx-focus:#111215;
+  --hx-line-1:rgba(15,17,23,0.07); --hx-line-2:rgba(15,17,23,0.12); --hx-line-3:rgba(15,17,23,0.21);
+  --hx-highlight:rgba(255,255,255,.9);
+  --hx-accent-weak:rgba(47,107,220,0.12); --hx-accent-line:rgba(47,107,220,0.5);
+  --hx-ok-weak:rgba(22,122,59,0.12); --hx-danger-weak:rgba(204,53,53,0.11); --hx-wait-weak:rgba(154,93,6,0.13);
+  --hx-model-weak:rgba(112,72,214,0.11); --hx-model-line:rgba(112,72,214,0.55);
+  --hx-type-any:#80838c;
+  --hx-type-ctx:#a0700c;
+  --hx-type-ref:#2f6bdc;
+  --hx-type-list:#0f8378;
+  --hx-type-tool:#c4552e;
+  --hx-type-gen:#5f6370;
+  --hx-type-ctrl:#c23f72;
+  --hx-type-state:#7048d6;
+  --hx-grid-dot:rgba(15,17,23,.13);
+  --hx-marquee:rgba(15,17,23,0.05); --hx-marquee-line:rgba(15,17,23,0.38);
+  --hx-scrim:rgba(239,239,241,0.7);
+  --hx-primary:#18191d; --hx-primary-fg:#ffffff;
+  --hx-shadow-node:0 0 0 1px rgba(15,17,23,0.025),0 1px 2px rgba(15,17,23,0.06),0 3px 10px rgba(15,17,23,0.05);
+  --hx-shadow-node-drag:0 2px 4px rgba(15,17,23,0.06),0 16px 36px rgba(15,17,23,0.15);
+  --hx-shadow-float:0 0 0 1px var(--hx-line-2),0 2px 4px rgba(15,17,23,0.04),0 12px 32px rgba(15,17,23,0.09);
+  --hx-shadow-pop:0 0 0 1px var(--hx-line-3),0 4px 8px rgba(15,17,23,0.06),0 20px 48px rgba(15,17,23,0.16);
+}
+[data-palette="graphite"][data-theme="dark"]{
+  color-scheme:dark;
+  --hx-bg-0:#0f0f11;
+  --hx-bg-1:#151517;
+  --hx-bg-2:#1b1b1e;
+  --hx-bg-3:#212125;
+  --hx-bg-4:#29292e;
+  --hx-bg-5:#333339;
+  --hx-text-1:#ececee;
+  --hx-text-2:#a2a4ab;
+  --hx-text-3:#8a8d95;
+  --hx-text-inv:#0c0e13;
+  --hx-accent:#5c92f4;
+  --hx-accent-strong:#7ea8f7;
+  --hx-ok:#58c180;
+  --hx-danger:#ef6e6e;
+  --hx-wait:#e2b347;
+  --hx-model:#a78bfa;
+  --hx-focus:#ececee;
+  --hx-line-1:rgba(255,255,255,0.055); --hx-line-2:rgba(255,255,255,0.09); --hx-line-3:rgba(255,255,255,0.15);
+  --hx-highlight:rgba(255,255,255,.04);
+  --hx-accent-weak:rgba(92,146,244,0.15); --hx-accent-line:rgba(92,146,244,0.5);
+  --hx-ok-weak:rgba(88,193,128,0.15); --hx-danger-weak:rgba(239,110,110,0.13999999999999999); --hx-wait-weak:rgba(226,179,71,0.16);
+  --hx-model-weak:rgba(167,139,250,0.15); --hx-model-line:rgba(167,139,250,0.5);
+  --hx-type-any:#80838c;
+  --hx-type-ctx:#e2b347;
+  --hx-type-ref:#7ea8f7;
+  --hx-type-list:#4fc0b0;
+  --hx-type-tool:#ec8f6a;
+  --hx-type-gen:#c6c8ce;
+  --hx-type-ctrl:#ec7fa6;
+  --hx-type-state:#a78bfa;
+  --hx-grid-dot:rgba(255,255,255,.07);
+  --hx-marquee:rgba(255,255,255,0.06); --hx-marquee-line:rgba(255,255,255,0.38);
+  --hx-scrim:rgba(15,15,17,0.6);
+  --hx-primary:#ececee; --hx-primary-fg:#111113;
+  --hx-shadow-node:inset 0 1px 0 var(--hx-highlight),0 1px 2px rgba(0,0,0,.45),0 4px 14px rgba(0,0,0,.25);
+  --hx-shadow-node-drag:inset 0 1px 0 var(--hx-highlight),0 14px 34px rgba(0,0,0,.55);
+  --hx-shadow-float:inset 0 1px 0 var(--hx-highlight),0 0 0 1px var(--hx-line-2),0 12px 32px rgba(0,0,0,.45);
+  --hx-shadow-pop:inset 0 1px 0 var(--hx-highlight),0 0 0 1px var(--hx-line-3),0 18px 48px rgba(0,0,0,.6);
+}
+/* ---- 墨鲸（参考 DeepSeek Harness）：黑白墨色底 · 深海蓝主色 · 冷调石板灰 ---- */
+[data-palette="whale"],[data-palette="whale"][data-theme="light"]{
+  color-scheme:light;
+  --hx-bg-0:#eff2f8;
+  --hx-bg-1:#f8f9fd;
+  --hx-bg-2:#ffffff;
+  --hx-bg-3:#ffffff;
+  --hx-bg-4:#f0f2f6;
+  --hx-bg-5:#e2e6ee;
+  --hx-text-1:#0f1115;
+  --hx-text-2:#454d63;
+  --hx-text-3:#636c84;
+  --hx-text-inv:#ffffff;
+  --hx-accent:#6b88ff;
+  --hx-accent-strong:#3d5ae8;
+  --hx-ok:#0f7a55;
+  --hx-danger:#c5303b;
+  --hx-wait:#93630c;
+  --hx-model:#8a3fd1;
+  --hx-focus:#0f1115;
+  --hx-line-1:rgba(16,24,48,0.07); --hx-line-2:rgba(16,24,48,0.12); --hx-line-3:rgba(16,24,48,0.21);
+  --hx-highlight:rgba(255,255,255,.9);
+  --hx-accent-weak:rgba(107,136,255,.14); --hx-accent-line:rgba(107,136,255,.55);
+  --hx-ok-weak:rgba(15,122,85,0.12); --hx-danger-weak:rgba(197,48,59,0.11); --hx-wait-weak:rgba(147,99,12,0.13);
+  --hx-model-weak:rgba(138,63,209,0.11); --hx-model-line:rgba(138,63,209,0.55);
+  --hx-type-any:#7f8699;
+  --hx-type-ctx:#a0700c;
+  --hx-type-ref:#5574ff;
+  --hx-type-list:#0f8a7c;
+  --hx-type-tool:#c85a32;
+  --hx-type-gen:#5c6478;
+  --hx-type-ctrl:#c63d78;
+  --hx-type-state:#8a3fd1;
+  --hx-grid-dot:rgba(16,24,48,.13);
+  --hx-marquee:rgba(16,24,48,0.05); --hx-marquee-line:rgba(16,24,48,0.38);
+  --hx-scrim:rgba(241,243,247,0.7);
+  --hx-primary:#4866f8; --hx-primary-fg:#ffffff;
+  --hx-shadow-node:0 0 0 1px rgba(16,24,48,0.025),0 1px 2px rgba(16,24,48,0.06),0 3px 10px rgba(16,24,48,0.05);
+  --hx-shadow-node-drag:0 2px 4px rgba(16,24,48,0.06),0 16px 36px rgba(16,24,48,0.15);
+  --hx-shadow-float:0 0 0 1px var(--hx-line-2),0 2px 4px rgba(16,24,48,0.04),0 12px 32px rgba(16,24,48,0.09);
+  --hx-shadow-pop:0 0 0 1px var(--hx-line-3),0 4px 8px rgba(16,24,48,0.06),0 20px 48px rgba(16,24,48,0.16);
+}
+[data-palette="whale"][data-theme="dark"]{
+  color-scheme:dark;
+  --hx-bg-0:#0c0d11;
+  --hx-bg-1:#121318;
+  --hx-bg-2:#181a20;
+  --hx-bg-3:#1e2028;
+  --hx-bg-4:#262932;
+  --hx-bg-5:#30343f;
+  --hx-text-1:#eceef4;
+  --hx-text-2:#a3a9ba;
+  --hx-text-3:#888fa3;
+  --hx-text-inv:#0b0d16;
+  --hx-accent:#8ea2ff;
+  --hx-accent-strong:#a8b8ff;
+  --hx-ok:#4fc290;
+  --hx-danger:#f26b72;
+  --hx-wait:#e4b64e;
+  --hx-model:#c58cfb;
+  --hx-focus:#eceef4;
+  --hx-line-1:rgba(220,228,255,0.06); --hx-line-2:rgba(220,228,255,0.095); --hx-line-3:rgba(220,228,255,0.16);
+  --hx-highlight:rgba(220,228,255,.04);
+  --hx-accent-weak:rgba(142,162,255,.16); --hx-accent-line:rgba(142,162,255,.5);
+  --hx-ok-weak:rgba(79,194,144,0.15); --hx-danger-weak:rgba(242,107,114,0.13999999999999999); --hx-wait-weak:rgba(228,182,78,0.16);
+  --hx-model-weak:rgba(197,140,251,0.15); --hx-model-line:rgba(197,140,251,0.5);
+  --hx-type-any:#7f8699;
+  --hx-type-ctx:#e4b64e;
+  --hx-type-ref:#9fb0ff;
+  --hx-type-list:#4cc4b3;
+  --hx-type-tool:#ef9068;
+  --hx-type-gen:#c7cbd8;
+  --hx-type-ctrl:#ef80aa;
+  --hx-type-state:#c58cfb;
+  --hx-grid-dot:rgba(220,228,255,.07);
+  --hx-marquee:rgba(220,228,255,0.06); --hx-marquee-line:rgba(220,228,255,0.38);
+  --hx-scrim:rgba(12,13,17,0.6);
+  --hx-primary:#93a6ff; --hx-primary-fg:#0b0d16;
+  --hx-shadow-node:inset 0 1px 0 var(--hx-highlight),0 1px 2px rgba(0,0,0,.45),0 4px 14px rgba(0,0,0,.25);
+  --hx-shadow-node-drag:inset 0 1px 0 var(--hx-highlight),0 14px 34px rgba(0,0,0,.55);
+  --hx-shadow-float:inset 0 1px 0 var(--hx-highlight),0 0 0 1px var(--hx-line-2),0 12px 32px rgba(0,0,0,.45);
+  --hx-shadow-pop:inset 0 1px 0 var(--hx-highlight),0 0 0 1px var(--hx-line-3),0 18px 48px rgba(0,0,0,.6);
+}
+
+/* 主按钮改用 --hx-primary */
+.hx-btn.is-primary{background:var(--hx-primary);color:var(--hx-primary-fg);box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 0 0 1px color-mix(in srgb,var(--hx-primary) 75%,#000 25%)}
+.hx-btn.is-primary:hover{background:color-mix(in srgb,var(--hx-primary) 88%,var(--hx-text-1) 12%)}
+.hx-btn.is-primary kbd{background:color-mix(in srgb,var(--hx-primary-fg) 16%,transparent)}
+.hx-btn.is-loading::after{border-color:var(--hx-primary-fg);border-right-color:transparent}
+
+/* 层次感：侧栏与画布之间更清楚的分界；画布四周极淡的内阴影，让浮动面板"浮"起来 */
+.hx-l4 .hx-stage::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;
+  box-shadow:inset 0 10px 24px -18px color-mix(in srgb,var(--hx-text-1) 30%,transparent),inset 0 -10px 24px -18px color-mix(in srgb,var(--hx-text-1) 22%,transparent)}
+.hx-ls__sech span:first-child{letter-spacing:.02em}
+
+/* 配色选择器 */
+.hx-pal{position:relative}
+.hx-pal__btn{display:inline-flex;align-items:center;gap:var(--hx-s-3);height:var(--hx-ctl-h-sm);padding:0 var(--hx-s-4) 0 var(--hx-s-3);border-radius:var(--hx-r-full);
+  font-size:var(--hx-fs-12);color:var(--hx-text-2);box-shadow:0 0 0 1px var(--hx-line-2);transition:background-color var(--hx-t-1) var(--hx-ease)}
+.hx-pal__btn:hover{background:var(--hx-bg-4);color:var(--hx-text-1)}
+.hx-pal__dots{display:inline-flex}
+.hx-pal__dots i{width:10px;height:10px;border-radius:50%;box-shadow:0 0 0 1.5px var(--hx-bg-0);margin-left:-3px}
+.hx-pal__dots i:first-child{margin-left:0}
+.hx-pal__menu{position:absolute;right:0;top:calc(100% + 8px);width:300px;padding:var(--hx-s-3);border-radius:var(--hx-r-lg);background:var(--hx-bg-2);
+  box-shadow:var(--hx-shadow-pop);z-index:70;animation:hxPeekIn var(--hx-t-3) var(--hx-ease-out);transform-origin:top right}
+.hx-pal__menu[hidden]{display:none}
+.hx-pal__h{padding:var(--hx-s-3) var(--hx-s-4) var(--hx-s-4);font-size:var(--hx-fs-11);color:var(--hx-text-3)}
+.hx-pal__it{width:100%;display:grid;grid-template-columns:56px 1fr;gap:var(--hx-s-4);align-items:center;padding:var(--hx-s-4);border-radius:var(--hx-r-md);text-align:left}
+.hx-pal__it:hover{background:var(--hx-bg-4)}
+.hx-pal__it.is-on{background:var(--hx-bg-4);box-shadow:inset 0 0 0 1px var(--hx-line-3)}
+.hx-pal__sw{height:36px;border-radius:var(--hx-r-sm);display:flex;overflow:hidden;box-shadow:0 0 0 1px var(--hx-line-2)}
+.hx-pal__sw i{flex:3}.hx-pal__sw i+i{flex:3}.hx-pal__sw i:nth-child(n+3){flex:1}
+.hx-pal__t{display:flex;flex-direction:column;gap:2px;min-width:0}
+.hx-pal__t strong{font-size:var(--hx-fs-13);font-weight:600;color:var(--hx-text-1)}
+.hx-pal__t strong em{font:normal var(--hx-fs-11)/1 var(--hx-font-ui);color:var(--hx-text-3);margin-left:var(--hx-s-3)}
+.hx-pal__t span{font-size:var(--hx-fs-11);color:var(--hx-text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hx-pal__f{display:flex;gap:var(--hx-s-3);padding:var(--hx-s-4) var(--hx-s-4) var(--hx-s-3);border-top:1px solid var(--hx-line-1);margin-top:var(--hx-s-3)}
+
+.hx-l4logo{background:var(--hx-primary);color:var(--hx-primary-fg)}
+.hx-pal__f [data-palth].is-on{background:var(--hx-bg-5);color:var(--hx-text-1)}
+.hx-pal__f .sp{flex:1}
+.hx-pal__tip{align-self:center;font-size:var(--hx-fs-11);color:var(--hx-text-3)}

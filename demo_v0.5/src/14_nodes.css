@@ -1,0 +1,88 @@
+/* ===== 14_nodes.css · 节点库分类树、参数文本框、提示词预览、中心窗口分区切换 ===== */
+
+/* ---------- 节点上的多行文本框（指令、提示词） ---------- */
+.hx-w.is-area{height:92px;flex-direction:column;align-items:stretch;gap:4px;padding:2px 0 6px}
+.hx-w.is-area .hx-w__lbl{flex:none}
+.hx-w.is-area .hx-w__ctl{width:100% !important;flex:1;min-height:0}
+.hx-area{position:relative;width:100%;height:100%;display:flex}
+.hx-area__t{flex:1;width:100%;min-height:0;resize:none;border:0;outline:0;padding:6px 26px 6px 8px;border-radius:var(--hx-r-sm);background:var(--hx-bg-4);
+  font:var(--hx-fs-12)/1.5 var(--hx-font-ui);color:var(--hx-text-1);transition:background-color var(--hx-t-1) var(--hx-ease),box-shadow var(--hx-t-1) var(--hx-ease)}
+.hx-area__t::placeholder{color:var(--hx-text-3)}
+.hx-area__t:hover{background:var(--hx-bg-5)}
+.hx-area__t:focus{background:var(--hx-bg-2);box-shadow:0 0 0 2px color-mix(in srgb,var(--hx-accent) 30%,transparent)}
+.hx-area.is-lg{height:auto}
+.hx-area.is-lg .hx-area__t{min-height:150px;resize:vertical;font-size:var(--hx-fs-13)}
+.hx-area.is-dirtyvars::after{content:"失焦后更新变量接口";position:absolute;left:8px;bottom:-15px;font-size:10px;color:var(--hx-model)}
+.hx-area__pv{position:absolute;right:4px;top:4px;width:20px;height:20px;display:grid;place-items:center;border-radius:5px;color:var(--hx-text-3);opacity:.7;
+  transition:opacity var(--hx-t-1) var(--hx-ease),background-color var(--hx-t-1) var(--hx-ease)}
+.hx-area__pv svg{width:13px;height:13px}
+.hx-area__pv:hover{opacity:1;background:var(--hx-bg-5);color:var(--hx-text-1)}
+.hx-area.is-bound{align-items:center;justify-content:center;border-radius:var(--hx-r-sm);font-size:var(--hx-fs-12);color:var(--hx-text-3);
+  background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--hx-bg-4) 70%,transparent) 0 6px,transparent 6px 12px)}
+.hx-area.is-bound span{display:inline-flex;align-items:center;gap:6px}
+.hx-area.is-bound svg{width:12px;height:12px}
+.hx-node.is-prompt{width:var(--hx-node-w)}
+.hx-node.is-prompt .hx-node__ico{color:var(--hx-type-ref)}
+.hx-port.is-var .hx-port__name{font-family:var(--hx-font-mono);color:var(--hx-text-1)}
+.hx-port.is-var .hx-port__name::before{content:"{{";opacity:.4}
+.hx-port.is-var .hx-port__name::after{content:"}}";opacity:.4}
+
+/* ---------- 提示词预览 ---------- */
+.hx-dlg__w.hx-pvw{width:min(720px,calc(100vw - 48px));max-height:min(80vh,820px);overflow-y:auto;outline:0}
+.hx-pvw__h{display:flex;align-items:center;gap:var(--hx-s-4);margin-bottom:var(--hx-s-5)}
+.hx-pvw__h h3{flex:1;margin:0}
+.hx-pvw__s+.hx-pvw__s{margin-top:var(--hx-s-5)}
+.hx-pvw__l{display:flex;align-items:center;margin-bottom:6px;font-size:var(--hx-fs-12);font-weight:600;color:var(--hx-text-2)}
+.hx-pvw__l span{margin-left:auto;font:var(--hx-fs-11)/1 var(--hx-font-mono);font-weight:400;color:var(--hx-text-3)}
+.hx-pvw .hx-prompt mark{background:var(--hx-model-weak);color:var(--hx-model);border-radius:4px;padding:0 3px}
+.hx-pvw__f{margin:var(--hx-s-6) 0 0;font-size:var(--hx-fs-12);color:var(--hx-text-3)}
+
+/* ---------- 节点库：分类树 ---------- */
+.hx-lib2__f{display:flex;align-items:center;gap:2px;padding:2px var(--hx-s-3) var(--hx-s-3)}
+.hx-lib2__f button{height:22px;padding:0 var(--hx-s-4);border-radius:var(--hx-r-full);font-size:var(--hx-fs-12);color:var(--hx-text-3);transition:background-color var(--hx-t-1) var(--hx-ease),color var(--hx-t-1) var(--hx-ease)}
+.hx-lib2__f button:hover{color:var(--hx-text-1)}
+.hx-lib2__f button.is-on{background:var(--hx-bg-2);color:var(--hx-text-1);box-shadow:var(--hx-soft)}
+.hx-lib2__f .sp{flex:1}
+.hx-lib2__cnt{font:var(--hx-fs-10)/1 var(--hx-font-mono);color:var(--hx-text-3)}
+.hx-lib2__ch,.hx-lib2__sh{width:100%;display:flex;align-items:center;gap:6px;text-align:left;border-radius:var(--hx-r-sm);transition:background-color var(--hx-t-1) var(--hx-ease)}
+.hx-lib2__ch{height:30px;padding:0 var(--hx-s-3);font-size:var(--hx-fs-12);font-weight:600;color:var(--hx-text-1)}
+.hx-lib2__sh{height:26px;padding:0 var(--hx-s-3) 0 22px;font-size:var(--hx-fs-12);color:var(--hx-text-2)}
+.hx-lib2__ch:hover,.hx-lib2__sh:hover{background:color-mix(in srgb,var(--hx-bg-4) 70%,transparent)}
+.hx-lib2__ch em,.hx-lib2__sh em{margin-left:auto;font:var(--hx-fs-10)/1 var(--hx-font-mono);font-style:normal;color:var(--hx-text-3)}
+.hx-lib2__ar{width:12px;height:12px;display:grid;place-items:center;color:var(--hx-text-3);transition:transform var(--hx-t-2) var(--hx-ease)}
+.hx-lib2__ar svg{width:11px;height:11px}
+.is-open>.hx-lib2__ch .hx-lib2__ar,.hx-lib2__sh.is-open .hx-lib2__ar{transform:rotate(90deg)}
+.hx-lib2__ci{width:16px;height:16px;display:grid;place-items:center;color:var(--hx-text-2)}
+.hx-lib2__ci svg{width:14px;height:14px}
+.hx-lib2__src{margin-left:6px;height:16px;padding:0 5px;display:inline-flex;align-items:center;border-radius:var(--hx-r-xs);font-size:9.5px;background:var(--hx-model-weak);color:var(--hx-model)}
+.hx-lib2__b{padding:0 0 var(--hx-s-3);animation:hxFade var(--hx-t-2) var(--hx-ease-out)}
+.hx-lib2__b.is-sub{padding:0 0 var(--hx-s-2) 12px}
+.hx-lib2__it{position:relative;width:100%;min-height:30px;display:flex;align-items:center;gap:var(--hx-s-4);padding:4px var(--hx-s-3) 4px 22px;border-radius:var(--hx-r-sm);text-align:left;cursor:grab;
+  font-size:var(--hx-fs-13);color:var(--hx-text-1);transition:background-color var(--hx-t-1) var(--hx-ease)}
+.hx-lib2__it:active{cursor:grabbing}
+.hx-lib2__ic{width:22px;height:22px;flex:none;display:grid;place-items:center;border-radius:6px;background:var(--hx-bg-2);color:var(--hx-text-2);box-shadow:var(--hx-soft)}
+.hx-lib2__ic svg{width:13px;height:13px}
+.hx-lib2__n{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hx-lib2__n small{display:block;font-size:var(--hx-fs-10);color:var(--hx-text-3);margin-top:1px}
+.hx-lib2__tag{flex:none;font-size:var(--hx-fs-10);padding:2px 6px;border-radius:var(--hx-r-full);background:var(--hx-bg-4);color:var(--hx-text-3)}
+.hx-lib2__it.is-off{cursor:pointer}
+.hx-lib2__it.is-off .hx-lib2__n,.hx-lib2__it.is-off .hx-lib2__ic{opacity:.5}
+.hx-lib2__star{flex:none;width:20px;height:20px;display:grid;place-items:center;border-radius:5px;font-size:12px;color:var(--hx-text-3);opacity:0;transition:opacity var(--hx-t-1) var(--hx-ease)}
+.hx-lib2__it:hover .hx-lib2__star{opacity:.7}
+.hx-lib2__star:hover{opacity:1 !important;background:var(--hx-bg-5)}
+.hx-lib2__star.is-on{opacity:1;color:var(--hx-wait)}
+.hx-lib2__more{width:100%;height:28px;display:flex;align-items:center;gap:6px;padding:0 var(--hx-s-3) 0 22px;border-radius:var(--hx-r-sm);font-size:var(--hx-fs-12);color:var(--hx-text-3)}
+.hx-lib2__more:hover{color:var(--hx-text-1);background:color-mix(in srgb,var(--hx-bg-4) 70%,transparent)}
+.hx-lib2__more svg{width:12px;height:12px}
+.hx-lib2__e{padding:var(--hx-s-8) var(--hx-s-5);text-align:center;font-size:var(--hx-fs-12);color:var(--hx-text-3);line-height:1.7}
+.hx-lib2__foot{display:flex;gap:2px;width:100%;justify-content:space-between}
+.hx-lib2__foot .hx-btn{flex:1;padding:0 4px;font-size:var(--hx-fs-12)}
+.hx-lib__tabs{border-top:0 !important;background:transparent !important}
+
+/* ---------- 中心窗口：分区切换（包 · 连接 · 资源库 · 设置） ---------- */
+.hx-ctr__modes{padding:var(--hx-s-6) var(--hx-s-5) var(--hx-s-4)}
+.hx-ctr__modes .hx-seg{width:100%;padding:3px;border-radius:var(--hx-r-lg)}
+.hx-ctr__modes .hx-seg button{flex:1;height:28px;font-size:var(--hx-fs-13)}
+.hx-ctr__modes .hx-seg button.is-on{background:var(--hx-bg-2);border-radius:var(--hx-r-md);box-shadow:0 1px 2px color-mix(in srgb,var(--hx-text-1) 10%,transparent),0 1px 6px -2px color-mix(in srgb,var(--hx-text-1) 8%,transparent)}
+.hx-ctr__grp:empty{display:none}
+.hx-ctr__acts .hx-switch{margin-top:6px}

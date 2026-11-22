@@ -1,0 +1,15 @@
+/* ===== 22_drag.css · 可拖动的画布面板（demo v0.5.10） ===== */
+.hx-grip{display:grid;place-items:center;color:var(--hx-text-3);opacity:.45;cursor:grab;touch-action:none;user-select:none;transition:opacity .2s ease,color .2s ease}
+.hx-grip svg{display:block}
+.hx-grip:hover{opacity:1;color:var(--hx-text-1)}
+.is-dragging-panel .hx-grip{cursor:grabbing;opacity:1}
+/* 竖排工具栏：抓手在最上面 */
+.hx-l4 .hx-dock>.hx-grip{width:30px;height:12px;margin:-1px 0 1px}
+.hx-l4 .hx-dock>.hx-grip svg{width:12px;height:8px;transform:rotate(90deg)}
+/* 小地图、父图位置卡：抓手是顶部一条细带 */
+.hx-l4 .hx-mini>.hx-grip,.hx-l4 .hx-nest>.hx-grip{position:absolute;left:50%;top:0;z-index:3;width:44px;height:12px;transform:translateX(-50%)}
+.hx-l4 .hx-mini>.hx-grip svg,.hx-l4 .hx-nest>.hx-grip svg{width:14px;height:8px}
+.hx-l4 .hx-mini:hover>.hx-grip,.hx-l4 .hx-nest:hover>.hx-grip{opacity:.8}
+/* 被拖过的面板：用自定义位置（覆盖默认的 left/top/bottom/transform） */
+.hx-l4 .hx-dock.is-moved,.hx-l4 .hx-mini.is-moved,.hx-l4 .hx-nest.is-moved{left:var(--px) !important;top:var(--py) !important;right:auto !important;bottom:auto !important;transform:none !important}
+.is-dragging-panel{transition:none !important;box-shadow:var(--hx-shadow-pop) !important;z-index:40 !important}

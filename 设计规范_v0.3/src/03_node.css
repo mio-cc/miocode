@@ -1,0 +1,140 @@
+/* ===== 03_node.css · 画布与节点 ===== */
+.hx-viewport{position:relative;flex:1;min-height:0;overflow:hidden;touch-action:none;outline:0;
+  background-color:var(--hx-bg-1);background-image:radial-gradient(circle,var(--hx-grid-dot) 1px,transparent 1.3px)}
+.hx-viewport.is-hand{cursor:grab}
+.hx-viewport.is-panning{cursor:grabbing}
+.hx-viewport.is-linking{cursor:crosshair}
+.hx-layer{position:absolute;inset:0;transform-origin:50% 50%}
+.hx-layer.is-enter{animation:hxEnter var(--hx-t-4) var(--hx-ease-out)}
+.hx-layer.is-leave{animation:hxLeave var(--hx-t-4) var(--hx-ease-out)}
+@keyframes hxEnter{from{opacity:0;transform:scale(.9)}}
+@keyframes hxLeave{from{opacity:0;transform:scale(1.08)}}
+.hx-world{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0;will-change:transform}
+.hx-nodes{position:absolute;left:0;top:0}
+
+/* ---------- 节点主体 ---------- */
+.hx-node{--nb:var(--hx-line-2);--ng:0 0 0 0 transparent;
+  position:absolute;left:0;top:0;width:var(--hx-node-w);border-radius:var(--hx-r-lg);background:var(--hx-bg-3);
+  box-shadow:0 0 0 1px var(--nb),var(--ng),var(--hx-shadow-node);
+  transition:box-shadow var(--hx-t-2) var(--hx-ease),opacity var(--hx-t-2) var(--hx-ease),outline-color var(--hx-t-2) var(--hx-ease);
+  outline:1.5px solid transparent;outline-offset:3px;user-select:none;-webkit-user-select:none;contain:layout style}
+.hx-node.is-sm{width:var(--hx-node-w-sm)}
+.hx-node:hover{--nb:var(--hx-line-3)}
+.hx-node.is-selected{outline-color:var(--hx-focus)}
+.hx-node.is-dragging{z-index:5;box-shadow:0 0 0 1px var(--hx-line-3),var(--hx-shadow-node-drag);transition:none}
+.hx-node.is-culled{content-visibility:hidden;visibility:hidden}
+.hx-node::before{content:"";position:absolute;inset:-1px;border-radius:inherit;pointer-events:none;border:1px dashed transparent}
+.hx-node::after{content:"";position:absolute;left:12px;right:12px;bottom:-1px;height:2px;border-radius:2px;background:var(--hx-ok);
+  opacity:0;transform:scaleX(.7);transition:opacity 1.2s var(--hx-ease-in),transform 1.2s var(--hx-ease)}
+.hx-node.is-justdone::after{opacity:1;transform:none;transition:none}
+
+/* 头部 */
+.hx-node__head{height:var(--hx-node-head);display:flex;align-items:center;gap:var(--hx-s-4);padding:0 var(--hx-s-4) 0 var(--hx-s-5);
+  border-bottom:1px solid var(--hx-line-1);cursor:grab}
+.hx-node__ico{width:20px;height:20px;flex:none;border-radius:6px;display:grid;place-items:center;background:var(--hx-bg-5);color:var(--hx-text-2);
+  box-shadow:inset 0 1px 0 var(--hx-highlight)}
+.hx-node__ico svg{width:13px;height:13px}
+.hx-node__ttl{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.15}
+.hx-node__name{font-size:var(--hx-fs-14);font-weight:600;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hx-node__type{margin-top:2px;font:400 var(--hx-fs-10)/1.2 var(--hx-font-mono);color:var(--hx-text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hx-node__meta{font:500 var(--hx-fs-10)/1 var(--hx-font-mono);color:var(--hx-text-3);font-variant-numeric:tabular-nums;white-space:nowrap}
+.hx-node__st{width:16px;height:16px;flex:none;display:grid;place-items:center;color:var(--hx-text-3)}
+.hx-node__st svg{width:14px;height:14px}
+.hx-ai{height:16px;padding:0 5px;border-radius:var(--hx-r-xs);display:inline-flex;align-items:center;flex:none;cursor:help;
+  background:var(--hx-model-weak);color:var(--hx-model);font:600 var(--hx-fs-10)/1 var(--hx-font-mono);letter-spacing:.04em}
+
+/* 端口 */
+.hx-node__ports{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);padding:6px 0}
+.hx-node__col{display:flex;flex-direction:column;min-width:0}
+.hx-port{--pc:var(--hx-type-any);position:relative;height:var(--hx-node-row);display:flex;align-items:center;gap:var(--hx-s-3);
+  font-size:var(--hx-fs-12);color:var(--hx-text-2);white-space:nowrap;min-width:0}
+.hx-port.is-in{padding-left:14px}
+.hx-port.is-out{justify-content:flex-end;padding-right:14px}
+.hx-port__name{overflow:hidden;text-overflow:ellipsis}
+.hx-port.is-promoted .hx-port__name{color:var(--hx-text-1)}
+.hx-port.is-promoted .hx-port__name::after{content:" \21E2";color:var(--hx-text-3)}
+.hx-port__type{font:400 var(--hx-fs-10)/1 var(--hx-font-mono);color:var(--pc);opacity:0;transform:translateX(-3px);
+  transition:opacity var(--hx-t-1) var(--hx-ease),transform var(--hx-t-1) var(--hx-ease)}
+.hx-port.is-out .hx-port__type{transform:translateX(3px)}
+.hx-port:hover .hx-port__type,.hx-viewport.is-linking .hx-port.is-cand .hx-port__type{opacity:1;transform:none}
+.hx-port__dot{position:absolute;top:50%;width:var(--hx-port);height:var(--hx-port);margin-top:calc(var(--hx-port) / -2);border-radius:50%;
+  background:var(--hx-bg-3);box-shadow:inset 0 0 0 1.75px var(--pc),0 0 0 2px var(--hx-bg-3);cursor:crosshair;
+  transition:transform var(--hx-t-1) var(--hx-ease),opacity var(--hx-t-2) var(--hx-ease),background-color var(--hx-t-1) var(--hx-ease),box-shadow var(--hx-t-2) var(--hx-ease)}
+.hx-port__dot::after{content:"";position:absolute;inset:-4px;border-radius:50%}
+.hx-port.is-in .hx-port__dot{left:calc(var(--hx-port) / -2)}
+.hx-port.is-out .hx-port__dot{right:calc(var(--hx-port) / -2)}
+.hx-port.is-linked .hx-port__dot{background:var(--pc)}
+.hx-port__dot:hover{transform:scale(1.3)}
+.hx-viewport.is-linking .hx-port.is-in .hx-port__dot{opacity:.22}
+.hx-viewport.is-linking .hx-port.is-cand .hx-port__dot{opacity:1;transform:scale(1.35);
+  box-shadow:inset 0 0 0 1.75px var(--pc),0 0 0 2px var(--hx-bg-3),0 0 0 6px color-mix(in srgb,var(--pc) 26%,transparent)}
+.hx-viewport.is-linking .hx-port.is-snap .hx-port__dot{transform:scale(1.65);background:var(--pc)}
+.hx-viewport.is-linking .hx-port.is-src .hx-port__dot{background:var(--pc);transform:scale(1.3)}
+
+/* 内联控件 */
+.hx-node__widgets{display:flex;flex-direction:column;padding:var(--hx-s-2) var(--hx-s-5) var(--hx-s-4);border-top:1px solid var(--hx-line-1)}
+.hx-w{height:var(--hx-node-widget);display:flex;align-items:center;gap:var(--hx-s-4);min-width:0}
+.hx-w__lbl{flex:1;min-width:0;font-size:var(--hx-fs-12);color:var(--hx-text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hx-w__ctl{width:118px;flex:none;display:flex;justify-content:flex-end}
+.hx-node.is-sm .hx-w__ctl{width:96px}
+.hx-w__diff{display:flex;align-items:center;gap:var(--hx-s-3);font:500 var(--hx-fs-12)/1 var(--hx-font-mono)}
+.hx-w__old{color:var(--hx-text-3);text-decoration:line-through}
+.hx-w__new{color:var(--hx-model)}
+
+/* 子图缩略与叠层边 */
+.hx-node.is-sub{box-shadow:0 0 0 1px var(--nb),var(--ng),4px 4px 0 -1px var(--hx-bg-3),4px 4px 0 0 var(--hx-line-2),var(--hx-shadow-node)}
+.hx-node__thumb{position:relative;height:64px;margin:0 var(--hx-s-5) var(--hx-s-4);border-radius:var(--hx-r-sm);background:var(--hx-bg-1);
+  box-shadow:inset 0 0 0 1px var(--hx-line-1);overflow:hidden}
+.hx-node__thumb svg{width:100%;height:100%}
+.hx-node__thumb span{position:absolute;right:6px;bottom:4px;font:500 var(--hx-fs-10)/1 var(--hx-font-mono);color:var(--hx-text-3)}
+
+/* 状态脚 */
+.hx-node__foot{display:none;align-items:center;gap:var(--hx-s-4);height:26px;padding:0 var(--hx-s-5);border-top:1px solid var(--hx-line-1);
+  font:500 var(--hx-fs-10)/1 var(--hx-font-mono);color:var(--hx-text-2);font-variant-numeric:tabular-nums}
+.hx-node.has-foot .hx-node__foot{display:flex}
+.hx-node__foot b{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:62%}
+.hx-bar{flex:1;height:3px;border-radius:3px;background:var(--hx-bg-5);overflow:hidden}
+.hx-bar i{display:block;height:100%;border-radius:3px;background:var(--hx-accent);transform-origin:0 50%;transform:scaleX(0);
+  transition:transform var(--hx-t-2) var(--hx-ease)}
+.hx-node__acts{display:flex;gap:var(--hx-s-2)}
+
+/* ---------- 8 种状态（颜色 + 图形 + 文字） ---------- */
+.hx-node.is-queued{--nb:var(--hx-line-3)}
+.hx-node.is-running{--nb:var(--hx-accent-line);--ng:0 0 0 4px var(--hx-accent-weak)}
+.hx-node.is-running .hx-node__st{color:var(--hx-accent-strong)}
+.hx-node.is-done .hx-node__st{color:var(--hx-ok)}
+.hx-node.is-failed{--nb:var(--hx-danger);--ng:0 0 0 4px var(--hx-danger-weak)}
+.hx-node.is-failed .hx-node__st,.hx-node.is-failed .hx-node__foot{color:var(--hx-danger)}
+.hx-node.is-failed .hx-bar i{background:var(--hx-danger)}
+.hx-node.is-waiting{--nb:transparent}
+.hx-node.is-waiting::before{border:1px dashed var(--hx-wait)}
+.hx-node.is-waiting .hx-node__st,.hx-node.is-waiting .hx-node__foot{color:var(--hx-wait)}
+.hx-node.is-waiting{--ng:0 0 0 4px var(--hx-wait-weak)}
+.hx-node.is-running .hx-node__foot{color:var(--hx-accent-strong)}
+.hx-node.is-skipped{opacity:.45}
+.hx-node.is-cached .hx-node__st{color:var(--hx-text-2)}
+.hx-spin{animation:hxSpin .9s linear infinite;transform-origin:50% 50%}
+@keyframes hxSpin{to{transform:rotate(360deg)}}
+
+/* ---------- 模型标记 / 幽灵节点 ---------- */
+.hx-node.is-ghost{opacity:.78;--nb:transparent}
+.hx-node.is-ghost::before{border:1.5px dashed var(--hx-model-line)}
+.hx-node.is-ghost:hover{opacity:.95}
+.hx-node.is-pending{--nb:var(--hx-model-line)}
+.hx-node.is-modelflash{animation:hxModelFlash .7s var(--hx-ease-out)}
+@keyframes hxModelFlash{0%{box-shadow:0 0 0 1px var(--hx-model),0 0 0 6px var(--hx-model-weak),var(--hx-shadow-node)}
+  100%{box-shadow:0 0 0 1px var(--nb),0 0 0 16px transparent,var(--hx-shadow-node)}}
+.hx-node__prop{position:absolute;left:0;right:0;bottom:calc(100% + 8px);display:flex;align-items:center;gap:var(--hx-s-3);
+  padding:var(--hx-s-3) var(--hx-s-3) var(--hx-s-3) var(--hx-s-4);border-radius:var(--hx-r-md);background:var(--hx-bg-2);
+  box-shadow:0 0 0 1px var(--hx-model-line),0 6px 18px rgba(0,0,0,.3);font-size:var(--hx-fs-11);color:var(--hx-text-2)}
+.hx-node__prop b{color:var(--hx-model);font-weight:600;flex:none}
+.hx-node__prop span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ---------- 细节分级 LOD ---------- */
+.hx-viewport.lod-2 .hx-port__name,.hx-viewport.lod-2 .hx-port__type,.hx-viewport.lod-2 .hx-node__widgets>*,
+.hx-viewport.lod-2 .hx-node__type,.hx-viewport.lod-2 .hx-node__thumb>*{visibility:hidden}
+.hx-viewport.lod-3 .hx-node>*:not(.hx-node__head){visibility:hidden}
+.hx-viewport.lod-3 .hx-node__ico,.hx-viewport.lod-3 .hx-node__type,.hx-viewport.lod-3 .hx-node__meta,.hx-viewport.lod-3 .hx-ai{visibility:hidden}
+.hx-viewport.lod-3 .hx-node__name{font-size:26px;letter-spacing:-.02em}
+.hx-viewport.lod-3 .hx-node__st{transform:scale(2)}
+.hx-viewport.is-zooming .hx-node,.hx-viewport.is-zooming .hx-port__dot{transition:none}

@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Harness · 模型自主编排</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --page-bg:#14161b;--page-panel:#1b1e25;--page-panel2:#222630;--page-line:#2d313b;--page-line2:#3a3f4b;
+  --page-text:#e6e4df;--page-muted:#8b8f98;--page-amber:#f0a83c;--page-teal:#5bb8a9;--page-red:#e5646a;
+  --page-sans:'Noto Sans SC','Microsoft YaHei','PingFang SC',sans-serif;
+  --page-mono:'JetBrains Mono',Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--page-bg);color:var(--page-text);font-family:var(--page-sans);font-size:13.5px;overflow:hidden}
+button{font-family:inherit;font-size:12.5px;cursor:pointer}
+.app{display:grid;grid-template-rows:48px 32px 1fr;height:100vh}
+.app>*{min-width:0;min-height:0}
+.top{display:flex;align-items:center;gap:12px;padding:0 16px;border-bottom:1px solid var(--page-line);background:#111317}
+.top .ttl{font-weight:700;font-size:15px}
+.top .ttl span{color:var(--page-amber)}
+.sp{flex:1}
+.back{color:var(--page-muted);text-decoration:none;font-size:13px}
+.back:hover{color:var(--page-text)}
+.desc{display:flex;align-items:center;padding:0 16px;color:var(--page-muted);font-size:12.5px;border-bottom:1px solid var(--page-line);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.desc b{color:var(--page-text);font-weight:500;margin-right:6px}
+.main{display:grid;grid-template-columns:290px 1fr 340px;min-height:0}
+.main>*{min-width:0;min-height:0}
+.btn{background:var(--page-panel2);color:var(--page-text);border:1px solid var(--page-line2);padding:4px 11px}
+.btn:hover{border-color:var(--page-muted)}
+.btn.pri{background:var(--page-amber);color:#1a1a1a;border-color:var(--page-amber);font-weight:500}
+.btn.red{background:var(--page-red);border-color:var(--page-red);color:#fff}
+.btn.ghost{background:none}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.sm{padding:2px 8px;font-size:11.5px}
+/* chat */
+.chat{border-right:1px solid var(--page-line);display:flex;flex-direction:column;background:#16181d}
+.hd{height:36px;flex:none;display:flex;align-items:center;padding:0 12px;border-bottom:1px solid var(--page-line);font-size:12px;color:var(--page-muted);font-family:var(--page-mono)}
+.msgs{flex:1;overflow-y:auto;padding:12px 12px 6px}
+.msg{margin-bottom:12px;line-height:1.65;font-size:13px}
+.msg .who{font-family:var(--page-mono);font-size:10.5px;color:var(--page-muted);margin-bottom:2px}
+.msg.ai .who{color:var(--page-amber)}
+.msg.user .bd{background:var(--page-panel);padding:7px 10px;border-left:2px solid var(--page-teal)}
+.msg .k{font-family:var(--page-mono);color:var(--page-teal);font-size:12px}
+.presets{flex:none;padding:8px 12px 0;display:flex;flex-wrap:wrap;gap:6px;border-top:1px solid var(--page-line)}
+.presets .lab{width:100%;font-size:11px;color:var(--page-muted);font-family:var(--page-mono)}
+.chip{background:none;border:1px solid var(--page-line2);color:var(--page-text);padding:3px 9px;font-size:12px}
+.chip:hover{border-color:var(--page-amber);color:var(--page-amber)}
+.inrow{flex:none;display:flex;gap:6px;padding:8px 12px 12px}
+.inrow textarea{flex:1;min-width:0;resize:none;height:56px;background:var(--page-panel);border:1px solid var(--page-line2);color:var(--page-text);font-family:inherit;font-size:13px;padding:7px 9px;outline:none}
+.inrow textarea:focus{border-color:var(--page-muted)}
+/* center */
+.center{display:flex;flex-direction:column;min-height:0}
+.tb{height:42px;flex:none;border-bottom:1px solid var(--page-line);display:flex;align-items:center;gap:6px;padding:0 10px;overflow-x:auto}
+.tb .gname{font-weight:500;white-space:nowrap}
+.pill{font-family:var(--page-mono);font-size:11px;border:1px solid var(--page-line2);padding:1px 7px;color:var(--page-muted);white-space:nowrap}
+.pill.am{color:var(--page-amber);border-color:var(--page-amber)}
+.pill.te{color:var(--page-teal);border-color:var(--page-teal)}
+.tbtn{background:none;border:1px solid transparent;color:var(--page-muted);padding:3px 8px;white-space:nowrap}
+.tbtn:hover{color:var(--page-text);border-color:var(--page-line2)}
+.tbtn.run{color:#1a1a1a;background:var(--page-amber);font-weight:500}
+.tbtn.stop{color:#fff;background:var(--page-red)}
+.tbtn.estop{color:var(--page-red);border-color:var(--page-red)}
+.cv{flex:1;position:relative;overflow:hidden;background:#111317;background-image:radial-gradient(#2a2e37 1px,transparent 1px);background-size:20px 20px;cursor:grab;touch-action:none;min-height:0}
+.cv.panning{cursor:grabbing}
+.world{position:absolute;left:0;top:0;width:1px;height:1px;transform-origin:0 0}
+svg.edges{position:absolute;left:-3000px;top:-3000px;width:9000px;height:9000px;overflow:visible;pointer-events:none}
+.edge{fill:none;stroke:#4a4f5c;stroke-width:1.6}
+.edge.done{stroke:#3e7d74}
+.edge.flow{stroke:var(--page-amber);stroke-width:2;stroke-dasharray:6 6;animation:dash .6s linear infinite}
+.edge.ghost{stroke:var(--page-amber);stroke-dasharray:5 5;opacity:.6}
+.edge.d-add{stroke:var(--page-teal);stroke-dasharray:6 4;stroke-width:2}
+.edge.d-del{stroke:var(--page-red);stroke-dasharray:4 4;stroke-width:2;opacity:.8}
+.el{font-family:var(--page-mono);font-size:9.5px;fill:#6b707c;paint-order:stroke;stroke:#111317;stroke-width:4px}
+.frame{fill:rgba(91,184,169,.04);stroke:var(--page-teal);stroke-dasharray:6 5;stroke-width:1.2}
+.frame.pend{stroke:var(--page-amber)}
+.fl{font-family:var(--page-mono);font-size:11px;fill:var(--page-teal)}
+@keyframes dash{to{stroke-dashoffset:-12}}
+.node{position:absolute;width:164px;background:var(--page-panel);border:1px solid var(--page-line2);user-select:none}
+.node.sel{outline:2px solid var(--page-text);outline-offset:1px}
+.node.hl{outline:2px solid var(--page-amber);outline-offset:2px}
+.node.flash{animation:flash 1.1s ease-out}
+@keyframes flash{0%{box-shadow:0 0 0 6px rgba(240,168,60,.5)}100%{box-shadow:0 0 0 0 rgba(240,168,60,0)}}
+.node.ghost{border:1px dashed var(--page-amber);background:rgba(27,30,37,.55);opacity:.75}
+.node.d-add{border:2px dashed var(--page-teal);background:rgba(91,184,169,.06)}
+.node.d-del{border:2px dashed var(--page-red);opacity:.55}
+.node.d-del .nl{text-decoration:line-through}
+.node.d-mod{border:2px solid var(--page-amber)}
+.nh{height:40px;padding:5px 9px 0;border-bottom:1px solid var(--page-line);cursor:move;overflow:hidden}
+.nt{display:flex;gap:5px;align-items:center;font-family:var(--page-mono);font-size:10px;color:var(--page-muted);white-space:nowrap;height:14px}
+.mb{font-family:var(--page-sans);font-size:9.5px;color:#1a1a1a;background:var(--page-amber);padding:0 4px;line-height:13px}
+.node.ghost .mb{background:none;color:var(--page-amber);border:1px solid var(--page-amber)}
+.nl{display:block;font-weight:500;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:19px}
+.np{display:flex;justify-content:space-between;padding:3px 0}
+.np>div{min-width:0}
+.prow{display:flex;align-items:center;gap:4px;font-size:11px;height:19px;color:var(--page-muted);white-space:nowrap}
+.prow em{font-style:normal;font-family:var(--page-mono);font-size:9px;color:#5d6270}
+.prow.in{padding-right:4px}.prow.out{justify-content:flex-end;padding-left:4px}
+.prow.promo{color:var(--page-amber)}
+.dot{width:10px;height:10px;border-radius:50%;flex:none;border:2px solid #111317}
+.prow.in .dot{background:var(--page-teal);margin-left:-5px}
+.prow.out .dot{background:var(--page-amber);margin-right:-5px}
+.ns{height:30px;border-top:1px solid var(--page-line);padding:4px 9px 0;font-size:10.5px;color:var(--page-muted);font-family:var(--page-mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar{height:3px;background:var(--page-line);margin-bottom:3px}
+.bar i{display:block;height:100%;width:0;background:var(--page-amber);transition:width .15s}
+.node.st-run{border-color:var(--page-amber);box-shadow:0 0 0 3px rgba(240,168,60,.18)}
+.node.st-run .ns{color:var(--page-amber)}
+.node.st-done{border-color:#3e7d74}
+.node.st-done .bar i{background:var(--page-teal)}
+.node.st-done .ns{color:var(--page-teal)}
+.node.st-wait{border:1px dashed var(--page-amber)}
+.node.st-wait .ns{color:var(--page-amber)}
+.node.st-skip{opacity:.4}
+.node.d-mod .ns{color:var(--page-amber)}
+.tip{position:absolute;z-index:8;max-width:280px;background:var(--page-panel2);border:1px solid var(--page-line2);padding:7px 10px;font-size:12px;line-height:1.55;pointer-events:none;display:none}
+.tip b{color:var(--page-amber);font-weight:500}
+.tip .mut{color:var(--page-muted);font-family:var(--page-mono);font-size:10.5px}
+.toast{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:var(--page-panel2);border:1px solid var(--page-teal);padding:5px 14px;font-size:12.5px;z-index:7;display:none;max-width:80%}
+.hint{position:absolute;left:10px;bottom:6px;font-size:11px;color:#5d6270;pointer-events:none}
+.legend{position:absolute;right:10px;bottom:6px;display:flex;gap:12px;font-size:11px;color:var(--page-muted);pointer-events:none}
+.legend i{display:inline-block;width:14px;height:0;border-top:2px dashed;vertical-align:middle;margin-right:4px}
+.rbar{flex:none;display:flex;gap:16px;align-items:center;padding:5px 12px;font-size:11.5px;color:var(--page-muted);font-family:var(--page-mono);border-top:1px solid var(--page-line);background:#111317;flex-wrap:wrap}
+.rbar b{color:var(--page-text);font-weight:600}
+.rbar .cur{color:var(--page-amber);flex:1;min-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.log{flex:none;height:104px;overflow-y:auto;border-top:1px solid var(--page-line);padding:3px 12px;font-family:var(--page-mono);font-size:11px;line-height:1.7;background:#111317}
+.log .t{color:#5d6270}.log .p{color:var(--page-teal)}.log .w{color:var(--page-amber)}.log .m{color:var(--page-amber)}
+/* panel */
+.panel{border-left:1px solid var(--page-line);display:flex;flex-direction:column;background:#16181d}
+.lv{flex:none;padding:10px 12px;border-bottom:1px solid var(--page-line)}
+.lv .row{display:flex;align-items:center;gap:8px}
+.lv label{font-family:var(--page-mono);font-size:11px;color:var(--page-muted)}
+.lv select{flex:1;background:#111317;border:1px solid var(--page-line2);color:var(--page-text);padding:5px 6px;font-family:inherit;font-size:13px;outline:none}
+.lvsum{margin-top:7px;font-size:12px;color:var(--page-muted);line-height:1.55}
+.lvsum b{color:var(--page-amber);font-weight:500}
+.tabs{flex:none;display:flex;border-bottom:1px solid var(--page-line)}
+.tab{flex:1;background:none;border:none;border-bottom:2px solid transparent;color:var(--page-muted);padding:8px 0;font-size:12.5px}
+.tab.on{color:var(--page-text);border-bottom-color:var(--page-amber)}
+.tab .n{font-family:var(--page-mono);font-size:10px;color:var(--page-amber);margin-left:3px}
+.tbody{flex:1;overflow-y:auto;padding:10px 12px}
+.empty{color:var(--page-muted);font-size:12.5px;line-height:1.7}
+.bh{display:flex;align-items:center;gap:6px;margin:4px 0 6px;font-size:12px}
+.bh b{font-weight:500}
+.bh .c{font-family:var(--page-mono);font-size:10.5px;color:var(--page-muted)}
+.pt{border:1px solid var(--page-line);border-left:3px solid var(--page-line2);padding:6px 8px;margin-bottom:6px;background:var(--page-panel)}
+.pt.s-pending{border-left-color:var(--page-amber)}
+.pt.s-applied,.pt.s-accepted{border-left-color:var(--page-teal)}
+.pt.s-rejected,.pt.s-undone{opacity:.5}
+.pt.s-candidate{border-left-color:var(--page-amber);border-style:dashed}
+.pt .l1{display:flex;gap:6px;align-items:baseline;font-size:12.5px}
+.pk{font-family:var(--page-mono);font-size:10px;padding:0 4px;border:1px solid var(--page-line2);color:var(--page-muted);white-space:nowrap}
+.pk.k-add_node,.pk.k-expand{color:var(--page-teal);border-color:var(--page-teal)}
+.pk.k-set_param{color:var(--page-amber);border-color:var(--page-amber)}
+.pk.k-remove_node,.pk.k-remove_edge{color:var(--page-red);border-color:var(--page-red)}
+.pt .l1 b{font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pt .st{font-size:10.5px;color:var(--page-muted);font-family:var(--page-mono);white-space:nowrap}
+.pt .pr{font-size:11.5px;color:var(--page-muted);margin-top:3px;line-height:1.5}
+.pt .pa{display:flex;gap:5px;margin-top:5px}
+.th{font-size:12.5px;line-height:1.6;padding:5px 0 5px 10px;border-left:2px solid var(--page-line2);margin-bottom:6px;color:var(--page-text)}
+.th .tt{display:block;font-family:var(--page-mono);font-size:10px;color:var(--page-muted)}
+.th.cur{border-left-color:var(--page-amber)}
+pre.yaml{background:#111317;border:1px solid var(--page-line);padding:8px 10px;font-family:var(--page-mono);font-size:11.5px;line-height:1.6;white-space:pre-wrap;margin:0 0 12px;color:#c9c6bf}
+.sec{font-family:var(--page-mono);font-size:11px;color:var(--page-muted);margin:12px 0 6px}
+.dl{display:flex;flex-direction:column;align-items:stretch}
+.db{border:1px solid var(--page-line2);background:var(--page-panel);padding:7px 10px;font-size:12.5px;line-height:1.5}
+.db b{font-weight:500}
+.db .s{display:block;font-size:11.5px;color:var(--page-muted)}
+.db.me{border-color:var(--page-teal)}
+.db.orc{border-color:var(--page-amber)}
+.db.none{border-style:dashed;color:var(--page-muted)}
+.dc{height:22px;margin-left:18px;border-left:1px solid var(--page-line2);position:relative;font-size:10.5px;color:var(--page-muted);font-family:var(--page-mono);padding-left:8px;line-height:22px}
+.note{font-size:12px;color:var(--page-muted);line-height:1.6;margin-top:10px;border-left:2px solid var(--page-teal);padding-left:8px}
+.vr{border:1px solid var(--page-line);padding:6px 8px;margin-bottom:6px;background:var(--page-panel)}
+.vr.cur{border-color:var(--page-amber)}
+.vr .l1{display:flex;gap:6px;align-items:baseline}
+.vr .v{font-family:var(--page-mono);color:var(--page-amber);font-weight:600}
+.vr .lab{flex:1;min-width:0;font-size:12.5px}
+.vr .meta{font-size:11px;color:var(--page-muted);font-family:var(--page-mono);margin-top:2px}
+.vr .pa{display:flex;gap:5px;margin-top:5px}
+table.ev{width:100%;border-collapse:collapse;font-size:12px;margin:6px 0 10px}
+table.ev th{text-align:left;font-weight:500;color:var(--page-muted);font-size:11px;padding:5px 4px;border-bottom:1px solid var(--page-line2)}
+table.ev td{padding:6px 4px;border-bottom:1px solid var(--page-line);font-family:var(--page-mono)}
+table.ev td:first-child{font-family:var(--page-sans)}
+table.ev td.better{color:var(--page-teal);font-weight:600}
+table.ev td.worse{color:var(--page-red)}
+.pbar{height:4px;background:var(--page-line);margin:8px 0}
+.pbar i{display:block;height:100%;background:var(--page-amber);width:0;transition:width .2s}
+.cases{display:flex;gap:3px;flex-wrap:wrap;margin:6px 0}
+.cases span{width:22px;height:16px;font-size:9.5px;font-family:var(--page-mono);text-align:center;line-height:16px;border:1px solid var(--page-line2);color:var(--page-muted)}
+.cases span.ok{border-color:var(--page-teal);color:var(--page-teal)}
+.cases span.ng{border-color:var(--page-red);color:var(--page-red)}
+/* modal */
+.mask{position:fixed;inset:0;background:rgba(10,11,14,.6);display:none;align-items:center;justify-content:center;z-index:50}
+.mask.on{display:flex}
+.modal{width:440px;max-width:92vw;background:var(--page-panel);border:1px solid var(--page-amber)}
+.modal .mh{padding:10px 14px;border-bottom:1px solid var(--page-line);font-weight:500;display:flex;gap:8px;align-items:center}
+.modal .mh .pill{margin-left:auto}
+.modal .mbd{padding:12px 14px;font-size:13px;line-height:1.7;color:var(--page-text)}
+.modal .mbd .mut{color:var(--page-muted);font-size:12px}
+.modal .mbd ul{margin:6px 0;padding-left:18px}
+.modal .mf{display:flex;gap:8px;justify-content:flex-end;padding:10px 14px;border-top:1px solid var(--page-line)}
+.modal .auto{font-size:11px;color:var(--page-amber);font-family:var(--page-mono);margin-right:auto;align-self:center}
+@media (max-width:1180px){.main{grid-template-columns:250px 1fr 300px}}
+@media (max-width:900px){.main{grid-template-columns:1fr}.chat,.panel{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <span class="ttl">Harness · <span>模型自主编排</span></span>
+    <span class="pill am" id="topLv">档位 1 · 建议</span>
+    <span class="sp"></span>
+    <button class="btn pri" id="bDemo">演示脚本：完整走一遍</button>
+    <a class="back" href="index.html">← 返回总览</a>
+  </header>
+  <div class="desc"><b>这个工作域负责：</b>让大模型自己设计、修改、在运行中展开流程图。它的每一步都是一条带理由、可撤销的图补丁，受授权档位约束。</div>
+
+  <div class="main">
+    <section class="chat">
+      <div class="hd">对话 · 你提需求，编排者出图</div>
+      <div class="msgs" id="msgs"></div>
+      <div class="presets" id="presets"><span class="lab">预设需求</span></div>
+      <div class="inrow">
+        <textarea id="ta" placeholder="描述你要的流程，或说：运行 / 全部采纳 / 运行后优化"></textarea>
+        <button class="btn pri" id="send">发送</button>
+      </div>
+    </section>
+
+    <section class="center">
+      <div class="tb">
+        <span class="gname" id="gname">空画布</span>
+        <span class="pill" id="vtag">未保存版本</span>
+        <span class="pill am" id="rtag" style="display:none"></span>
+        <span class="sp"></span>
+        <button class="tbtn" id="bFit">适应</button>
+        <button class="tbtn" id="bZo">−</button>
+        <button class="tbtn" id="bZi">+</button>
+        <button class="tbtn" id="bOpt">运行后优化</button>
+        <button class="tbtn run" id="bRun">运行</button>
+        <button class="tbtn estop" id="bStop" title="停止运行并把档位降到 0；模型无法关闭">急停</button>
+      </div>
+      <div class="cv" id="cv">
+        <div class="world" id="world"></div>
+        <div class="tip" id="tip"></div>
+        <div class="toast" id="toast"></div>
+        <div class="hint">拖空白处平移 · 滚轮缩放 · 拖节点标题移动 · 悬停节点看模型理由</div>
+        <div class="legend"><span><i style="color:var(--page-amber)"></i>待采纳</span><span><i style="color:var(--page-teal)"></i>新增</span><span><i style="color:var(--page-red)"></i>删除</span><span><i style="color:var(--page-amber);border-top-style:solid"></i>修改</span></div>
+      </div>
+      <div class="rbar">
+        <span>用时 <b id="mT">0.0s</b></span>
+        <span>tokens <b id="mK">0</b></span>
+        <span>执行 <b id="mN">0</b> 次</span>
+        <span>使用图 <b id="mV">—</b></span>
+        <span class="cur" id="mC">先从左侧提一个需求</span>
+      </div>
+      <div class="log" id="log"></div>
+    </section>
+
+    <aside class="panel">
+      <div class="lv">
+        <div class="row"><label>授权档位</label>
+          <select id="lvSel">
+            <option value="0">0 · 只读</option>
+            <option value="1" selected>1 · 建议</option>
+            <option value="2">2 · 部分授权</option>
+            <option value="3">3 · 高度授权</option>
+            <option value="4">4 · 完全授权</option>
+          </select>
+        </div>
+        <div class="lvsum" id="lvSum"></div>
+      </div>
+      <div class="tabs" id="tabs">
+        <button class="tab on" data-t="patch">补丁<span class="n" id="nPatch"></span></button>
+        <button class="tab" data-t="think">思路</button>
+        <button class="tab" data-t="auth">授权</button>
+        <button class="tab" data-t="ver">版本<span class="n" id="nVer"></span></button>
+        <button class="tab" data-t="eval">评测</button>
+      </div>
+      <div class="tbody" id="tbody"></div>
+    </aside>
+  </div>
+</div>
+
+<div class="mask" id="mask"><div class="modal">
+  <div class="mh"><span id="mdTitle">审批</span><span class="pill am" id="mdTag">挂起中</span></div>
+  <div class="mbd" id="mdBody"></div>
+  <div class="mf" id="mdFoot"></div>
+</div></div>
+
+<script>
+/* ================= 基础 ================= */
+const $=id=>document.getElementById(id);
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+let UID=0; const uid=p=>(p||'n')+(++UID);
+const NW=164, NHEAD=40, PADT=3, ROW=19, NSTAT=30;
+const LVNAME=['只读','建议','部分授权','高度授权','完全授权'];
+
+const DEFP={
+ '资源':[[],[['ref','引用']]],
+ 'Agent':[[['context','上下文包'],['model','引用']],[['result','T']]],
+ '上下文装配':[[['in','任意']],[['context','上下文包']]],
+ '工具':[[['request','任意']],[['result','T']]],
+ '扇出':[[['items','列表'],['shared','任意']],[['results','列表']]],
+ '汇合':[[['a','任意'],['b','任意']],[['collected','列表']]],
+ '聚合':[[['items','列表']],[['result','T']]],
+ '分支':[[['value','T']],[['yes','T'],['no','T']]],
+ '循环':[[['init','T']],[['final','T']]],
+ '账本':[[['value','任意']],[['value','任意']]],
+ '人工':[[['request','任意']],[['approved','T'],['rejected','T']]],
+ '子图端口':[[['in','任意']],[['out','任意']]],
+ '子图引用':[[['in','任意'],['ref','图补丁',1]],[['out','任意']]]
+};
+function portsOf(n){const d=DEFP[n.type];return {ins:n.ins||d[0],outs:n.outs||d[1]};}
+function nodeH(n){const P=portsOf(n);return NHEAD+PADT*2+Math.max(P.ins.length,P.outs.length,1)*ROW+NSTAT+2;}
+function portXY(n,port,dir){
+  const P=portsOf(n),arr=dir==='out'?P.outs:P.ins;let i=arr.findIndex(p=>p[0]===port);if(i<0)i=0;
+  return [dir==='out'?n.x+NW:n.x, n.y+NHEAD+PADT+i*ROW+ROW/2+1];
+}
+
+/* ================= 模板（模型"会"生成的图） ================= */
+const ENTRY_O=[['out','目标']], EXIT_I=[['in','报告']];
+const TPL={
+ jp:{name:'竞品定价调研',ask:'帮我搭一个流程：调研 3 家竞品（A、B、C）的企业版定价，循环到验收通过为止。',
+  think:[
+   '需求是"调研到验收通过"，属于目标型任务 → 用「智囊团 → 决策者 → 执行池 → 验收者」的结构',
+   '智囊要独立且异构 → 用扇出节点，items 接一个 3 家厂商的模型列表，isolation=true',
+   '决策者输出任务卡列表，执行池并发 3；我先加一个「格式转换」把任务卡整理成执行者能吃的格式',
+   '执行中可能出现数据缺口 → 在执行池后放一个编排者：读执行结果摘要，必要时生成补救子图',
+   '编排者的输出（图补丁）接到子图引用的 ref 端口，生成的图直接作为子图运行',
+   '验收者单独一个 Agent，分支节点读 判定.achieved，达成才交付'],
+  nodes:[
+   {k:'entry',type:'子图端口',label:'入口 · 目标',x:20,y:40,ins:[],outs:ENTRY_O,info:'role=entry',r:'接收主脑给的目标和验收标准'},
+   {k:'models',type:'资源',label:'模型列表[]',x:20,y:210,info:'3 家厂商大模型',r:'智囊用不同厂商的模型，减少互相附和'},
+   {k:'brains',type:'扇出',label:'智囊团 ×3',x:220,y:40,info:'隔离 · 按模型列表展开',r:'同一任务交给 3 个互相隔离的智囊，相当于 3 次独立采样'},
+   {k:'decider',type:'Agent',label:'决策者',x:420,y:40,info:'输出 任务卡@1[]',r:'合并同向思路、排列异向思路，产出原子任务卡'},
+   {k:'fmt',type:'Agent',label:'格式转换',x:620,y:40,info:'输出 任务卡@1[]',r:'把任务卡统一成执行者模板（保守起见先加上）'},
+   {k:'pool',type:'扇出',label:'执行池',x:820,y:40,params:{concurrency:3},r:'任务卡逐张派给小模型执行者，并发 3'},
+   {k:'orcCtx',type:'上下文装配',label:'编排者配方',x:1020,y:40,info:'只给结果摘要 + 指针',r:'编排者只看执行结果摘要，不看过程，节省上下文'},
+   {k:'orc',type:'Agent',label:'编排者',x:20,y:330,role:'orc',info:'输出 图补丁@1',r:'运行中读执行结果，发现缺口就生成补救子图'},
+   {k:'dyn',type:'子图引用',label:'动态子图',x:220,y:330,info:'ref ← 端口（等待编排者）',r:'ref 参数转成端口，接收编排者生成的图并运行'},
+   {k:'judge',type:'Agent',label:'验收者',x:420,y:330,params:{model:'厂商 A'},r:'对照验收标准逐条判定，输出 判定@1'},
+   {k:'done',type:'分支',label:'达成？',x:820,y:330,info:'判定.achieved',r:'达成就交付，否则上报'},
+   {k:'exit',type:'子图端口',label:'出口 · 报告',x:1020,y:330,ins:EXIT_I,outs:[],info:'role=exit',r:'交出报告和判定'}],
+  edges:[
+   ['entry','out','brains','shared','目标作为每个智囊的共享输入'],
+   ['models','ref','brains','items','列表有几项就跑几份，每份换一个厂商'],
+   ['brains','results','decider','context','3 份独立方案交给决策者合并'],
+   ['decider','result','fmt','context','任务卡先统一格式'],
+   ['fmt','result','pool','items','任务卡列表逐张派给执行池'],
+   ['pool','results','orcCtx','in','执行结果先给编排者过目'],
+   ['orcCtx','context','orc','context','编排者只拿到装配好的上下文包'],
+   ['orc','result','dyn','ref','生成的图补丁作为子图运行'],
+   ['dyn','out','judge','context','子图产出交给验收者'],
+   ['judge','result','done','value','判定结果进入分支'],
+   ['done','yes','exit','in','达成则交出报告']]},
+ wr:{name:'周报自动生成',ask:'每周五下午自动汇总 Jira 和 Git 的进展，写一份周报，负责人确认后发邮件。',
+  think:[
+   '两个数据源互不依赖 → 并行拉取，再用汇合节点收拢',
+   '起草和评审分开，评审用另一家厂商的模型，避免自己审自己',
+   '发邮件是 L2 外部副作用 → 前面接人工审批'],
+  nodes:[
+   {k:'entry',type:'子图端口',label:'入口 · 周五 17:00',x:20,y:40,ins:[],outs:[['out','触发']],info:'定时事件',r:'每周五 17:00 由定时事件触发'},
+   {k:'jira',type:'工具',label:'拉取 Jira',x:220,y:20,risk:'L0',info:'本周已关闭的工单',r:'只读拉取本周关闭的工单'},
+   {k:'git',type:'工具',label:'拉取 Git 提交',x:220,y:180,risk:'L0',info:'main 分支本周提交',r:'只读拉取本周合并的提交'},
+   {k:'join',type:'汇合',label:'汇合',x:420,y:90,info:'等全部',r:'两路都到齐再往下'},
+   {k:'ctx',type:'上下文装配',label:'周报配方',x:620,y:90,info:'按项目分组 · 去重',r:'只放结构化摘要，原始提交信息转成指针'},
+   {k:'draft',type:'Agent',label:'起草周报',x:820,y:90,info:'输出 周报@1',r:'按模板起草'},
+   {k:'review',type:'Agent',label:'评审者（厂商 B）',x:1020,y:90,info:'输出 评审结论@1',r:'换一家厂商的模型评审，挑出遗漏和夸大'},
+   {k:'br',type:'分支',label:'通过？',x:220,y:360,info:'评审结论.pass',r:'不通过就退回（本次演示直接通过）'},
+   {k:'hum',type:'人工',label:'负责人审批',x:420,y:360,info:'超时 24h',r:'对外发送前让负责人过目'},
+   {k:'mail',type:'工具',label:'发送邮件',x:620,y:360,risk:'L2',info:'收件人白名单',r:'L2 工具，挂白名单策略'},
+   {k:'exit',type:'子图端口',label:'出口',x:820,y:360,ins:EXIT_I,outs:[],info:'role=exit',r:'记录发送结果'}],
+  edges:[
+   ['entry','out','jira','request','触发后拉取工单'],['entry','out','git','request','触发后拉取提交'],
+   ['jira','result','join','a','工单进汇合 a'],['git','result','join','b','提交进汇合 b'],
+   ['join','collected','ctx','in','汇总材料进配方'],['ctx','context','draft','context','起草者只看装配后的上下文'],
+   ['draft','result','review','context','草稿交给评审'],['review','result','br','value','评审结论进分支'],
+   ['br','yes','hum','request','通过后请负责人确认'],['hum','approved','mail','request','批准后发送'],['mail','result','exit','in','记录结果']]},
+ cr:{name:'代码评审',ask:'对这个 PR 的每个变更文件做代码评审，有严重问题要人工确认，否则直接发评论。',
+  think:[
+   '每个文件互相独立 → 扇出，并发 8，每份用便宜的小模型',
+   '按严重度分组是规则运算 → 聚合节点，不调模型',
+   '有严重问题才打扰人；发评论是 L2，挂频率限制'],
+  nodes:[
+   {k:'repo',type:'资源',label:'仓库 + 分支',x:20,y:40,info:'PR #482',r:'评审对象'},
+   {k:'list',type:'工具',label:'列出变更文件',x:220,y:40,risk:'L0',info:'direct 模式',r:'固定执行一次，拿到文件列表'},
+   {k:'fan',type:'扇出',label:'评审员 ×N',x:420,y:40,params:{concurrency:8},r:'每个文件一份，互相隔离'},
+   {k:'mdl',type:'资源',label:'小模型',x:420,y:220,info:'small-model',r:'逐文件评审，小模型足够'},
+   {k:'agg',type:'聚合',label:'按严重度分组',x:620,y:40,info:'op=group key=severity',r:'纯规则运算，结果可缓存'},
+   {k:'br',type:'分支',label:'有严重问题？',x:820,y:40,info:'count(high) > 0',r:'只有严重问题才需要人'},
+   {k:'hum',type:'人工',label:'人工确认',x:1020,y:40,info:'超时 4h',r:'严重问题由人拍板'},
+   {k:'post',type:'工具',label:'发评审评论',x:1020,y:220,risk:'L2',info:'频率 10/min',r:'L2，挂频率限制'}],
+  edges:[
+   ['repo','ref','list','request','仓库引用'],['list','result','fan','items','文件列表逐个展开'],
+   ['mdl','ref','fan','shared','每份评审员共用小模型'],['fan','results','agg','items','评审意见汇总'],
+   ['agg','result','br','value','分组结果进分支'],['br','yes','hum','request','有严重问题 → 人工'],
+   ['br','no','post','request','无严重问题 → 直接发'],['hum','approved','post','request','确认后发']]}
+};
+/* 运行时展开（竞品调研） */
+const EXP={name:'换数据源',
+ nodes:[
+  {k:'sub',type:'Agent',label:'子编排者',x:220,y:560,info:'只管这个子图',r:'由编排者创建，负责换数据源子图内部的调整'},
+  {k:'s1',type:'工具',label:'检索财报 / 招股书',x:420,y:560,risk:'L0',info:'只读',r:'官网和新闻稿都查过，改查公开财报中的单价披露'},
+  {k:'s2',type:'Agent',label:'估算成交价',x:620,y:560,info:'小模型 · 标注置信度',r:'用披露的营收和客户数估算，标为低置信度'},
+  {k:'s3',type:'工具',label:'发邮件询价',x:820,y:560,risk:'L2',info:'对外发送',r:'向 B 公司销售发询价邮件，获取一手报价'},
+  {k:'s4',type:'聚合',label:'合并来源',x:1020,y:560,info:'op=dedupe',r:'合并多个来源，保留来源指针'}],
+ edges:[['sub','result','s1','request'],['sub','result','s3','request'],['s1','result','s2','context'],['s2','result','s4','items'],['s3','result','s4','items']]};
+
+const MAND={
+ 0:{sum:'只能看图和留痕，<b>不能提出或修改</b>任何东西。',yaml:'mandate: 观察\nlevel: 0\nops: [read_graph, read_trace]'},
+ 1:{sum:'所有改动都变成<b>图补丁</b>，以虚线幽灵节点出现，需要你逐条采纳。',yaml:'mandate: 谨慎协作\nlevel: 1\nops: [propose]\napply: 人工采纳\nexpires: session'},
+ 2:{sum:'在<b>草稿图和动态子图</b>内直接改；工具上限 L1；删除和新增 L2 工具需审批。',yaml:'mandate: 部分授权\nlevel: 2\nscope: [草稿图/**, 动态子图/**]\nops: [add_node, connect, set_param, run]\ntools_max_risk: L1\nmodels: [小模型, 大模型]\nbudget: 200k tokens\nask: [remove_node, L2+ 工具]\ndelegate: 只能收窄\nexpires: session'},
+ 3:{sum:'全图可直接改；只有<b>例外项</b>（对外发送、删除节点）需审批。',yaml:'mandate: 高度授权\nlevel: 3\nscope: 全图\nops: all\ntools_max_risk: L3\nexcept: [对外发送, remove_node]\ndelegate: 只能收窄\nexpires: session'},
+ 4:{sum:'<b>与你同权</b>：可改任何层级（含自身所在层），可创建子编排者并下放完全权限。仍保留留痕、快照、急停。',yaml:'mandate: 完全授权\nlevel: 4\nscope: "**"\nops: all\nexcept: []\ndelegate: 可下放完全权限\nkeep: [留痕, 版本快照, 急停]'}
+};
+
+/* ================= 状态 ================= */
+const S={tpl:null,g:{nodes:[],edges:[]},level:1,patches:[],versions:[],curV:0,thoughts:[],tab:'patch',
+  recordedExp:null,recordedAppr:{},deleg:null,optim:null,lastRun:null,replay:null,auto:false,busy:false,sel:null,hl:null};
+let R={running:false};
+let zoom=1,pan={x:30,y:30};
+const world=$('world'),cv=$('cv');
+const byId=id=>S.g.nodes.find(n=>n.id===id);
+const clock=()=>{const d=new Date();return d.toTimeString().slice(0,8);};
+
+/* ================= 画布渲染 ================= */
+function infoOf(n){
+  if(n.params&&n.params.concurrency!=null) return '并发 '+n.params.concurrency;
+  if(n.params&&n.params.model) return '模型 '+n.params.model;
+  return n.info||'';
+}
+function stTxt(n){
+  if(n.status==='run') return n.sub||'运行中';
+  if(n.status==='done') return n.sub||'完成';
+  if(n.status==='wait') return n.sub||'挂起 · 等待审批';
+  if(n.status==='skip') return n.sub||'未触发';
+  if(n.diff==='mod') return n.modText||'将修改';
+  if(n.diff==='add') return '候选 · 新增';
+  if(n.diff==='del') return '候选 · 删除';
+  if(n.ghost) return '待采纳 · '+infoOf(n);
+  return infoOf(n);
+}
+function nodeHTML(n){
+  const P=portsOf(n),rows=Math.max(P.ins.length,P.outs.length,1);let a='',b='';
+  for(let i=0;i<rows;i++){
+    const p=P.ins[i],q=P.outs[i];
+    a+=p?'<div class="prow in'+(p[2]?' promo':'')+'"><span class="dot"></span>'+p[0]+'<em>'+p[1]+'</em></div>':'<div class="prow"></div>';
+    b+=q?'<div class="prow out"><em>'+q[1]+'</em>'+q[0]+'<span class="dot"></span></div>':'<div class="prow"></div>';
+  }
+  const c=['node','st-'+(n.status||'idle')];
+  if(n.ghost)c.push('ghost'); if(n.diff)c.push('d-'+n.diff); if(n.flash)c.push('flash');
+  if(S.sel===n.id)c.push('sel'); if(S.hl===n.id)c.push('hl');
+  const badge=n.by==='model'?'<span class="mb">模型</span>':'';
+  return '<div class="'+c.join(' ')+'" data-id="'+n.id+'" style="left:'+n.x+'px;top:'+n.y+'px">'+
+    '<div class="nh"><span class="nt">'+n.type+(n.risk?' · '+n.risk:'')+badge+'</span><span class="nl">'+n.label+'</span></div>'+
+    '<div class="np"><div>'+a+'</div><div>'+b+'</div></div>'+
+    '<div class="ns"><div class="bar"><i style="width:'+(n.prog||0)+'%"></i></div><span>'+stTxt(n)+'</span></div></div>';
+}
+function curve(a,b){
+  if(b[0]>=a[0]+30){const dx=Math.max(40,(b[0]-a[0])/2);return 'M'+a[0]+','+a[1]+' C'+(a[0]+dx)+','+a[1]+' '+(b[0]-dx)+','+b[1]+' '+b[0]+','+b[1];}
+  const midY=(a[1]+b[1])/2;
+  return 'M'+a[0]+','+a[1]+' C'+(a[0]+120)+','+a[1]+' '+(a[0]+120)+','+midY+' '+((a[0]+b[0])/2)+','+midY+' S'+(b[0]-120)+','+b[1]+' '+b[0]+','+b[1];
+}
+function edgeActive(e){const s=byId(e.f);return s&&s.status==='done'&&(!s.activeOut||s.activeOut===e.fp);}
+function edgesSVG(){
+  let h='',lab='';
+  const ex=S.g.nodes.filter(n=>n.group==='exp');
+  if(ex.length){
+    const x0=Math.min(...ex.map(n=>n.x))-18,y0=Math.min(...ex.map(n=>n.y))-34,x1=Math.max(...ex.map(n=>n.x+NW))+18,y1=Math.max(...ex.map(n=>n.y+nodeH(n)))+14;
+    const pend=ex.some(n=>n.ghost);
+    h+='<rect class="frame'+(pend?' pend':'')+'" x="'+x0+'" y="'+y0+'" width="'+(x1-x0)+'" height="'+(y1-y0)+'"/>';
+    h+='<text class="fl" x="'+(x0+10)+'" y="'+(y0+18)+'">动态子图 · '+EXP.name+'（编排者运行时生成'+(pend?'，待采纳':'')+'）</text>';
+    const d=S.g.nodes.find(n=>n.k==='dyn');
+    if(d) h+='<path class="edge ghost" d="M'+(d.x+NW/2)+','+(d.y+nodeH(d))+' L'+(d.x+NW/2)+','+y0+'"/>';
+  }
+  S.g.edges.forEach(e=>{
+    const A=byId(e.f),B=byId(e.t);if(!A||!B)return;
+    const a=portXY(A,e.fp,'out'),b=portXY(B,e.tp,'in');
+    let cls='edge';
+    if(e.diff)cls+=' d-'+e.diff; else if(e.ghost)cls+=' ghost'; else if(e.flow)cls+=' flow'; else if(edgeActive(e))cls+=' done';
+    h+='<path class="'+cls+'" d="'+curve(a,b)+'"/>';
+    const ty=(portsOf(A).outs.find(p=>p[0]===e.fp)||['',''])[1];
+    if(b[0]>=a[0]+30) lab+='<text class="el" text-anchor="middle" x="'+((a[0]+b[0])/2)+'" y="'+((a[1]+b[1])/2-5)+'">'+ty+'</text>';
+  });
+  return h+lab;
+}
+function render(){
+  world.innerHTML='<svg class="edges"><g transform="translate(3000,3000)" id="eg">'+edgesSVG()+'</g></svg>'+S.g.nodes.map(nodeHTML).join('');
+  S.g.nodes.forEach(n=>n.flash=false);
+  applyT(); updTop();
+}
+function drawEdges(){const g=$('eg');if(g)g.innerHTML=edgesSVG();}
+function upd(n){const el=world.querySelector('.node[data-id="'+n.id+'"]');if(!el)return;el.outerHTML=nodeHTML(n);n.flash=false;}
+function applyT(){world.style.transform='translate('+pan.x+'px,'+pan.y+'px) scale('+zoom+')';}
+function bbox(nodes){
+  if(!nodes.length) return null;
+  return {x0:Math.min(...nodes.map(n=>n.x)),y0:Math.min(...nodes.map(n=>n.y)),x1:Math.max(...nodes.map(n=>n.x+NW)),y1:Math.max(...nodes.map(n=>n.y+nodeH(n)))};
+}
+function fitBox(b){
+  if(!b) return; const W=cv.clientWidth,H=cv.clientHeight;
+  zoom=Math.max(.3,Math.min(1,(W-50)/(b.x1-b.x0),(H-60)/(b.y1-b.y0)));
+  pan.x=(W-(b.x1-b.x0)*zoom)/2-b.x0*zoom; pan.y=(H-(b.y1-b.y0)*zoom)/2-b.y0*zoom; applyT();
+}
+const fit=()=>fitBox(bbox(S.g.nodes));
+function toast(t){const el=$('toast');el.textContent=t;el.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(()=>el.style.display='none',2200);}
+
+/* ================= 画布交互 ================= */
+let drag=null;
+cv.addEventListener('pointerdown',e=>{
+  if(e.button!==0)return;
+  const ne=e.target.closest('.node');
+  if(ne){S.sel=ne.dataset.id;world.querySelectorAll('.node').forEach(x=>x.classList.toggle('sel',x.dataset.id===S.sel));
+    if(e.target.closest('.nh'))drag={k:'move',id:ne.dataset.id,x:e.clientX,y:e.clientY};return;}
+  drag={k:'pan',x:e.clientX,y:e.clientY};cv.classList.add('panning');
+});
+window.addEventListener('pointermove',e=>{
+  if(!drag)return;
+  if(drag.k==='pan'){pan.x+=e.clientX-drag.x;pan.y+=e.clientY-drag.y;drag.x=e.clientX;drag.y=e.clientY;applyT();}
+  else{const n=byId(drag.id);if(!n)return;n.x+=(e.clientX-drag.x)/zoom;n.y+=(e.clientY-drag.y)/zoom;drag.x=e.clientX;drag.y=e.clientY;
+    const el=world.querySelector('.node[data-id="'+n.id+'"]');if(el){el.style.left=n.x+'px';el.style.top=n.y+'px';}drawEdges();}
+});
+window.addEventListener('pointerup',()=>{drag=null;cv.classList.remove('panning');});
+cv.addEventListener('wheel',e=>{e.preventDefault();const r=cv.getBoundingClientRect(),sx=e.clientX-r.left,sy=e.clientY-r.top;
+  const wx=(sx-pan.x)/zoom,wy=(sy-pan.y)/zoom;zoom=Math.max(.3,Math.min(1.8,zoom*(e.deltaY<0?1.1:.9)));pan.x=sx-wx*zoom;pan.y=sy-wy*zoom;applyT();},{passive:false});
+cv.addEventListener('mousemove',e=>{
+  const tip=$('tip'),ne=e.target.closest('.node');
+  if(!ne||drag){tip.style.display='none';return;}
+  const n=byId(ne.dataset.id);if(!n){tip.style.display='none';return;}
+  let h='<b>'+n.label+'</b> <span class="mut">'+n.type+(n.patch?' · '+n.patch:'')+'</span>';
+  if(n.by==='model') h+='<div>模型理由：'+(n.reason||'—')+'</div>';
+  else h+='<div class="mut">由你创建</div>';
+  if(n.diff==='mod') h+='<div><b>修改</b>：'+n.modText+'<br>'+n.diffReason+'</div>';
+  if(n.diff==='add') h+='<div><b style="color:var(--page-teal)">新增</b>：'+n.diffReason+'</div>';
+  if(n.diff==='del') h+='<div><b style="color:var(--page-red)">删除</b>：'+n.diffReason+'</div>';
+  if(n.ghost) h+='<div class="mut">待采纳 · 在右侧补丁列表处理</div>';
+  tip.innerHTML=h;tip.style.display='block';
+  const r=cv.getBoundingClientRect();let x=e.clientX-r.left+14,y=e.clientY-r.top+14;
+  if(x+290>r.width)x=r.width-290; if(y+120>r.height)y=e.clientY-r.top-120;
+  tip.style.left=x+'px';tip.style.top=y+'px';
+});
+cv.addEventListener('mouseleave',()=>$('tip').style.display='none');
+
+/* ================= 补丁 ================= */
+let PID=0;
+const OPN={add_node:'新增节点',connect:'连线',set_param:'改参数',remove_node:'删除节点',remove_edge:'删除连线',expand:'展开子图'};
+const STN={pending:'待采纳',accepted:'已采纳',rejected:'已拒绝',applied:'已生效',undone:'已撤销',candidate:'候选'};
+function newPatch(o){const p=Object.assign({id:'P-'+String(++PID).padStart(2,'0'),state:'pending',at:clock()},o);S.patches.push(p);return p;}
+function mkNode(spec,extra){
+  const n=Object.assign({id:uid(),k:spec.k,type:spec.type,label:spec.label,x:spec.x,y:spec.y,info:spec.info,
+    params:spec.params?JSON.parse(JSON.stringify(spec.params)):null,ins:spec.ins,outs:spec.outs,risk:spec.risk,role:spec.role,
+    status:'idle',prog:0,by:'model',reason:spec.r},extra||{});
+  return n;
+}
+function keyNode(k){return S.g.nodes.find(n=>n.k===k&&n.group!=='exp')||null;}
+function acceptPatch(p,silent){
+  if(p.state!=='pending')return;
+  if(p.kind==='add_node'){const n=byId(p.nodeId);if(n)n.ghost=null;}
+  if(p.kind==='connect'){const e=S.g.edges.find(x=>x.id===p.edgeId);if(e){e.ghost=null;[e.f,e.t].forEach(id=>{const q=S.patches.find(x=>x.kind==='add_node'&&x.nodeId===id&&x.state==='pending');if(q)acceptPatch(q,true);});}}
+  p.state='accepted';
+  if(!silent){render();renderPanel();checkBatchDone(p.batch);}
+}
+function removeNodeAndEdges(id,state){
+  S.g.nodes=S.g.nodes.filter(n=>n.id!==id);
+  S.g.edges.filter(e=>e.f===id||e.t===id).forEach(e=>{const q=S.patches.find(x=>x.kind==='connect'&&x.edgeId===e.id&&(x.state==='pending'||x.state==='accepted'||x.state==='applied'));if(q)q.state=state;});
+  S.g.edges=S.g.edges.filter(e=>e.f!==id&&e.t!==id);
+}
+function rejectPatch(p,state){
+  state=state||'rejected';
+  if(p.kind==='add_node') removeNodeAndEdges(p.nodeId,state);
+  if(p.kind==='connect') S.g.edges=S.g.edges.filter(e=>e.id!==p.edgeId);
+  if(p.kind==='expand'){p.nodeIds.forEach(id=>{S.g.nodes=S.g.nodes.filter(n=>n.id!==id);});S.g.edges=S.g.edges.filter(e=>!p.nodeIds.includes(e.f)&&!p.nodeIds.includes(e.t)&&!p.edgeIds.includes(e.id));}
+  p.state=state;
+}
+function checkBatchDone(batch){
+  if(batch!=='设计时生成')return;
+  if(S.patches.some(x=>x.batch===batch&&x.state==='pending'))return;
+  const v=ensureVersion('设计时生成（模型）','模型 · 设计时');
+  ai('设计时补丁都处理完了，当前图存为 <span class="k">v'+v+'</span>。可以点「运行」。');
+}
+function acceptAll(){
+  const ps=S.patches.filter(p=>p.state==='pending'&&p.batch==='设计时生成');
+  if(!ps.length){ai('现在没有待采纳的补丁。');return;}
+  ps.forEach(p=>acceptPatch(p,true));render();renderPanel();ai('已全部采纳 '+ps.length+' 条补丁。');checkBatchDone('设计时生成');
+}
+function rejectAll(){
+  S.patches.filter(p=>p.state==='pending'&&p.batch==='设计时生成').forEach(p=>{if(p.state==='pending')rejectPatch(p);});
+  render();renderPanel();ai('已全部拒绝，画布上的幽灵节点已移除。');
+}
+function undoPatch(p){
+  if(R.running){toast('运行中不能撤销，先停止');return;}
+  rejectPatch(p,'undone');render();renderPanel();
+  log('根图','撤销 '+p.id+' '+OPN[p.kind]+' '+p.label,1);
+}
+
+/* ================= 版本 ================= */
+function snapG(){
+  return JSON.stringify({nodes:S.g.nodes.filter(n=>!n.ghost&&n.diff!=='add').map(n=>({id:n.id,k:n.k,type:n.type,label:n.label,x:Math.round(n.x),y:Math.round(n.y),info:n.info,params:n.params,ins:n.ins,outs:n.outs,risk:n.risk,role:n.role,group:n.group,by:n.by,reason:n.reason,patch:n.patch})),
+    edges:S.g.edges.filter(e=>!e.ghost&&e.diff!=='add').map(e=>({id:e.id,f:e.f,fp:e.fp,t:e.t,tp:e.tp}))});
+}
+function ensureVersion(label,src){
+  const s=snapG(),last=S.versions[S.versions.length-1];
+  const strip=x=>{const o=JSON.parse(x);o.nodes.forEach(n=>{delete n.x;delete n.y;});return JSON.stringify(o);};
+  if(last&&strip(last.snap)===strip(s)){S.curV=last.v;updTop();return last.v;}
+  const v=(last?last.v:0)+1;
+  S.versions.push({v,label,src,snap:s,at:clock(),count:JSON.parse(s).nodes.length,hasExp:JSON.parse(s).nodes.some(n=>n.group==='exp')});
+  S.curV=v;updTop();renderPanel();return v;
+}
+function loadVersion(v){
+  const ver=S.versions.find(x=>x.v===v);if(!ver)return;
+  const o=JSON.parse(ver.snap);
+  o.nodes.forEach(n=>{n.status='idle';n.prog=0;});
+  S.g={nodes:o.nodes,edges:o.edges};S.optim=null;S.curV=v;render();fit();renderPanel();
+}
+
+/* ================= 设计时生成 ================= */
+async function generate(key){
+  if(S.busy||R.running){toast('正在忙，稍等');return;}
+  const T=TPL[key];
+  addMsg('user',T.ask);
+  if(S.level===0){ai('当前是 <span class="k">档位 0 · 只读</span>，我只能看，不能出图。把档位调到 1 以上，我会以补丁的形式出图。');return;}
+  S.busy=true;S.tpl=key;S.g={nodes:[],edges:[]};S.patches=S.patches.filter(()=>false);S.versions=[];S.curV=0;
+  S.recordedExp=null;S.recordedAppr={};S.deleg=null;S.optim=null;S.lastRun=null;S.replay=null;S.thoughts=[];PID=0;
+  $('gname').textContent=T.name;$('log').innerHTML='';
+  render();setTab('think');
+  const ghost=S.level===1;
+  ai('收到。我按'+(ghost?'<span class="k">档位 1</span>出补丁，画布上会以虚线幽灵节点出现，你在右侧逐条采纳。':'<span class="k">档位 '+S.level+'</span>直接落图，每个节点都标了「模型」，补丁记录里能逐条撤销。'));
+  fitBox({x0:T.nodes.reduce((m,n)=>Math.min(m,n.x),1e9),y0:T.nodes.reduce((m,n)=>Math.min(m,n.y),1e9),x1:T.nodes.reduce((m,n)=>Math.max(m,n.x+NW),0),y1:T.nodes.reduce((m,n)=>Math.max(m,n.y+130),0)});
+  for(const t of T.think){addThought(t);await wait(380);}
+  setTab('patch');
+  const added=new Set(),eDone=new Set();
+  for(const spec of T.nodes){
+    const p=newPatch({batch:'设计时生成',kind:'add_node',label:spec.label,reason:spec.r,state:ghost?'pending':'applied'});
+    const n=mkNode(spec,{ghost:ghost?p.id:null,flash:true,patch:p.id});p.nodeId=n.id;S.g.nodes.push(n);added.add(spec.k);
+    T.edges.forEach((e,i)=>{
+      if(eDone.has(i)||!added.has(e[0])||!added.has(e[2]))return;eDone.add(i);
+      const A=keyNode(e[0]),B=keyNode(e[2]);
+      const pe=newPatch({batch:'设计时生成',kind:'connect',label:A.label+'.'+e[1]+' → '+B.label+'.'+e[3],reason:e[4]||'按类型连接',state:ghost?'pending':'applied'});
+      const ed={id:uid('e'),f:A.id,fp:e[1],t:B.id,tp:e[3],ghost:ghost?pe.id:null};pe.edgeId=ed.id;S.g.edges.push(ed);
+    });
+    render();renderPanel();await wait(260);
+  }
+  S.busy=false;
+  const np=S.patches.length;
+  if(ghost) ai('图补丁已生成：'+T.nodes.length+' 个节点、'+T.edges.length+' 条连线，共 '+np+' 条，等你采纳。悬停节点能看到我的理由。');
+  else{const v=ensureVersion('设计时生成（模型）','模型 · 设计时');ai('已直接落图（'+np+' 条补丁，已生效），存为 <span class="k">v'+v+'</span>。不想要的可以在补丁里单条撤销。');}
+  log('根图','编排者生成 '+np+' 条图补丁（档位 '+S.level+'）',1);
+}
+
+/* ================= 运行 ================= */
+const sleep=ms=>new Promise((res,rej)=>setTimeout(()=>R.stop?rej(new Error('stop')):res(),ms));
+function log(p,m,w){const el=$('log');const t=R.t0?((Date.now()-R.t0)/1000).toFixed(1):'0.0';
+  el.insertAdjacentHTML('beforeend','<div><span class="t">'+t.padStart(5,' ')+'s</span> <span class="p">'+p+'</span> <span class="'+(w?'w':'')+'">'+m+'</span></div>');el.scrollTop=el.scrollHeight;}
+function flowOut(n){S.g.edges.forEach(e=>{if(e.f===n.id&&(!n.activeOut||n.activeOut===e.fp)){e.flow=true;setTimeout(()=>{e.flow=false;drawEdges();},900);}});drawEdges();}
+function activeMain(){return S.g.nodes.filter(n=>!n.ghost&&n.diff!=='add'&&n.group!=='exp');}
+async function topo(nodes,path,ctx){
+  const ids=new Set(nodes.map(n=>n.id));
+  const inc=n=>S.g.edges.filter(e=>e.t===n.id&&ids.has(e.f)&&!e.ghost&&e.diff!=='add');
+  nodes.forEach(n=>{n.status='idle';n.prog=0;n.sub='';n.activeOut=null;upd(n);});drawEdges();
+  const done=new Set();let level=nodes.filter(n=>!inc(n).length);
+  while(level.length){
+    await Promise.all(level.map(n=>runNode(n,path,ctx,inc(n))));
+    level.forEach(n=>done.add(n.id));
+    level=nodes.filter(n=>!done.has(n.id)&&inc(n).every(e=>done.has(e.f)));
+  }
+}
+async function runNode(n,path,ctx,incE){
+  if(incE.length&&incE.every(e=>!edgeActive(e))){n.status='skip';upd(n);return;}
+  const p=path+'/'+n.label;
+  n.status='run';n.sub='';upd(n);$('mC').textContent=p;
+  const tk=k=>{R.tokens+=k;};
+  if(n.role==='orc'){await runOrc(n,p,ctx);}
+  else if(n.type==='子图引用'){await runDyn(n,p,ctx);}
+  else if(n.type==='Agent'){for(let i=1;i<=5;i++){await sleep(120);tk(160+Math.round(Math.random()*90));n.prog=i*20;n.sub='生成中 '+(i*20)+'%';upd(n);}n.sub='';log(p,'输出 '+(n.info||'结果').replace('输出 ',''));}
+  else if(n.type==='扇出'){
+    const N=n.k==='fan'?6:(n.k==='brains'?3:(n.k==='check'?2:4)),C=n.params&&n.params.concurrency?n.params.concurrency:3;
+    for(let i=1;i<=N;i++){await sleep(C>=N?200:360);tk(600);n.prog=i/N*100;n.sub=i+'/'+N+' 完成';upd(n);}
+    log(p,N+' 份完成（并发 '+C+'）');
+  }
+  else if(n.type==='分支'){
+    await sleep(220);let ok=true;
+    if(S.tpl==='jp'&&!ctx.expanded) ok=false;
+    if(n.k==='br'&&S.tpl==='cr') ok=true;
+    n.activeOut=ok?'yes':'no';n.sub=ok?'是 → yes':'否 → no';
+    log(p,ok?'判定通过':'判定未达成：缺 B 公司企业版价格',!ok);
+  }
+  else if(n.type==='人工'){
+    n.status='wait';n.sub='挂起 · 等待审批';upd(n);
+    const r=await ask({title:'「'+n.label+'」需要你确认',tag:'人工节点',body:'流程运行到人工节点，已挂起。<div class="mut">给你看的是摘要 + 证据指针，不推原文。</div>',
+      buttons:[{k:'approved',label:'批准',pri:1},{k:'rejected',label:'驳回'}]});
+    n.activeOut=r;n.sub=r==='approved'?'已批准':'已驳回';log(p,n.sub,r!=='approved');
+  }
+  else {await sleep(n.type==='工具'?320:240);tk(n.type==='工具'?60:20);}
+  n.status='done';n.prog=100;upd(n);R.n++;flowOut(n);
+}
+async function runOrc(n,p,ctx){
+  for(let i=1;i<=3;i++){await sleep(160);R.tokens+=220;n.prog=i*25;n.sub='读执行结果 '+i+'/3';upd(n);}
+  if(S.tpl!=='jp'){n.sub='无需调整';log(p,'执行结果完整，不生成补丁');return;}
+  const existing=S.g.nodes.some(x=>x.group==='exp');
+  log(p,'发现缺口：B 公司企业版价格未公开，官网和新闻稿都查过',1);
+  if(existing){n.sub='复用已有子图';log(p,'图中已有「'+EXP.name+'」子图，直接复用');ctx.expanded=true;return;}
+  if(S.replay&&S.recordedExp){
+    n.sub='回放 · 使用留痕补丁';
+    log(p,'回放：使用留痕中的运行时补丁 '+S.recordedExp.pid+'，不重新调用编排者',1);
+    applyExpansion(false,'applied',S.recordedExp.pid);ctx.expanded=true;await sleep(500);return;
+  }
+  if(S.level===0){n.sub='档位 0 · 无法改图';log(p,'档位 0（只读）：编排者不能改图，只记录建议',1);ai('编排者发现 B 公司数据查不到，但当前是档位 0，它只能记录建议，不能改图。');return;}
+  n.sub='生成补救子图…';upd(n);
+  addThought('运行中：B 公司企业版价格查不到；官网、新闻稿都已证伪');
+  addThought('补救思路：查财报估算（低置信度）+ 直接发邮件向销售询价（一手数据，需要 L2 工具）');
+  addThought('创建一个子编排者专管这个子图，权限按授权书下传');
+  await sleep(500);
+  if(S.level===1){
+    const r=await ask({title:'编排者提出运行时补丁',tag:'档位 1 · 需采纳',
+      body:'运行中发现 B 公司价格查不到，编排者想展开一个子图「'+EXP.name+'」（5 个节点）：<ul><li>子编排者</li><li>检索财报 / 招股书（L0）</li><li>估算成交价（小模型）</li><li>发邮件询价（<b>L2 对外发送</b>）</li><li>合并来源</li></ul><div class="mut">采纳后立刻展开并接着执行。</div>',
+      buttons:[{k:'ok',label:'采纳并继续',pri:1},{k:'no',label:'拒绝'}]});
+    if(r!=='ok'){n.sub='补丁被拒绝';log(p,'运行时补丁被拒绝',1);return;}
+    await applyExpansion(true,'accepted');
+  } else await applyExpansion(true,'applied');
+  ctx.expanded=true;n.sub='已展开子图';
+}
+async function applyExpansion(animate,state,pid){
+  const p=newPatch({batch:'运行时展开',kind:'expand',label:'动态子图 · '+EXP.name+'（'+EXP.nodes.length+' 节点）',
+    reason:'B 公司价格查不到：改查财报估算 + 发邮件询价，由子编排者管理',state:state,nodeIds:[],edgeIds:[]});
+  if(pid){p.id=pid+'·回放';p.reason='回放：照留痕重建，不重新调用模型';}
+  const map={};
+  for(const spec of EXP.nodes){
+    const n=mkNode(spec,{group:'exp',flash:true,patch:p.id});map[spec.k]=n;p.nodeIds.push(n.id);S.g.nodes.push(n);
+    if(animate){render();await sleep(220);}
+  }
+  EXP.edges.forEach(e=>{const ed={id:uid('e'),f:map[e[0]].id,fp:e[1],t:map[e[2]].id,tp:e[3]};p.edgeIds.push(ed.id);S.g.edges.push(ed);});
+  render();fit();
+  if(!pid){
+    S.recordedExp={pid:p.id};
+    const v=ensureVersion('运行时展开：'+EXP.name,'模型 · 运行时');
+    log('根图/编排者','展开子图「'+EXP.name+'」，存为 v'+v+'，补丁 '+p.id,1);
+    ai('运行中 B 公司价格查不到，编排者展开了子图「'+EXP.name+'」（补丁 <span class="k">'+p.id+'</span>，图存为 <span class="k">v'+v+'</span>）。它还创建了一个子编排者，权限见右侧「授权」。');
+    S.deleg=delegFor(S.level);
+  }
+  renderPanel();
+}
+function delegFor(L){
+  return {
+    1:{lv:1,t:'档位 1 · 只能建议',s:'子图内的任何调整都要回到你这里采纳'},
+    2:{lv:2,t:'档位 2 · 收窄',s:'范围：动态子图/换数据源/** · 工具 ≤ L1 · 预算 50k（父级 200k）'},
+    3:{lv:3,t:'档位 3 · 收窄',s:'范围：动态子图/** · 例外：对外发送 · 不能超过父级'},
+    4:{lv:4,t:'档位 4 · 完全授权（已下放）',s:'父级是完全授权，可以把完全权限原样交给子编排者'}
+  }[L]||null;
+}
+async function runDyn(n,p,ctx){
+  const ex=S.g.nodes.filter(x=>x.group==='exp'&&!x.ghost);
+  if(!ex.length){await sleep(250);n.sub='空子图 · 直接通过';log(p,'ref 端口没有收到图，子图为空',1);return;}
+  n.sub='执行子图 0/'+ex.length;upd(n);
+  const ids=new Set(ex.map(x=>x.id));
+  const inc=x=>S.g.edges.filter(e=>e.t===x.id&&ids.has(e.f));
+  ex.forEach(x=>{x.status='idle';x.prog=0;x.sub='';x.activeOut=null;upd(x);});
+  const done=new Set();let level=ex.filter(x=>!inc(x).length),k=0;
+  while(level.length){
+    await Promise.all(level.map(async x=>{await runExpNode(x,p+'/'+x.label,inc(x));k++;n.sub='执行子图 '+k+'/'+ex.length;n.prog=k/ex.length*100;upd(n);}));
+    level.forEach(x=>done.add(x.id));
+    level=ex.filter(x=>!done.has(x.id)&&inc(x).every(e=>done.has(e.f)));
+  }
+  n.sub='子图完成';
+}
+async function runExpNode(x,p,incE){
+  if(incE.length&&incE.every(e=>!edgeActive(e))){x.status='skip';upd(x);return;}
+  x.status='run';upd(x);$('mC').textContent=p;
+  if(x.risk==='L2'){
+    let need=null;
+    if(S.level===2) need='超出授权书：工具风险 L2 > 上限 L1';
+    if(S.level===3) need='命中授权书例外项：对外发送';
+    if(S.replay&&S.recordedAppr[x.label]){
+      const r=S.recordedAppr[x.label];log(p,'回放：使用留痕中的审批结果「'+(r==='ok'?'批准':'拒绝')+'」',1);
+      if(r!=='ok'){x.status='skip';x.sub='留痕：已拒绝';upd(x);return;}
+    } else if(need){
+      x.status='wait';x.sub='挂起 · 超出授权';upd(x);log(p,need+'，已挂起',1);
+      const r=await ask({title:'超出授权，已挂起',tag:'档位 '+S.level,
+        body:'子编排者要执行 <b>「'+x.label+'」</b>（L2 · 向 B 公司销售发一封询价邮件）。<div class="mut">'+need+'。其他分支继续运行，只有这个节点在等你。</div>',
+        buttons:[{k:'ok',label:'仅本次批准',pri:1},{k:'no',label:'拒绝'}]});
+      S.recordedAppr[x.label]=r;
+      if(r!=='ok'){x.status='skip';x.sub='已拒绝 · 跳过';upd(x);log(p,'审批拒绝，跳过该节点',1);return;}
+      x.status='run';x.sub='';upd(x);log(p,'已批准（仅本次），继续');
+    } else if(S.level===4) log(p,'完全授权：直接执行 L2 工具（已留痕）',1);
+  }
+  for(let i=1;i<=4;i++){await sleep(x.type==='Agent'?150:110);R.tokens+=x.type==='Agent'?200:50;x.prog=i*25;upd(x);}
+  x.status='done';x.prog=100;x.sub=x.k==='s3'?'B 公司回复：¥128/人/月':(x.k==='s2'?'估算 ¥110–140（低置信度）':'');upd(x);R.n++;
+  log(p,x.k==='s3'?'收到一手报价':(x.k==='s4'?'合并 2 个来源，保留指针':'完成'));
+  flowOut(x);
+}
+async function run(opts){
+  opts=opts||{};
+  if(R.running){R.stop=true;answer('no');return;}
+  if(!S.g.nodes.length){ai('画布是空的，先从左边提一个需求。');return;}
+  if(S.busy){toast('正在生成，稍等');return;}
+  const gh=S.g.nodes.filter(n=>n.ghost).length;
+  if(gh) ai('还有 '+gh+' 个幽灵节点没处理，它们不参与这次运行。');
+  if(S.optim) ai('优化候选还没决定，本次按当前图运行。');
+  if(!opts.replay){S.replay=null;ensureVersion('运行前快照','你 · 运行');}
+  R={running:true,stop:false,t0:Date.now(),tokens:0,n:0};
+  $('log').innerHTML='';
+  S.g.nodes.forEach(n=>{n.status='idle';n.prog=0;n.sub='';n.activeOut=null;});render();
+  $('bRun').textContent='停止';$('bRun').className='tbtn stop';
+  $('mV').textContent='v'+S.curV+(opts.replay?'（留痕）':'');
+  updTop();
+  const tm=setInterval(meter,100);
+  log('根图','开始运行 · 使用图 v'+S.curV+(opts.replay?'（回放：使用留痕中的图 v'+S.curV+'）':'')+' · 档位 '+S.level);
+  let ok=true;const ctx={};
+  try{await topo(activeMain(),'根图',ctx);}catch(e){ok=false;}
+  clearInterval(tm);meter();
+  R.running=false;$('bRun').textContent='运行';$('bRun').className='tbtn run';
+  const exit=S.g.nodes.find(n=>n.k==='exit'&&n.group!=='exp');
+  const achieved=exit?exit.status==='done':true;
+  $('mC').textContent=ok?(achieved?'运行完成':'运行结束 · 未达成'):'已停止';
+  if(ok){
+    S.lastRun={v:S.curV,time:(Date.now()-R.t0)/1000,tokens:R.tokens,achieved};
+    ai(opts.replay?'回放完成：使用留痕中的图 <span class="k">v'+S.curV+'</span>，编排者没有重新生成，结果可复现。':
+      (achieved?'运行完成，'+R.n+' 次节点执行，约 '+(R.tokens/1000).toFixed(1)+'k tokens。'+(S.tpl==='jp'?'可以点「运行后优化」，让编排者读留痕提改进。':''):'运行结束但验收没达成。'));
+  } else ai('已停止运行。');
+  renderPanel();
+}
+function meter(){$('mT').textContent=((Date.now()-R.t0)/1000).toFixed(1)+'s';$('mK').textContent=(R.tokens/1000).toFixed(1)+'k';$('mN').textContent=R.n;}
+async function replay(v){
+  if(R.running||S.busy)return;
+  loadVersion(v);S.replay=v;updTop();
+  ai('回放 <span class="k">v'+v+'</span>：按留痕里的图和补丁重跑，编排者不会重新生成。');
+  await run({replay:true});
+}
+
+/* ================= 审批弹窗 ================= */
+let pend=null;
+function ask(o){
+  return new Promise(res=>{
+    pend={res};
+    $('mdTitle').textContent=o.title;$('mdTag').textContent=o.tag||'挂起中';$('mdBody').innerHTML=o.body;
+    $('mdFoot').innerHTML=(S.auto?'<span class="auto">演示中，1.5 秒后自动选择「'+o.buttons[0].label+'」</span>':'')+
+      o.buttons.map(b=>'<button class="btn'+(b.pri?' pri':'')+'" data-a="'+b.k+'">'+b.label+'</button>').join('');
+    $('mask').classList.add('on');
+    if(S.auto) setTimeout(()=>answer(o.buttons[0].k),1500);
+  });
+}
+function answer(k){if(!pend)return;const p=pend;pend=null;$('mask').classList.remove('on');p.res(k);}
+$('mdFoot').addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(b)answer(b.dataset.a);});
+
+/* ================= 运行后优化与评测 ================= */
+async function optimize(){
+  if(R.running||S.busy){toast('先等运行结束');return;}
+  addMsg('user','运行后优化');
+  if(S.tpl!=='jp'){ai('这张图的留痕里没有明显瓶颈。（演示里只给「竞品定价调研」准备了优化样例）');return;}
+  if(!S.lastRun){ai('先运行一次，我需要留痕才能分析。');return;}
+  if(S.level===0){ai('档位 0 只读：我能读留痕，但不能提补丁。调到 1 以上再试。');return;}
+  if(S.optim){ai('已经有一份优化候选在评测里了。');setTab('eval');return;}
+  if(S.g.nodes.some(n=>n.k==='check')){ai('这张图已经是优化后的版本，留痕里没有新的瓶颈。');return;}
+  S.busy=true;setTab('think');
+  const th=['读留痕：执行池并发 3，检索工具排队 41s，是最大瓶颈',
+    '「格式转换」耗时占 18%，输出和输入结构一致，没有增益 → 建议删除',
+    '验收者和智囊同厂商，抽检发现 1 条编造的价格没被识别 → 换厂商 B',
+    '加一个 20% 的抽检扇出，按指针回取原文核对关键数字',
+    '生成候选图，在 10 个用例的评测集上和当前图对比'];
+  for(const t of th){addThought(t);await wait(420);}
+  const pool=keyNode('pool'),judge=keyNode('judge'),fmt=keyNode('fmt'),done=keyNode('done'),dec=keyNode('decider');
+  const base=S.curV;
+  S.optim={base,phase:'eval',prog:0,patches:[]};
+  const P=(o)=>{const p=newPatch(Object.assign({batch:'运行后优化',state:'candidate'},o));S.optim.patches.push(p);return p;};
+  pool.diff='mod';pool.modText='并发 3 → 5';pool.diffReason='检索排队 41s，提高并发';
+  P({kind:'set_param',label:'执行池.concurrency 3 → 5',reason:'检索工具排队 41s，是最大瓶颈'});
+  judge.diff='mod';judge.modText='模型 厂商 A → 厂商 B';judge.diffReason='与智囊不同厂商，减少同源盲点';
+  P({kind:'set_param',label:'验收者.model 厂商 A → 厂商 B',reason:'抽检发现 1 条编造价格未被识别'});
+  fmt.diff='del';fmt.diffReason='输出与输入结构一致，耗时 18% 无增益';
+  P({kind:'remove_node',label:'格式转换',reason:'耗时占 18%，没有增益'});
+  S.g.edges.forEach(e=>{if(e.f===fmt.id||e.t===fmt.id)e.diff='del';});
+  const ed1={id:uid('e'),f:dec.id,fp:'result',t:pool.id,tp:'items',diff:'add'};S.g.edges.push(ed1);
+  P({kind:'connect',label:'决策者.result → 执行池.items',reason:'删掉格式转换后直连'});
+  const chk=mkNode({k:'check',type:'扇出',label:'抽检 20%',x:620,y:330,info:'按指针回取原文',r:'按 20% 抽检回取原文核对关键数字'},{diff:'add',diffReason:'抽检关键数字，拦截编造',flash:true});
+  S.g.nodes.push(chk);
+  P({kind:'add_node',label:'抽检 20%',reason:'拦截编造数据'});
+  const old=S.g.edges.find(e=>e.f===judge.id&&e.t===done.id);if(old)old.diff='del';
+  P({kind:'remove_edge',label:'验收者 → 达成？',reason:'改为经过抽检'});
+  S.g.edges.push({id:uid('e'),f:judge.id,fp:'result',t:chk.id,tp:'items',diff:'add'});
+  S.g.edges.push({id:uid('e'),f:chk.id,fp:'results',t:done.id,tp:'value',diff:'add'});
+  P({kind:'connect',label:'验收者 → 抽检 → 达成？',reason:'判定先过抽检'});
+  render();fit();
+  ai('我读了 v'+base+' 的留痕，提出 7 条优化补丁（画布上：<span class="k">青</span>新增、<span class="k" style="color:var(--page-red)">红</span>删除、<span class="k" style="color:var(--page-amber)">橙</span>修改）。正在评测集上对比新旧两版，结果在「评测」页。');
+  setTab('eval');
+  for(let i=1;i<=10;i++){await wait(260);S.optim.prog=i;renderPanel();}
+  S.optim.phase='done';S.busy=false;renderPanel();
+  ai('评测完成：候选图验收得分 0.92（当前 0.78），耗时少 34%，tokens 多 6%（抽检带来的）。你来选采纳哪版。');
+}
+const EVAL={old:{score:.78,pass:7,time:'6:12',tok:412,cost:3.10,cases:[1,1,0,1,1,0,1,1,0,1]},nw:{score:.92,pass:9,time:'4:05',tok:438,cost:3.30,cases:[1,1,1,1,1,0,1,1,1,1]}};
+function adopt(){
+  if(!S.optim||S.optim.phase!=='done')return;
+  const pool=keyNode('pool'),judge=keyNode('judge'),fmt=keyNode('fmt');
+  pool.params.concurrency=5;judge.params.model='厂商 B';
+  S.g.nodes=S.g.nodes.filter(n=>n.diff!=='del');
+  S.g.edges=S.g.edges.filter(e=>e.diff!=='del'&&byId(e.f)&&byId(e.t));
+  S.g.nodes.forEach(n=>{if(n.diff){n.by='model';n.reason=n.diffReason;}n.diff=null;n.modText=null;});
+  S.g.edges.forEach(e=>e.diff=null);
+  const chk=keyNode('check');if(chk){chk.by='model';chk.reason='按 20% 抽检回取原文核对关键数字';}
+  if(fmt) void 0;
+  S.optim.patches.forEach(p=>p.state='applied');
+  const v=ensureVersion('运行后优化：并发 5 · 验收换厂商 · 抽检 · 去掉格式转换','模型 · 运行后');
+  S.optim=null;render();renderPanel();
+  ai('已采纳新版，存为 <span class="k">v'+v+'</span>。旧版 v'+(v-1>0?v-1:1)+' 还在版本列表里，可以随时载入或回放。');
+}
+function keepOld(){
+  if(!S.optim)return;
+  S.g.nodes=S.g.nodes.filter(n=>n.diff!=='add');
+  S.g.edges=S.g.edges.filter(e=>e.diff!=='add');
+  S.g.nodes.forEach(n=>{n.diff=null;n.modText=null;});S.g.edges.forEach(e=>e.diff=null);
+  S.optim.patches.forEach(p=>p.state='rejected');S.optim=null;render();renderPanel();
+  ai('保留当前版本 v'+S.curV+'，候选补丁已标为拒绝（仍在补丁记录里）。');
+}
+
+/* ================= 面板 ================= */
+function addThought(t){S.thoughts.push({t,at:clock()});if(S.tab==='think')renderPanel();}
+function setTab(t){S.tab=t;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));renderPanel();}
+$('tabs').addEventListener('click',e=>{const b=e.target.closest('.tab');if(b)setTab(b.dataset.t);});
+function renderPanel(){
+  $('lvSum').innerHTML=MAND[S.level].sum;
+  const np=S.patches.filter(p=>p.state==='pending'||p.state==='candidate').length;
+  $('nPatch').textContent=np?np:'';$('nVer').textContent=S.versions.length?S.versions.length:'';
+  const tb=$('tbody');let h='';
+  if(S.tab==='patch'){
+    if(!S.patches.length) h='<div class="empty">编排者产出的每一处改动都会变成一条图补丁，出现在这里：操作、目标、理由、状态。<br><br>档位 1 时补丁要你采纳；档位 2 以上直接生效，但每条都能撤销。</div>';
+    ['设计时生成','运行时展开','运行后优化'].forEach(b=>{
+      const ps=S.patches.filter(p=>p.batch===b);if(!ps.length)return;
+      const pn=ps.filter(p=>p.state==='pending').length;
+      h+='<div class="bh"><b>'+b+'</b><span class="c">'+ps.length+' 条'+(pn?' · '+pn+' 待采纳':'')+'</span><span class="sp"></span>'+
+        (pn&&b==='设计时生成'?'<button class="btn sm pri" data-act="all">全部采纳</button><button class="btn sm" data-act="none">全部拒绝</button>':'')+
+        (b==='运行后优化'&&S.optim?'<button class="btn sm" data-act="toeval">去评测</button>':'')+'</div>';
+      ps.forEach(p=>{
+        let acts='';
+        if(p.state==='pending')acts='<button class="btn sm pri" data-act="ok" data-p="'+p.id+'">采纳</button><button class="btn sm" data-act="no" data-p="'+p.id+'">拒绝</button>';
+        else if((p.state==='applied'||p.state==='accepted')&&['add_node','connect','expand'].includes(p.kind)&&p.batch!=='运行后优化')acts='<button class="btn sm ghost" data-act="undo" data-p="'+p.id+'">撤销</button>';
+        h+='<div class="pt s-'+p.state+'" data-hp="'+(p.nodeId||'')+'"><div class="l1"><span class="pk k-'+p.kind+'">'+OPN[p.kind]+'</span><b title="'+p.label+'">'+p.label+'</b><span class="st">'+p.id+' · '+STN[p.state]+'</span></div>'+
+          '<div class="pr">模型理由：'+p.reason+'</div>'+(acts?'<div class="pa">'+acts+'</div>':'')+'</div>';
+      });
+    });
+  }
+  if(S.tab==='think'){
+    if(!S.thoughts.length) h='<div class="empty">编排者的推理要点会显示在这里，方便你判断它为什么这样搭。</div>';
+    S.thoughts.forEach((t,i)=>{h+='<div class="th'+(i===S.thoughts.length-1?' cur':'')+'"><span class="tt">'+t.at+'</span>'+t.t+'</div>';});
+  }
+  if(S.tab==='auth'){
+    h+='<div class="sec">当前授权书（档位 '+S.level+' · '+LVNAME[S.level]+'）</div><pre class="yaml">'+MAND[S.level].yaml+'</pre>';
+    h+='<div class="sec">授权下传</div><div class="dl">';
+    h+='<div class="db me"><b>你</b><span class="s">全部权限 · 能随时改档位和急停</span></div><div class="dc">授予</div>';
+    h+='<div class="db orc"><b>编排者</b><span class="s">档位 '+S.level+' · '+LVNAME[S.level]+'</span></div><div class="dc">'+(S.deleg?'下放':'运行时如需要再创建')+'</div>';
+    h+=S.deleg?'<div class="db"><b>子编排者</b>（管理「'+EXP.name+'」）<span class="s">'+S.deleg.t+'</span><span class="s">'+S.deleg.s+'</span></div>':'<div class="db none">子编排者 · 尚未创建</div>';
+    h+='</div><div class="note">授权只能往下传。档位 ≤ 3 时，子编排者拿到的权限只能比父级更窄；档位 4 时，可以把完全权限原样下放。不管哪个档位，留痕、版本快照和急停都在你手里。</div>';
+  }
+  if(S.tab==='ver'){
+    if(!S.versions.length) h='<div class="empty">每次模型生成、运行时展开、运行后优化都会存一个版本。回放时用记录下来的图和补丁重跑，结果可复现。</div>';
+    S.versions.slice().reverse().forEach(v=>{
+      h+='<div class="vr'+(v.v===S.curV?' cur':'')+'"><div class="l1"><span class="v">v'+v.v+'</span><span class="lab">'+v.label+'</span></div>'+
+        '<div class="meta">'+v.src+' · '+v.at+' · '+v.count+' 节点'+(v.hasExp?' · 含展开子图':'')+(v.v===S.curV?' · 当前':'')+'</div>'+
+        '<div class="pa"><button class="btn sm" data-act="load" data-v="'+v.v+'">载入</button><button class="btn sm pri" data-act="replay" data-v="'+v.v+'">回放</button></div></div>';
+    });
+  }
+  if(S.tab==='eval'){
+    const o=S.optim;
+    if(!o) h='<div class="empty">运行一次后点「运行后优化」：编排者读留痕、提出优化补丁，并在评测集上把新旧两版跑一遍对比，由你决定采纳哪版。</div>';
+    else{
+      h+='<div class="sec">评测集：竞品定价 10 个用例 · 旧图 v'+o.base+' vs 候选图</div>';
+      h+='<div class="pbar"><i style="width:'+(o.prog*10)+'%"></i></div>';
+      const cs=(arr)=>'<div class="cases">'+arr.map((c,i)=>'<span class="'+(i<o.prog?(c?'ok':'ng'):'')+'">'+(i+1)+'</span>').join('')+'</div>';
+      h+='<div class="sec">旧图 v'+o.base+'</div>'+cs(EVAL.old.cases)+'<div class="sec">候选图</div>'+cs(EVAL.nw.cases);
+      if(o.phase==='done'){
+        const a=EVAL.old,b=EVAL.nw;
+        h+='<table class="ev"><tr><th>指标</th><th>旧图 v'+o.base+'</th><th>候选图</th></tr>'+
+          '<tr><td>验收得分</td><td>'+a.score+'</td><td class="better">'+b.score+'</td></tr>'+
+          '<tr><td>通过用例</td><td>'+a.pass+'/10</td><td class="better">'+b.pass+'/10</td></tr>'+
+          '<tr><td>平均耗时</td><td>'+a.time+'</td><td class="better">'+b.time+'</td></tr>'+
+          '<tr><td>tokens</td><td>'+a.tok+'k</td><td class="worse">'+b.tok+'k</td></tr>'+
+          '<tr><td>成本</td><td>¥'+a.cost.toFixed(2)+'</td><td class="worse">¥'+b.cost.toFixed(2)+'</td></tr></table>';
+        h+='<div style="display:flex;gap:6px"><button class="btn pri" data-act="adopt">采纳候选图</button><button class="btn" data-act="keep">保留旧图</button></div>';
+        h+='<div class="note">采纳就等于你批准这批 7 条补丁（含 1 条删除）。档位 4 下也可以让模型自己按评测结果采纳，这里演示由你来选。</div>';
+      } else h+='<div class="empty">评测中… '+o.prog+'/10</div>';
+    }
+  }
+  tb.innerHTML=h;
+}
+$('tbody').addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act;const p=S.patches.find(x=>x.id===b.dataset.p);
+  if(a==='ok'&&p)acceptPatch(p);
+  if(a==='no'&&p){rejectPatch(p);render();renderPanel();}
+  if(a==='undo'&&p)undoPatch(p);
+  if(a==='all')acceptAll();
+  if(a==='none')rejectAll();
+  if(a==='toeval')setTab('eval');
+  if(a==='adopt')adopt();
+  if(a==='keep')keepOld();
+  if(a==='load'){if(R.running)return;loadVersion(+b.dataset.v);S.replay=null;updTop();ai('已载入 v'+b.dataset.v+'。');}
+  if(a==='replay')replay(+b.dataset.v);
+});
+$('tbody').addEventListener('mouseover',e=>{const t=e.target.closest('[data-hp]');const id=t?t.dataset.hp:null;if(id===S.hl)return;
+  const prev=S.hl;S.hl=id||null;[prev,S.hl].forEach(x=>{const n=x&&byId(x);if(n)upd(n);});});
+
+/* ================= 档位 / 顶栏 ================= */
+function setLevel(L,say){
+  S.level=L;$('lvSel').value=String(L);updTop();renderPanel();
+  if(say) ai('档位改为 <span class="k">'+L+' · '+LVNAME[L]+'</span>：'+MAND[L].sum.replace(/<[^>]+>/g,''));
+}
+$('lvSel').addEventListener('change',e=>setLevel(+e.target.value,true));
+function updTop(){
+  const t=$('topLv');t.textContent='档位 '+S.level+' · '+LVNAME[S.level];t.className='pill '+(S.level===0?'':(S.level>=4?'am':'te'));
+  $('vtag').textContent=S.curV?'v'+S.curV:'未保存版本';$('vtag').className='pill'+(S.curV?' te':'');
+  const r=$('rtag');if(S.replay){r.style.display='';r.textContent='回放 · 使用留痕中的图 v'+S.replay;}else r.style.display='none';
+}
+$('bFit').onclick=fit;
+$('bZi').onclick=()=>{zoom=Math.min(1.8,zoom*1.15);applyT();};
+$('bZo').onclick=()=>{zoom=Math.max(.3,zoom/1.15);applyT();};
+$('bRun').onclick=()=>run();
+$('bOpt').onclick=()=>optimize();
+$('bStop').onclick=()=>{
+  if(R.running){R.stop=true;answer('no');}
+  setLevel(0);
+  ai('<b style="color:var(--page-red)">急停</b>：运行已停止，档位降到 0（只读）。急停只在你手里，模型拿到完全授权也关不掉。');
+};
+
+/* ================= 对话 ================= */
+function addMsg(role,html){
+  const m=document.createElement('div');m.className='msg '+role;
+  m.innerHTML='<div class="who">'+(role==='ai'?'编排者':'我')+'</div><div class="bd">'+html+'</div>';
+  $('msgs').appendChild(m);$('msgs').scrollTop=$('msgs').scrollHeight;return m;
+}
+const ai=h=>addMsg('ai',h);
+const PRE=[['jp','竞品定价调研'],['wr','周报自动生成'],['cr','代码评审']];
+$('presets').insertAdjacentHTML('beforeend',PRE.map(p=>'<button class="chip" data-k="'+p[0]+'">'+p[1]+'</button>').join(''));
+$('presets').addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(b)generate(b.dataset.k);});
+function send(){
+  const ta=$('ta'),t=ta.value.trim();if(!t)return;ta.value='';
+  if(/竞品|定价|价格/.test(t)){generate('jp');return;}
+  if(/周报/.test(t)){generate('wr');return;}
+  if(/评审|代码|PR/i.test(t)){generate('cr');return;}
+  addMsg('user',t.replace(/</g,'&lt;'));
+  if(/全部采纳/.test(t)){acceptAll();return;}
+  if(/优化/.test(t)){$('msgs').lastChild.remove();optimize();return;}
+  if(/回放/.test(t)){if(S.versions.length)replay(S.versions[S.versions.length-1].v);else ai('还没有版本可以回放。');return;}
+  if(/停止/.test(t)){if(R.running)run();else ai('当前没有在运行。');return;}
+  if(/运行|跑/.test(t)){run();return;}
+  ai('这个原型里我能识别：<span class="k">竞品定价 / 周报 / 代码评审</span>（出图）、<span class="k">全部采纳</span>、<span class="k">运行</span>、<span class="k">运行后优化</span>、<span class="k">回放</span>、<span class="k">停止</span>。');
+}
+$('send').onclick=send;
+$('ta').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});
+
+/* ================= 演示脚本 ================= */
+async function demo(){
+  if(S.busy||R.running||S.auto)return;
+  S.auto=true;$('bDemo').disabled=true;$('bDemo').textContent='演示进行中…';
+  try{
+    setLevel(1);
+    ai('<b>演示开始</b>。第 1 步：档位 1（建议），提一个需求，编排者出补丁。');
+    await wait(700);await generate('jp');
+    await wait(1400);ai('第 2 步：检查完补丁，全部采纳。');await wait(600);acceptAll();
+    await wait(1200);ai('第 3 步：运行前把档位调到 2（部分授权）：编排者可以在动态子图里直接改，但工具上限 L1。');
+    await wait(600);setLevel(2);
+    await wait(900);ai('第 4 步：运行。注意编排者节点：它会在运行中发现缺口并展开子图；发邮件是 L2，超出授权会挂起。');
+    await wait(700);await run();
+    await wait(1200);ai('第 5 步：运行后优化，编排者读留痕提补丁，并在评测集上对比新旧两版。');
+    await wait(500);await optimize();
+    await wait(1600);ai('第 6 步：评测结果更好，采纳候选图。');await wait(600);adopt();
+    await wait(1200);ai('第 7 步：用留痕回放最新版本，验证可复现。');
+    setTab('ver');await wait(700);
+    await replay(S.versions[S.versions.length-1].v);
+    await wait(500);ai('<b>演示结束</b>。你可以换档位重试：档位 1 时运行时补丁要你采纳；档位 4 时发邮件直接执行；档位 0 时编排者只能看。');
+  }catch(err){ai('演示中断：'+err.message);}
+  S.auto=false;$('bDemo').disabled=false;$('bDemo').textContent='演示脚本：完整走一遍';
+}
+$('bDemo').onclick=demo;
+
+/* ================= 初始化 ================= */
+ai('我是编排者。你描述需求，我把它编成一张节点图。我做的每一处改动都是一条<b>图补丁</b>：带理由、能撤销、受右上角的授权档位约束。');
+ai('先从下面选一个预设需求试试，或者直接点顶部的「演示脚本」。');
+setLevel(1);render();renderPanel();
+window.addEventListener('resize',()=>{applyT();});
+</script>
+</body>
+</html>

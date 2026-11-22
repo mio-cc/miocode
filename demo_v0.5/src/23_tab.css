@@ -1,0 +1,35 @@
+/* ===== 23_tab.css · 回复气泡与输入框上的"小标签"、流动线条、新建会话修正（demo v0.5.11） ===== */
+
+/* ---------- 小标签：从边框上长出来的一截，两侧是内凹的圆弧，和所在面板是同一块材质 ---------- */
+.hx-tail{display:none !important}
+.hx-tab{position:absolute;top:-13px;z-index:4;width:48px;height:14px;padding:0;border:0;display:block;cursor:pointer;color:var(--hx-text-3);
+  background:var(--hx-glass);-webkit-backdrop-filter:blur(16px) saturate(1.6);backdrop-filter:blur(16px) saturate(1.6);
+  clip-path:path("M0 14C6.8 14 8 12 9.5 8.6L11 5.2C12.4 2 14.6 0 18 0H30C33.4 0 35.6 2 37 5.2L38.5 8.6C40 12 41.2 14 48 14Z");
+  transition:transform .3s cubic-bezier(.22,1,.36,1),color .2s ease}
+.hx-tab[hidden]{display:none}
+.hx-tab.is-comp{right:28px}
+.hx-tab.is-bub{right:18px}
+.hx-tab__ln{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.hx-tab__ln path{fill:none;stroke:color-mix(in srgb,var(--hx-text-1) 10%,transparent);stroke-width:1;transition:stroke .25s ease}
+.hx-tab__ic{position:absolute;left:19px;top:4px;width:10px;height:6px;overflow:visible}
+.hx-tab__ic path{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.hx-tab:hover{color:var(--hx-text-1);transform:translateY(-1px)}
+.hx-tab:hover .hx-tab__ln path{stroke:color-mix(in srgb,var(--hx-accent) 60%,transparent)}
+.hx-tab:focus-visible{outline:0;color:var(--hx-text-1)}
+.hx-tab:focus-visible .hx-tab__ln path{stroke:var(--hx-accent)}
+.hx-tab__dot{position:absolute;left:31px;top:3px;width:4px;height:4px;border-radius:50%;background:var(--hx-model);opacity:0;transform:scale(.3);transition:all .25s ease}
+.hx-tab.is-new .hx-tab__dot{opacity:1;transform:none}
+.hx-l4 .hx-float .hx-msg{position:relative;overflow:visible}
+.hx-l4 .hx-float .hx-msg:not(:last-child) .hx-tab{display:none}
+
+/* ---------- 流动线条 ---------- */
+.hx-flowline{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:30;overflow:visible;opacity:0;transition:opacity .25s ease}
+.hx-flowline.is-on{opacity:1;transition:none}
+.hx-flowline path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.hx-flowline .l{stroke:var(--hx-accent);stroke-width:1.6}
+.hx-flowline .g{stroke:var(--hx-accent);stroke-width:7;opacity:.18;filter:blur(3px)}
+
+/* ---------- 新建会话：图标固定 14px，文字居中 ---------- */
+.hx-ls__newbtn svg{width:14px !important;height:14px !important;flex:none !important;margin:0 !important}
+.hx-ls__newbtn>[data-ic]{display:inline-grid !important;place-items:center;width:14px !important;height:14px !important;flex:none !important}
+.hx-ls__newbtn{white-space:nowrap;overflow:hidden;position:relative}

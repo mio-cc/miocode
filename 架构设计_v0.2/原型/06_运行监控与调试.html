@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Harness · 运行与观测</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --page-bg:#14161b;--page-panel:#1b1e25;--page-panel2:#222630;--page-line:#2d313b;--page-line2:#3a3f4b;
+  --page-text:#e6e4df;--page-muted:#8b8f98;--page-amber:#f0a83c;--page-teal:#5bb8a9;--page-red:#e5646a;
+  --page-sans:'Noto Sans SC','Microsoft YaHei','PingFang SC',sans-serif;
+  --page-mono:'JetBrains Mono',Consolas,monospace;
+  --page-grey:#5d6270;--page-cancel:#9b4a4f;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--page-bg);color:var(--page-text);font-family:var(--page-sans);font-size:13px;overflow:hidden}
+button,select{font-family:inherit;font-size:12.5px}
+button{cursor:pointer}
+.mono{font-family:var(--page-mono)}
+.app{display:flex;flex-direction:column;height:100vh;min-width:0}
+.topbar{height:48px;flex:none;display:flex;align-items:center;padding:0 18px;border-bottom:1px solid var(--page-line);background:#111317}
+.topbar b{font-size:14.5px;font-weight:700}
+.topbar a{color:var(--page-muted);text-decoration:none;font-size:13px}
+.topbar a:hover{color:var(--page-text)}
+.sp{flex:1}
+.desc{flex:none;padding:7px 18px;color:var(--page-muted);border-bottom:1px solid var(--page-line);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.desc b{color:var(--page-text);font-weight:500}
+/* overview */
+.ov{flex:none;display:flex;align-items:center;gap:16px;padding:8px 18px;border-bottom:1px solid var(--page-line);flex-wrap:wrap;background:var(--page-panel)}
+.ov>*{min-width:0}
+.stat{display:flex;flex-direction:column;gap:1px}
+.stat .l{font-size:10.5px;color:var(--page-muted);font-family:var(--page-mono)}
+.stat .v{font-family:var(--page-mono);font-size:13px;font-weight:600}
+.pill{font-size:12px;border:1px solid var(--page-line2);padding:2px 9px;color:var(--page-muted);white-space:nowrap}
+.pill.run{background:var(--page-amber);color:#1a1a1a;border-color:var(--page-amber)}
+.pill.ok{color:var(--page-teal);border-color:var(--page-teal)}
+.pill.bad{color:var(--page-red);border-color:var(--page-red)}
+.pill.sus{color:var(--page-amber);border-color:var(--page-amber);border-style:dashed}
+.budget{width:150px}
+.bbar{height:5px;background:var(--page-line);margin-top:4px;position:relative}
+.bbar i{position:absolute;left:0;top:0;bottom:0;background:var(--page-amber)}
+.loc{flex:1;min-width:200px}
+.loc .v{color:var(--page-amber);font-weight:400;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ctl{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.btn{background:var(--page-panel2);color:var(--page-text);border:1px solid var(--page-line2);padding:5px 11px}
+.btn:hover{border-color:var(--page-muted)}
+.btn.pri{background:var(--page-amber);color:#1a1a1a;border-color:var(--page-amber);font-weight:500}
+.btn.dng{border-color:var(--page-red);color:var(--page-red);background:none}
+.btn.on{border-color:var(--page-amber);color:var(--page-amber)}
+.btn:disabled{opacity:.4;cursor:default}
+.seg{display:flex}
+.seg .btn{padding:5px 8px;font-family:var(--page-mono);font-size:11.5px}
+.seg .btn+.btn{border-left:none}
+select.sel{background:var(--page-panel2);color:var(--page-text);border:1px solid var(--page-line2);padding:4px 6px}
+.tt{display:none;align-items:center;gap:8px;font-size:12px;color:var(--page-amber);border:1px dashed var(--page-amber);padding:3px 8px}
+.tt.on{display:flex}
+.tt button{background:none;border:none;color:var(--page-teal);text-decoration:underline;padding:0;font-size:12px}
+/* main */
+.main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 370px}
+.center{min-width:0;overflow:auto;position:relative;background:#111317;background-image:radial-gradient(#22252d 1px,transparent 1px);background-size:20px 20px}
+.gw{position:relative;min-width:820px}
+.grow{display:grid;grid-template-columns:290px minmax(0,1fr);height:25px;border-bottom:1px solid rgba(45,49,59,.55)}
+.grow:hover{background:rgba(255,255,255,.02)}
+.grow.sel{background:rgba(240,168,60,.07)}
+.ghead{position:sticky;top:0;z-index:4;background:#15171c;height:30px;border-bottom:1px solid var(--page-line)}
+.ghead .tc{font-family:var(--page-mono);font-size:10.5px;color:var(--page-muted);display:flex;align-items:center;gap:10px}
+.tc{position:sticky;left:0;z-index:2;background:#15171c;border-right:1px solid var(--page-line);display:flex;align-items:center;gap:5px;padding-right:8px;cursor:pointer;white-space:nowrap;overflow:hidden}
+.grow.sel .tc{background:#201e1a}
+.tg{width:14px;flex:none;color:var(--page-muted);font-size:10px;text-align:center;background:none;border:none;padding:0}
+.sd{width:9px;height:9px;border-radius:50%;flex:none;background:var(--page-grey)}
+.lb{overflow:hidden;text-overflow:ellipsis}
+.lb .ty{font-family:var(--page-mono);font-size:10px;color:#666b77;margin-left:5px}
+.sb{margin-left:auto;font-size:11px;color:var(--page-muted);font-family:var(--page-mono);flex:none;padding-left:6px}
+.st-wait .sd{background:var(--page-grey)}
+.st-run .sd{background:var(--page-amber);box-shadow:0 0 0 3px rgba(240,168,60,.22)}
+.st-run .sb{color:var(--page-amber)}
+.st-suspend .sd{background:none;border:2px dashed var(--page-amber)}
+.st-suspend .sb{color:var(--page-amber)}
+.st-done .sd{background:var(--page-teal)}
+.st-done .sb{color:var(--page-teal)}
+.st-fail .sd{background:var(--page-red)}
+.st-fail .sb{color:var(--page-red)}
+.st-cancel .sd{background:var(--page-cancel)}
+.st-cancel .sb{color:var(--page-cancel)}
+.st-skip{opacity:.45}
+.st-skip .sd{background:none;border:1px solid var(--page-grey)}
+.grow.cflash .tc{animation:cfl 1s ease-out}
+@keyframes cfl{0%{background:rgba(229,100,106,.45)}100%{background:#15171c}}
+.tr{position:relative;cursor:crosshair}
+.tick{position:absolute;top:0;bottom:0;border-left:1px solid rgba(58,63,75,.35)}
+.ghead .tick{border-left-color:var(--page-line2)}
+.ghead .tick span{position:absolute;left:4px;top:8px;font-family:var(--page-mono);font-size:10px;color:var(--page-muted)}
+.bar{position:absolute;top:7px;height:11px;min-width:2px}
+.bar.k-run{background:var(--page-amber)}
+.bar.k-done{background:#3e7d74}
+.bar.k-fail{background:var(--page-red)}
+.bar.k-suspend{border:1.5px dashed var(--page-amber);background:rgba(240,168,60,.08)}
+.bar.k-queue{background:repeating-linear-gradient(135deg,#3a3f4b 0 3px,transparent 3px 6px);border:1px solid #4a4f5c}
+.bar.k-cont{top:10px;height:5px;background:#3a3f4b}
+.bar.k-cont.live{background:#6b5733}
+.bar.fut{opacity:.28}
+.bar.cut{opacity:.55}
+.ph{position:absolute;top:0;bottom:0;width:0;border-left:1.5px solid var(--page-text);z-index:3;pointer-events:none}
+.ph.tv{border-left-color:var(--page-amber);border-left-style:dashed}
+.ph span{position:absolute;top:2px;left:4px;font-family:var(--page-mono);font-size:10px;background:var(--page-text);color:#111;padding:0 4px;white-space:nowrap}
+.ph.tv span{background:var(--page-amber)}
+.legend{display:flex;gap:10px;align-items:center;font-family:var(--page-sans);font-size:10.5px}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:3px;vertical-align:-1px}
+/* detail */
+.det{border-left:1px solid var(--page-line);overflow-y:auto;padding:12px 14px 20px;min-width:0;background:var(--page-panel)}
+.det h3{margin:2px 0 4px;font-size:17px}
+.dh{font-family:var(--page-mono);font-size:10.5px;color:var(--page-muted)}
+.dp{font-family:var(--page-mono);font-size:11px;color:var(--page-amber);word-break:break-all;margin-bottom:8px}
+.sec{border-top:1px solid var(--page-line);margin-top:10px;padding-top:8px}
+.sec .h{font-family:var(--page-mono);font-size:10.5px;color:var(--page-muted);margin-bottom:5px;display:flex;justify-content:space-between}
+pre.js{margin:0;background:#111317;border:1px solid var(--page-line);padding:8px;font-family:var(--page-mono);font-size:11px;line-height:1.5;white-space:pre-wrap;word-break:break-all;color:#cfd2d8;max-height:230px;overflow:auto}
+pre.js .k{color:var(--page-teal)}pre.js .w{color:var(--page-red)}
+.ctxr{display:grid;grid-template-columns:96px 1fr 48px;gap:6px;align-items:center;font-size:11.5px;padding:2px 0}
+.ctxr>*{min-width:0}
+.ctxr .cb{height:6px;background:var(--page-line)}
+.ctxr .cb i{display:block;height:100%;background:var(--page-teal)}
+.ctxr .n{font-family:var(--page-mono);text-align:right;color:var(--page-muted);font-size:11px}
+.ctxr.ptr .cb i{background:#4a4f5c}
+table.tl{width:100%;border-collapse:collapse;font-size:11.5px}
+table.tl td,table.tl th{padding:4px 6px 4px 0;border-bottom:1px solid var(--page-line);text-align:left;vertical-align:top}
+table.tl th{font-weight:400;color:var(--page-muted);font-family:var(--page-mono);font-size:10.5px}
+table.tl td.m{font-family:var(--page-mono);font-size:11px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:12px}
+.kv span:nth-child(odd){color:var(--page-muted)}
+.kv span:nth-child(even){font-family:var(--page-mono)}
+.dbtn{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.empty{color:var(--page-muted);font-size:12.5px;padding:20px 0}
+.warn{color:var(--page-red)}
+/* bottom */
+.bottom{flex:none;height:250px;display:grid;grid-template-columns:minmax(0,1fr) 340px;border-top:1px solid var(--page-line)}
+.bottom>*{min-width:0}
+.chp{display:flex;flex-direction:column;min-height:0}
+.tabs{display:flex;border-bottom:1px solid var(--page-line);flex:none;overflow-x:auto}
+.tab{background:none;border:none;border-bottom:2px solid transparent;color:var(--page-muted);padding:7px 14px;white-space:nowrap}
+.tab.on{color:var(--page-text);border-bottom-color:var(--page-amber)}
+.tab em{font-style:normal;font-family:var(--page-mono);font-size:10.5px;color:#666b77;margin-left:5px}
+.chl{flex:1;overflow-y:auto;padding:4px 14px 8px;font-size:12px;line-height:1.75}
+.cr{display:grid;grid-template-columns:58px 1fr;gap:8px;border-bottom:1px solid rgba(45,49,59,.5);padding:1px 0}
+.cr>*{min-width:0}
+.cr .t{font-family:var(--page-mono);color:#666b77;font-size:11px}
+.cr .m{word-break:break-all}
+.tag{display:inline-block;font-family:var(--page-mono);font-size:10.5px;border:1px solid var(--page-line2);padding:0 5px;margin-right:6px;color:var(--page-muted);line-height:16px}
+.tag.a{color:var(--page-amber);border-color:var(--page-amber)}
+.tag.t{color:var(--page-teal);border-color:var(--page-teal)}
+.tag.r{color:var(--page-red);border-color:var(--page-red)}
+.tag.ai{color:#1a1a1a;background:var(--page-amber);border-color:var(--page-amber)}
+.ty2{font-family:var(--page-mono);color:var(--page-teal)}
+.brief{border:1px solid var(--page-line2);padding:8px 10px;margin:8px 0;font-family:var(--page-mono);font-size:11.5px;line-height:1.7;background:#111317}
+.brief .bh{display:flex;justify-content:space-between;color:var(--page-muted);font-size:10.5px;margin-bottom:4px}
+.res{border-left:1px solid var(--page-line);padding:10px 14px;overflow-y:auto;background:var(--page-panel)}
+.res .h{font-family:var(--page-mono);font-size:10.5px;color:var(--page-muted);margin-bottom:8px}
+.rr{margin-bottom:9px}
+.rr .rl{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px}
+.rr .rl span:last-child{font-family:var(--page-mono);color:var(--page-muted)}
+.rr .rb{height:7px;background:var(--page-line);display:flex}
+.rr .rb i{display:block;height:100%;background:var(--page-amber)}
+.rr .rb b{display:block;height:100%;background:repeating-linear-gradient(135deg,#4a4f5c 0 3px,transparent 3px 6px)}
+.rr .q{font-size:11px;color:var(--page-amber);font-family:var(--page-mono);margin-top:2px;min-height:15px}
+.mod{border:1px solid var(--page-line2);padding:8px 10px;margin-top:6px;font-size:12px}
+.mod .row{display:flex;gap:6px;align-items:center;margin:6px 0}
+.mod .msg{font-size:11.5px;color:var(--page-muted);line-height:1.6}
+.mod .msg b{color:var(--page-amber);font-weight:500}
+/* banner & modal */
+.banner{position:fixed;left:50%;top:150px;transform:translateX(-50%);width:min(620px,92vw);background:var(--page-panel2);border:1px solid var(--page-amber);padding:14px 16px;z-index:30;display:none;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.banner .bt{font-family:var(--page-mono);font-size:11px;color:var(--page-amber);margin-bottom:6px}
+.banner .bx{font-size:13.5px;line-height:1.7}
+.banner .bx b{color:var(--page-amber);font-weight:500}
+.banner .bb{display:flex;gap:8px;margin-top:12px;justify-content:flex-end}
+.mask{position:fixed;inset:0;background:rgba(10,11,14,.6);z-index:40;display:none;align-items:center;justify-content:center;padding:20px}
+.mask.on{display:flex}
+.dlg{width:min(860px,96vw);max-height:88vh;overflow-y:auto;background:var(--page-panel);border:1px solid var(--page-line2);padding:18px 20px}
+.dlg h3{margin:0 0 4px;font-size:18px}
+.dlg .sub{color:var(--page-muted);font-size:12.5px;margin-bottom:12px;line-height:1.6}
+.fd{display:grid;grid-template-columns:72px 1fr;gap:10px;padding:9px 0;border-top:1px solid var(--page-line);font-size:13px;line-height:1.65}
+.fd>*{min-width:0}
+.fd .ev{display:block;margin-top:2px;font-family:var(--page-mono);font-size:11px;color:var(--page-teal);background:none;border:none;padding:0;text-align:left;text-decoration:underline}
+.pt{border:1px solid var(--page-line2);padding:10px 12px;margin-top:8px}
+.pt.ap{border-color:var(--page-teal)}
+.pt.rj{opacity:.5}
+.pt .ph1{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pt .ph1 b{font-weight:500}
+.pt .op{font-family:var(--page-mono);font-size:11.5px;color:var(--page-teal);margin:6px 0 2px;word-break:break-all}
+.pt .why{font-size:12px;color:var(--page-muted);line-height:1.6}
+.pt .act{display:flex;gap:6px;margin-top:8px;align-items:center;font-size:12px;color:var(--page-muted)}
+.toast{position:fixed;bottom:270px;left:50%;transform:translateX(-50%);background:var(--page-panel2);border:1px solid var(--page-teal);padding:7px 14px;z-index:50;display:none;font-size:12.5px;max-width:80vw}
+@media (max-width:1180px){.main{grid-template-columns:minmax(0,1fr) 310px}.bottom{grid-template-columns:minmax(0,1fr) 280px}}
+@media (max-width:900px){html,body{overflow:auto}.app{height:auto}.main{grid-template-columns:1fr;height:auto}.center{height:60vh}.det{border-left:none;border-top:1px solid var(--page-line)}.bottom{grid-template-columns:1fr;height:auto}.chp{height:260px}.res{border-left:none;border-top:1px solid var(--page-line)}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar"><b>Harness · 运行与观测</b><span class="sp"></span><a href="index.html">← 返回总览</a></div>
+  <div class="desc">这个工作域负责<b>执行引擎</b>（持久化、调度、并发、异步、通信）和<b>观测调试</b>：图怎么跑、跑到哪、为什么慢、哪里出错，以及让模型读留痕来诊断。示例：用「闭环迭代」模板跑「竞品定价调研」。</div>
+
+  <div class="ov">
+    <span class="pill" id="oStat">待运行</span>
+    <div class="stat"><span class="l">用时（模拟）</span><span class="v" id="oT">0.0s</span></div>
+    <div class="stat budget"><span class="l" id="oKl">tokens 0 / 0</span><div class="bbar"><i id="oKb" style="width:0"></i></div></div>
+    <div class="stat"><span class="l">节点执行</span><span class="v" id="oN">0 / 0</span></div>
+    <div class="stat loc"><span class="l">当前位置（层级路径 ID）</span><span class="v" id="oLoc">—</span></div>
+    <div class="tt" id="tt">时间旅行：查看 <b class="mono" id="ttT">0s</b> 时的状态 <button id="ttBack">回到实时</button></div>
+    <div class="ctl">
+      <button class="btn pri" id="bPlay">运行</button>
+      <button class="btn dng" id="bCancel">取消</button>
+      <button class="btn" id="bReset">重置</button>
+      <div class="seg" id="spd"><button class="btn" data-s="1">1×</button><button class="btn on" data-s="4">4×</button><button class="btn" data-s="16">16×</button></div>
+    </div>
+    <div class="ctl">
+      <span class="dh">模型档位</span>
+      <select class="sel" id="lvl"><option value="0">0 只读</option><option value="1" selected>1 建议</option><option value="2">2 部分授权</option><option value="3">3 高度授权</option><option value="4">4 完全授权</option></select>
+      <button class="btn" id="bDiag">让模型诊断</button>
+      <button class="btn on" id="bDemo">演示脚本</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="center" id="center">
+      <div class="gw" id="gw">
+        <div class="grow ghead" id="ghead"></div>
+        <div id="rows"></div>
+        <div class="ph" id="ph"><span id="phT">0s</span></div>
+      </div>
+    </div>
+    <div class="det" id="det"></div>
+  </div>
+
+  <div class="bottom">
+    <div class="chp">
+      <div class="tabs" id="tabs"></div>
+      <div class="chl" id="chl"></div>
+    </div>
+    <div class="res">
+      <div class="h">资源池与并发（当前查看时刻）</div>
+      <div class="rr"><div class="rl"><span>大模型调用并发</span><span id="rBigN">0 / 4</span></div><div class="rb" id="rBig"></div><div class="q" id="rBigQ"></div></div>
+      <div class="rr"><div class="rl"><span>小模型调用并发（= 执行池并发）</span><span id="rSmN">0 / 3</span></div><div class="rb" id="rSm"></div><div class="q" id="rSmQ"></div></div>
+      <div class="rr"><div class="rl"><span>检索工具频率</span><span id="rToN">0 / 10 次/分</span></div><div class="rb" id="rTo"></div><div class="q" id="rToQ"></div></div>
+      <div class="mod">
+        <div class="dh">运行中修改图</div>
+        <div class="row">执行池.concurrency
+          <select class="sel" id="mConc"><option value="3">3</option><option value="5">5</option></select>
+          <button class="btn" id="mApply">应用</button>
+        </div>
+        <div class="msg" id="mMsg">修改不会打断正在执行的节点，在下一个安全点生效。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="banner" id="banner"><div class="bt" id="bnT">演示</div><div class="bx" id="bnX"></div><div class="bb" id="bnB"></div></div>
+<div class="mask" id="mask"><div class="dlg" id="dlg"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const ST_TXT={wait:'等待',run:'运行',suspend:'挂起',done:'完成',fail:'失败',cancel:'取消',skip:'跳过'};
+const KMAP={run:'run',suspend:'suspend',queue:'wait',fail:'fail'};
+
+/* ================= 调度表（模拟的持久化执行记录） ================= */
+function pathOf(n){const a=[];let x=n;while(x){a.unshift(x.label);x=x.parent;}let s='';a.forEach((p,i)=>{s+=i===0?p:(p[0]==='#'?p:'/'+p);});return s;}
+const TASKS={1:['A 公司官网企业版定价','B 公司官网/新闻稿定价','C 公司官网企业版定价'],
+ 2:['A 公司价格复核（12 个月内）','付费数据 API 查询 B 公司报价','招标公告检索 B 公司中标价','C 公司价格复核'],
+ 3:['B 公司渠道报价查询','B 公司报价交叉核对','三家价格换算 CNY/人/月','生成定价建议']};
+const CONC={1:['A 公司企业版 ¥329/人/月（官网，2026-08）','B 公司企业版 ¥399/人/月','C 公司企业版 ¥355/人/月（官网，2026-10）'],
+ 2:['A 公司价格未变','2 条报价记录，其中 1 条缺年份','未找到中标价','C 公司价格未变'],
+ 3:['渠道报价 ¥388/人/月（2026-09）','与 API 记录一致','¥329 / ¥388 / ¥355','建议区间 ¥320–360/人/月']};
+
+function build(conc){
+  const nodes=[];let k=0;
+  const ch={data:[],esc:[],evt:[],ctrl:[]},briefs=[],human=[],roundStart={},key={};
+  function add(p,label,type,segs,o){const n=Object.assign({id:'n'+(k++),parent:p,label,type,segs:segs||[],kids:[]},o||{});if(p)p.kids.push(n);nodes.push(n);return n;}
+  function dat(t,f,to,ty){ch.data.push({t,f:pathOf(f),to:pathOf(to),ty});}
+  const root=add(null,'根图','图');
+  const lr=add(root,'目标账本·读','账本',[[0,1]]);
+  const brain=add(root,'主脑','Agent',[[1,5]],{resident:true,model:'big',role:'主脑'});
+  const loop=add(root,'闭环迭代','循环',[],{isLoop:true});
+  const sp=add(root,'摘要端口','子图端口',[]);
+  ch.evt.push({t:0,k:'账本',m:'读取 目标树 v12（目标 G1、验收标准 4 条）'});
+  dat(1,lr,brain,'目标树@1');dat(5,brain,loop,'目标@1 + 验收标准@1');
+  ch.evt.push({t:5,k:'账本',m:'主脑写入 G1 约束：币种 CNY / 企业版 / 近 12 个月'});
+  let T=6;
+  for(let r=1;r<=3;r++){
+    roundStart[r]=T;
+    const R=add(loop,'#r'+r,'轮次',[],{round:r});
+    const fan=add(R,'智囊团','扇出',[[T,T+13]],{fan:true});
+    const bd=[10,13,12];
+    const bs=bd.map((d,i)=>add(fan,'智囊#'+(i+1),'Agent',[[T,T+d]],{model:'big',role:'智囊',round:r,ei:i+1}));
+    const clu=add(R,'聚类员','Agent',[[T+13,T+18]],{model:'big',role:'聚类员',round:r});
+    bs.forEach((b,i)=>dat(T+bd[i],b,clu,'方案@1'));
+    const lv=add(R,'按比例分级','聚合',[[T+18,T+19]],{round:r});dat(T+18,clu,lv,'簇标注@1');
+    const dec=add(R,'决策者','Agent',[[T+19,T+26]],{model:'big',role:'决策者',round:r});dat(T+19,lv,dec,'聚合结果@1');
+    ch.evt.push({t:T+26,k:'账本',m:'追加 决策记录 D'+r+'：'+['派 3 张任务卡（官网 / 新闻稿 / 官网）','换数据源：付费数据 API + 招标公告','补查 B 公司渠道价并交叉核对'][r-1]});
+    let t=T+26,prev=dec;
+    if(r===2){
+      const hum=add(R,'人工审批','人工',[[t,t+10,'suspend','等待审批'],[t+10,t+11]],{round:r});
+      ch.esc.push({t:t,pri:3,kind:'需审批',from:pathOf(dec),m:'调用「付费数据 API」（L2 外部副作用，预计 ¥12）',route:'→ 人工审批节点',done:t+10});
+      dat(t,dec,hum,'审批请求@1');human.push({t:t,node:hum});key.human=t;t+=11;prev=hum;
+    }
+    const pool=add(R,'执行池','扇出',[],{fan:true,round:r});
+    dat(t,prev,pool,'任务卡@1[]');
+    let ex;
+    if(r===1){ex=[[[t,t+8]],[[t,t+5,'run'],[t+5,t+6,'fail','超时'],[t+6,t+13,'run','重试 1/2']],[[t,t+9]]];
+      ch.esc.push({t:t+5,pri:1,kind:'单任务失败',from:'执行者#2',m:'检索超时 30s',route:'本层处理：按 retry 策略重试（同一幂等键）',done:t+6});key.fail=t+5;}
+    else if(r===2){ex=[[[t,t+7]],[[t,t+8]],[[t,t+6,'queue','限流排队'],[t+6,t+13]],[[t,t+7,'queue','等待空位'],[t+7,t+15]]];
+      ch.esc.push({t:t+0.5,pri:1,kind:'限流',from:'执行者#3、执行者#4',m:'检索 10 次/分钟已满，背压排队',route:'本层处理：排队（2 条同类已合并）',merged:2,done:t+7});
+      ch.evt.push({t:t+12,k:'外部回调',m:'付费数据 API 回调：B 公司 2 条报价记录（1 条缺年份）'});key.queue=t+1;key.r2pool=t;}
+    else{ex=conc>=4?[[[t,t+8]],[[t,t+7]],[[t,t+9]],[[t,t+8]]]:[[[t,t+8]],[[t,t+7]],[[t,t+9]],[[t,t+7,'queue','等待空位'],[t+7,t+15]]];}
+    const es=ex.map((sg,i)=>add(pool,'执行者#'+(i+1),'Agent',sg,{model:'small',role:'执行者',round:r,ei:i+1}));
+    const pe=Math.max(...ex.map(sg=>sg[sg.length-1][1]));
+    pool.segs=[[t,pe]];
+    const acc=add(R,'验收者','Agent',[[pe,pe+6]],{model:'big',role:'验收者',round:r});
+    es.forEach(e=>dat(e.segs[e.segs.length-1][1],e,acc,'执行结果@1'));
+    if(r===1){ch.esc.push({t:pe+4,pri:2,kind:'抽检不一致',from:pathOf(acc),m:'执行者#2 给出的 B 公司价格没有来源，原文中查不到',route:'本层处理：判未通过，写入差距报告',done:pe+6});key.spot=pe+4;}
+    if(r===2) key.r2acc=pe;
+    const br=add(R,'达成？','分支',[[pe+6,pe+7]],{round:r,doneSub:r<3?'否 → 下一轮':'是 → 出口'});dat(pe+6,acc,br,'判定@1');
+    const nx=add(R,'差距报告 → 下一轮','子图端口',r<3?[[pe+7,pe+8]]:[],r<3?{round:r}:{round:r,skipAt:pe+7});
+    const ox=add(R,'出口','子图端口',r===3?[[pe+7,pe+8]]:[],r===3?{round:r}:{round:r,skipAt:pe+7});
+    if(r<3)dat(pe+7,br,nx,'差距报告@1');else{dat(pe+7,br,ox,'判定@1 + 报告');key.done=pe+7;}
+    R.segs=[[T,pe+8]];
+    sp.segs.push([pe+8,pe+9]);brain.segs.push([pe+9,pe+11]);
+    dat(pe+8,r<3?nx:ox,sp,'判定@1');dat(pe+9,sp,brain,'简报@1');
+    const BR=[
+      {st:'进行中',c:'A、C 两家价格已核实；B 公司未找到可靠来源',ck:'✘覆盖3家 ✘有来源 ✔12个月内 ✔币种统一',nd:'无（按差距报告进入第 2 轮）'},
+      {st:'进行中',c:'B 公司经付费 API 拿到 2 条报价，1 条缺年份，仍差 1 项',ck:'✘覆盖3家 ✔有来源 ✘12个月内 ✔币种统一',nd:'无'},
+      {st:'完成',c:'三家企业版定价齐全，建议区间 ¥320–360/人/月',ck:'✔覆盖3家 ✔有来源 ✔12个月内 ✔币种统一',nd:'是否采纳定价建议'}][r-1];
+    briefs.push({t:pe+9,goal:'G1',name:'竞品定价调研',round:r,...BR});
+    const BB=[{st:'阻塞',c:'官网、新闻稿均无公开价格',ck:'✘有来源',nd:'无（可补救）'},{st:'进行中',c:'付费 API 2 条记录，1 条缺年份',ck:'✔有来源 ✘12个月内',nd:'无'},{st:'完成',c:'渠道报价 ¥388/人/月，与 API 记录交叉核对一致',ck:'✔有来源 ✔12个月内',nd:'无'}][r-1];
+    briefs.push({t:pe+9,goal:'G1.2',name:'B 公司价格',round:r,...BB});
+    T=pe+9;
+  }
+  const end=T;loop.segs=[[6,end]];
+  const lw=add(root,'目标账本·写','账本',[[end+2,end+3]]);dat(end+2,brain,lw,'决策记录@1');
+  ch.evt.push({t:end+3,k:'账本',m:'写入 G1 完成 · 报告指针 ws://g1/report_v3'});
+  const total=end+4;root.segs=[[0,total]];
+  for(let h=30;h<total;h+=30)ch.evt.push({t:h,k:'定时',m:'心跳：闭环迭代向主脑报告进度（只记录，不唤醒主脑）'});
+  ['data','esc','evt'].forEach(c=>ch[c].sort((a,b)=>a.t-b.t));
+  nodes.forEach(n=>{n.depth=n.parent?n.parent.depth+1:0;n.path=pathOf(n);});
+  const rate={big:210,small:120};
+  let tk=0;nodes.forEach(n=>{if(!n.kids.length&&n.model)n.segs.forEach(s=>{if((s[2]||'run')==='run')tk+=(s[1]-s[0])*rate[n.model];});});
+  return {nodes,root,total,ch,briefs,human,roundStart,key,rate,budget:Math.ceil(tk*1.3/10000)*10000};
+}
+
+/* ================= 状态 ================= */
+const S={t:0,live:0,view:null,playing:false,speed:4,cancelAt:null,conc:3,concApplied:false,sel:null,col:new Set(),approved:{},ctrl:[],tab:'data',lvl:1,demo:null,patches:{},diagOpen:false};
+let SC=build(3);
+const vt=()=>S.view==null?S.t:S.view;
+
+function base(n,t){
+  if(n.skipAt!=null)return t>=n.skipAt?['skip','未触发']:['wait',''];
+  const sg=n.segs;if(!sg.length)return['wait',''];
+  if(t<sg[0][0])return['wait',''];
+  for(const s of sg){if(t>=s[0]&&t<s[1]){const k=s[2]||'run';return[KMAP[k],s[3]||(k==='run'?'运行中':k==='queue'?'排队':'')];}}
+  if(t>=sg[sg.length-1][1])return['done',n.doneSub||'完成'];
+  return n.resident?['suspend','等待事件']:['wait','等待'];
+}
+function state(n,t){
+  if(S.cancelAt!=null&&t>=S.cancelAt){const b=base(n,S.cancelAt);if(b[0]==='done'||b[0]==='skip')return b;return['cancel','已取消'];}
+  const b=base(n,t);
+  if(b[0]==='run'){
+    if(n.isLoop){const r=n.kids.find(R=>base(R,t)[0]==='run');if(r)b[1]='第 '+r.round+'/5 轮';}
+    else if(n.fan){const d=n.kids.filter(x=>base(x,t)[0]==='done').length;b[1]=d+'/'+n.kids.length+' 完成';}
+    else if(n.type==='轮次'){b[1]='进行中';}
+  }
+  return b;
+}
+function nodeTokens(n,t){if(!n.model)return 0;const lim=S.cancelAt!=null?Math.min(t,S.cancelAt):t;let s=0;n.segs.forEach(g=>{if((g[2]||'run')==='run'&&lim>g[0])s+=(Math.min(lim,g[1])-g[0])*SC.rate[n.model];});return Math.round(s);}
+
+/* ================= 渲染：甘特 + 树 ================= */
+let rowEls={};
+function visible(){const out=[];(function walk(n){out.push(n);if(!S.col.has(n.id))n.kids.forEach(walk);})(SC.root);return out;}
+function pct(x){return (x/SC.total*100).toFixed(3)+'%';}
+function buildRows(){
+  let ticks='';for(let x=0;x<=SC.total;x+=20)ticks+=`<div class="tick" style="left:${pct(x)}"><span>${x}s</span></div>`;
+  $('ghead').innerHTML=`<div class="tc" style="cursor:default;padding-left:10px">节点<span class="legend"><span><i style="background:var(--page-amber)"></i>运行</span><span><i style="border:1.5px dashed var(--page-amber)"></i>挂起</span><span><i style="background:var(--page-teal)"></i>完成</span><span><i style="background:var(--page-red)"></i>失败</span><span><i style="background:var(--page-grey)"></i>等待</span></span></div><div class="tr" id="htr">${ticks}</div>`;
+  const tk=ticks.replace(/<span>[^<]*<\/span>/g,'');
+  rowEls={};
+  $('rows').innerHTML=visible().map(n=>{
+    const cont=n.kids.length>0;
+    const bars=n.segs.map((s,i)=>`<div class="bar ${cont?'k-cont':'k-'+(s[2]||'run')}" data-i="${i}"></div>`).join('');
+    return `<div class="grow" data-id="${n.id}"><div class="tc" style="padding-left:${6+n.depth*14}px">${cont?`<button class="tg" data-tg="${n.id}">${S.col.has(n.id)?'▸':'▾'}</button>`:'<span class="tg"></span>'}<span class="sd"></span><span class="lb">${esc(n.label)}<span class="ty">${n.type}</span></span><span class="sb"></span></div><div class="tr">${tk}${bars}</div></div>`;
+  }).join('');
+  $('rows').querySelectorAll('.grow').forEach(el=>{const n=SC.nodes.find(x=>x.id===el.dataset.id);rowEls[n.id]={el,n,sb:el.querySelector('.sb'),bars:[...el.querySelectorAll('.bar')]};});
+  renderFrame(true);
+}
+$('rows').addEventListener('click',e=>{
+  const tg=e.target.closest('[data-tg]');
+  if(tg){const id=tg.dataset.tg;S.col.has(id)?S.col.delete(id):S.col.add(id);buildRows();return;}
+  const tr=e.target.closest('.tr');
+  if(tr){travel(e,tr);return;}
+  const row=e.target.closest('.grow');if(row){S.sel=row.dataset.id;renderFrame(true);}
+});
+$('ghead').addEventListener('click',e=>{const tr=e.target.closest('.tr');if(tr)travel(e,tr);});
+function travel(e,tr){
+  const r=tr.getBoundingClientRect();let t=(e.clientX-r.left)/r.width*SC.total;
+  const lim=S.cancelAt!=null?S.cancelAt:S.live;
+  if(lim<=0){toast('还没有运行记录，先点「运行」');return;}
+  t=Math.max(0,Math.min(t,lim));
+  if(Math.abs(t-lim)<0.3)S.view=null;else S.view=t;
+  const row=e.target.closest('.grow');if(row&&!row.classList.contains('ghead'))S.sel=row.dataset.id;
+  renderFrame(true);
+}
+$('ttBack').onclick=()=>{S.view=null;renderFrame(true);};
+
+let lastSig='';
+function renderFrame(force){
+  const t=vt(),clip=S.cancelAt!=null?S.cancelAt:S.live;
+  for(const id in rowEls){
+    const R=rowEls[id],n=R.n,[st,sub]=state(n,t);
+    const cls='grow st-'+st+(S.sel===id?' sel':'')+(R.el.classList.contains('cflash')?' cflash':'');
+    if(R.el.className!==cls)R.el.className=cls;
+    const txt=st==='wait'&&!sub?'等待':(sub||ST_TXT[st]);
+    if(R.sb.textContent!==txt)R.sb.textContent=txt;
+    R.bars.forEach(b=>{
+      const s=n.segs[+b.dataset.i];
+      if(s[0]>=clip){b.style.display='none';return;}
+      b.style.display='';
+      const e=Math.min(s[1],clip);
+      b.style.left=pct(s[0]);b.style.width=pct(Math.max(e-s[0],0.15));
+      b.classList.toggle('fut',s[0]>t);
+      if(b.classList.contains('k-cont'))b.classList.toggle('live',st==='run');
+      b.classList.toggle('cut',S.cancelAt!=null&&s[1]>S.cancelAt);
+    });
+  }
+  const f=t/SC.total;const ph=$('ph');
+  ph.style.left=`calc(290px + (100% - 290px) * ${f.toFixed(5)})`;
+  ph.className='ph'+(S.view!=null?' tv':'');$('phT').textContent=t.toFixed(1)+'s';
+  $('tt').classList.toggle('on',S.view!=null);$('ttT').textContent=t.toFixed(1)+'s';
+  overview(t);resources(t);
+  const sig=S.tab+'|'+chCount(t)+'|'+S.ctrl.length;
+  if(force||sig!==lastSig){lastSig=sig;channels(t);}
+  const dsig=S.sel+'|'+(S.sel?state(SC.nodes.find(x=>x.id===S.sel),t).join():'')+'|'+Math.floor(t)+'|'+Object.keys(S.patches).length;
+  if(force||dsig!==renderFrame.d){renderFrame.d=dsig;detail(t);}
+}
+
+/* ================= 总览 ================= */
+function overview(t){
+  const fin=S.live>=SC.total-0.01&&S.cancelAt==null;
+  const os=$('oStat');
+  let st,cl;
+  if(S.cancelAt!=null){st='已取消';cl='bad';}
+  else if(fin){st='已完成';cl='ok';}
+  else if(pendingHuman()){st='挂起 · 等待审批';cl='sus';}
+  else if(S.playing){st='运行中';cl='run';}
+  else if(S.live>0){st='已暂停';cl='sus';}
+  else{st='待运行';cl='';}
+  os.textContent=st;os.className='pill '+cl;
+  $('oT').textContent=t.toFixed(1)+'s';
+  let tk=0;SC.nodes.forEach(n=>tk+=nodeTokens(n,t));
+  $('oKl').textContent='tokens '+(tk/1000).toFixed(1)+'k / '+(SC.budget/1000)+'k 预算';
+  $('oKb').style.width=Math.min(100,tk/SC.budget*100).toFixed(1)+'%';
+  const leaves=SC.nodes.filter(n=>!n.kids.length&&n.skipAt==null);
+  $('oN').textContent=leaves.filter(n=>state(n,t)[0]==='done').length+' / '+leaves.length;
+  let loc=null;SC.nodes.forEach(n=>{if(!n.kids.length){const s=state(n,t)[0];if(s==='run'||s==='suspend'&&!n.resident||s==='fail'){if(!loc||n.depth>=loc.depth)loc=n;}}});
+  $('oLoc').textContent=loc?loc.path:(fin?'运行完成':S.cancelAt!=null?'已取消':'—');
+  const pb=$('bPlay');
+  if(S.playing){pb.textContent='暂停';pb.className='btn';}
+  else{pb.textContent=S.live>0&&!fin&&S.cancelAt==null?'继续':'运行';pb.className='btn pri';}
+}
+function pendingHuman(){return SC.human.some(h=>Math.abs(S.t-h.t)<0.001&&!S.approved[h.t]&&!S.playing&&S.cancelAt==null);}
+
+/* ================= 资源 ================= */
+function bar(el,used,cap,queued){
+  const u=Math.min(used,cap)/cap*100,q=Math.min(queued,cap)/cap*100;
+  el.innerHTML=`<i style="width:${u}%"></i><b style="width:${Math.min(q,100-u)}%"></b>`;
+}
+function concAt(t){return S.concApplied&&t>=SC.roundStart[3]?5:3;}
+function resources(t){
+  let big=0,sm=0,q=0;
+  SC.nodes.forEach(n=>{if(n.kids.length)return;const s=state(n,t)[0];if(s==='run'){if(n.model==='big'&&!n.resident)big++;if(n.model==='big'&&n.resident)big++;if(n.model==='small')sm++;}
+    if(s==='wait'&&n.segs.some(g=>g[2]==='queue'&&t>=g[0]&&t<g[1]))q++;});
+  bar($('rBig'),big,4,0);$('rBigN').textContent=big+' / 4';$('rBigQ').textContent=big>=3?'接近上限':'';
+  const c=concAt(t);bar($('rSm'),sm,c,q);$('rSmN').textContent=sm+' / '+c;
+  $('rSmQ').textContent=q?('背压：'+q+' 个任务排队'):(c===5?'第 3 轮起并发 = 5（安全点已生效）':'');
+  const freq=Math.min(10,sm*3+(q?4:0));bar($('rTo'),freq,10,q?2:0);$('rToN').textContent=freq+' / 10 次/分';
+  $('rToQ').textContent=q?'检索达到频率上限，新请求排队':'';
+}
+
+/* ================= 通道 ================= */
+const TABS=[['data','数据'],['ctrl','控制'],['esc','升级'],['evt','事件'],['brief','给主脑的简报']];
+function chItems(c,t){if(c==='ctrl')return S.ctrl.filter(x=>x.t<=t+1e-6);if(c==='brief')return SC.briefs.filter(x=>x.t<=t+1e-6);return SC.ch[c].filter(x=>x.t<=t+1e-6&&(S.cancelAt==null||x.t<=S.cancelAt));}
+function chCount(t){return TABS.map(x=>chItems(x[0],t).length).join(',');}
+function channels(t){
+  $('tabs').innerHTML=TABS.map(x=>`<button class="tab${S.tab===x[0]?' on':''}" data-tab="${x[0]}">${x[1]}<em>${chItems(x[0],t).length}</em></button>`).join('');
+  const it=chItems(S.tab,t);const L=$('chl');let h='';
+  const ts=x=>`<span class="t">${x.t.toFixed(1)}s</span>`;
+  if(S.tab==='data'){h=it.length?it.map(x=>`<div class="cr">${ts(x)}<span class="m"><span class="ty2">${esc(x.ty)}</span>　${esc(x.f)} → ${esc(x.to)}</span></div>`).join(''):'<div class="empty">沿连线传递的带类型信封会出现在这里。</div>';}
+  else if(S.tab==='ctrl'){h=it.length?it.map(x=>`<div class="cr">${ts(x)}<span class="m">${x.ai?'<span class="tag ai">模型</span>':x.sys?'<span class="tag t">运行时</span>':'<span class="tag">用户</span>'}${x.m}</span></div>`).join(''):'<div class="empty">控制通道从上往下传：暂停、取消、调参、注入指令，都在安全点生效。试试「暂停」「取消」或右侧「运行中修改图」。</div>';}
+  else if(S.tab==='esc'){
+    const P={3:['高','r'],2:['中','a'],1:['低','']};
+    const sorted=it.slice().sort((a,b)=>b.pri-a.pri||a.t-b.t);
+    h=sorted.length?'<div class="cr" style="color:var(--page-muted);font-size:11px"><span></span><span>升级队列：按优先级排序，同类合并；先本层处理，处理不了才往上抛</span></div>'+sorted.map(x=>{const dn=t>=x.done;return `<div class="cr">${ts(x)}<span class="m"><span class="tag ${P[x.pri][1]}">${P[x.pri][0]}</span><span class="tag">${x.kind}</span>${x.merged?'<span class="tag t">已合并 '+x.merged+' 条</span>':''}${esc(x.from)}：${esc(x.m)}　<span style="color:var(--page-muted)">${esc(x.route)}</span>　<span class="tag ${dn?'t':'a'}">${dn?'已处理':'处理中'}</span></span></div>`;}).join(''):'<div class="empty">节点处理不了的问题从升级端口往上抛，在这里排队。</div>';}
+  else if(S.tab==='evt'){h=it.length?it.map(x=>`<div class="cr">${ts(x)}<span class="m"><span class="tag ${x.k==='外部回调'?'a':x.k==='账本'?'t':''}">${x.k}</span>${esc(x.m)}</span></div>`).join(''):'<div class="empty">账本变化、定时器、外部回调等广播事件。</div>';}
+  else{
+    const by={};it.forEach(b=>{(by[b.goal]=by[b.goal]||[]).push(b);});
+    const g=Object.keys(by);
+    h=g.length?'<div style="color:var(--page-muted);font-size:11.5px;margin-top:6px">简报按 goal_id 滚动覆盖：主脑只保留每个目标的最新一条，旧简报不进入主脑上下文。</div>'+g.map(k=>{const a=by[k],b=a[a.length-1];
+      const txt=`【目标】${b.goal} ${b.name}\n【状态】${b.st} · 第 ${b.round} 轮\n【结论】${b.c}\n【验收对照】${b.ck}\n【需要主脑决定】${b.nd}\n【证据】ws://${b.goal.toLowerCase()}/r${b.round}/report`;
+      return `<div class="brief"><div class="bh"><span>goal_id = ${b.goal} · ${b.t.toFixed(1)}s</span><span>${txt.length} 字 / 上限 300${a.length>1?' · 已覆盖 '+(a.length-1)+' 条旧简报':''}</span></div>${esc(txt).replace(/\n/g,'<br>')}</div>`;}).join(''):'<div class="empty">每轮结束时，摘要端口给主脑发一份 ≤300 字的简报。</div>';}
+  const atBottom=L.scrollHeight-L.scrollTop-L.clientHeight<30;
+  L.innerHTML=h;if(atBottom||S.playing)L.scrollTop=L.scrollHeight;
+}
+$('tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;S.tab=b.dataset.tab;renderFrame(true);});
+
+/* ================= 节点详情 ================= */
+function ctxOf(n){
+  const r=n.round||1;
+  const M={
+    '主脑':[['身份',160],['目标账本摘要',420],['最新简报',r>1?280:0],['待决事项',60]],
+    '智囊':[['身份',140],['任务卡',320],['目的',40],['约束 · inherit',90],['差距报告',r>1?380:0],['已证伪方向',r>1?160:0]],
+    '聚类员':[['身份',100],['方案结构化字段',1100]],
+    '决策者':[['身份',130],['目标 + 验收标准',300],['分级结果',900],['决策日志',220]],
+    '执行者':[['身份',90],['任务卡',210],['目的',40],['约束 · inherit',90],['必要输入 · 指针',120],['工具说明',180],['经验',r>1?60:0]],
+    '验收者':[['身份',150],['验收标准',260],['执行结果摘要',600],['证据指针',140],['抽检原文',r===1?2100:1200]]};
+  return (M[n.role]||[]).filter(x=>x[1]>0);
+}
+function J(o){return esc(JSON.stringify(o,null,1)).replace(/&quot;(\w+)&quot;:/g,'<span class="k">"$1"</span>:').replace(/"(\w+)":/g,'<span class="k">"$1"</span>:');}
+function envs(n){
+  const r=n.round||1,p=n.path,ref=`ws://${p.replace(/[^\w#]+/g,'/').toLowerCase()}`;
+  const base=(type,payload,conf,refs)=>({from:p,type:type,schema_version:'1.0',payload,refs:refs||[ref+'/raw'],confidence:conf,seq:Math.abs(hash(p))%9000+100});
+  const ctx={type:'上下文包',schema_version:'1.0',producer:'上下文装配',sections:ctxOf(n).map(x=>x[0]),tokens:ctxOf(n).reduce((a,b)=>a+b[1],0)};
+  switch(n.role){
+    case '执行者':{const i=n.ei-1,fab=r===1&&n.ei===2,nf=r===2&&n.ei===3;
+      return {in:{type:'任务卡',schema_version:'1.0',payload:{id:'T'+r+'-'+n.ei,instruction:TASKS[r][i],purpose:'为竞品定价比较提供可核实的企业版价格',good_result:'价格 + 计费单位 + 来源链接 + 日期',checklist:['有来源','12 个月内','币种标注']},refs:['ws://g1/constraints']},
+        out:base('执行结果',{task_id:'T'+r+'-'+n.ei,status:nf?'未找到':'完成',conclusion:CONC[r][i],sources:fab||nf?[]:[{ptr:ref+'/raw_'+(1000+i),url:['a-corp.com/pricing','b-corp.com/news','c-corp.com/enterprise','channel.example.com/b'][i%4]}]},fab?0.41:nf?0.9:0.82),warn:fab?'sources 为空：验收者抽检判定为无来源的编造数据':''};}
+    case '智囊':return {in:ctx,out:base('方案',{understanding:'比较三家企业版公开或可核实的价格，统一为 CNY/人/月',core_approach:['官网 + 新闻稿直查','换付费数据源 + 招标公告','渠道报价 + 交叉核对'][r-1]+(n.ei===3?'（另提：估算成交价）':''),key_assumptions:['企业版有公开或渠道报价'],avoids:r>1?['官网直查 B 公司（第 1 轮已证伪）']:[]},[0.7,0.64,0.58][n.ei-1])};
+    case '聚类员':return {in:ctx,out:base('簇标注',{understanding_consistent:true,labels:
+    case '决策者':return {in:{type:'聚合结果',payload:{levels:[{label:'C1',ratio:0.67,level:'多数'},{label:'C2',ratio:0.33,level:'独有'}]}},out:base('任务卡[]',{count:TASKS[r].length,cards:TASKS[r]},0.8)};
+    case '验收者':return {in:{type:'执行结果[]',count:TASKS[r].length,refs:[ref+'/results']},out:base('判定',{achieved:r===3,gap_type:r===3?'无':'可补救',items:[{criterion:'覆盖 3 家',result:r===3?'通过':'未通过'},{criterion:'每个价格有来源',result:r===1?'未通过':'通过'}],spot_checks:r===1?[{result:'执行者#2',consistent:false}]:[{result:'执行者#1',consistent:true}]},0.88),warn:r===1?'抽检发现：执行者#2 的 B 公司价格在原文中不存在':''};
+    case '主脑':return {in:{type:'简报',goal_id:'G1',max_chars:300},out:base('目标',{id:'G1',intent:'调研 3 家竞品企业版定价并给出建议',criteria:'验收标准@1 · 4 条',constraints:{币种:'CNY',版本:'企业版',时间:'近 12 个月'}},0.9)};
+  }
+  if(n.type==='人工')return {in:{type:'审批请求',payload:{action:'调用付费数据 API',risk:'L2',cost:'¥12',reason:'B 公司官网、新闻稿均无价格'}},out:{type:'审批结果',payload:{outcome:'通过',by:'用户',channel:'应用内'}}};
+  if(n.type==='分支')return {in:{type:'判定',field:'achieved'},out:{type:'路由',payload:{when:'判定.achieved == true',taken:r===3?'yes':'no'}}};
+  if(n.type==='聚合')return {in:{type:'簇标注',count:3},out:{type:'聚合结果',payload:{op:'group_ratio',key:'cluster',levels:{共识:1.0,多数:0.66}}}};
+  if(n.type==='账本')return {in:{op:n.label.includes('读')?'read':'append',path:'目标树'},out:{type:'值 + 版本',version:n.label.includes('读')?12:13}};
+  if(n.type==='子图端口')return {in:{type:n.label.includes('下一轮')?'差距报告':'判定'},out:{type:n.label.includes('下一轮')?'差距报告':'简报',max_chars:n.label==='摘要端口'?300:null}};
+  return null;
+}
+function hash(s){let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;return h;}
+function toolsOf(n){
+  if(n.role!=='执行者')return [];
+  const r=n.round,i=n.ei,id=`r${r}-e${i}-q1`;
+  if(r===1&&i===2)return [[id,'检索','0s','超时 30s','首次'],[id,'检索','0s','200','重试 · 同一幂等键，避免重复副作用']];
+  if(r===2&&i===2)return [[`r2-e2-api1`,'付费数据 API · L2','0s','200','凭审批 A-7 调用']];
+  if(r===2&&i===3)return [[id,'检索','6.0s','200','限流排队（10 次/分钟）']];
+  if(r===2&&i===4)return [[id,'检索','7.0s','200','等待执行池空位']];
+  if(r===3&&i===4&&!S.concApplied)return [[id,'检索','7.0s','200','等待执行池空位']];
+  return [[id,'检索','0s','200','']];
+}
+function detail(t){
+  const D=$('det');
+  if(!S.sel){D.innerHTML='<div class="empty">点击左侧任一节点，查看它在当前时刻的输入输出信封、上下文、工具调用和成本。</div>';return;}
+  const n=SC.nodes.find(x=>x.id===S.sel);if(!n){S.sel=null;D.innerHTML='';return;}
+  const [st,sub]=state(n,t),E=envs(n),ctx=ctxOf(n),tools=toolsOf(n);
+  const done=st==='done';
+  let h=`<div class="dh">${n.type}${n.role?' · '+n.role:''}${n.model?' · '+(n.model==='big'?'大模型':'小模型'):''}</div><h3>${esc(n.label)}</h3><div class="dp">${esc(n.path)}</div>`;
+  h+=`<div class="kv"><span>状态</span><span class="st-${st}" style="color:${{run:'var(--page-amber)',suspend:'var(--page-amber)',done:'var(--page-teal)',fail:'var(--page-red)',cancel:'var(--page-cancel)'}[st]||'var(--page-muted)'}">${ST_TXT[st]}${sub&&sub!==ST_TXT[st]?' · '+esc(sub):''}</span>`;
+  h+=`<span>执行区间</span><span>${n.segs.length?n.segs.map(s=>s[0].toFixed(0)+'–'+s[1].toFixed(0)+'s'+(s[2]&&s[2]!=='run'?'('+({fail:'失败',suspend:'挂起',queue:'排队'})[s[2]]+')':'')).join('  '):'—'}</span>`;
+  if(n.model){const tk=nodeTokens(n,t);h+=`<span>tokens</span><span>${tk.toLocaleString()}</span><span>估算费用</span><span>¥${(tk/1000*(n.model==='big'?0.06:0.008)).toFixed(3)}</span>`;}
+  h+=`<span>检查点</span><span>${n.type==='轮次'||n.isLoop?'每轮一个':'随所在轮次'}</span></div>`;
+  if(ctx.length){const win=n.model==='big'?128000:32000,tot=ctx.reduce((a,b)=>a+b[1],0),mx=Math.max(...ctx.map(x=>x[1]));
+    h+=`<div class="sec"><div class="h"><span>装入的上下文（上下文包）</span><span>${tot.toLocaleString()} / 预算 ${(win*0.1/1000).toFixed(1)}k</span></div>`+ctx.map(c=>`<div class="ctxr${/指针/.test(c[0])?' ptr':''}"><span>${c[0]}</span><span class="cb"><i style="width:${(c[1]/mx*100).toFixed(0)}%"></i></span><span class="n">${c[1]}</span></div>`).join('')+'</div>';}
+  if(E){h+=`<div class="sec"><div class="h"><span>输入信封</span><span>${st==='wait'?'尚未收到':'已收到'}</span></div><pre class="js">${J(E.in)}</pre></div>`;
+    h+=`<div class="sec"><div class="h"><span>输出信封</span><span>${done?'已产出':'—'}</span></div>`+(done?`<pre class="js">${J(E.out)}</pre>${E.warn?`<div class="warn" style="font-size:12px;margin-top:4px">⚠ ${esc(E.warn)}</div>`:''}`:`<div class="empty" style="padding:6px 0">尚未产出（查看时刻 ${t.toFixed(1)}s）</div>`)+'</div>';}
+  if(tools.length){h+=`<div class="sec"><div class="h"><span>工具调用记录</span><span>幂等键 / 排队</span></div><table class="tl"><tr><th>幂等键</th><th>工具</th><th>排队</th><th>结果</th></tr>`+tools.map(x=>`<tr><td class="m">${x[0]}</td><td>${x[1]}</td><td class="m">${x[2]}</td><td>${x[3]}${x[4]?'<br><span style="color:var(--page-muted);font-size:11px">'+x[4]+'</span>':''}</td></tr>`).join('')+'</table></div>';}
+  h+=`<div class="dbtn"><button class="btn" id="dRerun">从此检查点重跑</button><button class="btn" id="dReplay">单节点重放</button></div>`;
+  D.innerHTML=h;
+  $('dRerun').onclick=()=>rerun(n);$('dReplay').onclick=()=>replay(n);
+}
+function rerun(n){
+  if(!n.segs.length){toast('这个节点本次没有执行');return;}
+  let a=n;while(a.parent&&a.type!=='轮次')a=a.parent;
+  const from=a.type==='轮次'?a.segs[0][0]:n.segs[0][0];
+  if(S.live<from&&S.cancelAt==null){toast('还没运行到这里');return;}
+  ctrl(`从检查点重跑：${a.type==='轮次'?a.path:n.path}（${from.toFixed(0)}s 之前已完成的节点复用缓存结果，不重复调用模型）`,{sys:1},from);
+  S.cancelAt=null;S.view=null;S.t=from;S.live=from;S.playing=true;
+  Object.keys(S.approved).forEach(k=>{if(+k>=from)delete S.approved[k];});
+  renderFrame(true);
+}
+function replay(n){
+  if(state(n,S.live)[0]!=='done'){toast('节点完成后才能重放');return;}
+  ctrl(`单节点重放：${n.path} —— 使用留痕中的上下文包和记录的模型输出，结果与原运行一致`,{sys:1});
+  const R=rowEls[n.id];if(R){R.el.classList.add('cflash');setTimeout(()=>R.el.classList.remove('cflash'),1000);}
+  toast('重放完成：输出与留痕一致（seq 相同，未产生新的副作用）');
+}
+
+/* ================= 控制 ================= */
+function ctrl(m,o,t){S.ctrl.push(Object.assign({t:t!=null?t:S.t,m},o||{}));lastSig='';}
+function toast(m){const el=$('toast');el.textContent=m;el.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(()=>el.style.display='none',2600);}
+function reset(){
+  S.t=0;S.live=0;S.view=null;S.playing=false;S.cancelAt=null;S.approved={};S.ctrl=[];S.patches={};
+  if(S.concApplied){S.concApplied=false;$('mConc').value='3';SC=build(3);}
+  $('mMsg').textContent='修改不会打断正在执行的节点，在下一个安全点生效。';
+  hideBanner();buildRows();
+}
+$('bPlay').onclick=()=>{
+  if(S.playing){S.playing=false;ctrl('暂停：调度器停止派发新步骤，正在执行的步骤跑完后在安全点挂起；状态已写入检查点');return;}
+  const fin=S.live>=SC.total-0.01||S.cancelAt!=null;
+  if(fin||S.live===0){if(fin)reset();S.playing=true;ctrl('启动运行：图快照 v3 · 预算 '+(SC.budget/1000)+'k tokens',{sys:1});return;}
+  if(pendingHuman()){toast('等待人工审批，请在弹出的提示里处理');showHuman(SC.human[0]);return;}
+  S.view=null;S.playing=true;ctrl('继续：从检查点恢复调度');
+};
+$('bReset').onclick=()=>{S.demo=null;reset();};
+$('bCancel').onclick=()=>cancel();
+function cancel(){
+  if(S.live===0||S.cancelAt!=null||S.live>=SC.total-0.01){toast('当前没有可取消的运行');return;}
+  S.cancelAt=S.t;S.playing=false;S.view=null;hideBanner();
+  const run=SC.nodes.filter(n=>{const s=base(n,S.t)[0];return s==='run'||s==='suspend'||s==='wait'&&n.segs.some(g=>g[2]==='queue'&&S.t>=g[0]&&S.t<g[1]);});
+  const leaf=run.filter(n=>!n.kids.length&&!n.resident);
+  ctrl('取消：控制信号沿层级向下传播',{});
+  const chain=[];let x=leaf[leaf.length-1];while(x){chain.unshift(x);x=x.parent;}
+  run.sort((a,b)=>a.depth-b.depth).forEach((n,i)=>{setTimeout(()=>{const R=rowEls[n.id];if(R){R.el.classList.add('cflash');setTimeout(()=>R.el.classList.remove('cflash'),1000);}},i*120);});
+  if(chain.length)ctrl('取消传播：'+chain.map(n=>n.label).join(' → '),{sys:1});
+  leaf.filter(n=>n.role==='执行者').forEach(n=>ctrl(`${n.path}：工具调用已中断，幂等键 r${n.round}-e${n.ei}-q1 保留，之后可安全重试`,{sys:1}));
+  ctrl('未开始的节点标记为「取消」；已完成节点的结果和检查点保留，可以「从此检查点重跑」',{sys:1});
+  renderFrame(true);
+}
+$('spd').addEventListener('click',e=>{const b=e.target.closest('[data-s]');if(!b)return;S.speed=+b.dataset.s;$('spd').querySelectorAll('.btn').forEach(x=>x.classList.toggle('on',x===b));});
+$('lvl').onchange=()=>{S.lvl=+$('lvl').value;if(S.diagOpen)diagnose();};
+$('mApply').onclick=()=>applyConc(+$('mConc').value);
+function applyConc(v){
+  const r3=SC.roundStart[3];
+  if(v===5&&!S.concApplied){
+    if(S.live>=r3){$('mMsg').innerHTML='<b>第 3 轮已经开始</b>，本次运行不再修改；已记录为下次运行的配置。';ctrl('执行池.concurrency 3 → 5：当前已过第 3 轮安全点，下次运行生效');return;}
+    S.concApplied=true;const keepSel=S.sel;SC=build(5);S.sel=keepSel;
+    ctrl('执行池.concurrency 3 → 5：已接收，将在 第 3 轮 安全点生效（正在执行的轮次不受影响）');
+    S.ctrl.push({t:r3,m:'安全点：第 3 轮开始，执行池.concurrency = 5 生效',sys:1});S.ctrl.sort((a,b)=>a.t-b.t);
+    $('mMsg').innerHTML='已接收：<b>将在第 3 轮安全点生效</b>。第 3 轮的 4 个执行者会同时运行，不再排队。';
+    buildRows();
+  } else if(v===3&&S.concApplied){
+    if(S.live>=r3){$('mMsg').textContent='第 3 轮已开始，改回 3 将在下次运行生效。';return;}
+    S.concApplied=false;SC=build(3);S.ctrl=S.ctrl.filter(x=>!(x.sys&&x.t===r3));ctrl('执行池.concurrency 5 → 3：撤回待生效的修改');$('mMsg').textContent='已撤回。';buildRows();
+  }
+}
+
+/* ================= 人工审批 / 横幅 ================= */
+function showBanner(title,html,btns){
+  $('bnT').textContent=title;$('bnX').innerHTML=html;
+  $('bnB').innerHTML=btns.map((b,i)=>`<button class="btn${b[2]?' pri':''}" data-bi="${i}">${b[0]}</button>`).join('');
+  $('bnB').querySelectorAll('button').forEach(el=>el.onclick=()=>{const b=btns[+el.dataset.bi];b[1]();});
+  $('banner').style.display='block';
+}
+function hideBanner(){$('banner').style.display='none';}
+function showHuman(h){
+  showBanner('人工节点 · 挂起','决策者申请调用 <b>付费数据 API</b>（L2 外部副作用，预计 ¥12）。运行已挂起并写入检查点，进程重启也不会丢失；批准后从这里继续。',
+    [['驳回（取消本次运行）',()=>{ctrl('人工审批：驳回（用户）');cancel();}],['批准',()=>approve(h),1]]);
+}
+function approve(h){
+  S.approved[h.t]=true;hideBanner();
+  ctrl('人工审批：已批准（用户 · 渠道：应用内）→ 唤醒挂起的节点');
+  S.t=h.t+10;S.live=Math.max(S.live,S.t);S.view=null;S.playing=true;
+}
+
+/* ================= 主循环 ================= */
+let last=performance.now();
+function loop(ts){
+  const dt=Math.min(0.1,(ts-last)/1000);last=ts;
+  if(S.playing){
+    const old=S.t;let nt=Math.min(SC.total,old+dt*S.speed);
+    let stop=null;
+    if(S.demo){const d=S.demo.steps[S.demo.i];if(d&&d.t>old&&d.t<=nt)stop={t:d.t,demo:d};}
+    SC.human.forEach(h=>{if(!S.approved[h.t]&&h.t>old-1e-6&&h.t<=nt&&(!stop||h.t<stop.t))stop={t:h.t,human:h};});
+    if(stop){nt=stop.t;S.playing=false;}
+    S.t=nt;S.live=Math.max(S.live,nt);
+    if(stop){
+      if(stop.demo)demoStop(stop.demo);
+      else showHuman(stop.human);
+    }
+    if(S.t>=SC.total-1e-6&&S.playing){S.playing=false;ctrl('运行完成：结果已写入目标账本；全部节点留痕可回放',{sys:1});if(S.demo)demoEnd();}
+  }
+  renderFrame(false);
+  requestAnimationFrame(loop);
+}
+
+/* ================= 模型诊断 ================= */
+function findings(){
+  const k=SC.key,L=S.live,F=[];
+  if(L>=k.fail+1)F.push({tag:'失败',c:'r',m:'第 1 轮 执行者#2 检索超时，按 retry 策略用同一幂等键重试成功；但重试后给出的 B 公司价格没有来源，置信度只有 0.41。',ev:'执行者#2 @ #r1',node:x=>x.role==='执行者'&&x.round===1&&x.ei===2,t:k.fail+0.5});
+  if(L>=k.spot)F.push({tag:'质量',c:'r',m:'第 1 轮 验收者按 20% 抽检回取原文，发现上面那条价格在原文中不存在，属于编造。抽检率偏低，这次是碰巧抽中。',ev:'验收者 @ #r1',node:x=>x.role==='验收者'&&x.round===1,t:k.spot});
+  if(L>=k.human)F.push({tag:'等待',c:'a',m:'第 2 轮 人工审批挂起 10s，占这一轮用时的 17%。付费数据 API 这类低金额调用可以考虑预授权。',ev:'人工审批 @ #r2',node:x=>x.type==='人工',t:k.human+2});
+  if(L>=k.queue)F.push({tag:'瓶颈',c:'a',m:'第 2 轮 执行池用时 15s，其中执行者#3 因检索限流（10 次/分钟）排队 6s，执行者#4 因并发上限 3 等待 7s。这是全程最大的瓶颈。',ev:'执行者#3 @ #r2',node:x=>x.role==='执行者'&&x.round===2&&x.ei===3,t:k.queue+1});
+  if(L>=SC.roundStart[2])F.push({tag:'拖尾',c:'',m:'每轮智囊团都要等最慢的智囊#2（13s），比另外两个慢 1–3s。3 份方案里有 2 份已经能决定多数意见。',ev:'智囊#2 @ #r1',node:x=>x.role==='智囊'&&x.round===1&&x.ei===2,t:SC.roundStart[1]+11});
+  return F;
+}
+const PATCHES=[
+  {id:'P1',name:'放宽检索限流并开启结果缓存',op:'set_param  工具[检索].policies.rate: 10/min → 30/min ; trim.cache: L0 按请求缓存 10min',why:'第 2 轮执行者#3 排队 6s。预计第 2 轮执行池缩短约 6s。',scope:'参数'},
+  {id:'P2',name:'执行者角色卡：查不到就返回「未找到」',op:'edit_role_card  执行者@1 → @2 ; when_stuck += "查不到就返回 status=未找到，禁止估算"；执行结果.sources: required',why:'第 1 轮执行者#2 编造了 B 公司价格。改动后无来源的结果会被端口校验直接拦下。',scope:'角色卡'},
+  {id:'P3',name:'提高验收抽检率',op:'set_param  验收者.spot_rate: 0.2 → 0.4 ; 置信度 < 0.6 的条目全部抽检',why:'这次编造数据是碰巧被抽中的；置信度 0.41 的条目本应必抽。',scope:'参数'},
+  {id:'P4',name:'智囊团改为「等 2 个 + 超时」',op:'set_param  智囊团.collect: wait=all → k_of_n(k=2, timeout=12s)',why:'每轮可省 1–3s；第 3 份方案超时未到时按缺席处理，不影响多数判断。',scope:'参数'}
+];
+function diagnose(){
+  S.diagOpen=true;const lv=S.lvl,F=findings();
+  let h=`<h3>模型诊断</h3><div class="sub">模型读取了本次运行的留痕（${S.live.toFixed(0)}s 的执行记录、${SC.ch.esc.filter(x=>x.t<=S.live).length} 条升级、全部工具调用），给出下面的分析。点击证据可以跳到对应节点和时刻。</div>`;
+  if(!F.length){h+='<div class="empty">运行留痕还太少。先运行到第 2 轮以后再诊断。</div>';}
+  else{
+    h+=F.map((f,i)=>`<div class="fd"><span><span class="tag ${f.c}">${f.tag}</span></span><span>${f.m}<button class="ev" data-fi="${i}">证据：${f.ev} · ${f.t.toFixed(1)}s</button></span></div>`).join('');
+    const label={0:'档位 0 只读：模型只能给出诊断，不能提交补丁',1:'模型建议 · 档位 1 需采纳',2:'档位 2 部分授权：参数类补丁已直接应用，改角色卡超出授权范围需采纳',3:'档位 3 高度授权：已直接应用，可撤销',4:'档位 4 完全授权：已直接应用，可撤销'}[lv];
+    h+=`<div class="sec" style="margin-top:14px"><div class="h"><span>修复补丁（${label}）</span><span>当前档位可在顶栏切换</span></div>`;
+    if(lv>0){
+      PATCHES.forEach(p=>{
+        const auto=lv>=3||(lv===2&&p.scope==='参数');
+        if(auto&&S.patches[p.id]==null){S.patches[p.id]='auto';ctrl(`模型补丁 ${p.id} 已直接应用（档位 ${lv}）：${p.name} —— 理由：${p.why}`,{ai:1});}
+        const s=S.patches[p.id];
+        h+=`<div class="pt${s==='ok'||s==='auto'?' ap':s==='no'?' rj':''}"><div class="ph1"><span class="tag ai">模型</span><b>${p.id} ${p.name}</b><span class="tag">${p.scope}</span></div><div class="op">${esc(p.op)}</div><div class="why">理由：${p.why}</div><div class="act">`+
+          (s==='auto'?`已直接应用 · 下次运行生效 <button class="btn" data-pu="${p.id}">撤销</button>`:s==='ok'?`已采纳 · 下次运行生效 <button class="btn" data-pu="${p.id}">撤销</button>`:s==='no'?`已拒绝 <button class="btn" data-pu="${p.id}">恢复</button>`:`<button class="btn pri" data-pa="${p.id}">采纳</button><button class="btn" data-pr="${p.id}">拒绝</button>`)+`</div></div>`;
+      });
+    }
+    h+='</div>';
+  }
+  h+='<div class="dbtn" style="justify-content:flex-end"><button class="btn" id="dClose">关闭</button></div>';
+  $('dlg').innerHTML=h;$('mask').classList.add('on');
+  $('dClose').onclick=closeDiag;
+  $('dlg').querySelectorAll('[data-fi]').forEach(b=>b.onclick=()=>{const f=F[+b.dataset.fi];const n=SC.nodes.find(f.node);if(n){S.sel=n.id;let p=n.parent;while(p){S.col.delete(p.id);p=p.parent;}buildRows();S.view=Math.min(f.t,S.live);closeDiag();renderFrame(true);const R=rowEls[n.id];if(R)R.el.scrollIntoView({block:'center'});}});
+  $('dlg').querySelectorAll('[data-pa]').forEach(b=>b.onclick=()=>{const p=PATCHES.find(x=>x.id===b.dataset.pa);S.patches[p.id]='ok';ctrl(`采纳模型补丁 ${p.id}：${p.name}（下次运行生效）`);diagnose();});
+  $('dlg').querySelectorAll('[data-pr]').forEach(b=>b.onclick=()=>{S.patches[b.dataset.pr]='no';ctrl(`拒绝模型补丁 ${b.dataset.pr}`);diagnose();});
+  $('dlg').querySelectorAll('[data-pu]').forEach(b=>b.onclick=()=>{const id=b.dataset.pu,was=S.patches[id];S.patches[id]=was==='no'?undefined:'no';if(S.patches[id]===undefined)delete S.patches[id];ctrl(was==='no'?`恢复模型补丁 ${id} 为待定`:`撤销模型补丁 ${id}（回到补丁前的版本快照）`);diagnose();});
+  renderFrame(true);
+}
+function closeDiag(){S.diagOpen=false;$('mask').classList.remove('on');}
+$('bDiag').onclick=diagnose;
+$('mask').addEventListener('click',e=>{if(e.target===$('mask'))closeDiag();});
+
+/* ================= 演示脚本 ================= */
+function demoSteps(){
+  const k=SC.key;
+  return [
+    {t:5.5,title:'1 / 7 · 持久化执行',x:'主脑读取目标账本、写下目标和验收标准后进入<b>挂起（等待事件）</b>：它是长驻节点，只在简报或升级到达时醒来。下面的「事件」通道记录了这次账本写入。'},
+    {t:k.fail+0.3,title:'2 / 7 · 失败与重试',x:'第 1 轮 <b>执行者#2</b> 检索超时，节点进入「失败」。按 retry 策略用<b>同一幂等键</b>重试，所以就算第一次请求其实已经到达，也不会产生重复副作用。甘特图上这一行会变成两段。',sel:x=>x.role==='执行者'&&x.round===1&&x.ei===2},
+    {t:k.spot+0.2,title:'3 / 7 · 抽检发现问题',x:'验收者按 20% 抽检，通过指针回取原文，发现执行者#2 给的 B 公司价格<b>没有来源</b>。这条问题在本层处理（写进差距报告），没有上报到主脑。看「升级」通道。',sel:x=>x.role==='验收者'&&x.round===1,tab:'esc'},
+    {t:k.human,title:'4 / 7 · 人工审批挂起',x:'第 2 轮决策者要调用付费数据 API（L2）。运行在这里<b>挂起</b>并写入检查点，可以等几分钟，也可以等一天，进程重启也不会丢。点「继续」代表你批准。',sel:x=>x.type==='人工',act:'approve'},
+    {t:k.queue+0.5,title:'5 / 7 · 限流与背压',x:'检索工具 10 次/分钟已满，执行者#3 进入<b>排队</b>（甘特图斜纹段），执行者#4 在等执行池空位。看右下角资源池：排队数实时显示。',sel:x=>x.role==='执行者'&&x.round===2&&x.ei===3},
+    {t:k.r2acc+1,title:'6 / 7 · 运行中修改图',x:'我们现在把执行池并发从 3 改成 5。修改<b>不会打断</b>正在跑的第 2 轮，而是在第 3 轮开始这个<b>安全点</b>生效。看「控制」通道。',act:'conc',tab:'ctrl'},
+    {t:k.done+0.2,title:'7 / 7 · 达成',x:'第 3 轮 4 个执行者同时运行、没有排队，验收通过。「给主脑的简报」里每个目标只保留最新一条。运行结束后，我们让模型读留痕来诊断。',tab:'brief'}
+  ];
+}
+$('bDemo').onclick=()=>{
+  S.demo={i:0,steps:null};S.lvl=1;$('lvl').value='1';S.speed=4;$('spd').querySelectorAll('.btn').forEach(x=>x.classList.toggle('on',x.dataset.s==='4'));
+  reset();S.demo={i:0,steps:demoSteps()};
+  showBanner('演示脚本','从头运行一遍「竞品定价调研」，在 7 个关键时刻暂停解说。你可以随时点左侧节点、点甘特图做时间旅行。',[['退出',()=>{S.demo=null;hideBanner();}],['开始',()=>{hideBanner();S.playing=true;ctrl('启动运行：图快照 v3（演示）',{sys:1});},1]]);
+};
+function demoStop(d){
+  if(d.sel){const n=SC.nodes.find(d.sel);if(n){S.sel=n.id;const R=rowEls[n.id];if(R)R.el.scrollIntoView({block:'center',behavior:'smooth'});}}
+  if(d.tab)S.tab=d.tab;
+  renderFrame(true);
+  showBanner('演示脚本 · '+d.title,d.x,[['退出演示',()=>{S.demo=null;hideBanner();}],[d.act==='approve'?'批准并继续':'继续',()=>{
+    S.demo.i++;hideBanner();
+    if(d.act==='approve'){const h=SC.human[0];approve(h);if(S.demo){S.demo.steps=demoSteps();}return;}
+    if(d.act==='conc'){$('mConc').value='5';applyConc(5);if(S.demo)S.demo.steps=demoSteps();}
+    S.playing=true;},1]]);
+}
+function demoEnd(){
+  S.demo=null;
+  setTimeout(()=>{showBanner('演示脚本 · 模型诊断','运行结束。下面打开<b>模型诊断</b>：当前档位 1，模型只能提补丁，需要你逐条采纳。你也可以把顶栏档位改成 2 或 4，看补丁怎么被直接应用、怎么撤销。',[['关闭',hideBanner],['打开模型诊断',()=>{hideBanner();diagnose();},1]]);},300);
+}
+
+/* ================= 启动 ================= */
+(function init(){
+  buildRows();
+  const n=SC.nodes.find(x=>x.role==='执行者'&&x.round===1&&x.ei===2);S.sel=n.id;
+  renderFrame(true);
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

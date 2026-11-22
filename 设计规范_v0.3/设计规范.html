@@ -1,0 +1,1811 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Harness · 积木编排 设计规范 v0.3</title>
+<script>(function(){var t='light';try{var s=localStorage.getItem('hx-theme');if(s==='light'||s==='dark')t=s;else if(localStorage.getItem('hx-theme-follow')==='1'&&matchMedia('(prefers-color-scheme: dark)').matches)t='dark';}catch(e){}document.documentElement.setAttribute('data-theme',t);})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ===== 来源：tokens.css v0.3.1（原样内联，勿在此修改，改源文件后重新生成） ===== */
+/* ==========================================================================
+   Harness · 积木编排 设计令牌 tokens.css  v0.3.1
+   唯一事实来源。所有页面、组件只能引用这里的变量，不得写裸色值。
+   命名：--hx-<类别>-<名称>。
+   主题：默认浅色（:root）。深色通过 <html data-theme="dark"> 启用。
+   细则见 docs/02_色彩系统与主题.md
+   ========================================================================== */
+
+/* ---------------- 浅色（默认） ---------------- */
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+
+  /* 表面：从底到顶。浅色下越往上越"白"，层级主要靠外框和阴影区分 */
+  --hx-bg-0: #f3f3f1;          /* 应用最底层：侧栏、对话背景 */
+  --hx-bg-1: #f8f8f6;          /* 画布底色 */
+  --hx-bg-2: #ffffff;          /* 浮动面板、检查器、停靠栏 */
+  --hx-bg-3: #ffffff;          /* 节点主体、卡片 */
+  --hx-bg-4: #f2f2ef;          /* 输入框、悬停态 */
+  --hx-bg-5: #e8e8e4;          /* 按下态、分段控件选中项 */
+
+  /* 线 */
+  --hx-line-1: rgba(24,24,32,.06);   /* 内部分区 */
+  --hx-line-2: rgba(24,24,32,.11);   /* 节点、面板外框 */
+  --hx-line-3: rgba(24,24,32,.20);   /* 悬停外框 */
+  --hx-highlight: rgba(255,255,255,.9);
+
+  /* 文字（对白色背景：text-1 16:1，text-2 7.4:1，text-3 4.6:1） */
+  --hx-text-1: #16171b;
+  --hx-text-2: #4f535c;
+  --hx-text-3: #6b6f78;
+  --hx-text-inv: #1c1404;      /* 强调色背景上的文字：两种主题都用深色字压在琥珀色上 */
+
+  /* 语义色 */
+  --hx-accent: #f0a01e;        /* 运行中 / 主路径 / 主按钮底色 */
+  --hx-accent-strong: #9a5c00; /* 浅色下用作文字、细线的琥珀色（对白 4.6:1） */
+  --hx-accent-weak: rgba(240,160,30,.14);
+  --hx-accent-line: rgba(200,125,0,.55);
+  --hx-ok: #1d8250;
+  --hx-ok-weak: rgba(35,144,90,.11);
+  --hx-danger: #d0414a;
+  --hx-danger-weak: rgba(208,65,74,.10);
+  --hx-wait: #94700a;
+  --hx-wait-weak: rgba(200,150,20,.14);
+  --hx-model: #4f5fd6;         /* 模型操作者身份色 */
+  --hx-model-weak: rgba(79,95,214,.10);
+  --hx-model-line: rgba(79,95,214,.55);
+  --hx-focus: #16171b;
+
+  /* 端口数据类型色（白底上均 ≥ 3:1） */
+  --hx-type-any: #80848d;
+  --hx-type-ctx: #9f7a0e;
+  --hx-type-ref: #2f75c0;
+  --hx-type-list: #13897a;
+  --hx-type-tool: #c35f3c;
+  --hx-type-gen: #6f6a5e;
+  --hx-type-ctrl: #c24774;
+  --hx-type-state: #7656b8;
+
+  /* 画布 */
+  --hx-grid-dot: rgba(24,24,32,.14);
+  --hx-marquee: rgba(24,24,32,.05);
+  --hx-marquee-line: rgba(24,24,32,.38);
+  --hx-scrim: rgba(243,243,241,.7);
+
+  /* 阴影：浅色下是层级的主要手段，必须细腻 */
+  --hx-shadow-node: 0 0 0 1px rgba(24,24,32,.02), 0 1px 2px rgba(24,24,32,.06), 0 3px 10px rgba(24,24,32,.05);
+  --hx-shadow-node-drag: 0 2px 4px rgba(24,24,32,.06), 0 16px 36px rgba(24,24,32,.14);
+  --hx-shadow-float: 0 0 0 1px var(--hx-line-2), 0 2px 4px rgba(24,24,32,.04), 0 12px 32px rgba(24,24,32,.09);
+  --hx-shadow-pop: 0 0 0 1px var(--hx-line-3), 0 4px 8px rgba(24,24,32,.06), 0 20px 48px rgba(24,24,32,.16);
+}
+
+/* ---------------- 深色（可选） ---------------- */
+[data-theme="dark"] {
+  color-scheme: dark;
+  --hx-bg-0: #0a0b0e;
+  --hx-bg-1: #101217;
+  --hx-bg-2: #15171d;
+  --hx-bg-3: #1b1e25;
+  --hx-bg-4: #22262e;
+  --hx-bg-5: #2a2f39;
+  --hx-line-1: rgba(255,255,255,.055);
+  --hx-line-2: rgba(255,255,255,.09);
+  --hx-line-3: rgba(255,255,255,.15);
+  --hx-highlight: rgba(255,255,255,.04);
+  --hx-text-1: #ecebe6;
+  --hx-text-2: #a7aab2;
+  --hx-text-3: #7a7e88;
+  --hx-text-inv: #121317;
+  --hx-accent: #f5a524;
+  --hx-accent-strong: #f5a524;
+  --hx-accent-weak: rgba(245,165,36,.14);
+  --hx-accent-line: rgba(245,165,36,.45);
+  --hx-ok: #5fc48a;
+  --hx-ok-weak: rgba(95,196,138,.14);
+  --hx-danger: #ec6a6f;
+  --hx-danger-weak: rgba(236,106,111,.14);
+  --hx-wait: #e9c46a;
+  --hx-wait-weak: rgba(233,196,106,.14);
+  --hx-model: #93a5ff;
+  --hx-model-weak: rgba(147,165,255,.14);
+  --hx-model-line: rgba(147,165,255,.5);
+  --hx-focus: #ecebe6;
+  --hx-type-any: #7e828c;
+  --hx-type-ctx: #e3c46b;
+  --hx-type-ref: #6fa8dc;
+  --hx-type-list: #4fb6a5;
+  --hx-type-tool: #d98e73;
+  --hx-type-gen: #cbc7bd;
+  --hx-type-ctrl: #e07b9a;
+  --hx-type-state: #a58bd6;
+  --hx-grid-dot: rgba(255,255,255,.075);
+  --hx-marquee: rgba(255,255,255,.06);
+  --hx-marquee-line: rgba(255,255,255,.38);
+  --hx-scrim: rgba(6,7,9,.6);
+  --hx-shadow-node: inset 0 1px 0 var(--hx-highlight), 0 1px 2px rgba(0,0,0,.45), 0 4px 14px rgba(0,0,0,.25);
+  --hx-shadow-node-drag: inset 0 1px 0 var(--hx-highlight), 0 14px 34px rgba(0,0,0,.55);
+  --hx-shadow-float: inset 0 1px 0 var(--hx-highlight), 0 0 0 1px var(--hx-line-2), 0 12px 32px rgba(0,0,0,.45);
+  --hx-shadow-pop: inset 0 1px 0 var(--hx-highlight), 0 0 0 1px var(--hx-line-3), 0 18px 48px rgba(0,0,0,.6);
+}
+
+/* ---------------- 与主题无关的令牌 ---------------- */
+:root {
+  --hx-font-ui: "Geist", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --hx-font-mono: "Geist Mono", "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+
+  /* 字号：只允许这 8 档 */
+  --hx-fs-10: 10.5px; --hx-fs-11: 11px; --hx-fs-12: 12px; --hx-fs-13: 13px;
+  --hx-fs-14: 14px;   --hx-fs-16: 16px; --hx-fs-20: 20px; --hx-fs-28: 28px;
+
+  /* 间距：4 的倍数 */
+  --hx-s-1: 2px; --hx-s-2: 4px; --hx-s-3: 6px; --hx-s-4: 8px; --hx-s-5: 12px;
+  --hx-s-6: 16px; --hx-s-7: 20px; --hx-s-8: 24px; --hx-s-9: 32px; --hx-s-10: 48px;
+
+  /* 圆角 */
+  --hx-r-xs: 3px; --hx-r-sm: 5px; --hx-r-md: 7px; --hx-r-lg: 10px; --hx-r-xl: 14px; --hx-r-full: 999px;
+
+  /* 尺寸 */
+  --hx-node-w: 236px; --hx-node-w-sm: 184px; --hx-node-head: 38px; --hx-node-row: 24px;
+  --hx-node-widget: 28px; --hx-port: 10px; --hx-ctl-h: 28px; --hx-ctl-h-sm: 24px; --hx-grid: 20px;
+
+  /* 动效 */
+  --hx-ease: cubic-bezier(.2,.8,.2,1);
+  --hx-ease-out: cubic-bezier(.16,1,.3,1);
+  --hx-ease-in: cubic-bezier(.4,0,1,1);
+  --hx-t-1: 90ms; --hx-t-2: 160ms; --hx-t-3: 240ms; --hx-t-4: 380ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --hx-t-1: 0ms; --hx-t-2: 0ms; --hx-t-3: 0ms; --hx-t-4: 0ms; }
+}
+
+/* ========================================================================
+   规范站点自身样式。只引用上方 tokens.css 中的 --hx-* 令牌。
+   结构：1 基础  2 站点框架  3 文档排版  4 样例舞台  5 组件（hx-*，可直接复用）
+   ======================================================================== */
+
+/* ---------- 1 基础 ---------- */
+*,*::before,*::after{box-sizing:border-box}
+html{background:var(--hx-bg-0);color:var(--hx-text-1);font-family:var(--hx-font-ui);font-size:var(--hx-fs-13);line-height:1.6;-webkit-font-smoothing:antialiased;scroll-behavior:smooth;scroll-padding-top:72px}
+body{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+::selection{background:var(--hx-model-weak)}
+.mono{font-family:var(--hx-font-mono);font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+
+/* ---------- 2 站点框架 ---------- */
+.site-top{position:sticky;top:0;z-index:50;height:48px;display:flex;align-items:center;gap:var(--hx-s-5);padding:0 var(--hx-s-8);background:var(--hx-bg-0);border-bottom:1px solid var(--hx-line-1)}
+.site-top__brand{font-weight:600;font-size:var(--hx-fs-14);letter-spacing:-.01em}
+.site-top__ver{font-family:var(--hx-font-mono);font-size:var(--hx-fs-11);color:var(--hx-text-3);padding:1px 6px;border:1px solid var(--hx-line-2);border-radius:var(--hx-r-xs)}
+.site-top__sp{flex:1}
+.site-top__meta{font-size:var(--hx-fs-12);color:var(--hx-text-3)}
+.site{display:grid;grid-template-columns:248px minmax(0,1fr)}
+.toc{position:sticky;top:48px;height:calc(100vh - 48px);overflow-y:auto;padding:var(--hx-s-8) var(--hx-s-5) var(--hx-s-9) var(--hx-s-6);border-right:1px solid var(--hx-line-1)}
+.toc__grp{font-size:var(--hx-fs-11);color:var(--hx-text-3);margin:var(--hx-s-6) 0 var(--hx-s-2) var(--hx-s-4);font-family:var(--hx-font-mono)}
+.toc__grp:first-child{margin-top:0}
+.toc a{display:flex;gap:var(--hx-s-4);align-items:baseline;padding:5px var(--hx-s-4);border-radius:var(--hx-r-sm);color:var(--hx-text-2);text-decoration:none;font-size:var(--hx-fs-13);transition:background-color var(--hx-t-1) var(--hx-ease),color var(--hx-t-1) var(--hx-ease)}
+.toc a span{font-family:var(--hx-font-mono);font-size:var(--hx-fs-11);color:var(--hx-text-3);width:18px;flex:none}
+.toc a:hover{background:var(--hx-bg-3);color:var(--hx-text-1)}
+.toc a.is-active{background:var(--hx-bg-4);color:var(--hx-text-1)}
+.toc a.is-active span{color:var(--hx-text-2)}
+.toc a.sub{padding-left:38px;font-size:var(--hx-fs-12);color:var(--hx-text-3)}
+.toc a.sub.is-active{background:none;color:var(--hx-text-1)}
+.main{min-width:0;padding:var(--hx-s-10) var(--hx-s-10) 120px}
+.main__in{max-width:920px}
+
+/* ---------- 3 文档排版 ---------- */
+.hero{padding-bottom:var(--hx-s-9);border-bottom:1px solid var(--hx-line-1);margin-bottom:var(--hx-s-10)}
+.hero__k{font-family:var(--hx-font-mono);font-size:var(--hx-fs-12);color:var(--hx-text-3)}
+.hero h1{font-size:40px;line-height:1.15;letter-spacing:-.025em;font-weight:600;margin:var(--hx-s-4) 0 var(--hx-s-6);max-width:760px}
+.hero p{color:var(--hx-text-2);font-size:var(--hx-fs-14);max-width:680px;margin:0}
+.hero__facts{display:grid;grid-template-columns:repeat(4,1fr);margin-top:var(--hx-s-9);border-top:1px solid var(--hx-line-1)}
+.hero__facts div{padding:var(--hx-s-5) var(--hx-s-6) 0 0}
+.hero__facts b{display:block;font-family:var(--hx-font-mono);font-size:var(--hx-fs-20);font-weight:500}
+.hero__facts span{font-size:var(--hx-fs-12);color:var(--hx-text-3)}
+.sec{margin-bottom:96px}
+.sec__no{font-family:var(--hx-font-mono);font-size:var(--hx-fs-12);color:var(--hx-text-3)}
+.sec h2{font-size:28px;letter-spacing:-.02em;font-weight:600;line-height:1.2;margin:var(--hx-s-2) 0 var(--hx-s-5)}
+.sec__lede{color:var(--hx-text-2);font-size:var(--hx-fs-14);max-width:680px;margin:0 0 var(--hx-s-9)}
+.sec h3{font-size:var(--hx-fs-16);font-weight:600;letter-spacing:-.01em;margin:var(--hx-s-10) 0 var(--hx-s-3)}
+.sec h3:first-of-type{margin-top:0}
+.sec p{max-width:700px}
+.desc{color:var(--hx-text-2);margin:0 0 var(--hx-s-6);max-width:700px}
+.rules{list-style:none;padding:0;margin:0 0 var(--hx-s-6);max-width:760px}
+.rules li{display:grid;grid-template-columns:20px 1fr;gap:var(--hx-s-3);padding:var(--hx-s-2) 0;color:var(--hx-text-2)}
+.rules li::before{content:"";width:4px;height:4px;border-radius:50%;background:var(--hx-text-3);margin:9px 0 0 6px}
+.rules b{color:var(--hx-text-1);font-weight:500}
+code.t{font-family:var(--hx-font-mono);font-size:12px;padding:1px 5px;border-radius:var(--hx-r-xs);background:var(--hx-bg-3);border:1px solid var(--hx-line-1);color:var(--hx-text-1);white-space:nowrap}
+.tbl{width:100%;border-collapse:collapse;font-size:var(--hx-fs-13);margin:0 0 var(--hx-s-6)}
+.tbl th{text-align:left;font-weight:500;font-size:var(--hx-fs-12);color:var(--hx-text-3);padding:var(--hx-s-4) var(--hx-s-5) var(--hx-s-4) 0;border-bottom:1px solid var(--hx-line-2)}
+.tbl td{padding:var(--hx-s-4) var(--hx-s-5) var(--hx-s-4) 0;border-bottom:1px solid var(--hx-line-1);vertical-align:top;color:var(--hx-text-2)}
+.tbl td:first-child{color:var(--hx-text-1)}
+.tbl .num{font-family:var(--hx-font-mono);font-variant-numeric:tabular-nums}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--hx-s-6)}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--hx-s-6)}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--hx-s-6)}
+.cap{font-size:var(--hx-fs-12);color:var(--hx-text-3);margin-top:var(--hx-s-4)}
+.cap b{color:var(--hx-text-2);font-weight:500}
+
+/* 代码块 */
+.code{position:relative;margin:var(--hx-s-5) 0 var(--hx-s-6);background:var(--hx-bg-2);border:1px solid var(--hx-line-1);border-radius:var(--hx-r-md);font-family:var(--hx-font-mono);font-size:12px;line-height:1.7}
+.code pre{margin:0;padding:var(--hx-s-5) var(--hx-s-6);overflow-x:auto;color:var(--hx-text-2)}
+.code__copy{position:absolute;top:6px;right:6px;height:24px;padding:0 8px;border-radius:var(--hx-r-sm);border:1px solid var(--hx-line-2);background:var(--hx-bg-3);color:var(--hx-text-3);font-family:var(--hx-font-ui);font-size:var(--hx-fs-11);opacity:0;transition:opacity var(--hx-t-1) var(--hx-ease),color var(--hx-t-1) var(--hx-ease)}
+.code:hover .code__copy,.code__copy:focus-visible{opacity:1}
+.code__copy:hover{color:var(--hx-text-1)}
+.code .c{color:var(--hx-text-3)}
+.code .k{color:var(--hx-text-1)}
+.code .s{color:var(--hx-type-list)}
+.code .n{color:var(--hx-type-ctx)}
+
+/* ---------- 4 样例舞台 ---------- */
+.stage{position:relative;background:var(--hx-bg-1);border:1px solid var(--hx-line-1);border-radius:var(--hx-r-lg);padding:var(--hx-s-9);overflow:hidden}
+.stage--grid{background-image:radial-gradient(var(--hx-grid-dot) 1px,transparent 1.2px);background-size:var(--hx-grid) var(--hx-grid);background-position:-1px -1px}
+.stage--flat{background:var(--hx-bg-2)}
+.stage--tight{padding:var(--hx-s-6)}
+.stage__lab{position:absolute;top:10px;left:14px;font-family:var(--hx-font-mono);font-size:var(--hx-fs-11);color:var(--hx-text-3)}
+.row{display:flex;flex-wrap:wrap;gap:var(--hx-s-5);align-items:center}
+.cell{display:flex;flex-direction:column;gap:var(--hx-s-4);align-items:flex-start;min-width:0}
+.cell__lab{font-size:var(--hx-fs-11);color:var(--hx-text-3);font-family:var(--hx-font-mono)}
+
+/* 正反对比 */
+.dd{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--hx-line-1);border-radius:var(--hx-r-lg);overflow:hidden;margin-bottom:var(--hx-s-5)}
+.dd>div{padding:var(--hx-s-7) var(--hx-s-7) var(--hx-s-6);background:var(--hx-bg-1);min-width:0}
+.dd>div+div{border-left:1px solid var(--hx-line-1)}
+.dd__tag{display:inline-flex;align-items:center;gap:6px;font-size:var(--hx-fs-12);font-weight:500;margin-bottom:var(--hx-s-6)}
+.dd__tag::before{content:"";width:6px;height:6px;border-radius:50%}
+.dd__tag--no{color:var(--hx-danger)}.dd__tag--no::before{background:var(--hx-danger)}
+.dd__tag--yes{color:var(--hx-ok)}.dd__tag--yes::before{background:var(--hx-ok)}
+.dd__note{font-size:var(--hx-fs-12);color:var(--hx-text-3);margin-top:var(--hx-s-6)}
+/* 反例专用：故意违反规范，仅用于演示 */
+.bad-grad{background:linear-gradient(135deg,#8b5cf6,#3b82f6);color:#fff;border:none;height:34px;padding:0 18px;border-radius:999px;font-weight:600;box-shadow:0 8px 24px rgba(99,102,241,.5)}
+.bad-glass{width:200px;padding:14px;border-radius:18px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(8px);color:#fff;font-size:12px}
+.bad-rain{display:flex;gap:4px}.bad-rain i{width:22px;height:22px;border-radius:50%}
+.bad-label{font-size:10px;letter-spacing:.18em;font-weight:700;color:#a78bfa}
+
+/* ---------- 令牌展示 ---------- */
+.layers{position:relative;height:250px}
+.layers div{position:absolute;border-radius:var(--hx-r-lg);border:1px solid var(--hx-line-2);box-shadow:inset 0 1px 0 var(--hx-highlight);padding:10px 12px;font-family:var(--hx-font-mono);font-size:var(--hx-fs-11);color:var(--hx-text-3)}
+.layers b{display:block;color:var(--hx-text-1);font-weight:500;font-size:var(--hx-fs-12)}
+.sw{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:var(--hx-s-4)}
+.sw button{display:grid;grid-template-columns:36px 1fr;gap:var(--hx-s-5);align-items:center;text-align:left;padding:var(--hx-s-4);border:1px solid var(--hx-line-1);border-radius:var(--hx-r-md);background:var(--hx-bg-2);transition:border-color var(--hx-t-1) var(--hx-ease),background-color var(--hx-t-1) var(--hx-ease)}
+.sw button:hover{border-color:var(--hx-line-3);background:var(--hx-bg-3)}
+.sw i{width:36px;height:36px;border-radius:var(--hx-r-sm);box-shadow:inset 0 0 0 1px var(--hx-line-2)}
+.sw b{display:block;font-family:var(--hx-font-mono);font-size:var(--hx-fs-12);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sw span{display:block;font-size:var(--hx-fs-11);color:var(--hx-text-3);line-height:1.4}
+.sw em{font-style:normal;font-family:var(--hx-font-mono);font-size:var(--hx-fs-10);color:var(--hx-text-3)}
+.types{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;border:1px solid var(--hx-line-1);border-radius:var(--hx-r-lg);overflow:hidden}
+.types div{padding:var(--hx-s-6);background:var(--hx-bg-1);border-right:1px solid var(--hx-line-1);border-bottom:1px solid var(--hx-line-1);min-width:0}
+.types div:nth-child(4n){border-right:none}
+.types div:nth-last-child(-n+4){border-bottom:none}
+.types svg{display:block;width:100%;height:30px;margin-bottom:var(--hx-s-4)}
+.types b{display:block;font-weight:500}
+.types span{display:block;font-family:var(--hx-font-mono);font-size:var(--hx-fs-11);color:var(--hx-text-3)}
+.fs-row{display:grid;grid-template-columns:120px 70px 1fr;gap:var(--hx-s-6);align-items:baseline;padding:var(--hx-s-4) 0;border-bottom:1px solid var(--hx-line-1)}
+.fs-row code{font-family:var(--hx-font-mono);font-size:var(--hx-fs-12);color:var(--hx-text-2)}
+.fs-row em{font-style:normal;font-family:var(--hx-font-mono);font-size:var(--hx-fs-11);color:var(--hx-text-3)}
+.ruler{display:grid;gap:var(--hx-s-3)}
+.ruler div{display:grid;grid-template-columns:90px 50px 1fr;gap:var(--hx-s-5);align-items:center;font-family:var(--hx-font-mono);font-size:var(--hx-fs-12);color:var(--hx-text-2)}
+.ruler i{display:block;height:12px;background:var(--hx-model-weak);box-shadow:inset 0 0 0 1px var(--hx-model-line);border-radius:1px}
+.ruler em{font-style:normal;color:var(--hx-text-3)}
+.radii{display:flex;gap:var(--hx-s-6);flex-wrap:wrap}
+.radii div{display:flex;flex-direction:column;gap:var(--hx-s-3);align-items:flex-start}
+.radii i{width:72px;height:56px;background:var(--hx-bg-3);border:1px solid var(--hx-line-2);border-top-left-radius:inherit}
+.radii b{font-family:var(--hx-font-mono);font-size:var(--hx-fs-12);font-weight:500}
+.radii span{font-size:var(--hx-fs-11);color:var(--hx-text-3)}
+.shadows{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--hx-s-8)}
+.shadows div{height:96px;border-radius:var(--hx-r-lg);background:var(--hx-bg-3);display:flex;flex-direction:column;justify-content:flex-end;padding:var(--hx-s-5);font-size:var(--hx-fs-11);color:var(--hx-text-3)}
+.shadows b{font-family:var(--hx-font-mono);font-size:var(--hx-fs-12);color:var(--hx-text-1);font-weight:500}
+.motion{display:grid;gap:var(--hx-s-3)}
+.motion__row{display:grid;grid-template-columns:150px 1fr 92px 56px;gap:var(--hx-s-6);align-items:center;padding:var(--hx-s-3) 0;border-bottom:1px solid var(--hx-line-1)}
+.motion__row b{font-weight:500;font-size:var(--hx-fs-13)}
+.motion__row span{display:block;font-family:var(--hx-font-mono);font-size:var(--hx-fs-11);color:var(--hx-text-3)}
+.motion__track{position:relative;height:28px;border-radius:var(--hx-r-full);background:var(--hx-bg-2);box-shadow:inset 0 0 0 1px var(--hx-line-1)}
+.motion__dot{position:absolute;left:4px;top:4px;width:20px;height:20px;border-radius:50%;background:var(--hx-text-1)}
+.motion__row em{font-style:normal;font-family:var(--hx-font-mono);font-size:var(--hx-fs-11);color:var(--hx-text-3)}
+.curve{width:56px;height:36px}
+
+/* ---------- 5 组件：可直接复用（hx-*） ---------- */
+
+/* 5.1 节点 */
+.hx-node{position:relative;width:var(--hx-node-w);background:var(--hx-bg-3);border:1px solid var(--hx-line-2);border-radius:var(--hx-r-lg);box-shadow:var(--hx-shadow-node);transition:border-color var(--hx-t-2) var(--hx-ease),box-shadow var(--hx-t-2) var(--hx-ease),opacity var(--hx-t-2) var(--hx-ease);text-align:left}
+.hx-node--sm{width:var(--hx-node-w-sm)}
+.hx-node__head{position:relative;display:flex;align-items:center;gap:var(--hx-s-4);height:var(--hx-node-head);padding:0 var(--hx-s-5) 0 9px}
+.hx-node__icon{flex:none;width:20px;height:20px;border-radius:var(--hx-r-sm);background:var(--hx-bg-5);color:var(--hx-text-2);display:grid;place-items:center}
+.hx-node__icon svg{width:14px;height:14px}
+.hx-node__titles{flex:1;min-width:0;line-height:1.2}
+.hx-node__title{font-size:var(--hx-fs-14);font-weight:600;letter-spacing:-.005em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hx-node__type{font-family:var(--hx-font-mono);font-size:var(--hx-fs-10);color:var(--hx-text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hx-node__meta{font-family:var(--hx-font-mono);font-size:var(--hx-fs-10);color:var(--hx-text-3);flex:none}
+.hx-node__status{flex:none;width:14px;height:14px;display:grid;place-items:center}
+.hx-node__status svg{width:12px;height:12px}
+.hx-node__ports{position:relative;padding:var(--hx-s-2) 0;border-top:1px solid var(--hx-line-1)}
+.hx-prow{position:relative;height:var(--hx-node-row);display:grid;grid-template-columns:1fr 1fr;align-items:center;font-size:var(--hx-fs-12);color:var(--hx-text-2)}
+.hx-prow__l{padding-left:var(--hx-s-5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hx-prow__r{padding-right:var(--hx-s-5);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hx-prow__promo{color:var(--hx-text-3);font-size:var(--hx-fs-10);margin-left:3px}
+.hx-port{position:absolute;top:50%;width:var(--hx-port);height:var(--hx-port);margin-top:calc(var(--hx-port) / -2);border-radius:50%;background:var(--c,var(--hx-type-any));box-shadow:0 0 0 2px var(--hx-bg-3);transition:transform var(--hx-t-1) var(--hx-ease),box-shadow var(--hx-t-1) var(--hx-ease),opacity var(--hx-t-1) var(--hx-ease)}
+.hx-port--in{left:calc(var(--hx-port) / -2 - .5px)}
+.hx-port--out{right:calc(var(--hx-port) / -2 - .5px)}
+.hx-port:hover,.hx-port.is-hot{transform:scale(1.3);box-shadow:0 0 0 2px var(--hx-bg-3),0 0 0 5px color-mix(in srgb,var(--c) 28%,transparent)}
+.hx-port.is-dim{opacity:.25}
+.hx-port[data-type]:hover::after{content:attr(data-type);position:absolute;top:50%;transform:translateY(-50%);white-space:nowrap;font-family:var(--hx-font-mono);font-size:var(--hx-fs-10);padding:1px 5px;border-radius:var(--hx-r-xs);background:var(--hx-bg-2);color:var(--c);box-shadow:var(--hx-shadow-float);pointer-events:none}
+.hx-port--in[data-type]:hover::after{right:16px}
+.hx-port--out[data-type]:hover::after{left:16px}
+.hx-node__widgets{position:relative;display:grid;gap:var(--hx-s-1);padding:var(--hx-s-2) var(--hx-s-4) var(--hx-s-4) var(--hx-s-5);border-top:1px solid var(--hx-line-1)}
+.hx-wrow{height:var(--hx-node-widget);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--hx-s-4);align-items:center;font-size:var(--hx-fs-12);color:var(--hx-text-2)}
+.hx-wval{height:var(--hx-ctl-h-sm);min-width:92px;padding:0 8px;display:flex;align-items:center;justify-content:space-between;gap:6px;border-radius:var(--hx-r-sm);background:var(--hx-bg-4);font-family:var(--hx-font-mono);font-size:var(--hx-fs-12);color:var(--hx-text-1)}
+.hx-wval svg{width:10px;height:10px;color:var(--hx-text-3)}
+.hx-node__foot{position:relative;display:none;padding:var(--hx-s-3) var(--hx-s-5) var(--hx-s-4);border-top:1px solid var(--hx-line-1);font-family:var(--hx-font-mono);font-size:var(--hx-fs-10);color:var(--hx-text-2)}
+.hx-bar{height:3px;border-radius:var(--hx-r-full);background:var(--hx-bg-5);overflow:hidden;margin-bottom:5px}
+.hx-bar i{display:block;height:100%;background:var(--hx-accent);transform-origin:left center;transform:scaleX(var(--p,.62))}
+.hx-node__foot .hx-foot__row{display:flex;justify-content:space-between;gap:var(--hx-s-4)}
+.hx-node__acts{display:flex;gap:var(--hx-s-2);margin-top:var(--hx-s-3)}
+
+/* 节点状态 */
+.hx-node.is-queued{border-color:var(--hx-line-3)}
+.hx-node.is-running{border-color:var(--hx-accent-line);box-shadow:var(--hx-shadow-node),0 0 0 3px var(--hx-accent-weak)}
+.hx-node.is-running .hx-node__foot{display:block;color:var(--hx-accent-strong)}
+.hx-node.is-running .hx-bar i{animation:hxprog 3.2s var(--hx-ease) infinite}
+.hx-node.is-done::after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:2px;border-radius:2px;background:var(--hx-ok);opacity:.8}
+.hx-node.is-failed{border-color:var(--hx-danger)}
+.hx-node.is-failed .hx-node__foot{display:block;color:var(--hx-danger)}
+.hx-node.is-waiting{border:1px dashed var(--hx-wait)}
+.hx-node.is-waiting .hx-node__foot{display:block;color:var(--hx-wait)}
+.hx-node.is-skipped{opacity:.45;border-color:var(--hx-line-1);box-shadow:none}
+.hx-node.is-selected{outline:1.5px solid var(--hx-focus);outline-offset:2px}
+.hx-spin{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--hx-accent-weak);border-top-color:var(--hx-accent);animation:hxspin .8s linear infinite}
+@keyframes hxspin{to{transform:rotate(360deg)}}
+@keyframes hxprog{0%{transform:scaleX(.08)}70%{transform:scaleX(.86)}100%{transform:scaleX(.86)}}
+
+/* 模型标记 */
+.hx-ai{position:absolute;top:-8px;right:10px;height:16px;padding:0 5px;display:inline-flex;align-items:center;border-radius:var(--hx-r-xs);font-family:var(--hx-font-mono);font-size:var(--hx-fs-10);font-weight:600;color:var(--hx-model);background:color-mix(in srgb,var(--hx-model) 16%,var(--hx-bg-3));box-shadow:inset 0 0 0 1px var(--hx-model-line);z-index:2}
+.hx-node.is-ghost{border:1.5px dashed var(--hx-model-line);box-shadow:none;background:color-mix(in srgb,var(--hx-bg-3) 72%,transparent)}
+.hx-node.is-ghost>:not(.hx-propose){opacity:.72}
+.hx-node.is-removed{border:1.5px dashed var(--hx-danger);box-shadow:none;opacity:.75}
+.hx-node.is-removed .hx-node__title{text-decoration:line-through;text-decoration-color:var(--hx-danger)}
+.hx-propose{display:flex;align-items:center;gap:var(--hx-s-3);padding:6px var(--hx-s-3) 6px var(--hx-s-5);background:var(--hx-model-weak);border-top:1px solid var(--hx-model-line);font-size:var(--hx-fs-11);color:var(--hx-text-2)}
+.hx-propose span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hx-propose b{color:var(--hx-model);font-weight:600}
+.hx-old{color:var(--hx-text-3);text-decoration:line-through}
+.hx-new{color:var(--hx-model)}
+.hx-node.is-flash{animation:hxflash 600ms var(--hx-ease-out)}
+@keyframes hxflash{0%{box-shadow:var(--hx-shadow-node),0 0 0 0 var(--hx-model-line)}40%{box-shadow:var(--hx-shadow-node),0 0 0 6px var(--hx-model-weak)}100%{box-shadow:var(--hx-shadow-node),0 0 0 10px transparent}}
+
+/* 子图、循环 */
+.hx-node--sub{box-shadow:4px 4px 0 -1px var(--hx-bg-3),4px 4px 0 0 var(--hx-line-2),var(--hx-shadow-node)}
+.hx-thumb{display:block;margin:var(--hx-s-2) var(--hx-s-5) var(--hx-s-4);height:64px;border-radius:var(--hx-r-sm);background:var(--hx-bg-1);box-shadow:inset 0 0 0 1px var(--hx-line-1)}
+.hx-thumb svg{width:100%;height:100%;display:block}
+.hx-ring{position:relative;flex:none;width:30px;height:30px}
+.hx-ring svg{width:30px;height:30px;transform:rotate(-90deg)}
+.hx-ring b{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--hx-font-mono);font-size:9.5px;font-weight:500;color:var(--hx-text-1)}
+
+/* LOD */
+.lod{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border:1px solid var(--hx-line-1);border-radius:var(--hx-r-lg);overflow:hidden}
+.lod>div{position:relative;height:250px;display:grid;place-items:center;border-right:1px solid var(--hx-line-1);background:var(--hx-bg-1);background-image:radial-gradient(var(--hx-grid-dot) 1px,transparent 1.2px);min-width:0}
+.lod>div:last-child{border-right:none}
+.lod>div .stage__lab{top:12px}
+.lod .s1{transform:scale(.9);background-size:18px 18px}
+.lod-mid .hx-prow__l,.lod-mid .hx-prow__r,.lod-mid .hx-node__widgets,.lod-mid .hx-node__type{visibility:hidden}
+.lod-mid .hx-node__widgets{display:none}
+.lod-far{width:150px;height:64px;border-radius:var(--hx-r-lg);background:var(--hx-bg-4);border:1px solid var(--hx-line-2);display:flex;align-items:center;padding:0 16px;font-size:20px;font-weight:600;letter-spacing:-.01em;position:relative}
+.lod-far::before,.lod-far::after{content:"";position:absolute;top:50%;width:8px;height:8px;margin-top:-4px;border-radius:50%;background:var(--hx-type-ctx)}
+.lod-far::before{left:-4.5px}.lod-far::after{right:-4.5px;background:var(--hx-type-gen)}
+
+/* 图标网格 */
+.icons{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));border-top:1px solid var(--hx-line-1);border-left:1px solid var(--hx-line-1)}
+.icons div{display:flex;flex-direction:column;gap:var(--hx-s-4);align-items:flex-start;padding:var(--hx-s-6);border-right:1px solid var(--hx-line-1);border-bottom:1px solid var(--hx-line-1);background:var(--hx-bg-1)}
+.icons .big{width:40px;height:40px;border-radius:var(--hx-r-md);background:var(--hx-bg-3);box-shadow:inset 0 0 0 1px var(--hx-line-2),inset 0 1px 0 var(--hx-highlight);display:grid;place-items:center;color:var(--hx-text-1)}
+.icons .big svg{width:20px;height:20px}
+.icons b{font-weight:500}
+.icons span{font-family:var(--hx-font-mono);font-size:var(--hx-fs-11);color:var(--hx-text-3)}
+
+/* 解剖图标注 */
+.anat{display:grid;grid-template-columns:auto 1fr;gap:72px;align-items:center}
+.mk{position:absolute;top:50%;right:-52px;transform:translateY(-50%);width:18px;height:18px;border-radius:50%;background:var(--hx-text-1);color:var(--hx-bg-1);display:grid;place-items:center;font-family:var(--hx-font-mono);font-size:10px;font-weight:600;z-index:3}
+.mk::before{content:"";position:absolute;right:18px;top:50%;width:30px;border-top:1px dashed var(--hx-text-3)}
+.mk--l{right:auto;left:-46px}
+.mk--l::before{right:auto;left:18px;width:22px}
+.legend{list-style:none;padding:0;margin:0;counter-reset:lg}
+.legend li{display:grid;grid-template-columns:24px 1fr;gap:var(--hx-s-4);padding:var(--hx-s-4) 0;border-bottom:1px solid var(--hx-line-1)}
+.legend li::before{counter-increment:lg;content:counter(lg);width:18px;height:18px;border-radius:50%;background:var(--hx-text-1);color:var(--hx-bg-1);display:grid;place-items:center;font-family:var(--hx-font-mono);font-size:10px;font-weight:600;margin-top:2px}
+.legend b{font-weight:500}
+.legend span{display:block;font-size:var(--hx-fs-12);color:var(--hx-text-3)}
+.legend code{font-family:var(--hx-font-mono);font-size:var(--hx-fs-11);color:var(--hx-text-2)}
+
+/* 5.2 连线样例 */
+.edges{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--hx-s-5)}
+.edge-card{background:var(--hx-bg-1);border:1px solid var(--hx-line-1);border-radius:var(--hx-r-lg);overflow:hidden}
+.edge-card svg{display:block;width:100%;height:auto}
+.edge-card div{padding:var(--hx-s-4) var(--hx-s-5) var(--hx-s-5);border-top:1px solid var(--hx-line-1)}
+.edge-card b{font-weight:500;display:block}
+.edge-card span{font-size:var(--hx-fs-12);color:var(--hx-text-3)}
+.hx-flow{fill:none;stroke:var(--hx-accent);stroke-width:2.5;stroke-linecap:round;stroke-dasharray:1 11;animation:hxflow .8s linear infinite}
+@keyframes hxflow{to{stroke-dashoffset:-12}}
+
+/* 5.3 控件 */
+.hx-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:var(--hx-ctl-h);padding:0 12px;border-radius:var(--hx-r-md);border:1px solid transparent;background:var(--hx-bg-4);color:var(--hx-text-1);font-size:var(--hx-fs-13);font-weight:500;white-space:nowrap;box-shadow:inset 0 1px 0 var(--hx-highlight);transition:background-color var(--hx-t-1) var(--hx-ease),border-color var(--hx-t-1) var(--hx-ease),transform var(--hx-t-1) var(--hx-ease),box-shadow var(--hx-t-1) var(--hx-ease),color var(--hx-t-1) var(--hx-ease)}
+.hx-btn svg{width:14px;height:14px}
+.hx-btn:hover,.hx-btn.is-hover{background:var(--hx-bg-5)}
+.hx-btn:active,.hx-btn.is-active{transform:scale(.97)}
+.hx-btn:focus-visible,.hx-btn.is-focus{outline:none;border-color:var(--hx-text-2);box-shadow:0 0 0 3px color-mix(in srgb,var(--hx-text-2) 15%,transparent)}
+.hx-btn:disabled{opacity:.4;cursor:default;transform:none}
+.hx-btn--primary{background:var(--hx-accent);color:var(--hx-text-inv);box-shadow:inset 0 1px 0 rgba(255,255,255,.18)}
+.hx-btn--primary:hover,.hx-btn--primary.is-hover{background:color-mix(in srgb,var(--hx-accent) 88%,var(--hx-text-1))}
+.hx-btn--primary:focus-visible,.hx-btn--primary.is-focus{border-color:var(--hx-text-1);box-shadow:0 0 0 3px var(--hx-accent-weak)}
+.hx-btn--ghost{background:transparent;box-shadow:none;color:var(--hx-text-2)}
+.hx-btn--ghost:hover,.hx-btn--ghost.is-hover{background:var(--hx-bg-4);color:var(--hx-text-1)}
+.hx-btn--danger{background:var(--hx-danger-weak);color:var(--hx-danger);box-shadow:none}
+.hx-btn--danger:hover,.hx-btn--danger.is-hover{background:color-mix(in srgb,var(--hx-danger) 24%,transparent)}
+.hx-btn--model{background:var(--hx-model-weak);color:var(--hx-model);box-shadow:none}
+.hx-btn--model:hover{background:color-mix(in srgb,var(--hx-model) 24%,transparent)}
+.hx-btn--sm{height:var(--hx-ctl-h-sm);padding:0 8px;font-size:var(--hx-fs-12);border-radius:var(--hx-r-sm)}
+.hx-btn--icon{width:var(--hx-ctl-h);padding:0}
+.hx-btn--icon.hx-btn--sm{width:var(--hx-ctl-h-sm)}
+.hx-btn.is-loading{color:transparent!important;pointer-events:none}
+.hx-btn.is-loading::after{content:"";position:absolute;width:12px;height:12px;border-radius:50%;border:1.5px solid color-mix(in srgb,currentColor 0%,var(--hx-text-inv) 35%);border-top-color:var(--hx-text-inv);animation:hxspin .8s linear infinite}
+.hx-btn:not(.hx-btn--primary).is-loading::after{border-color:var(--hx-line-3);border-top-color:var(--hx-text-1)}
+.hx-kbd{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 5px;border-radius:var(--hx-r-xs);background:var(--hx-bg-3);box-shadow:inset 0 0 0 1px var(--hx-line-2),inset 0 -1px 0 var(--hx-line-2);font-family:var(--hx-font-mono);font-size:var(--hx-fs-11);color:var(--hx-text-2)}
+.hx-kbd+.hx-kbd{margin-left:3px}
+
+.matrix{display:grid;grid-template-columns:110px repeat(5,minmax(0,1fr));border:1px solid var(--hx-line-1);border-radius:var(--hx-r-lg);overflow:hidden}
+.matrix>div{display:flex;align-items:center;justify-content:center;padding:var(--hx-s-5) var(--hx-s-3);border-bottom:1px solid var(--hx-line-1);border-right:1px solid var(--hx-line-1);background:var(--hx-bg-1);min-width:0}
+.matrix>div:nth-child(6n){border-right:none}
+.matrix>div:nth-last-child(-n+6){border-bottom:none}
+.matrix .mh{background:var(--hx-bg-2);font-size:var(--hx-fs-11);color:var(--hx-text-3);font-family:var(--hx-font-mono);padding:var(--hx-s-4)}
+.matrix .ml{justify-content:flex-start;padding-left:var(--hx-s-5);font-size:var(--hx-fs-12);color:var(--hx-text-2);background:var(--hx-bg-2)}
+
+.hx-step{display:inline-flex;align-items:center;height:var(--hx-ctl-h);border-radius:var(--hx-r-sm);background:var(--hx-bg-4);border:1px solid transparent;transition:border-color var(--hx-t-1) var(--hx-ease)}
+.hx-step:hover{border-color:var(--hx-line-3)}
+.hx-step button{width:26px;height:100%;border:none;background:none;color:var(--hx-text-3);display:grid;place-items:center;border-radius:var(--hx-r-sm);transition:color var(--hx-t-1) var(--hx-ease),background-color var(--hx-t-1) var(--hx-ease)}
+.hx-step button:hover{color:var(--hx-text-1);background:var(--hx-bg-5)}
+.hx-step button svg{width:10px;height:10px}
+.hx-step__v{min-width:44px;text-align:center;font-family:var(--hx-font-mono);font-variant-numeric:tabular-nums;font-size:var(--hx-fs-13);cursor:ew-resize;user-select:none;touch-action:none;padding:0 2px}
+.hx-step.is-drag{border-color:var(--hx-text-2)}
+.hx-step.is-drag .hx-step__v{color:var(--hx-accent-strong)}
+.hx-slider{position:relative;width:220px;height:24px;touch-action:none;cursor:pointer}
+.hx-slider__track{position:absolute;left:0;right:0;top:10px;height:4px;border-radius:var(--hx-r-full);background:var(--hx-bg-5)}
+.hx-slider__fill{position:absolute;left:0;top:10px;height:4px;border-radius:var(--hx-r-full);background:var(--hx-text-2);transform-origin:left;width:100%}
+.hx-slider__thumb{position:absolute;top:6px;left:0;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:var(--hx-text-1);box-shadow:0 0 0 3px var(--hx-bg-1),0 1px 3px rgba(0,0,0,.4);transition:box-shadow var(--hx-t-1) var(--hx-ease)}
+.hx-slider:hover .hx-slider__thumb{box-shadow:0 0 0 3px var(--hx-bg-1),0 0 0 7px var(--hx-line-2)}
+.hx-slider__tip{position:absolute;bottom:22px;left:0;transform:translateX(-50%) translateY(4px);padding:2px 6px;border-radius:var(--hx-r-xs);background:var(--hx-bg-2);box-shadow:var(--hx-shadow-pop);font-family:var(--hx-font-mono);font-size:var(--hx-fs-11);opacity:0;pointer-events:none;transition:opacity var(--hx-t-1) var(--hx-ease),transform var(--hx-t-1) var(--hx-ease)}
+.hx-slider.is-drag .hx-slider__tip{opacity:1;transform:translateX(-50%) translateY(0)}
+.hx-select{position:relative;display:inline-block}
+.hx-select__btn{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:180px;height:var(--hx-ctl-h);padding:0 8px 0 10px;border-radius:var(--hx-r-sm);border:1px solid transparent;background:var(--hx-bg-4);font-family:var(--hx-font-mono);font-size:var(--hx-fs-12);transition:border-color var(--hx-t-1) var(--hx-ease)}
+.hx-select__btn:hover{border-color:var(--hx-line-3)}
+.hx-select__btn svg{width:10px;height:10px;color:var(--hx-text-3)}
+.hx-select.is-open .hx-select__btn{border-color:var(--hx-text-2);box-shadow:0 0 0 3px color-mix(in srgb,var(--hx-text-2) 15%,transparent)}
+.hx-pop{position:absolute;z-index:20;min-width:100%;padding:4px;border-radius:var(--hx-r-md);background:var(--hx-bg-2);box-shadow:var(--hx-shadow-pop);opacity:0;transform:translateY(-4px) scale(.98);transform-origin:top left;pointer-events:none;transition:opacity var(--hx-t-2) var(--hx-ease-in),transform var(--hx-t-2) var(--hx-ease-in)}
+.is-open>.hx-pop{opacity:1;transform:none;pointer-events:auto;transition:opacity var(--hx-t-3) var(--hx-ease-out),transform var(--hx-t-3) var(--hx-ease-out)}
+.hx-select .hx-pop{top:calc(100% + 4px);left:0}
+.hx-pop__in{width:100%;height:26px;margin-bottom:4px;padding:0 8px;border:none;border-radius:var(--hx-r-sm);background:var(--hx-bg-4);outline:none;font-size:var(--hx-fs-12)}
+.hx-item{display:flex;align-items:center;gap:8px;width:100%;height:28px;padding:0 8px;border:none;border-radius:var(--hx-r-sm);background:none;text-align:left;font-size:var(--hx-fs-13);color:var(--hx-text-1)}
+.hx-item:hover,.hx-item.is-hl{background:var(--hx-bg-4)}
+.hx-item.is-sel::after{content:"";margin-left:auto;width:6px;height:6px;border-radius:50%;background:var(--hx-text-1)}
+.hx-item .hx-kbd{margin-left:auto}
+.hx-item svg{width:14px;height:14px;color:var(--hx-text-3)}
+.hx-item--danger{color:var(--hx-danger)}
+.hx-item--danger svg{color:var(--hx-danger)}
+.hx-item__grp{padding:6px 8px 2px;font-size:var(--hx-fs-11);color:var(--hx-text-3)}
+.hx-sep{height:1px;margin:4px -4px;background:var(--hx-line-1)}
+.hx-seg{position:relative;display:inline-flex;padding:2px;height:var(--hx-ctl-h);border-radius:var(--hx-r-md);background:var(--hx-bg-2);box-shadow:inset 0 0 0 1px var(--hx-line-1)}
+.hx-seg__ind{position:absolute;top:2px;bottom:2px;left:0;border-radius:var(--hx-r-sm);background:var(--hx-bg-5);box-shadow:inset 0 1px 0 var(--hx-highlight),0 1px 2px rgba(0,0,0,.25);transition:transform var(--hx-t-2) var(--hx-ease),width var(--hx-t-2) var(--hx-ease)}
+.hx-seg button{position:relative;z-index:1;border:none;background:none;padding:0 12px;font-size:var(--hx-fs-12);font-weight:500;color:var(--hx-text-3);border-radius:var(--hx-r-sm);transition:color var(--hx-t-2) var(--hx-ease)}
+.hx-seg button.is-on{color:var(--hx-text-1)}
+.hx-seg button:hover{color:var(--hx-text-1)}
+.hx-switch{position:relative;width:28px;height:16px;border-radius:var(--hx-r-full);border:none;background:var(--hx-bg-5);padding:0;transition:background-color var(--hx-t-2) var(--hx-ease)}
+.hx-switch::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:var(--hx-text-1);box-shadow:0 1px 2px rgba(0,0,0,.3);transition:transform var(--hx-t-2) var(--hx-ease)}
+.hx-switch[aria-checked="true"]{background:var(--hx-accent)}
+.hx-switch[aria-checked="true"]::after{transform:translateX(12px);background:var(--hx-text-inv)}
+.hx-switch:focus-visible{outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--hx-text-2) 20%,transparent)}
+.hx-input{height:var(--hx-ctl-h);padding:0 10px;border-radius:var(--hx-r-sm);border:1px solid transparent;background:var(--hx-bg-4);outline:none;font-size:var(--hx-fs-13);transition:border-color var(--hx-t-1) var(--hx-ease),box-shadow var(--hx-t-1) var(--hx-ease)}
+.hx-input:hover{border-color:var(--hx-line-3)}
+.hx-input:focus{border-color:var(--hx-text-2);box-shadow:0 0 0 3px color-mix(in srgb,var(--hx-text-2) 15%,transparent)}
+.hx-input::placeholder{color:var(--hx-text-3)}
+.hx-yaml{border-radius:var(--hx-r-md);background:var(--hx-bg-2);box-shadow:inset 0 0 0 1px var(--hx-line-1);font-family:var(--hx-font-mono);font-size:12px;line-height:20px;padding:var(--hx-s-4) 0;counter-reset:ln;overflow-x:auto}
+.hx-yaml div{padding:0 var(--hx-s-6) 0 0;white-space:pre;color:var(--hx-text-2)}
+.hx-yaml div::before{counter-increment:ln;content:counter(ln);display:inline-block;width:36px;padding-right:12px;text-align:right;color:var(--hx-text-3);opacity:.7}
+.hx-yaml div.is-cur{background:var(--hx-bg-3)}
+.hx-yaml .k{color:var(--hx-text-1)}.hx-yaml .s{color:var(--hx-type-list)}.hx-yaml .n{color:var(--hx-type-ctx)}.hx-yaml .c{color:var(--hx-text-3)}
+.hx-badge{display:inline-flex;align-items:center;gap:5px;height:18px;padding:0 6px;border-radius:var(--hx-r-xs);font-family:var(--hx-font-mono);font-size:var(--hx-fs-10);font-weight:500;background:var(--hx-bg-4);color:var(--hx-text-2);white-space:nowrap}
+.hx-badge::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor}
+.hx-badge--plain::before{display:none}
+.hx-badge--run{background:var(--hx-accent-weak);color:var(--hx-accent-strong)}
+.hx-badge--ok{background:var(--hx-ok-weak);color:var(--hx-ok)}
+.hx-badge--fail{background:var(--hx-danger-weak);color:var(--hx-danger)}
+.hx-badge--wait{background:color-mix(in srgb,var(--hx-wait) 15%,transparent);color:var(--hx-wait)}
+.hx-badge--model{background:var(--hx-model-weak);color:var(--hx-model)}
+.hx-badge--lock::before{display:none}
+.hx-param{display:grid;grid-template-columns:110px minmax(0,1fr) 22px;gap:var(--hx-s-4);align-items:center;height:36px;padding:0 var(--hx-s-3) 0 var(--hx-s-5);border-radius:var(--hx-r-sm)}
+.hx-param:hover{background:var(--hx-bg-3)}
+.hx-param__lab{font-size:var(--hx-fs-12);color:var(--hx-text-2);display:flex;align-items:center;gap:5px}
+.hx-param__lab svg{width:11px;height:11px;color:var(--hx-text-3)}
+.hx-promote{width:22px;height:22px;border:none;border-radius:var(--hx-r-sm);background:none;display:grid;place-items:center;color:var(--hx-text-3);transition:color var(--hx-t-1) var(--hx-ease),background-color var(--hx-t-1) var(--hx-ease)}
+.hx-promote:hover{background:var(--hx-bg-4);color:var(--hx-text-1)}
+.hx-promote i{width:9px;height:9px;border-radius:50%;box-shadow:inset 0 0 0 1.5px currentColor}
+.hx-promote.is-on i{background:var(--c);box-shadow:0 0 0 2px var(--hx-bg-2),0 0 0 3.5px color-mix(in srgb,var(--c) 40%,transparent)}
+.hx-param.is-promoted .hx-param__ctl{opacity:.35;pointer-events:none}
+.hx-param__wired{display:none;font-family:var(--hx-font-mono);font-size:var(--hx-fs-11);color:var(--hx-text-3)}
+.hx-param.is-promoted .hx-param__wired{display:block}
+.hx-param.is-promoted .hx-param__ctl{display:none}
+.hx-param.is-locked .hx-param__ctl{opacity:.55;pointer-events:none}
+.hx-tipwrap{position:relative;display:inline-flex}
+.hx-tip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translate(-50%,4px);display:flex;align-items:center;gap:8px;padding:5px 8px;white-space:nowrap;border-radius:var(--hx-r-sm);background:var(--hx-bg-2);box-shadow:var(--hx-shadow-pop);font-size:var(--hx-fs-12);opacity:0;pointer-events:none;transition:opacity var(--hx-t-2) var(--hx-ease-in),transform var(--hx-t-2) var(--hx-ease-in);z-index:10}
+.hx-tipwrap:hover .hx-tip,.hx-tipwrap:focus-within .hx-tip,.hx-tip.is-show{opacity:1;transform:translate(-50%,0);transition:opacity var(--hx-t-3) var(--hx-ease-out) 400ms,transform var(--hx-t-3) var(--hx-ease-out) 400ms}
+.hx-menu{width:220px;padding:4px;border-radius:var(--hx-r-md);background:var(--hx-bg-2);box-shadow:var(--hx-shadow-pop)}
+.hx-item__sub{margin-left:auto;color:var(--hx-text-3)}
+.hx-cmd{width:100%;max-width:560px;border-radius:var(--hx-r-lg);background:var(--hx-bg-2);box-shadow:var(--hx-shadow-pop);overflow:hidden}
+.hx-cmd__in{display:flex;align-items:center;gap:10px;height:48px;padding:0 16px;border-bottom:1px solid var(--hx-line-1)}
+.hx-cmd__in svg{width:16px;height:16px;color:var(--hx-text-3)}
+.hx-cmd__in input{flex:1;border:none;background:none;outline:none;font-size:var(--hx-fs-14)}
+.hx-cmd__in input::placeholder{color:var(--hx-text-3)}
+.hx-cmd__list{padding:4px;max-height:236px;overflow-y:auto}
+.hx-cmd__foot{display:flex;gap:16px;padding:8px 14px;border-top:1px solid var(--hx-line-1);font-size:var(--hx-fs-11);color:var(--hx-text-3)}
+.hx-cmd__empty{padding:20px;text-align:center;color:var(--hx-text-3);font-size:var(--hx-fs-12)}
+.hx-toasts{position:fixed;top:60px;right:20px;z-index:100;display:flex;flex-direction:column;gap:8px;width:320px;pointer-events:none}
+.hx-toast{display:flex;align-items:center;gap:10px;padding:10px 10px 10px 14px;border-radius:var(--hx-r-md);background:var(--hx-bg-2);box-shadow:var(--hx-shadow-pop);font-size:var(--hx-fs-13);pointer-events:auto;animation:hxin var(--hx-t-3) var(--hx-ease-out)}
+.hx-toast.is-out{animation:hxout var(--hx-t-2) var(--hx-ease-in) forwards}
+.hx-toast span{flex:1;min-width:0}
+.hx-toast i{flex:none;width:6px;height:6px;border-radius:50%;background:var(--hx-text-2)}
+.hx-toast--model i{background:var(--hx-model)}
+.hx-toast--ok i{background:var(--hx-ok)}
+@keyframes hxin{from{opacity:0;transform:translateY(-6px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes hxout{to{opacity:0;transform:translateX(8px)}}
+
+/* 5.4 面板 */
+.hx-panel{background:var(--hx-bg-2);border-radius:var(--hx-r-lg);box-shadow:var(--hx-shadow-float);overflow:hidden}
+.hx-panel__head{display:flex;align-items:center;gap:8px;height:40px;padding:0 12px;border-bottom:1px solid var(--hx-line-1);font-size:var(--hx-fs-13);font-weight:600}
+.hx-panel__head .sp{flex:1}
+.hx-libitem{display:grid;grid-template-columns:20px 1fr;gap:10px;align-items:center;height:32px;padding:0 10px;border-radius:var(--hx-r-sm);cursor:grab}
+.hx-libitem:hover{background:var(--hx-bg-4)}
+.hx-libitem .hx-node__icon{width:20px;height:20px}
+.hx-libitem b{font-weight:500;font-size:var(--hx-fs-13)}
+.hx-libitem span{font-size:var(--hx-fs-11);color:var(--hx-text-3);margin-left:6px}
+.hx-group{padding:10px 12px 2px;font-size:var(--hx-fs-11);color:var(--hx-text-3)}
+.hx-fold{display:flex;align-items:center;gap:6px;width:100%;height:32px;padding:0 12px;border:none;background:none;font-size:var(--hx-fs-12);font-weight:600;color:var(--hx-text-2);text-align:left}
+.hx-fold svg{width:10px;height:10px;transition:transform var(--hx-t-2) var(--hx-ease)}
+.hx-fold.is-closed svg{transform:rotate(-90deg)}
+.hx-fold+div{overflow:hidden}
+.hx-fold.is-closed+div{display:none}
+.hx-dock{display:inline-flex;align-items:center;gap:2px;padding:4px;border-radius:var(--hx-r-xl);background:var(--hx-bg-2);box-shadow:var(--hx-shadow-float)}
+.hx-dock .hx-btn--icon{border-radius:10px}
+.hx-dock .hx-btn.is-on{background:var(--hx-bg-5);color:var(--hx-text-1)}
+.hx-dock__sep{width:1px;height:18px;margin:0 4px;background:var(--hx-line-2)}
+.hx-tabs{display:flex;gap:2px;padding:0 8px;height:36px;align-items:center;border-bottom:1px solid var(--hx-line-1)}
+.hx-tabs button{position:relative;height:36px;padding:0 10px;border:none;background:none;font-size:var(--hx-fs-12);font-weight:500;color:var(--hx-text-3)}
+.hx-tabs button.is-on{color:var(--hx-text-1)}
+.hx-tabs button.is-on::after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:1.5px;background:var(--hx-text-1)}
+.tl{position:relative;padding:8px 12px 12px 112px}
+.tl__row{position:relative;height:22px;display:flex;align-items:center}
+.tl__row b{position:absolute;left:-100px;width:92px;font-size:var(--hx-fs-11);font-weight:400;color:var(--hx-text-2);font-family:var(--hx-font-mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tl__seg{position:absolute;height:10px;border-radius:2px}
+.tl__seg--done{background:color-mix(in srgb,var(--hx-ok) 55%,transparent)}
+.tl__seg--run{background:var(--hx-accent)}
+.tl__seg--fail{background:var(--hx-danger)}
+.tl__seg--wait{background:transparent;box-shadow:inset 0 0 0 1px var(--hx-wait);background-image:repeating-linear-gradient(-45deg,transparent 0 3px,color-mix(in srgb,var(--hx-wait) 30%,transparent) 3px 4.5px)}
+.tl__now{position:absolute;top:6px;bottom:8px;width:1px;background:var(--hx-accent)}
+
+/* 布局线框 */
+.wire{position:relative;height:420px;border-radius:var(--hx-r-xl);background:var(--hx-bg-1);border:1px solid var(--hx-line-2);overflow:hidden;font-family:var(--hx-font-mono);font-size:var(--hx-fs-11);color:var(--hx-text-3);background-image:radial-gradient(var(--hx-grid-dot) 1px,transparent 1.2px);background-size:16px 16px}
+.wire>div{position:absolute;border-radius:var(--hx-r-md);border:1px dashed var(--hx-line-3);background:var(--hx-bg-2);padding:8px 10px;color:var(--hx-text-2)}
+.wire>div b{display:block;font-family:var(--hx-font-ui);font-size:var(--hx-fs-12);font-weight:600;color:var(--hx-text-1)}
+.wire .solid{border-style:solid;border-color:var(--hx-line-1);border-radius:0;background:var(--hx-bg-0)}
+.wire .dim{position:absolute;font-size:10px;color:var(--hx-model);background:none;border:none;padding:0}
+.forms{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--hx-s-5)}
+.form{border:1px solid var(--hx-line-1);border-radius:var(--hx-r-lg);background:var(--hx-bg-1);overflow:hidden}
+.form__vis{position:relative;height:150px;background:var(--hx-bg-0);margin:12px;border-radius:var(--hx-r-md);box-shadow:inset 0 0 0 1px var(--hx-line-1);overflow:hidden}
+.form__vis i{position:absolute;border-radius:3px}
+.form__txt{padding:0 14px 14px}
+.form__txt b{font-weight:600}
+.form__txt span{display:block;font-size:var(--hx-fs-12);color:var(--hx-text-3)}
+
+/* 5.5 模型界面语言 */
+.hx-modelpill{display:inline-flex;align-items:center;gap:8px;height:26px;padding:0 10px 0 9px;border-radius:var(--hx-r-full);background:var(--hx-model-weak);box-shadow:inset 0 0 0 1px var(--hx-model-line);color:var(--hx-model);font-size:var(--hx-fs-12);font-weight:500}
+.hx-breath{position:relative;width:7px;height:7px;border-radius:50%;background:var(--hx-model)}
+.hx-breath::after{content:"";position:absolute;inset:-4px;border-radius:50%;background:var(--hx-model);opacity:0;animation:hxbreath 1.6s var(--hx-ease) infinite}
+@keyframes hxbreath{0%{transform:scale(.4);opacity:.45}100%{transform:scale(1.6);opacity:0}}
+.hx-cursor{position:absolute;left:0;top:0;pointer-events:none;z-index:5;transition:transform 700ms var(--hx-ease-out)}
+.hx-cursor svg{width:16px;height:16px;display:block;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))}
+.hx-cursor span{position:absolute;left:12px;top:13px;padding:1px 5px;border-radius:var(--hx-r-xs);background:var(--hx-model);color:var(--hx-text-inv);font-family:var(--hx-font-mono);font-size:var(--hx-fs-10);font-weight:600;white-space:nowrap}
+.hx-proposal{display:inline-flex;align-items:center;gap:10px;padding:6px 6px 6px 14px;border-radius:var(--hx-r-xl);background:var(--hx-bg-2);box-shadow:var(--hx-shadow-pop),inset 0 0 0 1px var(--hx-model-line);font-size:var(--hx-fs-13)}
+.hx-proposal b{color:var(--hx-model);font-weight:600}
+.hx-level{display:inline-flex;align-items:center;gap:8px;height:28px;padding:0 10px 0 8px;border-radius:var(--hx-r-full);background:var(--hx-bg-3);box-shadow:inset 0 0 0 1px var(--hx-line-2);font-size:var(--hx-fs-12);border:none;color:var(--hx-text-1)}
+.hx-level__ticks{display:flex;gap:2px}
+.hx-level__ticks i{width:5px;height:12px;border-radius:1.5px;background:var(--hx-bg-5)}
+.hx-level__ticks i.is-on{background:var(--lc,var(--hx-text-2))}
+.hx-level b{font-family:var(--hx-font-mono);font-weight:600;color:var(--lc,var(--hx-text-1))}
+.hx-level span{color:var(--hx-text-2)}
+.hx-topbar{display:flex;align-items:center;gap:10px;height:48px;padding:0 12px 0 16px;border-radius:var(--hx-r-lg);background:var(--hx-bg-2);box-shadow:inset 0 0 0 1px var(--hx-line-1);font-size:var(--hx-fs-13);transition:background-color var(--hx-t-3) var(--hx-ease),box-shadow var(--hx-t-3) var(--hx-ease)}
+.hx-topbar .crumbs{color:var(--hx-text-3)}
+.hx-topbar .crumbs b{color:var(--hx-text-1);font-weight:500}
+.hx-topbar .sp{flex:1}
+.hx-topbar.is-estop{background:var(--hx-danger-weak);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--hx-danger) 45%,transparent)}
+.hx-topbar.is-estop .crumbs,.hx-topbar.is-estop .crumbs b{color:var(--hx-danger)}
+
+/* 快捷键表、清单 */
+.keys{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:var(--hx-s-9)}
+.keys div{display:flex;justify-content:space-between;align-items:center;gap:var(--hx-s-5);padding:var(--hx-s-4) 0;border-bottom:1px solid var(--hx-line-1);color:var(--hx-text-2)}
+.check{list-style:none;padding:0;margin:0;border:1px solid var(--hx-line-1);border-radius:var(--hx-r-lg);overflow:hidden}
+.check li{border-bottom:1px solid var(--hx-line-1)}
+.check li:last-child{border-bottom:none}
+.check label{display:grid;grid-template-columns:18px 1fr;gap:var(--hx-s-5);align-items:start;padding:var(--hx-s-5) var(--hx-s-6);cursor:pointer;background:var(--hx-bg-1);transition:background-color var(--hx-t-1) var(--hx-ease)}
+.check label:hover{background:var(--hx-bg-2)}
+.check input{appearance:none;margin:2px 0 0;width:16px;height:16px;border-radius:var(--hx-r-xs);background:var(--hx-bg-4);box-shadow:inset 0 0 0 1px var(--hx-line-3);display:grid;place-items:center;cursor:pointer;transition:background-color var(--hx-t-1) var(--hx-ease)}
+.check input:checked{background:var(--hx-ok);box-shadow:none}
+.check input:checked::after{content:"";width:8px;height:4px;border-left:1.5px solid var(--hx-text-inv);border-bottom:1.5px solid var(--hx-text-inv);transform:translateY(-1px) rotate(-45deg)}
+.check input:checked+span{color:var(--hx-text-3);text-decoration:line-through;text-decoration-color:var(--hx-line-3)}
+.check__prog{display:flex;align-items:center;gap:var(--hx-s-5);margin-bottom:var(--hx-s-5);font-family:var(--hx-font-mono);font-size:var(--hx-fs-12);color:var(--hx-text-2)}
+.check__prog div{flex:1;max-width:240px;height:4px;border-radius:var(--hx-r-full);background:var(--hx-bg-4);overflow:hidden}
+.check__prog i{display:block;height:100%;background:var(--hx-ok);transform-origin:left;transition:transform var(--hx-t-2) var(--hx-ease)}
+
+@media (max-width:1100px){
+  .site{grid-template-columns:1fr}.toc{display:none}.main{padding:var(--hx-s-9) var(--hx-s-6) 80px}
+  .grid4,.shadows,.types{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .edges,.grid3,.forms{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .anat{grid-template-columns:1fr}
+  .hero__facts{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:720px){.grid2,.edges,.grid3,.forms,.dd,.lod,.keys{grid-template-columns:1fr}.dd>div+div{border-left:none;border-top:1px solid var(--hx-line-1)}.motion__row{grid-template-columns:1fr;gap:6px}}
+
+/* 浅色主题修正：反例在白底上也要看得清（反例本身仍是错误示范） */
+[data-theme="light"] .bad-glass{background:rgba(30,30,60,.05);border-color:rgba(30,30,60,.18);color:#3d3a52;box-shadow:0 8px 24px rgba(30,30,60,.12)}
+[data-theme="light"] .bad-label{color:#7c5ce0}
+[data-theme="light"] .hx-btn--primary{box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 1px 2px rgba(24,24,32,.12)}
+[data-theme="light"] .hx-seg__ind{box-shadow:0 0 0 1px var(--hx-line-2),0 1px 2px rgba(24,24,32,.08);background:var(--hx-bg-2)}
+[data-theme="light"] .hx-switch::after{background:#fff;box-shadow:0 0 0 1px var(--hx-line-2),0 1px 2px rgba(24,24,32,.2)}
+[data-theme="light"] .hx-slider__thumb{background:#fff;box-shadow:0 0 0 1px var(--hx-line-3),0 1px 3px rgba(24,24,32,.25)}
+[data-theme="light"] .hx-cursor svg{filter:drop-shadow(0 1px 2px rgba(24,24,32,.25))}
+
+</style>
+</head>
+<body>
+<header class="site-top">
+  <span class="site-top__brand">Harness · 积木编排</span>
+  <span class="site-top__ver">设计规范 v0.3</span>
+  <span class="site-top__sp"></span>
+  <span class="site-top__meta">令牌来源 tokens.css · 文字规范 DESIGN.md</span>
+  <div class="hx-seg" id="themeSeg" data-seg>
+    <span class="hx-seg__ind"></span>
+    <button class="is-on" data-v="light">浅色</button>
+    <button data-v="dark">深色</button>
+  </div>
+</header>
+
+<div class="site">
+<nav class="toc" id="toc">
+  <div class="toc__grp">基础</div>
+  <a href="#s1"><span>01</span>速读与原则</a>
+  <a href="#s2"><span>02</span>令牌</a>
+  <a class="sub" href="#s2-surface">表面与线</a>
+  <a class="sub" href="#s2-color">语义色</a>
+  <a class="sub" href="#s2-type">端口类型色</a>
+  <a class="sub" href="#s2-font">字体与字号</a>
+  <a class="sub" href="#s2-space">间距 · 圆角 · 阴影</a>
+  <a class="sub" href="#s2-motion">动效</a>
+  <div class="toc__grp">画布元素</div>
+  <a href="#s3"><span>03</span>节点</a>
+  <a class="sub" href="#s3-anat">结构解剖</a>
+  <a class="sub" href="#s3-state">八种状态</a>
+  <a class="sub" href="#s3-model">模型标记</a>
+  <a class="sub" href="#s3-sub">子图与循环</a>
+  <a class="sub" href="#s3-lod">细节分级</a>
+  <a class="sub" href="#s3-icon">节点图标</a>
+  <a href="#s4"><span>04</span>连线</a>
+  <div class="toc__grp">组件</div>
+  <a href="#s5"><span>05</span>控件库</a>
+  <a href="#s6"><span>06</span>浮动面板与布局</a>
+  <a href="#s7"><span>07</span>模型作为操作者</a>
+  <div class="toc__grp">工程</div>
+  <a href="#s8"><span>08</span>快捷键</a>
+  <a href="#s9"><span>09</span>性能与代码结构</a>
+  <a href="#s10"><span>10</span>交付自检</a>
+</nav>
+
+<main class="main"><div class="main__in">
+
+<div class="hero">
+  <div class="hero__k">给实现者和接手模型的规范</div>
+  <h1>颜色只表达含义，动效只动 transform，每次修改都标出是谁做的</h1>
+  <p>这一页是 DESIGN.md 的可浏览版本，样例都是真实的 CSS 实现，可以直接复制使用。页面本身也只用 tokens.css 里的令牌写成，切换右上角的深色和浅色主题，可以检查两套配色。</p>
+  <div class="hero__facts">
+    <div><b>8</b><span>档字号</span></div>
+    <div><b>6</b><span>层表面</span></div>
+    <div><b>8</b><span>种端口类型色</span></div>
+    <div><b>60fps</b><span>200 节点拖动目标</span></div>
+  </div>
+</div>
+
+<!-- ============ 01 ============ -->
+<section class="sec" id="s1">
+  <div class="sec__no">01</div>
+  <h2>速读与原则</h2>
+  <p class="sec__lede">整体气质是精密仪器面板，不是营销页。信息靠层级和留白来区分，颜色只用来表达含义。下面七条原则是所有取舍的依据。</p>
+  <table class="tbl">
+    <tr><th style="width:44px">#</th><th style="width:200px">原则</th><th>落地方式</th></tr>
+    <tr><td class="num">P1</td><td>内容是主角，界面退后</td><td>面板浮在画布上方，不切割画布；工具栏和边框用最低对比度</td></tr>
+    <tr><td class="num">P2</td><td>颜色 = 含义</td><td>一个颜色只表达一种含义，不用颜色做装饰</td></tr>
+    <tr><td class="num">P3</td><td>状态一眼可读</td><td>每种状态同时用颜色、图形和文字表达，不能只靠颜色</td></tr>
+    <tr><td class="num">P4</td><td>模型的行为永远可见</td><td>模型做的事带 <code class="t">--hx-model</code> 标记和理由，并且可以撤销</td></tr>
+    <tr><td class="num">P5</td><td>直接操作优先</td><td>能在节点上改的就不进检查器，能拖的就不用点，常用操作都有快捷键</td></tr>
+    <tr><td class="num">P6</td><td>流畅是功能</td><td>拖拽、缩放、连线保持 60fps，任何操作 100ms 内要有视觉反馈</td></tr>
+    <tr><td class="num">P7</td><td>渐进披露</td><td>缩小时只显示标题，悬停才出类型，选中才出完整参数</td></tr>
+  </table>
+
+  <h3>禁止清单：错误与正确对比</h3>
+  <p class="desc">左边是常见的"AI 味"做法，右边是本规范的做法。左栏用的是裸色值，属于故意违反规范的反例。</p>
+  <div class="dd">
+    <div><div class="dd__tag dd__tag--no">错误 · 渐变按钮加彩色投影</div><button class="bad-grad">开始运行</button><div class="dd__note">渐变和发光投影会抢走画布的注意力，也无法表达任何状态。</div></div>
+    <div><div class="dd__tag dd__tag--yes">正确 · 实色主按钮 + 1px 内高光</div><button class="hx-btn hx-btn--primary"><svg viewBox="0 0 14 14" fill="currentColor"><path d="M4 2.5v9l7.5-4.5z"/></svg>运行</button><div class="dd__note">橙色只出现在主按钮和运行状态上，所以用户一眼就知道"这里会让东西跑起来"。</div></div>
+  </div>
+  <div class="dd">
+    <div><div class="dd__tag dd__tag--no">错误 · 玻璃拟态卡片</div><div class="stage stage--tight" style="background:#3b2a6b"><div class="bad-glass">模糊背景上的半透明卡片，文字对比度不稳定。</div></div></div>
+    <div><div class="dd__tag dd__tag--yes">正确 · 表面层级加一档亮度</div><div class="hx-panel" style="max-width:260px"><div class="hx-panel__head">检查器</div><div style="padding:12px;font-size:12px;color:var(--hx-text-2)">浮起来的东西背景亮一档，阴影用 <code class="t">--hx-shadow-float</code>。</div></div></div>
+  </div>
+  <div class="dd">
+    <div><div class="dd__tag dd__tag--no">错误 · 彩虹配色 + 全大写标签</div><div class="bad-label">NODE LIBRARY</div><div class="bad-rain" style="margin-top:10px"><i style="background:#ef4444"></i><i style="background:#f59e0b"></i><i style="background:#10b981"></i><i style="background:#3b82f6"></i><i style="background:#a855f7"></i></div></div>
+    <div><div class="dd__tag dd__tag--yes">正确 · 中性灰 + 类型色只在端口上</div><div class="hx-group" style="padding-left:0">节点库</div><div class="row" style="gap:8px;margin-top:6px"><span class="hx-badge hx-badge--plain">资源</span><span class="hx-badge hx-badge--plain">Agent</span><span class="hx-badge hx-badge--plain">扇出</span></div></div>
+  </div>
+  <ul class="rules">
+    <li><span><b>其他禁止项：</b>emoji 图标；每张卡片都加悬停动画；每个区块都加入场动画；所有元素套同一个圆角和阴影；装饰性图标；同一个颜色表达两种含义。</span></li>
+  </ul>
+</section>
+
+<!-- ============ 02 ============ -->
+<section class="sec" id="s2">
+  <div class="sec__no">02</div>
+  <h2>令牌</h2>
+  <p class="sec__lede">所有数值都来自 <code class="t">tokens.css</code>，命名统一为 <code class="t">--hx-类别-名称</code>。页面和组件里不允许出现裸色值。点击下面的色块可以复制 <code class="t">var(--token)</code>。</p>
+
+  <h3 id="s2-surface">表面层级</h3>
+  <p class="desc">每往上浮一层，背景亮一档。层级靠亮度区分，不靠阴影；只有浮动元素才有阴影。</p>
+  <div class="stage stage--tight" style="padding:28px">
+    <div class="layers" id="layers"></div>
+  </div>
+  <div class="grid2" style="margin-top:24px">
+    <div><div class="sw" id="swLine"></div><div class="cap"><b>线：</b>line-1 用于内部分区，line-2 用于组件外框，line-3 用于悬停。表面顶部另加 1px 内高光 <code class="t">--hx-highlight</code>。</div></div>
+    <div><div class="sw" id="swText"></div><div class="cap"><b>文字：</b>同一个组件里最多使用两级文字颜色。</div></div>
+  </div>
+
+  <h3 id="s2-color">语义色</h3>
+  <p class="desc">每个颜色只对应一种含义。蓝紫色 <code class="t">--hx-model</code> 是"模型做的事"的专用身份色，其他地方不能使用。</p>
+  <div class="sw" id="swSem"></div>
+
+  <h3 id="s2-type">端口类型色</h3>
+  <p class="desc">只用于端口和连线。连线颜色等于源端口的类型色。新增数据类型必须归入这 8 类之一，不能再新增颜色。</p>
+  <div class="types" id="typesGrid"></div>
+
+  <h3 id="s2-font">字体与字号</h3>
+  <p class="desc">UI 字体是 Geist，中文回退到 Noto Sans SC 和微软雅黑；数值、类型名、路径和快捷键用 Geist Mono。字号只允许 8 档，界面基准是 13。字重只用 400、500、600，数字统一开启 <code class="t">tabular-nums</code>。</p>
+  <div id="fsList"></div>
+
+  <h3 id="s2-space">间距、圆角、阴影</h3>
+  <div class="grid2">
+    <div><div class="ruler" id="ruler"></div><div class="cap">间距一律取 4 的倍数。</div></div>
+    <div>
+      <div class="radii" id="radii"></div>
+      <div class="cap" style="margin-top:16px"><b>嵌套圆角：</b>内层圆角 = 外层圆角 − 内边距，最小取 xs。例如节点（lg 10）内边距 5，里面的图标格就用 sm 5。</div>
+    </div>
+  </div>
+  <div class="stage stage--tight" style="margin-top:24px;padding:36px 28px"><div class="shadows" id="shadows"></div></div>
+
+  <h3 id="s2-motion">动效</h3>
+  <p class="desc">动画只用于 <code class="t">transform</code>、<code class="t">opacity</code>、<code class="t">stroke-dashoffset</code> 和颜色类属性，禁止对宽、高、位置属性做动画。点「重放」可以看到每种组合的实际效果。开启系统的"减少动态效果"后，所有时长会归零。</p>
+  <div class="motion" id="motion"></div>
+  <div class="code"><pre><span class="c">/* 选中、状态变化 */</span>
+<span class="k">transition</span>: border-color <span class="n">var(--hx-t-2)</span> <span class="n">var(--hx-ease)</span>, box-shadow <span class="n">var(--hx-t-2)</span> <span class="n">var(--hx-ease)</span>;
+<span class="c">/* 面板进入 / 离开 */</span>
+.panel.is-open { <span class="k">transition</span>: transform <span class="n">var(--hx-t-3)</span> <span class="n">var(--hx-ease-out)</span>; }
+.panel         { <span class="k">transition</span>: transform <span class="n">var(--hx-t-2)</span> <span class="n">var(--hx-ease-in)</span>; }</pre></div>
+</section>
+
+<!-- ============ 03 ============ -->
+<section class="sec" id="s3">
+  <div class="sec__no">03</div>
+  <h2>节点</h2>
+  <p class="sec__lede">节点是画布上的基本单元。所有节点结构相同：头部、端口区、内联控件区、状态脚。13 种原子节点只用图标和标题区分，不用颜色区分类别。</p>
+
+  <h3 id="s3-anat">结构解剖</h3>
+  <div class="stage stage--grid" style="padding:48px 40px">
+    <div class="anat">
+      <div id="anatNode" style="margin-left:52px;margin-right:56px"></div>
+      <ol class="legend">
+        <li><div><b>图标格</b><span>20×20，<code>--hx-bg-5</code> 底，内放 1.5px 线宽的单色 SVG，图标颜色不随类别变化</span></div></li>
+        <li><div><b>头部</b><span>高 <code>--hx-node-head</code>（38）。标题 14/600；类型行用 mono 10.5；右侧是状态点；整块是拖动热区</span></div></li>
+        <li><div><b>端口行</b><span>每行高 <code>--hx-node-row</code>（24）。圆点直径 <code>--hx-port</code>，圆心落在边框上，外加 2px 底色描边形成细缝</span></div></li>
+        <li><div><b>内联控件</b><span>每行高 <code>--hx-node-widget</code>（28），最多 3 行，和检查器双向同步</span></div></li>
+        <li><div><b>状态脚</b><span>只在运行、失败、挂起时出现；进度条用 <code>scaleX</code> 变化</span></div></li>
+      </ol>
+    </div>
+  </div>
+  <div class="code"><pre><span class="c">&lt;!-- 节点 DOM 结构固定，BEM + hx- 前缀；状态写成 is-* 修饰类 --&gt;</span>
+&lt;div class=<span class="s">"hx-node is-running"</span> data-id=<span class="s">"n12"</span>&gt;
+  &lt;div class=<span class="s">"hx-node__head"</span>&gt; 图标格 · 标题 / 类型 · 状态点 &lt;/div&gt;
+  &lt;div class=<span class="s">"hx-node__ports"</span>&gt; &lt;div class=<span class="s">"hx-prow"</span>&gt;…&lt;/div&gt; &lt;/div&gt;
+  &lt;div class=<span class="s">"hx-node__widgets"</span>&gt; &lt;div class=<span class="s">"hx-wrow"</span>&gt;…&lt;/div&gt; &lt;/div&gt;
+  &lt;div class=<span class="s">"hx-node__foot"</span>&gt; &lt;div class=<span class="s">"hx-bar"</span>&gt;&lt;i style=<span class="s">"--p:.62"</span>&gt;&lt;/i&gt;&lt;/div&gt; &lt;/div&gt;
+&lt;/div&gt;</pre></div>
+
+  <h3 id="s3-state">八种状态</h3>
+  <p class="desc">每种状态同时用外框、头部状态点和状态脚文字表达，所以即使看不出颜色差别，也能分辨状态。</p>
+  <div class="stage stage--grid" style="padding:40px 32px"><div class="grid4" id="states" style="row-gap:40px;justify-items:center"></div></div>
+  <table class="tbl" style="margin-top:20px">
+    <tr><th>状态</th><th>外框</th><th>状态点</th><th>状态脚</th></tr>
+    <tr><td>运行中 running</td><td><code class="t">accent-line</code> 加 3px 外发光</td><td>橙色旋转弧</td><td>进度条和百分比；出边显示流动光点</td></tr>
+    <tr><td>完成 done</td><td><code class="t">line-2</code></td><td>绿色对勾</td><td>收起，底部留一条 2px 绿线</td></tr>
+    <tr><td>失败 failed</td><td><code class="t">danger</code></td><td>红色叉</td><td>错误摘要和「重试」</td></tr>
+    <tr><td>挂起 waiting</td><td><code class="t">wait</code> 虚线</td><td>黄色暂停符</td><td>审批按钮直接显示在节点上</td></tr>
+    <tr><td>跳过 skipped</td><td><code class="t">line-1</code></td><td>灰色横线</td><td>整个节点透明度 0.45</td></tr>
+  </table>
+
+  <h3 id="s3-model">模型标记</h3>
+  <p class="desc">模型做过的每件事都要在节点上看得见。悬停 AI 小签可以看到理由。</p>
+  <div class="stage stage--grid" style="padding:44px 32px"><div class="grid3" id="modelNodes" style="justify-items:center"></div></div>
+  <div class="grid3"><div class="cap"><b>已修改：</b>右上角显示 AI 签；被改的参数显示为"旧值 → 新值"，新值用模型色。</div><div class="cap"><b>幽灵节点（提议）：</b>1.5px 模型色虚线外框，主体透明度 0.72，带提议条，可以采纳或拒绝。</div><div class="cap"><b>提议删除：</b>红色虚线外框，标题加删除线。</div></div>
+
+  <h3 id="s3-sub">子图与循环</h3>
+  <div class="stage stage--grid" style="padding:44px 32px"><div class="grid2" id="subNodes" style="justify-items:center"></div></div>
+  <div class="cap"><b>子图节点</b>右侧和底部各多一道 4px 叠层边，节点内显示内部缩略图。<b>循环节点</b>头部显示轮次环，运行时环形进度随轮次推进。</div>
+
+  <h3 id="s3-lod">细节分级（LOD）</h3>
+  <p class="desc">画布缩小后要减少细节，否则会糊成一片。分级的切换点写死在规范里。</p>
+  <div class="lod" id="lod"></div>
+
+  <h3 id="s3-icon">节点图标</h3>
+  <p class="desc">20×20 的视框，1.5px 线宽，圆头线帽，单色 <code class="t">currentColor</code>。图形只取最能代表这个节点职责的那个比喻。点击图标可以复制 SVG 代码。</p>
+  <div class="icons" id="icons"></div>
+</section>
+
+<!-- ============ 04 ============ -->
+<section class="sec" id="s4">
+  <div class="sec__no">04</div>
+  <h2>连线</h2>
+  <p class="sec__lede">连线是两端切线都保持水平的三次贝塞尔曲线，颜色等于源端口的类型色，线宽 1.75。所有连线放在同一个 SVG 里，运行流动的动画只加在当前活跃的连线上。</p>
+  <div class="edges" id="edges"></div>
+  <h3>控制点公式</h3>
+  <p class="desc">控制点水平偏移 <code class="t">off = clamp(|dx| × 0.5, 48, 180)</code>。终点在起点左侧（回连）时，偏移固定为 120，让曲线绕出去。</p>
+  <div class="stage" style="padding:0"><svg id="bez" viewBox="0 0 880 230" style="display:block;width:100%"></svg></div>
+  <div class="code"><pre><span class="k">function</span> edgePath(x1, y1, x2, y2) {
+  <span class="k">const</span> dx = x2 - x1;
+  <span class="k">const</span> off = dx &gt;= <span class="n">0</span> ? Math.min(<span class="n">180</span>, Math.max(<span class="n">48</span>, dx * <span class="n">0.5</span>)) : <span class="n">120</span>;
+  <span class="k">return</span> <span class="s">`M${x1},${y1} C${x1 + off},${y1} ${x2 - off},${y2} ${x2},${y2}`</span>;
+}
+<span class="c">// 端口坐标用布局常数计算，不读 DOM：</span>
+<span class="c">// y = node.y + HEAD(38) + PAD(4) + rowIndex * ROW(24) + ROW / 2</span></pre></div>
+  <table class="tbl">
+    <tr><th style="width:260px">操作</th><th>结果</th></tr>
+    <tr><td>从输出端口按下并拖动</td><td>拉出预览线；画布上兼容的端口放大发亮，不兼容的变暗</td></tr>
+    <tr><td>拖到兼容端口 18px 范围内</td><td>端点自动吸附，端口出现一圈光环</td></tr>
+    <tr><td>在空白处松开</td><td>打开快速添加面板，只列出能接这种类型的节点</td></tr>
+    <tr><td>从已连接的输入端口拖出</td><td>把线拔下来；拖到空白处松开就删除</td></tr>
+    <tr><td>悬停连线</td><td>线变粗，中点出现「+」插入节点和「×」删除</td></tr>
+    <tr><td><span class="hx-kbd">Alt</span> 点击端口</td><td>断开这个端口上的所有连线</td></tr>
+  </table>
+</section>
+
+<!-- ============ 05 ============ -->
+<section class="sec" id="s5">
+  <div class="sec__no">05</div>
+  <h2>控件库</h2>
+  <p class="sec__lede">控件标准高 28，在节点内用 24。底色是 <code class="t">--hx-bg-4</code>，外框默认透明；悬停时外框变为 line-3，聚焦时外框变为 text-2，并加一圈 3px 的 15% 光晕。下面所有样例都可以直接操作。</p>
+
+  <h3>按钮</h3>
+  <div class="stage stage--flat">
+    <div class="row">
+      <button class="hx-btn hx-btn--primary"><svg viewBox="0 0 14 14" fill="currentColor"><path d="M4 2.5v9l7.5-4.5z"/></svg>运行</button>
+      <button class="hx-btn">保存草稿</button>
+      <button class="hx-btn hx-btn--ghost">取消</button>
+      <button class="hx-btn hx-btn--danger">急停</button>
+      <button class="hx-btn hx-btn--model">采纳提议</button>
+      <span class="hx-tipwrap"><button class="hx-btn hx-btn--icon hx-btn--ghost" aria-label="适应视图"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 5V2h3M9 2h3v3M12 9v3H9M5 12H2V9"/></svg></button><span class="hx-tip">适应视图 <span class="hx-kbd">1</span></span></span>
+      <button class="hx-btn" id="loadBtn">点击加载</button>
+    </div>
+  </div>
+  <div class="matrix" style="margin-top:16px" id="btnMatrix"></div>
+  <div class="code"><pre>&lt;button class=<span class="s">"hx-btn hx-btn--primary"</span>&gt;运行&lt;/button&gt;   <span class="c">&lt;!-- 主按钮：每个区域最多一个 --&gt;</span>
+&lt;button class=<span class="s">"hx-btn"</span>&gt;保存草稿&lt;/button&gt;
+&lt;button class=<span class="s">"hx-btn hx-btn--ghost"</span>&gt;取消&lt;/button&gt;
+&lt;button class=<span class="s">"hx-btn hx-btn--danger"</span>&gt;急停&lt;/button&gt;
+&lt;button class=<span class="s">"hx-btn is-loading"</span>&gt;…&lt;/button&gt;           <span class="c">&lt;!-- 加载：文字隐藏，显示旋转弧 --&gt;</span></pre></div>
+
+  <h3>数值输入</h3>
+  <div class="grid2">
+    <div class="stage stage--flat">
+      <div class="cell"><span class="cell__lab">数字步进 · 在数值上左右拖动，按住 Shift 加速；也可以用滚轮</span>
+        <div class="row"><div class="hx-step" data-step data-min="1" data-max="32" data-val="3"><button data-d="-1" aria-label="减"><svg viewBox="0 0 10 10" stroke="currentColor" stroke-width="1.5"><path d="M2 5h6"/></svg></button><span class="hx-step__v">3</span><button data-d="1" aria-label="加"><svg viewBox="0 0 10 10" stroke="currentColor" stroke-width="1.5"><path d="M2 5h6M5 2v6"/></svg></button></div><span class="cap" style="margin:0">并发上限</span></div>
+      </div>
+    </div>
+    <div class="stage stage--flat">
+      <div class="cell"><span class="cell__lab">滑块 · 拖动时在上方显示当前数值</span>
+        <div class="row"><div class="hx-slider" id="slider" data-val="0.4"><div class="hx-slider__track"></div><div class="hx-slider__fill"></div><div class="hx-slider__thumb"></div><div class="hx-slider__tip mono">0.40</div></div><span class="cap mono" style="margin:0" id="sliderOut">temperature 0.40</span></div>
+      </div>
+    </div>
+  </div>
+
+  <h3>选择类</h3>
+  <div class="stage stage--flat" style="overflow:visible">
+    <div class="row" style="gap:40px;align-items:flex-start">
+      <div class="cell"><span class="cell__lab">下拉 · 可以输入过滤，方向键选择</span>
+        <div class="hx-select" id="sel"><button class="hx-select__btn"><span>方案@1</span><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2.5 4l2.5 2.5L7.5 4"/></svg></button>
+          <div class="hx-pop"><input class="hx-pop__in" placeholder="搜索类型…"><div class="hx-pop__list"></div></div></div></div>
+      <div class="cell"><span class="cell__lab">分段控件 · 选中块平滑移动</span>
+        <div class="hx-seg" data-seg><span class="hx-seg__ind"></span><button class="is-on">ephemeral</button><button>resident</button></div>
+        <div class="hx-seg" data-seg><span class="hx-seg__ind"></span><button>all</button><button class="is-on">k_of_n</button><button>first</button><button>timeout</button></div></div>
+      <div class="cell"><span class="cell__lab">开关</span>
+        <div class="row"><button class="hx-switch" role="switch" aria-checked="true" data-switch aria-label="isolation"></button><span>isolation</span></div>
+        <div class="row"><button class="hx-switch" role="switch" aria-checked="false" data-switch aria-label="污染标记"></button><span>污染标记</span></div></div>
+    </div>
+  </div>
+
+  <h3>文本与代码</h3>
+  <div class="grid2">
+    <div class="stage stage--flat"><div class="cell" style="width:100%"><span class="cell__lab">文本输入</span><input class="hx-input" style="width:100%" placeholder="节点名称"><input class="hx-input mono" style="width:100%" value="闭环迭代@v1.3"></div></div>
+    <div class="hx-yaml" id="yaml"></div>
+  </div>
+
+  <h3>徽标、参数行、参数转端口</h3>
+  <div class="grid2">
+    <div class="stage stage--flat"><div class="row" style="gap:8px">
+      <span class="hx-badge hx-badge--run">运行中</span><span class="hx-badge hx-badge--ok">完成</span><span class="hx-badge hx-badge--fail">失败</span><span class="hx-badge hx-badge--wait">等待审批</span><span class="hx-badge hx-badge--model">模型</span><span class="hx-badge">待运行</span><span class="hx-badge hx-badge--plain">方案@1</span><span class="hx-badge hx-badge--plain">L2</span>
+    </div><div class="cap" style="margin-top:14px">状态徽标统一用"弱色底 + 实色字"，高 18，mono 10.5。</div></div>
+    <div class="hx-panel" style="padding:6px 0">
+      <div class="hx-param"><span class="hx-param__lab">concurrency</span><span class="hx-param__ctl"><span class="hx-wval" style="width:96px">3</span></span><span class="hx-param__wired">← 调度员.result</span><button class="hx-promote" data-promote style="--c:var(--hx-type-gen)" aria-label="转为端口"><i></i></button></div>
+      <div class="hx-param"><span class="hx-param__lab">isolation</span><span class="hx-param__ctl"><button class="hx-switch" role="switch" aria-checked="true" data-switch aria-label="isolation"></button></span><span class="hx-param__wired">← 上游</span><button class="hx-promote" data-promote style="--c:var(--hx-type-any)" aria-label="转为端口"><i></i></button></div>
+      <div class="hx-param is-locked"><span class="hx-param__lab"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2.5" y="5.5" width="7" height="5" rx="1"/><path d="M4 5.5V4a2 2 0 014 0v1.5"/></svg>keep_pointer</span><span class="hx-param__ctl"><span class="hx-wval" style="width:96px">true</span></span><span></span><span class="hx-badge hx-badge--plain hx-badge--lock" title="内核锁定">kernel</span></div>
+    </div>
+  </div>
+  <div class="cap">点击参数行最右侧的端口图标，这个参数就会变成节点的输入端口，值改由上游提供。被内核锁定的参数显示锁形图标，不能修改。</div>
+
+  <h3>菜单、命令面板、提示框、通知</h3>
+  <div class="grid2" style="align-items:start">
+    <div class="stage stage--grid" style="display:grid;place-items:center;padding:28px">
+      <div class="hx-menu" id="ctxMenu">
+        <div class="hx-item__grp">节点</div>
+        <button class="hx-item"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="2" width="7" height="7" rx="1.5"/><path d="M5 12h5a2 2 0 002-2V5"/></svg>复制<span class="hx-kbd">⌘D</span></button>
+        <button class="hx-item"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="2" width="10" height="10" rx="2"/><path d="M5 7h4"/></svg>封装为子图<span class="hx-kbd">⌘G</span></button>
+        <button class="hx-item"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 7h8M8 4l3 3-3 3"/></svg>转换为<span class="hx-item__sub">›</span></button>
+        <div class="hx-sep"></div>
+        <div class="hx-item__grp">模型</div>
+        <button class="hx-item"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="4.5"/><path d="M7 4.5v3l2 1"/></svg>让模型解释这个节点</button>
+        <div class="hx-sep"></div>
+        <button class="hx-item hx-item--danger"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 4h8M5.5 4V2.5h3V4M4 4l.6 7.5h4.8L10 4"/></svg>删除<span class="hx-kbd">Del</span></button>
+      </div>
+    </div>
+    <div class="stage stage--grid" style="padding:28px">
+      <div class="hx-cmd">
+        <div class="hx-cmd__in"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg><input id="cmdIn" placeholder="搜索节点、命令或子图…"><span class="hx-kbd">⌘K</span></div>
+        <div class="hx-cmd__list" id="cmdList"></div>
+        <div class="hx-cmd__foot"><span><span class="hx-kbd">↑</span><span class="hx-kbd">↓</span> 选择</span><span><span class="hx-kbd">↵</span> 执行</span><span><span class="hx-kbd">Esc</span> 关闭</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="row" style="margin-top:16px">
+    <button class="hx-btn" id="toastBtn">触发通知</button>
+    <button class="hx-btn hx-btn--model" id="toastModelBtn">模拟模型直接修改</button>
+    <span class="cap" style="margin:0">通知从右上角堆叠出现，4 秒后消失，可以带「撤销」。提示框悬停 400ms 后才出现，避免鼠标划过时一路闪烁。</span>
+  </div>
+</section>
+
+<!-- ============ 06 ============ -->
+<section class="sec" id="s6">
+  <div class="sec__no">06</div>
+  <h2>浮动面板与布局</h2>
+  <p class="sec__lede">展开态下画布始终占满，所有面板都浮在画布上方：距边缘 12px，背景 <code class="t">--hx-bg-2</code>，阴影 <code class="t">--hx-shadow-float</code>。按 <span class="hx-kbd">Tab</span> 可以一键隐藏全部面板，进入专注模式。</p>
+  <h3>展开态布局</h3>
+  <div class="wire">
+    <div class="solid" style="left:0;right:0;top:0;height:44px;padding:13px 14px"><b style="display:inline">① 顶部条</b>　面包屑 · 分支 ｜ 授权档位 · 运行状态 · 运行 · 急停</div>
+    <span class="dim" style="right:10px;top:15px">48</span>
+    <div style="left:12px;top:56px;width:150px;bottom:128px"><b>② 节点库</b>搜索 · 分组<br>可拖入<br>可收起</div>
+    <span class="dim" style="left:62px;top:60px;transform:translateY(-14px)"></span>
+    <span class="dim" style="left:66px;bottom:114px">260</span>
+    <div style="right:12px;top:56px;width:170px;bottom:128px"><b>④ 检查器</b>选中时滑入<br>参数分组 · 端口<br>运行信息 · 模型记录</div>
+    <span class="dim" style="right:84px;bottom:114px">320</span>
+    <div style="left:174px;bottom:128px;width:120px;height:72px"><b>⑥ 小地图</b>180 × 120</div>
+    <div style="left:50%;transform:translateX(-50%);bottom:136px;width:220px;height:40px;border-radius:14px;padding:11px 14px;text-align:center"><b style="display:inline">③ 停靠栏</b>　V H A ⌘G L 1</div>
+    <div style="left:0;right:0;bottom:44px;height:72px;border-radius:0;border-left:none;border-right:none"><b>⑤ 运行抽屉</b>时间线 · 日志 · 操作历史　（高度可拖动，0–40%）</div>
+    <div class="solid" style="left:0;right:0;bottom:0;height:44px;padding:13px 14px"><b style="display:inline">对话输入框</b>　保留，可以用文字指挥模型改图</div>
+    <div style="left:46%;top:150px;border:none;background:none;color:var(--hx-text-3);font-size:12px">画布（满铺）</div>
+  </div>
+
+  <h3>面板小样</h3>
+  <div class="grid3" style="align-items:start">
+    <div class="hx-panel">
+      <div class="hx-panel__head">节点库<span class="sp"></span><span class="hx-kbd">/</span></div>
+      <div style="padding:8px"><input class="hx-input" style="width:100%;height:28px" placeholder="搜索节点"></div>
+      <div id="libList" style="padding:0 4px 8px"></div>
+    </div>
+    <div class="hx-panel">
+      <div class="hx-panel__head"><span class="hx-node__icon" data-icon="agent"></span>决策者<span class="sp"></span><span class="hx-badge hx-badge--ok">完成</span></div>
+      <button class="hx-fold"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2.5 4l2.5 2.5L7.5 4"/></svg>输出</button>
+      <div style="padding:0 6px 6px">
+        <div class="hx-param"><span class="hx-param__lab">output_schema</span><span class="hx-param__ctl"><span class="hx-wval">任务卡@1[]</span></span><span></span></div>
+        <div class="hx-param"><span class="hx-param__lab">lifecycle</span><span class="hx-param__ctl"><span class="hx-wval">ephemeral</span></span><span></span></div>
+      </div>
+      <button class="hx-fold is-closed"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2.5 4l2.5 2.5L7.5 4"/></svg>限制</button>
+      <div style="padding:0 6px 6px"><div class="hx-param"><span class="hx-param__lab">max_tool_calls</span><span class="hx-param__ctl"><span class="hx-wval">10</span></span><span></span></div></div>
+      <button class="hx-fold"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2.5 4l2.5 2.5L7.5 4"/></svg>模型记录</button>
+      <div style="padding:2px 14px 12px;font-size:12px;color:var(--hx-text-2)"><span class="hx-badge hx-badge--model">模型</span> 把输出类型改为列表，因为执行池需要逐条展开。<span class="mono" style="color:var(--hx-text-3)"> 16:04</span></div>
+    </div>
+    <div style="display:grid;gap:16px">
+      <div class="hx-panel"><div class="hx-panel__head">小地图<span class="sp"></span><span class="mono" style="font-size:11px;color:var(--hx-text-3)">62%</span></div><canvas id="minimap" width="360" height="200" style="display:block;width:100%;height:auto"></canvas></div>
+      <div style="display:flex;justify-content:center"><div class="hx-dock" id="dock"></div></div>
+    </div>
+  </div>
+  <div class="hx-panel" style="margin-top:16px">
+    <div class="hx-tabs" id="drawerTabs"><button class="is-on">时间线</button><button>日志</button><button>操作历史</button></div>
+    <div class="tl" id="timeline"></div>
+  </div>
+
+  <h3>三种嵌入形态</h3>
+  <div class="forms">
+    <div class="form"><div class="form__vis"><i style="left:12px;top:10px;width:52%;height:10px;background:var(--hx-bg-4)"></i><i style="left:12px;top:30px;right:12px;bottom:28px;background:var(--hx-bg-2);box-shadow:inset 0 0 0 1px var(--hx-accent-line)"></i><i style="left:12px;bottom:10px;width:34%;height:8px;background:var(--hx-bg-4)"></i></div><div class="form__txt"><b>卡片</b><span>放在 AI 回复里，高 440。只读缩略图加状态行和「打开」按钮，能看运行状态，不能编辑。</span></div></div>
+    <div class="form"><div class="form__vis"><i style="left:0;top:0;bottom:0;width:16%;background:var(--hx-bg-2)"></i><i style="left:16%;top:0;right:0;bottom:22px;background:var(--hx-bg-1);box-shadow:inset 0 0 0 1px var(--hx-accent-line)"></i><i style="left:16%;right:0;bottom:0;height:22px;background:var(--hx-bg-3)"></i></div><div class="form__txt"><b>展开</b><span>占满中间栏，底部保留对话输入框，具备完整编辑能力。从卡片切换过来时用 FLIP 动画放大，时长 t-4。</span></div></div>
+    <div class="form"><div class="form__vis"><i style="inset:0;background:var(--hx-bg-1);box-shadow:inset 0 0 0 1px var(--hx-accent-line)"></i><i style="left:8px;top:8px;width:18%;bottom:8px;background:var(--hx-bg-2)"></i><i style="right:8px;top:8px;width:22%;bottom:8px;background:var(--hx-bg-2)"></i></div><div class="form__txt"><b>全屏</b><span>覆盖整个应用并隐藏侧栏，适合大图。按 <span class="hx-kbd">F</span> 进入，<span class="hx-kbd">Esc</span> 退出。</span></div></div>
+  </div>
+</section>
+
+<!-- ============ 07 ============ -->
+<section class="sec" id="s7">
+  <div class="sec__no">07</div>
+  <h2>模型作为操作者</h2>
+  <p class="sec__lede">模型和人编辑的是同一张图，所以界面必须让人随时分清"这是谁做的"。模型相关的所有界面元素只使用 <code class="t">--hx-model</code> 这一种颜色。</p>
+
+  <h3>编辑中的提示与模型光标</h3>
+  <div class="stage stage--grid" style="height:280px;padding:24px" id="cursorStage">
+    <div style="position:absolute;top:20px;left:24px"><span class="hx-modelpill"><span class="hx-breath"></span>模型正在编辑…</span></div>
+    <div id="cA" style="position:absolute;left:70px;top:96px"></div>
+    <div id="cB" style="position:absolute;left:470px;top:110px"></div>
+    <div class="hx-cursor" id="aiCursor"><svg viewBox="0 0 16 16"><path d="M2 1.5l11 6-4.8 1.3L6.4 13.6z" style="fill:var(--hx-model);stroke:var(--hx-bg-1);stroke-width:1.2;stroke-linejoin:round"/></svg><span>AI · 编排者</span></div>
+  </div>
+  <div class="cap">模型操作时，顶部条显示「模型正在编辑…」，左侧的点持续呼吸。画布上的 AI 光标平滑移动到它正在操作的节点，移动使用 <code class="t">--hx-ease-out</code>，时长 700ms。</div>
+
+  <h3>1 档：提议栏</h3>
+  <div class="stage stage--grid" style="display:grid;place-items:center;padding:40px"><div class="hx-proposal"><span class="hx-breath"></span><span>模型提议 <b>5 处</b>修改 · 在验收者后加人工审批，执行池并发 3 → 5</span><button class="hx-btn hx-btn--sm hx-btn--ghost">逐条查看</button><button class="hx-btn hx-btn--sm hx-btn--model">全部采纳</button><button class="hx-btn hx-btn--sm hx-btn--ghost">全部拒绝</button></div></div>
+
+  <h3>2 档及以上：直接修改并闪光</h3>
+  <div class="stage stage--grid" style="display:flex;gap:40px;align-items:center;padding:40px">
+    <div id="flashNode"></div>
+    <div style="max-width:320px"><p class="desc" style="margin-bottom:12px">改动立即生效，节点用 600ms 的模型色光环闪一下，并带上 AI 签；通知里提供「撤销」。</p><button class="hx-btn hx-btn--model" id="flashBtn">模拟一次模型修改</button></div>
+  </div>
+
+  <h3>授权档位胶囊</h3>
+  <p class="desc">放在顶部条右侧，用 5 格刻度表示档位。0–2 档用中性色，3 档用等待色，4 档用强调色。点击胶囊展开授权面板。</p>
+  <div class="stage stage--flat"><div class="row" style="gap:16px" id="levels"></div></div>
+
+  <h3>急停态</h3>
+  <div class="grid2" style="grid-template-columns:1fr auto;align-items:center">
+    <div class="hx-topbar" id="topbarDemo">
+      <span class="crumbs">根图 / <b>闭环迭代</b></span>
+      <span class="hx-badge hx-badge--plain">main</span>
+      <span class="sp"></span>
+      <span id="tbLevel"></span>
+      <span class="hx-badge hx-badge--run" id="tbStatus">运行中 · 第 2/5 轮</span>
+      <button class="hx-btn hx-btn--danger hx-btn--sm" id="estopBtn">急停 <span class="hx-kbd" style="background:transparent;box-shadow:none;color:inherit">⌘.</span></button>
+    </div>
+    <button class="hx-btn" id="estopReset">恢复</button>
+  </div>
+  <div class="cap">急停后顶部条变为危险色底，所有运行中的节点转为取消态，授权档位降到 0。急停开关只属于用户，模型即使拿到 4 档也关不掉。</div>
+</section>
+
+<!-- ============ 08 ============ -->
+<section class="sec" id="s8">
+  <div class="sec__no">08</div>
+  <h2>快捷键</h2>
+  <p class="sec__lede">画布手势沿用 Figma 和 ComfyUI 的习惯，不发明新手势。Windows 上 <span class="hx-kbd">⌘</span> 对应 <span class="hx-kbd">Ctrl</span>。</p>
+  <div class="keys" id="keys"></div>
+</section>
+
+<!-- ============ 09 ============ -->
+<section class="sec" id="s9">
+  <div class="sec__no">09</div>
+  <h2>性能与代码结构</h2>
+  <p class="sec__lede">流畅是功能，不是优化项。验收标准：200 个节点、300 条连线时，拖动和缩放保持 60fps。</p>
+  <table class="tbl" id="perf"></table>
+  <h3>代码结构约定</h3>
+  <div class="code"><pre><span class="k">state</span> = {
+  graph:   { nodes: Map&lt;id, Node&gt;, edges: Map&lt;id, Edge&gt; },   <span class="c">// 数据，唯一事实来源</span>
+  view:    { x, y, k },                                      <span class="c">// 视口：平移与缩放</span>
+  ui:      { selection: Set&lt;id&gt;, hover, tool, panels },
+  run:     { status, nodeStatus: Map&lt;id, Status&gt;, progress },
+  history: { past: Op[], future: Op[] },
+  actor:   <span class="s">'user'</span> | <span class="s">'model'</span>,
+  level:   <span class="n">0</span>..<span class="n">4</span>                                              <span class="c">// 当前授权档位</span>
+}
+
+<span class="k">dispatch</span>(op)        <span class="c">// 唯一修改入口：校验 → 授权 → apply → 写入历史 → 增量渲染</span>
+  op = { kind, actor, reason?, payload, inverse }
+
+<span class="k">renderView</span>()        <span class="c">// 只改世界容器 transform、网格、小地图视口框</span>
+<span class="k">renderNode</span>(id)      <span class="c">// 按 id 复用 DOM，只切换 class 和文字</span>
+<span class="k">renderEdges</span>(ids?)   <span class="c">// 只重算指定连线的 path d</span></pre></div>
+  <div class="code"><pre><span class="c">// 拖动节点：pointermove 只记录坐标，rAF 里每帧最多处理一次</span>
+<span class="k">let</span> pending = <span class="k">null</span>;
+el.addEventListener(<span class="s">'pointerdown'</span>, e =&gt; el.setPointerCapture(e.pointerId));
+el.addEventListener(<span class="s">'pointermove'</span>, e =&gt; {
+  <span class="k">if</span> (!pending) requestAnimationFrame(flush);
+  pending = { x: e.clientX, y: e.clientY };
+});
+<span class="k">function</span> flush() {
+  <span class="k">const</span> p = pending; pending = <span class="k">null</span>;
+  node.x = toWorldX(p.x); node.y = toWorldY(p.y);
+  el.style.transform = <span class="s">`translate3d(${node.x}px, ${node.y}px, 0)`</span>;
+  renderEdges(edgesOf(node.id));   <span class="c">// 只更新相关连线</span>
+}</pre></div>
+</section>
+
+<!-- ============ 10 ============ -->
+<section class="sec" id="s10">
+  <div class="sec__no">10</div>
+  <h2>交付自检</h2>
+  <p class="sec__lede">交付页面之前逐条检查。勾选状态会保存在本机浏览器里。</p>
+  <div class="check__prog"><div><i id="chkBar" style="transform:scaleX(0)"></i></div><span id="chkTxt">0 / 8</span></div>
+  <ul class="check" id="check"></ul>
+</section>
+
+</div></main>
+</div>
+<div class="hx-toasts" id="toasts"></div>
+
+<script>
+/* ========================================================================
+   规范站点脚本。代码地图：
+   1 工具函数    2 图标与节点构建器（可复用：nodeHTML）   3 令牌展示
+   4 节点样例    5 连线样例          6 控件交互            7 面板小样
+   8 模型界面    9 快捷键 / 性能 / 自检                    10 主题与目录
+   ======================================================================== */
+(function () {
+'use strict';
+
+/* ---------- 1 工具函数 ---------- */
+const $ = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+function toast(text, opts) {
+  opts = opts || {};
+  const box = $('#toasts');
+  const el = document.createElement('div');
+  el.className = 'hx-toast' + (opts.kind ? ' hx-toast--' + opts.kind : '');
+  el.innerHTML = '<i></i><span>' + text + '</span>' + (opts.undo ? '<button class="hx-btn hx-btn--sm hx-btn--ghost">撤销</button>' : '');
+  box.appendChild(el);
+  const close = () => { el.classList.add('is-out'); setTimeout(() => el.remove(), 200); };
+  const b = el.querySelector('button');
+  if (b) b.onclick = () => { if (opts.undo) opts.undo(); close(); toast('已撤销'); };
+  setTimeout(close, 4000);
+}
+function copy(text, label) {
+  const done = () => toast('已复制 ' + esc(label || text));
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback);
+  else fallback();
+  function fallback() {
+    const t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select();
+    try { document.execCommand('copy'); done(); } catch (e) { toast('复制失败'); }
+    t.remove();
+  }
+}
+
+/* ---------- 2 图标与节点构建器 ---------- */
+// 20×20 视框，1.5px 线宽，圆头线帽，单色 currentColor
+const ICON_PATHS = {
+  resource: '<ellipse cx="10" cy="5.5" rx="5.5" ry="2.2"/><path d="M4.5 5.5v9c0 1.2 2.5 2.2 5.5 2.2s5.5-1 5.5-2.2v-9"/><path d="M4.5 10c0 1.2 2.5 2.2 5.5 2.2s5.5-1 5.5-2.2"/>',
+  agent: '<rect x="3.5" y="5.5" width="13" height="10" rx="3"/><path d="M10 2.5v3M7.5 10v.5M12.5 10v.5M8 13h4"/>',
+  ctx: '<path d="M10 3l7 3.5-7 3.5-7-3.5z"/><path d="M3 10l7 3.5 7-3.5"/><path d="M3 13.5L10 17l7-3.5"/>',
+  tool: '<path d="M12.6 3.2a3.6 3.6 0 00-3.4 4.8l-5.6 5.6a1.5 1.5 0 002.1 2.1l5.6-5.6a3.6 3.6 0 004.8-3.4l-2.1 2.1-2.1-.5-.5-2.1z"/>',
+  fanout: '<circle cx="4.5" cy="10" r="1.6"/><path d="M6.1 10H9m0 0c2.4 0 2.6-5 6-5M9 10h6M9 10c2.4 0 2.6 5 6 5"/>',
+  join: '<circle cx="15.5" cy="10" r="1.6"/><path d="M13.9 10H11m0 0c-2.4 0-2.6-5-6-5M11 10H5M11 10c-2.4 0-2.6 5-6 5"/>',
+  agg: '<path d="M3.5 4.5h13l-5 6v5l-3 1.5v-6.5z"/>',
+  branch: '<circle cx="5.5" cy="4.5" r="1.6"/><circle cx="5.5" cy="15.5" r="1.6"/><circle cx="14.5" cy="7" r="1.6"/><path d="M5.5 6.1v7.8M5.5 12c0-3 1.8-5 7.4-5"/>',
+  loop: '<path d="M15.6 8.2A6 6 0 104 11.5"/><path d="M16.2 3.8v4.6h-4.6"/>',
+  ledger: '<path d="M5 3.5h9a1.5 1.5 0 011.5 1.5v11.5H6.5A1.5 1.5 0 015 15z"/><path d="M5 15a1.5 1.5 0 011.5-1.5h9M8 7h4.5M8 10h3"/>',
+  human: '<circle cx="10" cy="6.5" r="3"/><path d="M4 17c.6-3.2 3-5 6-5s5.4 1.8 6 5"/>',
+  port: '<rect x="3.5" y="5" width="8" height="10" rx="1.5"/><path d="M9 10h7.5M14 7.5l2.5 2.5-2.5 2.5"/>',
+  subgraph: '<rect x="3" y="3" width="10" height="10" rx="2"/><path d="M7 17h8a2 2 0 002-2V7"/>'
+};
+const ICON_META = [
+  ['resource', '资源', '模型 / 提示词 / 列表'], ['agent', 'Agent', '唯一调用模型的节点'],
+  ['ctx', '上下文装配', '按配方组装上下文'], ['tool', '工具', '手脚'],
+  ['fanout', '扇出', '一份变 N 份'], ['join', '汇合', 'N 路收成一份'],
+  ['agg', '聚合', '规则运算'], ['branch', '分支', '按表达式分流'],
+  ['loop', '循环', '唯一能成环'], ['ledger', '账本', '外置状态'],
+  ['human', '人工', '审批 / 输入'], ['port', '子图端口', '子图的边界'],
+  ['subgraph', '子图引用', '嵌套']
+];
+const svgIcon = (k) => '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' + (ICON_PATHS[k] || '') + '</svg>';
+
+const STATUS_SVG = {
+  queued: '<svg viewBox="0 0 12 12" fill="none" stroke="var(--hx-text-3)" stroke-width="1.5"><circle cx="6" cy="6" r="3.8"/></svg>',
+  done: '<svg viewBox="0 0 12 12" fill="none" stroke="var(--hx-ok)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.4l2.3 2.3 4.7-5.2"/></svg>',
+  failed: '<svg viewBox="0 0 12 12" fill="none" stroke="var(--hx-danger)" stroke-width="1.8" stroke-linecap="round"><path d="M3.3 3.3l5.4 5.4M8.7 3.3l-5.4 5.4"/></svg>',
+  waiting: '<svg viewBox="0 0 12 12" fill="none" stroke="var(--hx-wait)" stroke-width="1.8" stroke-linecap="round"><path d="M4.3 3v6M7.7 3v6"/></svg>',
+  skipped: '<svg viewBox="0 0 12 12" fill="none" stroke="var(--hx-text-3)" stroke-width="1.8" stroke-linecap="round"><path d="M3 6h6"/></svg>',
+  cached: '<svg viewBox="0 0 12 12" fill="var(--hx-text-3)"><path d="M6.8 1.2L2.8 6.8h2.7l-.8 4 4-5.6H6z"/></svg>',
+  running: '<span class="hx-spin"></span>',
+  idle: ''
+};
+const TC = { any: '--hx-type-any', ctx: '--hx-type-ctx', ref: '--hx-type-ref', list: '--hx-type-list', tool: '--hx-type-tool', gen: '--hx-type-gen', ctrl: '--hx-type-ctrl', state: '--hx-type-state' };
+const TNAME = { any: '任意', ctx: '上下文包', ref: '资源引用', list: '列表', tool: '工具端点', gen: 'T', ctrl: '判定', state: '状态' };
+const caret = '<svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2.5 4l2.5 2.5L7.5 4"/></svg>';
+
+/**
+ * 节点 HTML 构建器（规范参考实现）
+ * o = { title, type, icon, state, sm, ports:[[inName,inType,outName,outType]], widgets:[[label,valueHTML]],
+ *       foot, footHTML, meta, ai, ghost, removed, sub, ring, extra }
+ */
+function nodeHTML(o) {
+  const st = o.state || 'idle';
+  const cls = ['hx-node', 'is-' + st];
+  if (o.sm) cls.push('hx-node--sm');
+  if (o.ghost) cls.push('is-ghost');
+  if (o.removed) cls.push('is-removed');
+  if (o.sub) cls.push('hx-node--sub');
+  let h = '<div class="' + cls.join(' ') + '">';
+  if (o.ai) h += '<span class="hx-ai" title="' + esc(o.ai) + '">AI</span>';
+  h += '<div class="hx-node__head"><span class="hx-node__icon">' + svgIcon(o.icon) + '</span>' +
+    '<div class="hx-node__titles"><div class="hx-node__title">' + o.title + '</div><div class="hx-node__type">' + (o.type || '') + '</div></div>' +
+    (o.ring ? ringHTML(o.ring[0], o.ring[1]) : '') +
+    (o.meta ? '<span class="hx-node__meta">' + o.meta + '</span>' : '') +
+    '<span class="hx-node__status">' + (STATUS_SVG[st] || '') + '</span></div>';
+  if (o.ghost) h += '<div class="hx-propose"><span><b>模型提议</b> · ' + o.ghost + '</span><button class="hx-btn hx-btn--sm hx-btn--model">采纳</button><button class="hx-btn hx-btn--sm hx-btn--ghost">拒绝</button></div>';
+  if (o.ports && o.ports.length) {
+    h += '<div class="hx-node__ports">';
+    o.ports.forEach((p) => {
+      h += '<div class="hx-prow">' +
+        (p[0] ? '<span class="hx-port hx-port--in" style="--c:var(' + TC[p[1]] + ')" data-type="' + TNAME[p[1]] + '"></span>' : '') +
+        '<span class="hx-prow__l">' + (p[0] || '') + (p[4] ? '<span class="hx-prow__promo">⇢</span>' : '') + '</span>' +
+        '<span class="hx-prow__r">' + (p[2] || '') + '</span>' +
+        (p[2] ? '<span class="hx-port hx-port--out" style="--c:var(' + TC[p[3]] + ')" data-type="' + TNAME[p[3]] + '"></span>' : '') +
+        '</div>';
+    });
+    h += '</div>';
+  }
+  if (o.sub) h += '<div class="hx-thumb">' + thumbSVG() + '</div>';
+  if (o.widgets && o.widgets.length) {
+    h += '<div class="hx-node__widgets">';
+    o.widgets.forEach((w) => { h += '<div class="hx-wrow"><span>' + w[0] + '</span><span class="hx-wval">' + w[1] + '</span></div>'; });
+    h += '</div>';
+  }
+  h += '<div class="hx-node__foot">' + (o.footHTML || ('<div class="hx-bar"><i></i></div><div class="hx-foot__row"><span>' + (o.foot || '生成中') + '</span><span>62%</span></div>')) + '</div>';
+  return h + '</div>';
+}
+function ringHTML(cur, max) {
+  const r = 12, c = 2 * Math.PI * r, p = cur / max;
+  return '<span class="hx-ring"><svg viewBox="0 0 30 30"><circle cx="15" cy="15" r="' + r + '" fill="none" stroke="var(--hx-bg-5)" stroke-width="2.5"/>' +
+    '<circle cx="15" cy="15" r="' + r + '" fill="none" stroke="var(--hx-accent)" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="' + (c * p).toFixed(1) + ' ' + c.toFixed(1) + '"/></svg><b>' + cur + '/' + max + '</b></span>';
+}
+function thumbSVG() {
+  const b = (x, y) => '<rect x="' + x + '" y="' + y + '" width="26" height="13" rx="2.5" fill="var(--hx-bg-4)" stroke="var(--hx-line-2)"/>';
+  const l = (x1, y1, x2, y2) => '<path d="M' + x1 + ',' + y1 + ' C' + (x1 + 12) + ',' + y1 + ' ' + (x2 - 12) + ',' + y2 + ' ' + x2 + ',' + y2 + '" fill="none" stroke="var(--hx-line-3)" stroke-width="1"/>';
+  return '<svg viewBox="0 0 210 64" preserveAspectRatio="xMidYMid meet">' +
+    l(36, 32, 60, 15) + l(36, 32, 60, 47) + l(86, 15, 110, 32) + l(86, 47, 110, 32) + l(136, 32, 160, 32) +
+    b(10, 25) + b(60, 8) + b(60, 40) + b(110, 25) + b(160, 25) + '</svg>';
+}
+function mount(id, html) { const el = document.getElementById(id); if (el) el.innerHTML = html; return el; }
+
+// 页面上带 data-icon 的元素
+$$('[data-icon]').forEach((el) => { el.innerHTML = svgIcon(el.dataset.icon); });
+
+/* ---------- 3 令牌展示 ---------- */
+function swatches(id, list) {
+  const el = document.getElementById(id); if (!el) return;
+  el.innerHTML = list.map((t) => '<button data-tok="' + t[0] + '"><i style="background:var(' + t[0] + ')"></i><span><b>' + t[0] + '</b><span>' + t[1] + '</span><em data-val="' + t[0] + '"></em></span></button>').join('');
+}
+function refreshVals() { $$('[data-val]').forEach((e) => { e.textContent = css(e.dataset.val); }); }
+swatches('swLine', [['--hx-line-1', '内部分区'], ['--hx-line-2', '组件外框'], ['--hx-line-3', '悬停外框']]);
+swatches('swText', [['--hx-text-1', '标题、正文、数值'], ['--hx-text-2', '次要信息、端口名'], ['--hx-text-3', '标签、占位、禁用']]);
+swatches('swSem', [
+  ['--hx-accent', '运行中 · 主路径 · 主按钮'], ['--hx-ok', '完成 · 通过'], ['--hx-danger', '失败 · 删除 · 急停'],
+  ['--hx-wait', '挂起 · 等待审批'], ['--hx-model', '模型做的事（专用）'], ['--hx-focus', '选中描边'],
+  ['--hx-accent-weak', '运行外发光 · 强调弱底'], ['--hx-model-weak', '模型弱底 · 提议条'], ['--hx-danger-weak', '危险弱底 · 急停条']
+]);
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-tok]'); if (b) copy('var(' + b.dataset.tok + ')');
+});
+
+mount('layers', [0, 1, 2, 3, 4, 5].map((i) => {
+  const names = ['应用底层 · 侧栏、对话', '画布底', '浮动面板 · 检查器', '节点主体 · 卡片', '输入框 · 悬停', '按下 · 选中分段'];
+  return '<div style="left:' + (i * 92) + 'px;top:' + (i * 30) + 'px;width:' + (440 - i * 40) + 'px;height:' + (220 - i * 30) + 'px;background:var(--hx-bg-' + i + ')"><b>--hx-bg-' + i + '</b>' + names[i] + '</div>';
+}).join(''));
+
+mount('typesGrid', Object.keys(TC).map((k) => {
+  const use = { any: '汇合.in · 子图端口', ctx: '上下文装配 → Agent', ref: '资源 → Agent.model', list: '扇出.results · 聚合.items', tool: '工具 → Agent.tools', gen: 'Agent.result · 分支.value', ctrl: '分支的各个出口', state: '账本.value' }[k];
+  return '<div><svg viewBox="0 0 180 30"><path d="M14,22 C70,22 110,8 166,8" fill="none" style="stroke:var(' + TC[k] + ')" stroke-width="1.75" opacity=".85"/>' +
+    '<circle cx="14" cy="22" r="5" style="fill:var(' + TC[k] + ')" stroke="var(--hx-bg-1)" stroke-width="2"/><circle cx="166" cy="8" r="5" style="fill:var(' + TC[k] + ')" stroke="var(--hx-bg-1)" stroke-width="2"/></svg>' +
+    '<b>' + TNAME[k] + '</b><span>' + TC[k] + '</span><span style="font-family:var(--hx-font-ui)">' + use + '</span></div>';
+}).join(''));
+
+mount('fsList', [
+  ['--hx-fs-28', '28', '展示数字与大标题', 600], ['--hx-fs-20', '20', '区块标题', 600], ['--hx-fs-16', '16', '面板标题', 600],
+  ['--hx-fs-14', '14', '节点标题 · 智囊团 ×3', 600], ['--hx-fs-13', '13', '正文与控件值（基准）', 400], ['--hx-fs-12', '12', '说明、端口名、控件标签', 400],
+  ['--hx-fs-11', '11', '微标签与快捷键 ⌘K', 400], ['--hx-fs-10', '10.5', 'Agent · resident · 上下文包', 400]
+].map((r) => '<div class="fs-row"><code>' + r[0] + '</code><em>' + r[1] + 'px</em><span style="font-size:var(' + r[0] + ');font-weight:' + r[3] + (r[0] === '--hx-fs-10' ? ';font-family:var(--hx-font-mono)' : '') + '">' + r[2] + '</span></div>').join(''));
+
+mount('ruler', [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => '<div><span>--hx-s-' + i + '</span><em data-val="--hx-s-' + i + '"></em><i style="width:var(--hx-s-' + i + ')"></i></div>').join(''));
+mount('radii', [['xs', '徽标'], ['sm', '输入 · 图标格'], ['md', '按钮'], ['lg', '节点 · 面板'], ['xl', '停靠栏 · 卡片']].map((r) =>
+  '<div style="border-radius:var(--hx-r-' + r[0] + ')"><i style="border-radius:var(--hx-r-' + r[0] + ')"></i><b>r-' + r[0] + ' <span data-val="--hx-r-' + r[0] + '"></span></b><span>' + r[1] + '</span></div>').join(''));
+mount('shadows', [['--hx-shadow-node', '节点'], ['--hx-shadow-node-drag', '拖起的节点'], ['--hx-shadow-float', '浮动面板'], ['--hx-shadow-pop', '菜单 · 弹层']].map((s) =>
+  '<div style="box-shadow:var(' + s[0] + ')"><b>' + s[0].replace('--hx-shadow-', '') + '</b>' + s[1] + '</div>').join(''));
+
+const MOTIONS = [
+  ['悬停 · 按下', '--hx-t-1', '--hx-ease'], ['选中 · 状态变化', '--hx-t-2', '--hx-ease'], ['面板 · 菜单进入', '--hx-t-3', '--hx-ease-out'],
+  ['离开', '--hx-t-2', '--hx-ease-in'], ['视图过渡', '--hx-t-4', '--hx-ease-out']
+];
+const CURVES = { '--hx-ease': [.2, .8, .2, 1], '--hx-ease-out': [.16, 1, .3, 1], '--hx-ease-in': [.4, 0, 1, 1] };
+mount('motion', MOTIONS.map((m, i) => {
+  const c = CURVES[m[2]];
+  const p = 'M4,32 C' + (4 + c[0] * 48) + ',' + (32 - c[1] * 28) + ' ' + (4 + c[2] * 48) + ',' + (32 - c[3] * 28) + ' 52,4';
+  return '<div class="motion__row"><div><b>' + m[0] + '</b><span>' + m[1] + ' · ' + m[2] + '</span></div>' +
+    '<div class="motion__track"><span class="motion__dot" data-m="' + i + '"></span></div>' +
+    '<svg class="curve" viewBox="0 0 56 36"><path d="M4,32 L52,4" stroke="var(--hx-line-2)" stroke-dasharray="2 3" fill="none"/><path d="' + p + '" fill="none" stroke="var(--hx-text-1)" stroke-width="1.5"/></svg>' +
+    '<button class="hx-btn hx-btn--sm" data-replay="' + i + '">重放</button></div>';
+}).join(''));
+function replay(i) {
+  const dot = $('[data-m="' + i + '"]'), m = MOTIONS[i], track = dot.parentElement;
+  const out = m[0] === '离开';
+  dot.style.transition = 'none';
+  dot.style.transform = 'translateX(0)'; dot.style.opacity = '1';
+  void dot.offsetWidth;
+  dot.style.transition = 'transform var(' + m[1] + ') var(' + m[2] + '), opacity var(' + m[1] + ') var(' + m[2] + ')';
+  dot.style.transform = 'translateX(' + (track.clientWidth - 28) + 'px)';
+  if (out) dot.style.opacity = '0';
+  if (out) setTimeout(() => { dot.style.transition = 'none'; dot.style.transform = 'translateX(0)'; dot.style.opacity = '1'; }, 1100);
+}
+document.addEventListener('click', (e) => { const b = e.target.closest('[data-replay]'); if (b) replay(+b.dataset.replay); });
+
+/* ---------- 4 节点样例 ---------- */
+mount('anatNode', nodeHTML({
+  title: '决策者', type: 'Agent · ephemeral', icon: 'agent', state: 'running',
+  ports: [['context', 'ctx', 'result', 'gen'], ['model', 'ref', '', ''], ['tools', 'tool', '', '']],
+  widgets: [['输出类型', '任务卡@1[]' + caret], ['工具调用上限', '10']], foot: '生成中'
+}));
+(function annotate() {
+  const n = $('#anatNode .hx-node'); if (!n) return;
+  const add = (el, num, left) => { if (!el) return; const m = document.createElement('span'); m.className = 'mk' + (left ? ' mk--l' : ''); m.textContent = num; el.appendChild(m); };
+  const icon = $('.hx-node__icon', n); icon.style.position = 'relative';
+  const mi = document.createElement('span'); mi.className = 'mk mk--l'; mi.textContent = '1'; mi.style.left = '-55px'; icon.appendChild(mi);
+  add($('.hx-node__head', n), 2);
+  add($$('.hx-prow', n)[1], 3);
+  add($('.hx-node__widgets', n), 4);
+  add($('.hx-node__foot', n), 5);
+})();
+
+const STATE_SAMPLES = [
+  ['idle', '待运行', '', ''], ['queued', '排队', '', ''], ['running', '运行中', '', ''], ['done', '完成', '1.8s', ''],
+  ['failed', '失败', '', '<div class="hx-foot__row"><span>超时 · 检索 30s 无响应</span></div><div class="hx-node__acts"><button class="hx-btn hx-btn--sm">重试</button><button class="hx-btn hx-btn--sm hx-btn--ghost">查看</button></div>'],
+  ['waiting', '挂起', '', '<div class="hx-foot__row"><span>等待审批 · 2 分钟</span></div><div class="hx-node__acts"><button class="hx-btn hx-btn--sm hx-btn--primary">批准</button><button class="hx-btn hx-btn--sm hx-btn--ghost">驳回</button></div>'],
+  ['skipped', '跳过', '', ''], ['cached', '缓存命中', '缓存', '']
+];
+mount('states', STATE_SAMPLES.map((s) => '<div class="cell" style="align-items:center"><span class="cell__lab">' + s[0] + '</span>' +
+  nodeHTML({ sm: true, title: s[1], type: s[0] === 'waiting' ? '人工 · approve' : 'Agent', icon: s[0] === 'waiting' ? 'human' : 'agent', state: s[0], meta: s[2],
+    ports: [['in', 'ctx', 'out', 'gen']], footHTML: s[3] || null, foot: '生成中' }) + '</div>').join(''));
+
+mount('modelNodes',
+  '<div class="cell" style="align-items:center"><span class="cell__lab">已修改</span>' + nodeHTML({ title: '执行池', type: '扇出 · body: 执行者', icon: 'fanout', state: 'idle', ai: '模型 · 档位 2 · 16:04：限流已放宽，提高并发缩短总耗时',
+    ports: [['items', 'list', 'results', 'list']], widgets: [['并发', '<span class="hx-old">3</span> → <span class="hx-new">5</span>'], ['隔离', 'true']] }) + '</div>' +
+  '<div class="cell" style="align-items:center"><span class="cell__lab">幽灵 · 提议新增</span>' + nodeHTML({ title: '人工审批', type: '人工 · approve', icon: 'human', state: 'idle', ghost: '高风险输出先过人工',
+    ports: [['request', 'any', 'approved', 'ctrl']] }) + '</div>' +
+  '<div class="cell" style="align-items:center"><span class="cell__lab">提议删除</span>' + nodeHTML({ title: '格式转换', type: 'Agent · 小模型', icon: 'agent', state: 'idle', removed: true, ai: '模型：输出类型已统一，这一步冗余',
+    ports: [['context', 'ctx', 'result', 'gen']] }) + '</div>');
+
+mount('subNodes',
+  '<div class="cell" style="align-items:center"><span class="cell__lab">子图引用</span>' + nodeHTML({ title: '深度研究', type: '子图引用 · research_loop@v1.3', icon: 'subgraph', state: 'done', sub: true, meta: '14 节点',
+    ports: [['goal', 'any', 'report', 'any']] }) + '</div>' +
+  '<div class="cell" style="align-items:center"><span class="cell__lab">循环 · 第 2/5 轮</span>' + nodeHTML({ title: '闭环迭代', type: '循环 · rounds', icon: 'loop', state: 'running', sub: true, ring: [2, 5],
+    ports: [['init', 'gen', 'final', 'gen']], foot: '执行池 2/3' }) + '</div>');
+
+mount('lod',
+  '<div><span class="stage__lab">≥ 0.75 · 完整</span><div style="transform:scale(.86)">' + nodeHTML({ title: '聚类员', type: 'Agent · 簇标注@1', icon: 'agent', ports: [['context', 'ctx', 'result', 'gen'], ['model', 'ref', '', '']], widgets: [['输出类型', '簇标注@1' + caret]] }) + '</div></div>' +
+  '<div><span class="stage__lab">0.45 – 0.75 · 只留圆点和标题</span><div class="lod-mid" style="transform:scale(.6)">' + nodeHTML({ title: '聚类员', type: 'Agent', icon: 'agent', ports: [['context', 'ctx', 'result', 'gen'], ['model', 'ref', '', '']], widgets: [['x', 'x']] }) + '</div></div>' +
+  '<div><span class="stage__lab">&lt; 0.45 · 色块 + 大号标题</span><div style="transform:scale(.62)"><div class="lod-far">聚类员</div></div></div>');
+
+mount('icons', ICON_META.map((m) => '<div data-svg="' + m[0] + '" style="cursor:pointer"><span class="big">' + svgIcon(m[0]) + '</span><b>' + m[1] + '</b><span>' + m[0] + ' · ' + m[2] + '</span></div>').join(''));
+document.addEventListener('click', (e) => { const b = e.target.closest('[data-svg]'); if (b) copy(svgIcon(b.dataset.svg), b.dataset.svg + ' 图标 SVG'); });
+
+/* ---------- 5 连线样例 ---------- */
+function edgePath(x1, y1, x2, y2) {
+  const dx = x2 - x1;
+  const off = dx >= 0 ? Math.min(180, Math.max(48, dx * 0.5)) : 120;
+  return 'M' + x1 + ',' + y1 + ' C' + (x1 + off) + ',' + y1 + ' ' + (x2 - off) + ',' + y2 + ' ' + x2 + ',' + y2;
+}
+function midOf(x1, y1, x2, y2) {
+  const dx = x2 - x1, off = dx >= 0 ? Math.min(180, Math.max(48, dx * 0.5)) : 120;
+  return [(x1 + 3 * (x1 + off) + 3 * (x2 - off) + x2) / 8, (y1 + 3 * y1 + 3 * y2 + y2) / 8];
+}
+function stub(x, y, side) {
+  const w = 58, rx = side === 'l' ? x - w : x;
+  return '<rect x="' + rx + '" y="' + (y - 20) + '" width="' + w + '" height="40" rx="6" fill="var(--hx-bg-3)" stroke="var(--hx-line-2)"/>' +
+    '<rect x="' + (rx + (side === 'l' ? 8 : 18)) + '" y="' + (y - 4) + '" width="30" height="6" rx="3" fill="var(--hx-bg-5)"/>';
+}
+const pt = (x, y, c, extra) => '<circle cx="' + x + '" cy="' + y + '" r="5" style="fill:var(' + c + ')" stroke="var(--hx-bg-3)" stroke-width="2" ' + (extra || '') + '/>';
+function edgeCard(kind) {
+  const A = [70, 44], B = [210, 92], c = '--hx-type-ctx';
+  const d = edgePath(A[0], A[1], B[0], B[1]);
+  let s = stub(A[0], A[1], 'l') + stub(B[0], B[1], 'r');
+  let title = '', note = '';
+  if (kind === 'static') { s += '<path d="' + d + '" fill="none" style="stroke:var(' + c + ')" stroke-width="1.75" opacity=".75"/>'; title = '静态'; note = '源端口类型色，不透明度 0.75，线宽 1.75'; }
+  if (kind === 'hover') {
+    const m = midOf(A[0], A[1], B[0], B[1]);
+    s += '<path d="' + d + '" fill="none" style="stroke:var(' + c + ')" stroke-width="2.5"/>' +
+      '<g transform="translate(' + (m[0] - 13) + ',' + m[1] + ')"><circle r="9" fill="var(--hx-bg-2)" stroke="var(--hx-line-3)"/><path d="M-3.5,0h7M0,-3.5v7" stroke="var(--hx-text-1)" stroke-width="1.4" stroke-linecap="round"/></g>' +
+      '<g transform="translate(' + (m[0] + 13) + ',' + m[1] + ')"><circle r="9" fill="var(--hx-bg-2)" stroke="var(--hx-line-3)"/><path d="M-3,-3l6,6M3,-3l-6,6" stroke="var(--hx-danger)" stroke-width="1.4" stroke-linecap="round"/></g>';
+    title = '悬停'; note = '线宽 2.5，中点出现「插入」和「删除」';
+  }
+  if (kind === 'selected') { s += '<path d="' + d + '" fill="none" style="stroke:var(' + c + ')" stroke-width="7" opacity=".18"/><path d="' + d + '" fill="none" style="stroke:var(' + c + ')" stroke-width="2.5"/>'; title = '选中'; note = '2.5 主线，外加 6px、不透明度 0.18 的同色光晕'; }
+  if (kind === 'running') { s += '<path d="' + d + '" fill="none" style="stroke:var(' + c + ')" stroke-width="1.75"/><path class="hx-flow" d="' + d + '"/>'; title = '运行中'; note = '光点流动，dasharray 1 11，只加在活跃的连线上'; }
+  if (kind === 'bad') {
+    const C = [176, 108];
+    s = stub(A[0], A[1], 'l') + '<path d="' + edgePath(A[0], A[1], C[0], C[1]) + '" fill="none" stroke="var(--hx-danger)" stroke-width="1.75" stroke-dasharray="4 4"/>' +
+      '<circle cx="' + C[0] + '" cy="' + C[1] + '" r="3" fill="var(--hx-danger)"/>' +
+      '<g transform="translate(150,72)"><rect x="0" y="0" width="122" height="22" rx="4" fill="var(--hx-bg-2)" stroke="var(--hx-danger-weak)"/><text x="9" y="15" font-size="11" fill="var(--hx-danger)" style="font-family:var(--hx-font-ui)">列表 不能接 上下文包</text></g>';
+    title = '类型不兼容'; note = '红色虚线跟随光标，旁边写明原因';
+    s += pt(A[0], A[1], '--hx-type-list');
+    return wrap(s, title, note);
+  }
+  if (kind === 'drag') {
+    const P = [[210, 32, '--hx-type-ctx', 1], [210, 72, '--hx-type-ref', 0], [210, 112, '--hx-type-tool', 0]];
+    s = stub(A[0], A[1] + 28, 'l') + '<rect x="210" y="14" width="58" height="114" rx="6" fill="var(--hx-bg-3)" stroke="var(--hx-line-2)"/>';
+    s += '<path d="' + edgePath(A[0], A[1] + 28, 204, 34) + '" fill="none" style="stroke:var(--hx-type-ctx)" stroke-width="2" stroke-dasharray="5 4"/>';
+    P.forEach((p) => {
+      if (p[3]) s += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="11" style="fill:var(' + p[2] + ')" opacity=".22"/>' + '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="6.5" style="fill:var(' + p[2] + ')" stroke="var(--hx-bg-3)" stroke-width="2"/>';
+      else s += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="5" style="fill:var(' + p[2] + ')" stroke="var(--hx-bg-3)" stroke-width="2" opacity=".25"/>';
+    });
+    s += pt(A[0], A[1] + 28, '--hx-type-ctx');
+    return wrap(s, '拖线中', '兼容端口放大发亮并吸附（18px），不兼容端口变暗');
+  }
+  s += pt(A[0], A[1], c) + pt(B[0], B[1], c);
+  return wrap(s, title, note);
+}
+function wrap(s, t, n) { return '<div class="edge-card"><svg viewBox="0 0 280 140">' + s + '</svg><div><b>' + t + '</b><span>' + n + '</span></div></div>'; }
+mount('edges', ['static', 'hover', 'selected', 'running', 'bad', 'drag'].map(edgeCard).join(''));
+
+(function bezier() {
+  const P0 = [130, 160], P3 = [710, 70], off = Math.min(180, Math.max(48, (P3[0] - P0[0]) * 0.5));
+  const C1 = [P0[0] + off, P0[1]], C2 = [P3[0] - off, P3[1]];
+  const lab = (x, y, t, a) => '<text x="' + x + '" y="' + y + '" font-size="11" text-anchor="' + (a || 'middle') + '" fill="var(--hx-text-2)" style="font-family:var(--hx-font-mono)">' + t + '</text>';
+  const dot = (p, f) => '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="' + (f ? 5 : 4) + '" fill="' + (f ? 'var(--hx-type-ctx)' : 'var(--hx-bg-1)') + '" stroke="' + (f ? 'var(--hx-bg-1)' : 'var(--hx-text-2)') + '" stroke-width="' + (f ? 2 : 1.3) + '"/>';
+  mount('bez',
+    '<path d="M' + P0[0] + ',196 H' + P3[0] + '" stroke="var(--hx-line-2)"/>' +
+    '<path d="M' + P0[0] + ',190 v12 M' + P3[0] + ',190 v12" stroke="var(--hx-line-3)"/>' + lab((P0[0] + P3[0]) / 2, 216, 'dx = 580  →  off = clamp(290, 48, 180) = 180') +
+    '<path d="M' + P0[0] + ',' + P0[1] + ' L' + C1[0] + ',' + C1[1] + ' M' + P3[0] + ',' + P3[1] + ' L' + C2[0] + ',' + C2[1] + '" stroke="var(--hx-text-3)" stroke-dasharray="3 4"/>' +
+    '<path d="' + edgePath(P0[0], P0[1], P3[0], P3[1]) + '" fill="none" stroke="var(--hx-type-ctx)" stroke-width="2"/>' +
+    dot(P0, 1) + dot(P3, 1) + dot(C1) + dot(C2) +
+    lab(P0[0] - 14, P0[1] + 4, '源端口 P0', 'end') + lab(P3[0] + 14, P3[1] + 4, 'P3 目标端口', 'start') +
+    lab(C1[0], C1[1] + 22, 'C1 = P0 + (off, 0)') + lab(C2[0], C2[1] - 14, 'C2 = P3 − (off, 0)') +
+    lab(P0[0] + off / 2, P0[1] - 8, 'off') + lab(P3[0] - off / 2, P3[1] - 8, 'off'));
+})();
+
+/* ---------- 6 控件交互 ---------- */
+// 按钮状态矩阵
+(function () {
+  const cols = ['默认', '悬停', '按下', '聚焦', '禁用'], st = ['', 'is-hover', 'is-active', 'is-focus', 'disabled'];
+  const rows = [['主按钮', 'hx-btn--primary', '运行'], ['次按钮', '', '保存'], ['幽灵', 'hx-btn--ghost', '取消'], ['危险', 'hx-btn--danger', '急停']];
+  let h = '<div class="mh"></div>' + cols.map((c) => '<div class="mh">' + c + '</div>').join('');
+  rows.forEach((r) => {
+    h += '<div class="ml">' + r[0] + '</div>';
+    st.forEach((s) => { h += '<div><button class="hx-btn hx-btn--sm ' + r[1] + ' ' + (s === 'disabled' ? '' : s) + '"' + (s === 'disabled' ? ' disabled' : '') + ' tabindex="-1">' + r[2] + '</button></div>'; });
+  });
+  mount('btnMatrix', h);
+})();
+$('#loadBtn').addEventListener('click', function () { const b = this; b.classList.add('is-loading'); setTimeout(() => b.classList.remove('is-loading'), 1400); });
+
+// 数字步进：左右拖动 / 滚轮 / 按钮
+$$('[data-step]').forEach((el) => {
+  const v = $('.hx-step__v', el), min = +el.dataset.min, max = +el.dataset.max;
+  let val = +el.dataset.val;
+  const set = (n) => { val = Math.max(min, Math.min(max, Math.round(n))); v.textContent = val; };
+  $$('button', el).forEach((b) => b.addEventListener('click', () => set(val + (+b.dataset.d))));
+  el.addEventListener('wheel', (e) => { e.preventDefault(); set(val + (e.deltaY < 0 ? 1 : -1)); }, { passive: false });
+  let sx = 0, sv = 0, raf = 0, lastX = 0, shift = false;
+  v.addEventListener('pointerdown', (e) => { v.setPointerCapture(e.pointerId); sx = e.clientX; sv = val; el.classList.add('is-drag'); });
+  v.addEventListener('pointermove', (e) => {
+    if (!el.classList.contains('is-drag')) return;
+    lastX = e.clientX; shift = e.shiftKey;
+    if (!raf) raf = requestAnimationFrame(() => { raf = 0; set(sv + (lastX - sx) / (shift ? 3 : 10)); });
+  });
+  const end = () => el.classList.remove('is-drag');
+  v.addEventListener('pointerup', end); v.addEventListener('pointercancel', end);
+});
+
+// 滑块
+(function () {
+  const el = $('#slider'); if (!el) return;
+  const fill = $('.hx-slider__fill', el), th = $('.hx-slider__thumb', el), tip = $('.hx-slider__tip', el), out = $('#sliderOut');
+  let val = +el.dataset.val;
+  const draw = () => {
+    const w = el.clientWidth;
+    fill.style.transform = 'scaleX(' + val + ')';
+    th.style.transform = 'translateX(' + (val * w) + 'px)';
+    tip.style.left = (val * w) + 'px';
+    tip.textContent = (val * 1.5).toFixed(2);
+    out.textContent = 'temperature ' + (val * 1.5).toFixed(2);
+  };
+  const at = (x) => { const r = el.getBoundingClientRect(); val = Math.max(0, Math.min(1, (x - r.left) / r.width)); draw(); };
+  el.addEventListener('pointerdown', (e) => { el.setPointerCapture(e.pointerId); el.classList.add('is-drag'); at(e.clientX); });
+  el.addEventListener('pointermove', (e) => { if (el.classList.contains('is-drag')) at(e.clientX); });
+  el.addEventListener('pointerup', () => el.classList.remove('is-drag'));
+  val = val / 1.5; draw();
+})();
+
+// 下拉
+(function () {
+  const el = $('#sel'); if (!el) return;
+  const opts = ['方案@1', '簇标注@1', '任务卡@1', '任务卡@1[]', '执行结果@1', '判定@1', '差距报告@1', '简报@1'];
+  let cur = '方案@1', hl = 0, shown = opts.slice();
+  const list = $('.hx-pop__list', el), inp = $('.hx-pop__in', el), btn = $('.hx-select__btn', el);
+  const draw = () => {
+    list.innerHTML = shown.length ? shown.map((o, i) => '<button class="hx-item mono' + (o === cur ? ' is-sel' : '') + (i === hl ? ' is-hl' : '') + '" data-o="' + o + '" style="font-size:12px">' + o + '</button>').join('') : '<div class="hx-cmd__empty">没有匹配的类型</div>';
+  };
+  const open = (on) => { el.classList.toggle('is-open', on); if (on) { inp.value = ''; shown = opts.slice(); hl = Math.max(0, shown.indexOf(cur)); draw(); setTimeout(() => inp.focus(), 30); } };
+  btn.addEventListener('click', () => open(!el.classList.contains('is-open')));
+  inp.addEventListener('input', () => { shown = opts.filter((o) => o.toLowerCase().indexOf(inp.value.toLowerCase()) >= 0); hl = 0; draw(); });
+  inp.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') { hl = Math.min(shown.length - 1, hl + 1); draw(); e.preventDefault(); }
+    if (e.key === 'ArrowUp') { hl = Math.max(0, hl - 1); draw(); e.preventDefault(); }
+    if (e.key === 'Enter' && shown[hl]) pick(shown[hl]);
+    if (e.key === 'Escape') open(false);
+  });
+  list.addEventListener('click', (e) => { const b = e.target.closest('[data-o]'); if (b) pick(b.dataset.o); });
+  const pick = (o) => { cur = o; $('span', btn).textContent = o; open(false); };
+  document.addEventListener('pointerdown', (e) => { if (!el.contains(e.target)) open(false); });
+})();
+
+// 分段控件
+function segInit(seg) {
+  const ind = $('.hx-seg__ind', seg);
+  const place = (b, instant) => {
+    if (!b) return;
+    if (instant) ind.style.transition = 'none';
+    ind.style.width = b.offsetWidth + 'px';
+    ind.style.transform = 'translateX(' + b.offsetLeft + 'px)';
+    if (instant) { void ind.offsetWidth; ind.style.transition = ''; }
+  };
+  $$('button', seg).forEach((b) => b.addEventListener('click', () => {
+    $$('button', seg).forEach((x) => x.classList.toggle('is-on', x === b)); place(b);
+    seg.dispatchEvent(new CustomEvent('seg', { detail: b }));
+  }));
+  place($('button.is-on', seg), true);
+  seg._place = () => place($('button.is-on', seg), true);
+}
+$$('[data-seg]').forEach(segInit);
+
+// 开关
+document.addEventListener('click', (e) => {
+  const s = e.target.closest('[data-switch]'); if (!s) return;
+  s.setAttribute('aria-checked', s.getAttribute('aria-checked') === 'true' ? 'false' : 'true');
+});
+// 参数转端口
+document.addEventListener('click', (e) => {
+  const p = e.target.closest('[data-promote]'); if (!p) return;
+  p.classList.toggle('is-on');
+  const row = p.closest('.hx-param'); row.classList.toggle('is-promoted', p.classList.contains('is-on'));
+  toast(p.classList.contains('is-on') ? '参数已转为输入端口，值改由上游提供' : '已撤回为普通参数');
+});
+
+// YAML 代码框
+mount('yaml', [
+  '<span class="c"># 节点实例</span>',
+  '<span class="k">id</span>: n12',
+  '<span class="k">type</span>: <span class="s">Agent</span>',
+  '<span class="k">label</span>: <span class="s">决策者</span>',
+  '<span class="k">params</span>:',
+  '  <span class="k">output_schema</span>: <span class="s">任务卡@1[]</span>',
+  '  <span class="k">max_tool_calls</span>: <span class="n">10</span>',
+  '  <span class="k">lifecycle</span>: <span class="s">ephemeral</span>',
+  '<span class="k">pos</span>: [<span class="n">1120</span>, <span class="n">250</span>]'
+].map((l, i) => '<div' + (i === 6 ? ' class="is-cur"' : '') + '>' + l + '</div>').join(''));
+
+// 命令面板
+(function () {
+  const items = [
+    ['节点', 'agent', '添加 Agent', 'A'], ['节点', 'fanout', '添加 扇出', ''], ['节点', 'human', '添加 人工审批', ''], ['节点', 'loop', '添加 循环', ''],
+    ['命令', 'subgraph', '封装为子图', '⌘G'], ['命令', 'branch', '自动布局', 'L'], ['命令', 'port', '适应视图', '1'],
+    ['子图', 'subgraph', '深度研究 @v1.3', ''], ['子图', 'subgraph', '闭环迭代 @v1.3', '']
+  ];
+  const inp = $('#cmdIn'), list = $('#cmdList'); let hl = 0;
+  const draw = () => {
+    const q = inp.value.trim().toLowerCase();
+    const f = items.filter((x) => !q || x[2].toLowerCase().indexOf(q) >= 0);
+    if (!f.length) { list.innerHTML = '<div class="hx-cmd__empty">没有找到“' + esc(q) + '”</div>'; return; }
+    hl = Math.min(hl, f.length - 1);
+    let g = '', h = '';
+    f.forEach((x, i) => {
+      if (x[0] !== g) { g = x[0]; h += '<div class="hx-item__grp">' + g + '</div>'; }
+      h += '<button class="hx-item' + (i === hl ? ' is-hl' : '') + '" data-ci="' + i + '"><span class="hx-node__icon" style="width:18px;height:18px">' + svgIcon(x[1]) + '</span>' + x[2] + (x[3] ? '<span class="hx-kbd">' + x[3] + '</span>' : '') + '</button>';
+    });
+    list.innerHTML = h; list._f = f;
+  };
+  inp.addEventListener('input', () => { hl = 0; draw(); });
+  inp.addEventListener('keydown', (e) => {
+    const n = (list._f || []).length;
+    if (e.key === 'ArrowDown') { hl = (hl + 1) % Math.max(1, n); draw(); e.preventDefault(); }
+    if (e.key === 'ArrowUp') { hl = (hl - 1 + n) % Math.max(1, n); draw(); e.preventDefault(); }
+    if (e.key === 'Enter' && list._f && list._f[hl]) toast('执行：' + list._f[hl][2]);
+  });
+  list.addEventListener('click', (e) => { const b = e.target.closest('[data-ci]'); if (b && list._f) toast('执行：' + list._f[+b.dataset.ci][2]); });
+  draw();
+})();
+
+$('#toastBtn').addEventListener('click', () => toast('已连接 决策者.result → 执行池.items', { kind: 'ok', undo: function () {} }));
+$('#toastModelBtn').addEventListener('click', () => toast('模型把执行池并发改为 5 · 理由：限流已放宽', { kind: 'model', undo: function () {} }));
+
+/* ---------- 7 面板小样 ---------- */
+mount('libList',
+  '<div class="hx-group">智能体</div>' +
+  [['agent', 'Agent', '调用模型'], ['ctx', '上下文装配', '按配方']].map(li).join('') +
+  '<div class="hx-group">拓扑</div>' +
+  [['fanout', '扇出', '并行 N 份'], ['join', '汇合', '等全部 / K 个'], ['agg', '聚合', '规则运算']].map(li).join(''));
+function li(x) { return '<div class="hx-libitem" draggable="true"><span class="hx-node__icon">' + svgIcon(x[0]) + '</span><div><b>' + x[1] + '</b><span>' + x[2] + '</span></div></div>'; }
+$$('.hx-fold').forEach((b) => b.addEventListener('click', () => b.classList.toggle('is-closed')));
+
+const DOCK = [['V', '选择', '<path d="M3 2l8 4.5-3.6 1L5.6 11z"/>', 1], ['H', '平移', '<path d="M7 1.5v11M1.5 7h11M7 1.5L5.5 3M7 1.5L8.5 3M7 12.5L5.5 11M7 12.5L8.5 11M1.5 7L3 5.5M1.5 7L3 8.5M12.5 7L11 5.5M12.5 7L11 8.5"/>'],
+  ['A', '添加节点', '<path d="M7 2.5v9M2.5 7h9"/>'], ['sep'], ['⌘G', '封装', '<rect x="2" y="2" width="10" height="10" rx="2"/><path d="M5 7h4"/>'],
+  ['L', '自动布局', '<rect x="1.5" y="2" width="4" height="3" rx=".8"/><rect x="8.5" y="2" width="4" height="3" rx=".8"/><rect x="5" y="9" width="4" height="3" rx=".8"/><path d="M3.5 5v1.5h7V5M7 6.5V9"/>'],
+  ['1', '适应视图', '<path d="M2 5V2h3M9 2h3v3M12 9v3H9M5 12H2V9"/>']];
+mount('dock', DOCK.map((d) => d[0] === 'sep' ? '<span class="hx-dock__sep"></span>' :
+  '<span class="hx-tipwrap"><button class="hx-btn hx-btn--icon hx-btn--ghost' + (d[3] ? ' is-on' : '') + '" data-dock aria-label="' + d[1] + '"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">' + d[2] + '</svg></button><span class="hx-tip">' + d[1] + ' <span class="hx-kbd">' + d[0] + '</span></span></span>').join(''));
+$('#dock').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-dock]'); if (!b) return;
+  const i = $$('[data-dock]').indexOf(b); if (i > 1) return;
+  $$('[data-dock]').forEach((x, j) => x.classList.toggle('is-on', j === i));
+});
+
+function drawMinimap() {
+  const cv = $('#minimap'); if (!cv) return;
+  const g = cv.getContext('2d'), W = cv.width, H = cv.height;
+  g.clearRect(0, 0, W, H);
+  g.fillStyle = css('--hx-bg-1'); g.fillRect(0, 0, W, H);
+  const nodes = [[30, 40], [30, 120], [100, 40], [170, 40], [240, 40], [240, 110], [170, 110], [100, 110], [310, 70]];
+  g.strokeStyle = css('--hx-line-3'); g.lineWidth = 1.5;
+  for (let i = 0; i < nodes.length - 1; i++) { g.beginPath(); g.moveTo(nodes[i][0] + 40, nodes[i][1] + 12); g.lineTo(nodes[i + 1][0], nodes[i + 1][1] + 12); g.stroke(); }
+  nodes.forEach((n, i) => { g.fillStyle = i === 4 ? css('--hx-accent') : css('--hx-bg-5'); g.fillRect(n[0], n[1], 40, 24); });
+  g.strokeStyle = css('--hx-text-2'); g.lineWidth = 2; g.strokeRect(80, 24, 190, 120);
+  g.fillStyle = css('--hx-text-3'); g.font = '20px ' + css('--hx-font-mono'); g.fillText('视口', 88, 168);
+}
+
+mount('timeline', [
+  ['智囊团 #1', [[0, 22, 'done']]], ['智囊团 #2', [[0, 26, 'done']]], ['智囊团 #3', [[0, 19, 'done']]],
+  ['聚类员', [[27, 9, 'done']]], ['执行者 #1', [[37, 16, 'done']]], ['执行者 #2', [[37, 8, 'fail'], [46, 12, 'done']]],
+  ['人工审批', [[59, 14, 'wait']]], ['验收者', [[74, 12, 'run']]]
+].map((r) => '<div class="tl__row"><b>' + r[0] + '</b>' + r[1].map((s) => '<span class="tl__seg tl__seg--' + s[2] + '" style="left:' + s[0] + '%;width:' + s[1] + '%"></span>').join('') + '</div>').join('') +
+  '<span class="tl__now" style="left:calc(112px + (100% - 124px) * .86)"></span>');
+$$('#drawerTabs button').forEach((b) => b.addEventListener('click', () => $$('#drawerTabs button').forEach((x) => x.classList.toggle('is-on', x === b))));
+
+/* ---------- 8 模型界面 ---------- */
+mount('cA', nodeHTML({ sm: true, title: '验收者', type: 'Agent · 判定@1', icon: 'agent', ports: [['context', 'ctx', 'result', 'gen']] }));
+mount('cB', nodeHTML({ sm: true, title: '人工审批', type: '人工 · approve', icon: 'human', ghost: '先过人工', ports: [['request', 'any', 'approved', 'ctrl']] }));
+(function cursorLoop() {
+  const c = $('#aiCursor'), st = $('#cursorStage'); if (!c || !st) return;
+  const pts = [[200, 150], [560, 170], [380, 230]]; let i = 0;
+  const go = () => { const p = pts[i++ % pts.length]; c.style.transform = 'translate(' + p[0] + 'px,' + p[1] + 'px)'; };
+  go(); setInterval(go, 1800);
+})();
+mount('flashNode', nodeHTML({ title: '执行池', type: '扇出 · body: 执行者', icon: 'fanout', ports: [['items', 'list', 'results', 'list']], widgets: [['并发', '<span id="flashVal">3</span>']] }));
+$('#flashBtn').addEventListener('click', () => {
+  const n = $('#flashNode .hx-node'), v = $('#flashVal'); const old = v.textContent;
+  v.innerHTML = '<span class="hx-old">' + old + '</span> → <span class="hx-new">' + (old === '3' ? '5' : '3') + '</span>';
+  if (!$('.hx-ai', n)) { const a = document.createElement('span'); a.className = 'hx-ai'; a.textContent = 'AI'; a.title = '模型 · 档位 2：限流已放宽'; n.appendChild(a); }
+  n.classList.remove('is-flash'); void n.offsetWidth; n.classList.add('is-flash');
+  toast('模型把执行池并发改为 ' + (old === '3' ? '5' : '3'), { kind: 'model', undo: () => { v.textContent = old; } });
+  setTimeout(() => { v.textContent = old === '3' ? '5' : '3'; }, 2400);
+});
+function levelHTML(l) {
+  const names = ['只读', '建议', '部分授权', '高度授权', '完全授权'];
+  const lc = l === 4 ? 'var(--hx-accent)' : l === 3 ? 'var(--hx-wait)' : 'var(--hx-text-2)';
+  let t = ''; for (let i = 0; i < 5; i++) t += '<i class="' + (i <= l ? 'is-on' : '') + '"></i>';
+  return '<button class="hx-level" style="--lc:' + lc + '"><span class="hx-level__ticks">' + t + '</span><b>' + l + '</b><span>' + names[l] + '</span></button>';
+}
+mount('levels', [0, 1, 2, 3, 4].map(levelHTML).join(''));
+mount('tbLevel', levelHTML(2));
+$('#estopBtn').addEventListener('click', () => {
+  $('#topbarDemo').classList.add('is-estop'); mount('tbLevel', levelHTML(0));
+  const s = $('#tbStatus'); s.className = 'hx-badge hx-badge--fail'; s.textContent = '已急停 · 3 个节点已取消';
+});
+$('#estopReset').addEventListener('click', () => {
+  $('#topbarDemo').classList.remove('is-estop'); mount('tbLevel', levelHTML(2));
+  const s = $('#tbStatus'); s.className = 'hx-badge hx-badge--run'; s.textContent = '运行中 · 第 2/5 轮';
+});
+
+/* ---------- 9 快捷键 / 性能 / 自检 ---------- */
+const K = (s) => s.split(' ').map((k) => '<span class="hx-kbd">' + k + '</span>').join('');
+mount('keys', [
+  ['选择工具', 'V'], ['平移', 'H'], ['按住平移', 'Space'], ['快速添加节点', 'A'], ['命令面板', '⌘ K'], ['封装为子图', '⌘ G'],
+  ['解散子图', '⌘ ⇧ G'], ['进入子图', 'Enter'], ['退出 / 取消 / 关闭', 'Esc'], ['撤销', '⌘ Z'], ['重做', '⌘ ⇧ Z'], ['复制选中', '⌘ D'],
+  ['删除', 'Delete'], ['全选', '⌘ A'], ['适应视图', '1'], ['聚焦选中', '2'], ['自动布局', 'L'], ['显示 / 隐藏面板', 'Tab'],
+  ['运行', '⌘ Enter'], ['急停', '⌘ .'], ['移动 1 格 / 5 格', '↑ ⇧'], ['拖动时关闭吸附', 'Alt'], ['全屏', 'F'], ['搜索节点库', '/']
+].map((k) => '<div><span>' + k[0] + '</span><span>' + K(k[1]) + '</span></div>').join(''));
+
+mount('perf', '<tr><th style="width:52px">#</th><th style="width:44%">规则</th><th>原因</th></tr>' + [
+  ['R1', '平移和缩放只改一个世界容器的 <code class="t">translate3d() scale()</code>，并设 will-change', '交给 GPU 合成，不触发布局'],
+  ['R2', '端口坐标用布局常数计算，不调用 getBoundingClientRect', '避免在动画帧里强制回流'],
+  ['R3', 'pointermove 只记录坐标，在 rAF 里统一处理，每帧最多一次', '事件频率可能比帧率还高'],
+  ['R4', '拖动时只更新被拖节点的 transform 和相连连线的 d', '工作量和图的大小无关'],
+  ['R5', '节点 DOM 按 id 复用，状态变化只切换 class 和文字', '保留事件绑定和焦点'],
+  ['R6', '拖动使用 setPointerCapture', '指针移出画布也不会丢失拖动'],
+  ['R7', '节点数 > 150 时开启视口裁剪', '大图也能保持流畅'],
+  ['R8', '连线放在同一个 SVG 里，流动动画只加在活跃连线上', '控制合成层数量'],
+  ['R9', '缩放过程中暂停网格和文字过渡，停止 120ms 后恢复', '缩放时不卡顿'],
+  ['R10', '200 节点、300 连线时拖动和缩放保持 60fps', '验收标准']
+].map((r) => '<tr><td class="num">' + r[0] + '</td><td>' + r[1] + '</td><td>' + r[2] + '</td></tr>').join(''));
+
+(function checklist() {
+  const items = [
+    '页面里没有裸色值，颜色全部来自 tokens.css',
+    '深色和浅色主题切换后，没有看不清的元素',
+    '拖动节点、连线、缩放时不掉帧（用 DevTools Performance 验证）',
+    '每一处模型操作都有 AI 标记、理由和撤销入口',
+    '所有状态都同时用颜色、图形、文字表达',
+    '第 08 节的快捷键全部可用',
+    '窄到 1024 宽时布局不错乱，浮动面板可以收起',
+    '开启"减少动态效果"后动画全部关闭，功能不受影响'
+  ];
+  let saved = [];
+  try { saved = JSON.parse(localStorage.getItem('hx-spec-check') || '[]'); } catch (e) { saved = []; }
+  mount('check', items.map((t, i) => '<li><label><input type="checkbox" data-ck="' + i + '"' + (saved.indexOf(i) >= 0 ? ' checked' : '') + '><span>' + t + '</span></label></li>').join(''));
+  const upd = () => {
+    const on = $$('[data-ck]').filter((c) => c.checked).map((c) => +c.dataset.ck);
+    $('#chkBar').style.transform = 'scaleX(' + (on.length / items.length) + ')';
+    $('#chkTxt').textContent = on.length + ' / ' + items.length;
+    try { localStorage.setItem('hx-spec-check', JSON.stringify(on)); } catch (e) { /* file:// 下可能不可用 */ }
+  };
+  $('#check').addEventListener('change', upd); upd();
+})();
+
+/* ---------- 10 主题、代码复制、目录 ---------- */
+function setTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  try { localStorage.setItem('hx-theme', t); } catch (e) { /* 忽略 */ }
+  refreshVals(); drawMinimap();
+}
+const themeSeg = $('#themeSeg');
+themeSeg.addEventListener('seg', (e) => setTheme(e.detail.dataset.v));
+(function () {
+  // 默认浅色；有本地存储时用存储；可选“跟随系统”（hx-theme-follow=1）但默认关闭
+  let t = 'light';
+  try {
+    const saved = localStorage.getItem('hx-theme');
+    if (saved === 'light' || saved === 'dark') t = saved;
+    else if (localStorage.getItem('hx-theme-follow') === '1' && window.matchMedia) {
+      t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+  } catch (e) { t = 'light'; }
+  $$('button', themeSeg).forEach((b) => b.classList.toggle('is-on', b.dataset.v === t));
+  themeSeg._place(); setTheme(t);
+})();
+
+$$('.code').forEach((c) => {
+  const b = document.createElement('button'); b.className = 'code__copy'; b.textContent = '复制';
+  b.addEventListener('click', () => copy($('pre', c).innerText, '代码片段'));
+  c.appendChild(b);
+});
+
+(function scrollSpy() {
+  const links = $$('#toc a'), map = new Map();
+  links.forEach((a) => { const t = document.getElementById(a.getAttribute('href').slice(1)); if (t) map.set(t, a); });
+  if (!('IntersectionObserver' in window)) return;
+  const vis = new Set();
+  const io = new IntersectionObserver((ents) => {
+    ents.forEach((e) => { if (e.isIntersecting) vis.add(e.target); else vis.delete(e.target); });
+    let top = null;
+    vis.forEach((t) => { if (!top || t.getBoundingClientRect().top < top.getBoundingClientRect().top) top = t; });
+    if (!top) return;
+    const a = map.get(top);
+    links.forEach((l) => l.classList.remove('is-active'));
+    a.classList.add('is-active');
+    if (a.classList.contains('sub')) {
+      let p = a.previousElementSibling; while (p && (p.classList.contains('sub') || p.tagName !== 'A')) p = p.previousElementSibling;
+      if (p) p.classList.add('is-active');
+    }
+  }, { rootMargin: '-64px 0px -60% 0px' });
+  map.forEach((a, t) => io.observe(t));
+})();
+
+window.addEventListener('resize', () => $$('[data-seg]').forEach((s) => s._place && s._place()));
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => $$('[data-seg]').forEach((s) => s._place && s._place()));
+
+})();
+
+</script>
+</body>
+</html>

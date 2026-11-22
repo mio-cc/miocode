@@ -1,0 +1,24 @@
+/* ===== 18_rebalance.css · 纠偏（demo v0.5.5） =====
+   v0.5.4 把所有带颜色的地方都压成了灰，侧栏分区的分隔和标题也去掉了，整体变平、分不清层次。这里改回来：
+   ① 新建会话的 + 用主色（运行按钮、H 标识保持 v0.5.3 的实心主色）
+   ② 侧栏分区重新分清：分区之间留白 + 细分隔线，分区标题加粗加深，当前会话 / 当前层是浮起的白卡片 */
+
+/* ---------- 主色浅色调 ---------- */
+.hx-ls__newbtn svg{color:var(--hx-accent-strong)}
+
+/* ---------- 侧栏分区 ---------- */
+.hx-ls__scroll{padding-bottom:6px}
+.hx-ls__sec{padding:4px 0 6px}
+.hx-ls__sec+.hx-ls__sec{margin-top:4px;box-shadow:inset 0 1px 0 color-mix(in srgb,var(--hx-text-1) 7%,transparent) !important}
+.hx-ls__sech{height:34px !important;padding:0 14px !important;font-size:12px !important;font-weight:600 !important;color:var(--hx-text-2) !important;letter-spacing:.01em !important}
+.hx-ls__sech:hover{color:var(--hx-text-1) !important}
+.hx-ls__sech svg{opacity:.45}
+.hx-ls__sub{font-weight:400 !important}
+.hx-sess__grp{padding:8px 12px 3px !important;font-size:10.5px !important;color:var(--hx-text-3) !important}
+.hx-sess__t{font-size:13px;color:var(--hx-text-1)}
+.hx-sess__m{color:var(--hx-text-3)}
+.hx-sess__item.is-cur,.hx-tree__i.is-cur{background:var(--hx-bg-2) !important;box-shadow:var(--hx-soft) !important}
+.hx-sess__item.is-cur .hx-sess__t,.hx-tree__i.is-cur{font-weight:500}
+.hx-lib2__ch{color:var(--hx-text-1) !important}
+.hx-lib2__ci{color:var(--hx-text-2) !important}
+.hx-ls__foot{background:var(--hx-bg-0)}

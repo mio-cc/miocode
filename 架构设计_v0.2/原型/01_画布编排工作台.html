@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Harness · 画布编排</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --page-bg:#14161b;--page-panel:#1b1e25;--page-panel2:#222630;--page-line:#2d313b;--page-line2:#3a3f4b;
+  --page-text:#e6e4df;--page-muted:#8b8f98;--page-amber:#f0a83c;--page-teal:#5bb8a9;--page-red:#e5646a;
+  --page-sans:'Noto Sans SC','Microsoft YaHei','PingFang SC',sans-serif;
+  --page-mono:'JetBrains Mono',Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--page-bg);color:var(--page-text);font-family:var(--page-sans);font-size:14px;overflow:hidden}
+body{display:flex;flex-direction:column}
+button,select,input,textarea{font-family:inherit;font-size:13px}
+button{cursor:pointer}
+a{color:var(--page-teal);text-decoration:none}
+.topbar{height:48px;display:flex;align-items:center;gap:12px;padding:0 20px;border-bottom:1px solid var(--page-line);background:#111317}
+.topbar .brand{font-weight:700}
+.topbar .brand span{color:var(--page-muted);font-weight:400}
+.sp{flex:1}
+.pill{font-size:12px;border:1px solid var(--page-line2);padding:2px 9px;color:var(--page-muted);white-space:nowrap}
+.pill.run{color:#1a1a1a;background:var(--page-amber);border-color:var(--page-amber)}
+.pill.ok{color:var(--page-teal);border-color:var(--page-teal)}
+.pill.br{color:var(--page-amber);border-color:var(--page-amber)}
+.pill.br.main{color:var(--page-teal);border-color:var(--page-teal)}
+.desc{padding:8px 20px;font-size:13px;color:var(--page-muted);border-bottom:1px solid var(--page-line)}
+.desc b{color:var(--page-text);font-weight:500}
+.topbar,.desc{flex:none}
+.main{display:flex;flex-direction:column;flex:1;min-height:0;position:relative}
+.msgs{flex:1;overflow-y:auto;padding:16px 0 10px}
+.msg{max-width:1240px;margin:0 auto 12px;padding:0 20px;display:flex;gap:10px}
+.msg .av{width:26px;height:26px;flex:none;display:grid;place-items:center;font-size:11px;font-family:var(--page-mono);border:1px solid var(--page-line2);color:var(--page-muted)}
+.msg.ai .av{color:var(--page-amber);border-color:var(--page-amber)}
+.msg .bd{flex:1;min-width:0;line-height:1.65}
+.msg.user{flex-direction:row-reverse}
+.msg.user .bd{background:var(--page-panel);padding:8px 12px;flex:0 1 auto}
+.k{font-family:var(--page-mono);color:var(--page-teal);font-size:12.5px}
+.why{color:var(--page-muted);font-size:12.5px}
+.tagm{font-family:var(--page-mono);font-size:10.5px;color:#1a1a1a;background:var(--page-amber);padding:0 5px;margin-right:4px}
+.appr{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
+.btn{background:var(--page-panel2);color:var(--page-text);border:1px solid var(--page-line2);padding:5px 12px}
+.btn:hover{border-color:var(--page-muted)}
+.btn.pri{background:var(--page-amber);color:#1a1a1a;border-color:var(--page-amber);font-weight:500}
+.btn.ok{border-color:var(--page-teal);color:var(--page-teal)}
+.btn:disabled{opacity:.4;cursor:default}
+.typing{color:var(--page-muted);font-family:var(--page-mono)}
+.comp{flex:none;border-top:1px solid var(--page-line);padding:8px 20px 12px;background:var(--page-bg);position:relative;z-index:30}
+.compin{max-width:1200px;margin:0 auto}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.chip{background:none;border:1px solid var(--page-line2);color:var(--page-muted);padding:3px 10px;font-size:12px}
+.chip:hover{color:var(--page-text);border-color:var(--page-muted)}
+.inrow{display:flex;gap:8px}
+.inrow textarea{flex:1;resize:none;height:42px;background:var(--page-panel);border:1px solid var(--page-line2);color:var(--page-text);font-size:14px;padding:10px 12px;outline:none}
+/* card */
+.card{border:1px solid var(--page-line2);background:var(--page-panel);height:660px;display:flex;flex-direction:column;margin-top:10px;position:relative}
+.card.max{position:absolute;left:12px;right:12px;top:8px;bottom:8px;height:auto;z-index:20;margin:0;box-shadow:0 0 0 9999px rgba(10,11,14,.6)}
+.tb{min-height:40px;flex:none;border-bottom:1px solid var(--page-line);display:flex;align-items:center;gap:6px;padding:4px 10px;flex-wrap:wrap}
+.tb.r2{min-height:36px;background:#181a20}
+.crumb{display:flex;gap:4px;align-items:center;font-size:13px;min-width:0;overflow:hidden;white-space:nowrap}
+.crumb button{background:none;border:none;color:var(--page-muted);padding:2px 4px}
+.crumb button.cur{color:var(--page-text);cursor:default}
+.crumb i{color:var(--page-line2);font-style:normal}
+.tbtn{background:none;border:1px solid transparent;color:var(--page-muted);padding:4px 9px;white-space:nowrap}
+.tbtn:hover{color:var(--page-text);border-color:var(--page-line2)}
+.tbtn:disabled{opacity:.35;cursor:default}
+.tbtn.run{color:#1a1a1a;background:var(--page-amber);font-weight:500}
+.tbtn.stop{color:var(--page-text);background:var(--page-red)}
+.tbtn.estop{color:var(--page-red);border-color:var(--page-red)}
+.tbtn.estop:hover{background:var(--page-red);color:var(--page-text)}
+.tbtn.demo{color:var(--page-teal);border-color:var(--page-teal)}
+.seg{display:flex;border:1px solid var(--page-line2)}
+.seg button{background:none;border:none;color:var(--page-muted);padding:4px 12px;border-right:1px solid var(--page-line2)}
+.seg button:last-child{border-right:none}
+.seg button.on{background:var(--page-panel2);color:var(--page-text)}
+.sel{background:#111317;color:var(--page-text);border:1px solid var(--page-line2);padding:3px 6px;font-family:var(--page-mono);font-size:12px}
+.lvl{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--page-muted)}
+.lvl.l0 .sel{border-color:var(--page-muted)}
+.lvl.l1 .sel{border-color:var(--page-teal);color:var(--page-teal)}
+.lvl.l2 .sel,.lvl.l3 .sel{border-color:var(--page-amber);color:var(--page-amber)}
+.lvl.l4 .sel{border-color:var(--page-amber);background:var(--page-amber);color:#1a1a1a}
+.vsep{width:1px;height:20px;background:var(--page-line2);margin:0 4px}
+.body{flex:1;display:flex;min-height:0;position:relative}
+.view{flex:1;display:none;min-height:0;min-width:0}
+.view.on{display:flex}
+.pal{width:132px;flex:none;border-right:1px solid var(--page-line);overflow-y:auto;padding:6px 0}
+.pg{font-family:var(--page-mono);font-size:10.5px;color:var(--page-muted);padding:8px 12px 2px}
+.pi{display:block;width:100%;text-align:left;background:none;border:none;color:var(--page-text);padding:4px 12px;font-size:13px}
+.pi:hover{background:var(--page-panel2);color:var(--page-amber)}
+.cv{flex:1;position:relative;overflow:hidden;background:#111317;background-image:radial-gradient(#2a2e37 1px,transparent 1px);background-size:20px 20px;cursor:grab;touch-action:none;min-width:0}
+.cv.panning{cursor:grabbing}
+.world{position:absolute;left:0;top:0;width:1px;height:1px;transform-origin:0 0}
+svg.edges{position:absolute;left:-3000px;top:-3000px;width:9000px;height:9000px;overflow:visible;pointer-events:none}
+.edge{fill:none;stroke:#4a4f5c;stroke-width:1.6}
+.edge.done{stroke:#3e7d74}
+.edge.flow{stroke:var(--page-amber);stroke-width:2;stroke-dasharray:6 6;animation:dash .6s linear infinite}
+.edge.esel{stroke:var(--page-text);stroke-width:2.2}
+.edge.tmp{stroke:var(--page-amber);stroke-dasharray:4 4}
+.edge.ghost{stroke:var(--page-teal);stroke-dasharray:5 5;stroke-width:1.6}
+.ehit{fill:none;stroke:transparent;stroke-width:12;pointer-events:stroke;cursor:pointer}
+@keyframes dash{to{stroke-dashoffset:-12}}
+.node{position:absolute;width:176px;background:var(--page-panel);border:1px solid var(--page-line2);user-select:none}
+.node.nsel{outline:2px solid var(--page-text);outline-offset:1px}
+.node.flash{animation:flash 1.2s ease-out}
+@keyframes flash{0%{box-shadow:0 0 0 6px rgba(240,168,60,.55)}100%{box-shadow:0 0 0 0 rgba(240,168,60,0)}}
+.node.ghost{border:1.5px dashed var(--page-teal);background:rgba(91,184,169,.06);opacity:.85;pointer-events:none}
+.node.ghost .nt{color:var(--page-teal)}
+.node.pset{outline:1.5px dashed var(--page-teal);outline-offset:3px}
+.nh{padding:6px 9px 5px;border-bottom:1px solid var(--page-line);cursor:move;position:relative}
+.nt{display:block;font-family:var(--page-mono);font-size:10px;color:var(--page-muted)}
+.nl{display:block;font-weight:500;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:28px}
+.mb{position:absolute;right:5px;top:5px;font-family:var(--page-mono);font-size:9.5px;color:#1a1a1a;background:var(--page-amber);padding:0 4px;cursor:help}
+.np{display:flex;justify-content:space-between;padding:4px 0}
+.np>div{min-width:0}
+.prow{display:flex;align-items:center;gap:5px;font-size:11.5px;height:20px;color:var(--page-muted);white-space:nowrap}
+.prow em{font-style:normal;font-family:var(--page-mono);font-size:9.5px;color:#5d6270}
+.prow.in{padding-right:4px}.prow.out{justify-content:flex-end;padding-left:4px}
+.prow.promo{color:var(--page-amber)}
+.dot{width:11px;height:11px;border-radius:50%;flex:none;border:2px solid #111317}
+.prow.in .dot{background:var(--page-teal);margin-left:-6px}
+.prow.out .dot{background:var(--page-amber);margin-right:-6px;cursor:crosshair}
+.prow.out .dot:hover{transform:scale(1.35)}
+.ng{font-size:11px;color:var(--page-teal);padding:0 9px 4px;font-family:var(--page-mono)}
+.ns{border-top:1px solid var(--page-line);padding:4px 9px 6px;font-size:11px;color:var(--page-muted);font-family:var(--page-mono)}
+.bar{height:3px;background:var(--page-line);margin-bottom:4px}
+.bar i{display:block;height:100%;width:0;background:var(--page-amber);transition:width .15s}
+.node.st-run{border-color:var(--page-amber);box-shadow:0 0 0 3px rgba(240,168,60,.18)}
+.node.st-run .ns{color:var(--page-amber)}
+.node.st-done{border-color:#3e7d74}
+.node.st-done .bar i{background:var(--page-teal)}
+.node.st-done .ns{color:var(--page-teal)}
+.node.st-wait{border-color:var(--page-amber);border-style:dashed}
+.node.st-wait .ns{color:var(--page-amber)}
+.node.st-skip{opacity:.45}
+.toast{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:var(--page-panel2);border:1px solid var(--page-red);color:var(--page-text);padding:6px 14px;font-size:13px;z-index:8;display:none;max-width:80%}
+.toast.ok{border-color:var(--page-teal)}
+.hint{position:absolute;left:10px;bottom:8px;font-size:11.5px;color:#666b77;pointer-events:none}
+.fbar{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:var(--page-panel2);padding:8px 12px;display:none;gap:10px;align-items:center;z-index:6;font-size:13px;max-width:92%}
+.fbar.ap{border:1px dashed var(--page-amber)}
+.fbar.pr{border:1px dashed var(--page-teal);bottom:56px}
+.fbar .why{max-width:420px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* inspector */
+.insp{width:270px;flex:none;border-left:1px solid var(--page-line);overflow-y:auto;padding:12px 14px;display:none}
+.insp.open{display:block}
+.ih{font-family:var(--page-mono);font-size:11px;color:var(--page-muted)}
+.insp h4{margin:2px 0 10px;font-size:16px}
+.fld{margin-bottom:10px}
+.fld label{display:flex;justify-content:space-between;font-family:var(--page-mono);font-size:11.5px;color:var(--page-muted);margin-bottom:3px}
+.fld label button{background:none;border:none;color:#666b77;font-size:11px;padding:0}
+.fld label button.on{color:var(--page-amber)}
+.fld input,.fld select{width:100%;background:#111317;border:1px solid var(--page-line2);color:var(--page-text);padding:5px 7px;font-family:var(--page-mono);font-size:12.5px;outline:none}
+.isec{border-top:1px solid var(--page-line);margin-top:12px;padding-top:10px;font-size:12.5px;color:var(--page-muted);line-height:1.6}
+.isec b{color:var(--page-text);font-weight:500}
+.isec.mby{border-left:3px solid var(--page-amber);padding-left:8px}
+/* yaml */
+.yv{flex-direction:column;padding:0}
+.yhead{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--page-line);font-size:12.5px;color:var(--page-muted);flex-wrap:wrap}
+.yhead .dirty{color:var(--page-amber)}
+.ywrap{flex:1;display:flex;min-height:0}
+#yta{flex:1;min-width:0;background:#111317;color:var(--page-text);border:none;outline:none;resize:none;font-family:var(--page-mono);font-size:12.5px;line-height:1.6;padding:12px 16px;tab-size:2;white-space:pre}
+.yside{width:280px;flex:none;border-left:1px solid var(--page-line);padding:12px 14px;font-size:12.5px;color:var(--page-muted);line-height:1.7;overflow-y:auto}
+.yside b{color:var(--page-text);font-weight:500}
+.ymsg{margin-top:10px;padding:6px 10px;border-left:3px solid var(--page-teal);background:var(--page-panel2);display:none}
+.ymsg.err{border-left-color:var(--page-red)}
+/* oplog */
+.ov{flex-direction:column}
+.ohead{display:flex;align-items:center;gap:12px;padding:8px 12px;border-bottom:1px solid var(--page-line);font-size:12.5px;color:var(--page-muted);flex-wrap:wrap}
+.ohead b{color:var(--page-text)}
+.olist{flex:1;overflow:auto}
+table.ops{width:100%;border-collapse:collapse;font-size:12.5px;min-width:820px}
+.ops th{text-align:left;font-weight:500;color:var(--page-muted);padding:6px 10px;border-bottom:1px solid var(--page-line2);position:sticky;top:0;background:var(--page-panel);font-size:11.5px}
+.ops td{padding:6px 10px;border-bottom:1px solid var(--page-line);vertical-align:top}
+.ops td.m{font-family:var(--page-mono);font-size:12px;white-space:nowrap}
+.ops tr.curv td{background:rgba(240,168,60,.07)}
+.ops tr.undone td{opacity:.38}
+.act{font-family:var(--page-mono);font-size:11px;padding:0 5px;border:1px solid var(--page-line2);color:var(--page-muted)}
+.act.model{background:var(--page-amber);color:#1a1a1a;border-color:var(--page-amber)}
+.act.user{color:var(--page-teal);border-color:var(--page-teal)}
+.ops button{background:none;border:1px solid var(--page-line2);color:var(--page-muted);padding:1px 8px;font-size:11.5px}
+.ops button:hover{color:var(--page-text)}
+.curmark{color:var(--page-amber);font-family:var(--page-mono);font-size:11px}
+/* run panel */
+.rp{flex:none;border-top:1px solid var(--page-line);background:#111317}
+.rs{display:flex;gap:18px;align-items:center;padding:6px 12px;font-size:12px;color:var(--page-muted);font-family:var(--page-mono);flex-wrap:wrap}
+.rs b{color:var(--page-text);font-weight:600}
+.rs .cur{color:var(--page-amber);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:120px}
+.rs button{background:none;border:none;color:var(--page-muted);font-family:var(--page-mono);font-size:12px}
+.log{height:96px;overflow-y:auto;border-top:1px solid var(--page-line);padding:4px 12px;font-family:var(--page-mono);font-size:11.5px;line-height:1.7}
+.log.hide{display:none}
+.log .t{color:#5d6270}.log .p{color:var(--page-teal)}.log .w{color:var(--page-amber)}
+/* modal */
+.modal{position:absolute;inset:0;background:rgba(10,11,14,.72);display:none;align-items:center;justify-content:center;z-index:12}
+.modal.on{display:flex}
+.mbox{width:min(620px,92%);max-height:80%;display:flex;flex-direction:column;background:var(--page-panel);border:1px solid var(--page-line2)}
+.mbox h3{margin:0;padding:12px 16px;border-bottom:1px solid var(--page-line);font-size:15px}
+.mlist{flex:1;overflow-y:auto;padding:8px 16px;font-size:13px}
+.dl{display:flex;gap:10px;padding:5px 0;border-bottom:1px solid var(--page-line)}
+.dl .ty{font-family:var(--page-mono);font-size:11px;width:44px;flex:none}
+.dl .ty.add{color:var(--page-teal)}.dl .ty.del{color:var(--page-red)}.dl .ty.mod{color:var(--page-amber)}
+.dl .tx{min-width:0;word-break:break-all}
+.dl .tx em{font-style:normal;color:var(--page-muted);font-size:12px}
+.mfoot{padding:10px 16px;border-top:1px solid var(--page-line);display:flex;gap:8px;justify-content:flex-end}
+@media (max-width:900px){.pal{width:104px}.yside{display:none}.insp{position:absolute;right:0;top:0;bottom:0;background:var(--page-panel);z-index:4}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span class="brand">Harness <span>· 画布编排</span></span>
+  <span class="pill br main" id="brPill">分支：主线</span>
+  <span class="sp"></span>
+  <span class="pill" id="gstat">待运行</span>
+  <a href="index.html">← 返回总览</a>
+</div>
+<div class="desc"><b>画布编排</b>：人和模型在同一张图上增删节点、连线、改参数、封装子图；画布、YAML、操作日志是同一份数据的三种视图，每一步都是可撤销、可追溯的操作（Op）。</div>
+
+<main class="main" id="main">
+  <div class="msgs" id="msgs">
+    <div class="msg user"><div class="av">我</div><div class="bd">帮我把竞品企业版定价调研搭成一个多 agent 流程，要能循环到验收通过为止。</div></div>
+    <div class="msg ai"><div class="av">AI</div><div class="bd">
+      我按「闭环迭代」模板搭好了。外层是主脑，双击「闭环迭代」进入循环内部。你可以直接在画布上改，也可以切到 YAML 改，或者在下面用文字让我改。我改的每一步都会标成<span class="tagm">模型</span>并写明理由，能撤销。
+      <div class="card" id="card">
+        <div class="tb">
+          <div class="crumb" id="crumb"></div>
+          <span class="vsep"></span>
+          <select class="sel" id="brSel" title="切换分支"></select>
+          <button class="tbtn" id="bBranch">新建草稿分支</button>
+          <button class="tbtn" id="bMerge" disabled>合并到主线</button>
+          <span class="sp"></span>
+          <span class="lvl l2" id="lvlBox">模型授权
+            <select class="sel" id="lvlSel">
+              <option value="0">0 只读</option><option value="1">1 建议</option><option value="2" selected>2 部分授权</option><option value="3">3 高度授权</option><option value="4">4 完全授权</option>
+            </select></span>
+          <button class="tbtn estop" id="bStop" title="立刻停止运行，并把模型授权降到 0 只读">急停</button>
+          <button class="tbtn demo" id="bDemo">演示脚本</button>
+          <button class="tbtn run" id="bRun">运行</button>
+        </div>
+        <div class="tb r2">
+          <div class="seg" id="views"><button data-v="canvas" class="on">画布</button><button data-v="yaml">YAML</button><button data-v="ops">操作日志</button></div>
+          <span class="vsep"></span>
+          <button class="tbtn" id="bUndo" title="Ctrl+Z">撤销</button>
+          <button class="tbtn" id="bRedo" title="Ctrl+Y">重做</button>
+          <span class="pill" id="verPill">v0</span>
+          <span class="sp"></span>
+          <button class="tbtn" id="bFit">适应</button>
+          <button class="tbtn" id="bZo">−</button><button class="tbtn" id="bZi">+</button>
+          <button class="tbtn" id="bGroup" title="Ctrl+G">封装选中</button>
+          <button class="tbtn" id="bMax">展开</button>
+        </div>
+        <div class="body">
+          <div class="view on" id="vCanvas">
+            <div class="pal" id="pal"></div>
+            <div class="cv" id="cv">
+              <div class="world" id="world"></div>
+              <div class="toast" id="toast"></div>
+              <div class="fbar pr" id="prbar"></div>
+              <div class="fbar ap" id="apbar"></div>
+              <div class="hint">拖动空白处平移 · 滚轮缩放 · 橙点拖到青点连线 · Shift 多选 · Delete 删除 · 双击子图进入 · Ctrl+Z/Y 撤销重做</div>
+            </div>
+            <div class="insp" id="insp"></div>
+          </div>
+          <div class="view yv" id="vYaml">
+            <div class="yhead"><span id="yScope">当前层</span><span class="dirty" id="yDirty"></span><span class="sp"></span>
+              <button class="btn" id="yReset">放弃修改</button><button class="btn pri" id="yApply">应用</button></div>
+            <div class="ywrap">
+              <textarea id="yta" spellcheck="false"></textarea>
+              <div class="yside">
+                <b>和画布是同一份数据</b><br>
+                画布上的改动会实时同步到这里；这里改完点「应用」，画布同步更新，并记一条 <span class="k">yaml_apply</span> 操作，可以撤销。<br><br>
+                <b>可以改的</b><br>
+                · <span class="k">label</span>、<span class="k">pos</span>、<span class="k">params</span> 下的值<br>
+                · 新增一段 <span class="k">- id:</span> 加节点（需写 type）<br>
+                · 删掉整段删节点<br>
+                · <span class="k">edges</span> 里增删连线<br><br>
+                应用前同样会做类型检查和环检测，不合法会拒绝并指出行号或原因。
+                <div class="ymsg" id="ymsg"></div>
+              </div>
+            </div>
+          </div>
+          <div class="view ov" id="vOps">
+            <div class="ohead"><span>分支 <b id="oBr">主线</b></span><span>共 <b id="oN">0</b> 条操作</span><span>当前版本 <b id="oV">v0</b></span>
+              <span class="sp"></span><span>人和模型的操作走同一套 Op 格式：<span class="k">{actor, op, target, reason, base_version}</span></span></div>
+            <div class="olist"><table class="ops"><thead><tr><th>版本</th><th>时间</th><th>操作者</th><th>操作</th><th>目标</th><th>理由</th><th></th></tr></thead><tbody id="obody"></tbody></table></div>
+          </div>
+          <div class="modal" id="modal"><div class="mbox"><h3 id="mTitle">合并草稿到主线</h3><div class="mlist" id="mList"></div>
+            <div class="mfoot"><button class="btn" id="mCancel">取消</button><button class="btn pri" id="mOk">确认合并</button></div></div></div>
+        </div>
+        <div class="rp">
+          <div class="rs">
+            <span>用时 <b id="mT">0.0s</b></span>
+            <span>tokens <b id="mK">0</b></span>
+            <span>节点执行 <b id="mN">0</b> 次</span>
+            <span class="cur" id="mC">点「运行」开始</span>
+            <button id="bLog">收起日志</button>
+          </div>
+          <div class="log" id="log"></div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <div class="comp"><div class="compin">
+    <div class="chips" id="chips"></div>
+    <div class="inrow">
+      <textarea id="ta" placeholder="用文字让模型改图，例如：在选中的节点后面加一个人工审批"></textarea>
+      <button class="btn pri" id="send">发送</button>
+    </div>
+  </div></div>
+</main>
+
+<script>
+/* ================= 节点定义（13 个原子节点） ================= */
+const DEF={
+ '资源':{cat:'资源',in:[],out:[['ref','引用']],params:{kind:['模型',['模型','提示词','列表','常量']],value:'large-model'}},
+ 'Agent':{cat:'智能体',in:[['context','上下文包'],['model','引用'],['tools','工具端点',1]],out:[['result','T']],params:{output_schema:'方案@1',lifecycle:['ephemeral',['ephemeral','resident']],max_tool_calls:'10'}},
+ '上下文装配':{cat:'状态',in:[['in','任意',1],['model','引用']],out:[['context','上下文包']],params:{recipe:'执行者配方@1',budget:'0.1×窗口',on_overflow:['pointer',['pointer','summarize','truncate','reject']]}},
+ '账本':{cat:'状态',in:[['value','任意']],out:[['value','任意']],params:{op:['read',['read','write','append','cas','watch']],path:'目标树'}},
+ '工具':{cat:'工具',in:[['request','任意']],out:[['endpoint','工具端点'],['result','T']],params:{tool:['检索',['检索','代码执行','HTTP','浏览器','文件写','邮件']],mode:['endpoint',['endpoint','direct']],risk:['L0',['L0','L1','L2','L3']]}},
+ '扇出':{cat:'拓扑',in:[['items','任意'],['shared','任意',1]],out:[['results','列表']],params:{n:'3',concurrency:'3',isolation:['true',['true','false']],vary:'model ← items'}},
+ '汇合':{cat:'拓扑',in:[['in','任意',1]],out:[['collected','列表']],params:{wait:['all',['all','k_of_n','first','timeout']],timeout:'300s'}},
+ '聚合':{cat:'聚合',in:[['items','列表']],out:[['result','T']],params:{op:['group_ratio',['group_ratio','vote','dedupe','sort','top_k','divergence']],key:'cluster'}},
+ '分支':{cat:'控制',in:[['value','T']],out:[['yes','T'],['no','T']],params:{when:'判定.achieved == true'}},
+ '循环':{cat:'控制',in:[['init','T']],out:[['final','T']],params:{max_rounds:'5',trigger:['rounds',['rounds','event']],stall:'连续 2 轮无进展'},sub:1},
+ '人工':{cat:'人工',in:[['request','任意']],out:[['approved','T'],['rejected','T']],params:{mode:['approve',['approve','input','choose']],timeout:'24h'}},
+ '子图端口':{cat:'边界',in:[['in','任意']],out:[['out','任意']],params:{role:['entry',['entry','exit','summary','escalation']],max_chars:'300'}},
+ '子图引用':{cat:'组合',in:[['in','任意']],out:[['out','任意']],params:{ref:'新子图@v0.1',pin:['snapshot',['snapshot','link']],budget:'父级划拨'},sub:1}
+};
+const PAL=[['资源',['资源']],['智能体',['Agent']],['状态',['上下文装配','账本']],['工具',['工具']],['拓扑',['扇出','汇合']],['聚合',['聚合']],['控制',['分支','循环']],['人工',['人工']],['边界 · 组合',['子图端口','子图引用']]];
+const LV=['0 只读','1 建议','2 部分授权','3 高度授权','4 完全授权'];
+
+let UID=0; const uid=()=>'n'+(++UID);
+const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function mk(type,label,x,y,params,children){
+  const d=DEF[type],p={};
+  for(const k in d.params){const v=d.params[k];p[k]=Array.isArray(v)?v[0]:v;}
+  Object.assign(p,params||{});
+  const n={id:uid(),type,label:label||type,x,y,params:p,promoted:[],status:'idle',sub:'',prog:0};
+  if(d.sub) n.children=children||{nodes:[mk('子图端口','入口',0,60,{role:'entry'}),mk('子图端口','出口',400,60,{role:'exit'})],edges:[]};
+  return n;
+}
+const E=(a,ap,b,bp)=>({id:'e'+(++UID),f:a.id,fp:ap,t:b.id,tp:bp});
+function ports(n){const d=DEF[n.type];return {in:d.in.concat((n.promoted||[]).map(k=>[k,'任意',0,1])),out:d.out};}
+const compat=(a,b)=>a===b||a==='任意'||b==='任意'||a==='T'||b==='T';
+
+/* ================= 模板：闭环迭代 ================= */
+function template(){
+  const e=mk('子图端口','入口',20,40,{role:'entry'});
+  const r=mk('资源','模型列表[]',20,220,{kind:'列表',value:'3 家厂商的大模型'});
+  const a=mk('扇出','智囊团 ×3',240,40,{n:'3',vary:'model ← items'});
+  const k1=mk('上下文装配','聚类员配方',460,40,{recipe:'聚类员配方@1'});
+  const b=mk('Agent','聚类员',680,40,{output_schema:'簇标注@1'});
+  const c=mk('聚合','按比例分级',900,40,{op:'group_ratio',key:'cluster'});
+  const k2=mk('上下文装配','决策者配方',1120,40,{recipe:'决策者配方@1'});
+  const d=mk('Agent','决策者',1120,250,{output_schema:'任务卡@1[]'});
+  const f=mk('扇出','执行池',900,250,{n:'3',concurrency:'3',vary:'—'});
+  const t=mk('工具','检索',900,470,{tool:'检索',risk:'L0'});
+  const k3=mk('上下文装配','验收者配方',680,250,{recipe:'验收者配方@1'});
+  const v=mk('Agent','验收者',460,250,{output_schema:'判定@1'});
+  const g=mk('分支','达成？',240,250,{when:'判定.achieved == true'});
+  const x=mk('子图端口','出口',20,250,{role:'exit'});
+  const inner={nodes:[e,r,a,k1,b,c,k2,d,f,t,k3,v,g,x],edges:[
+    E(e,'out',a,'shared'),E(r,'ref',a,'items'),E(a,'results',k1,'in'),E(k1,'context',b,'context'),
+    E(b,'result',c,'items'),E(c,'result',k2,'in'),E(k2,'context',d,'context'),E(d,'result',f,'items'),
+    E(t,'endpoint',f,'shared'),E(f,'results',k3,'in'),E(k3,'context',v,'context'),E(v,'result',g,'value'),
+    E(g,'yes',x,'in')]};
+  const l1=mk('账本','目标账本 · 读',20,40,{op:'read',path:'目标树'});
+  const big=mk('资源','大模型',20,240,{kind:'模型',value:'large-model'});
+  const c0=mk('上下文装配','主脑配方',240,40,{recipe:'主脑配方@1',budget:'0.05×窗口'});
+  const m=mk('Agent','主脑',460,40,{lifecycle:'resident',output_schema:'目标@1'});
+  const L=mk('循环','闭环迭代',680,40,{max_rounds:'5'},inner);
+  const p=mk('子图端口','摘要端口',900,40,{role:'summary',max_chars:'300'});
+  const l2=mk('账本','目标账本 · 写',1120,40,{op:'append',path:'进度'});
+  return {nodes:[l1,big,c0,m,L,p,l2],edges:[
+    E(l1,'value',c0,'in'),E(big,'ref',c0,'model'),E(c0,'context',m,'context'),E(big,'ref',m,'model'),
+    E(m,'result',L,'init'),E(L,'final',p,'in'),E(p,'out',l2,'value')]};
+}
+
+/* ================= 状态：图、路径、分支与操作日志 ================= */
+let root=template();
+let stack=[{id:null}];           // 层级路径：根图 + 子图节点 id
+let sel=new Set(), selEdge=null;
+let zoom=1,pan={x:20,y:20},needFit=true;
+let level=2, pend=null, ACT={actor:'用户',reason:''};
+let view='canvas', yDirty=false, DEMO=false, AUTO_APPROVE=false;
+const $=id=>document.getElementById(id);
+const world=$('world'),cv=$('cv');
+
+function cur(){
+  let g=root;
+  for(let i=1;i<stack.length;i++){
+    const n=g.nodes.find(x=>x.id===stack[i].id);
+    if(!n||!n.children){stack=stack.slice(0,i);break;}
+    g=n.children;
+  }
+  return g;
+}
+function pathLabels(){
+  const out=['根图'];let g=root;
+  for(let i=1;i<stack.length;i++){const n=g.nodes.find(x=>x.id===stack[i].id);if(!n)break;out.push(n.label);g=n.children;}
+  return out;
+}
+const RUNKEYS=['status','sub','prog','activeOut','out','flash','flow'];
+function snap(){return JSON.stringify(root,(k,v)=>RUNKEYS.includes(k)?undefined:v);}
+function norm(g){g.nodes.forEach(n=>{n.status='idle';n.sub='';n.prog=0;n.promoted=n.promoted||[];if(n.children)norm(n.children);});}
+function restore(s){root=JSON.parse(s);norm(root);sel.clear();selEdge=null;pend=null;hidePr();}
+
+const now=()=>{const d=new Date();return [d.getHours(),d.getMinutes(),d.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':');};
+const branches={'主线':{ops:[{v:0,t:now(),actor:'系统',op:'load_template',target:'闭环迭代',reason:'按用户需求载入模板',snap:snap()}],idx:0}};
+let curBr='主线';
+const br=()=>branches[curBr];
+
+function commit(op,target,reason){
+  const B=br();
+  B.ops=B.ops.slice(0,B.idx+1);
+  B.ops.push({v:B.ops.length,t:now(),actor:ACT.actor,op,target,reason:reason||ACT.reason||'',snap:snap()});
+  B.idx=B.ops.length-1;
+  refreshMeta();
+}
+function asModel(reason,fn){const p=ACT;ACT={actor:'模型',reason};try{return fn();}finally{ACT=p;}}
+function busy(){if(R.running){toast('运行中不能切换版本，先停止运行');return true;}return false;}
+function gotoVer(i){
+  if(busy())return;
+  const B=br(); if(i<0||i>=B.ops.length) return;
+  B.idx=i; restore(B.ops[i].snap); render(); refreshMeta();
+}
+function undo(){const B=br();if(B.idx<=0){toast('已经是最早的版本');return;}gotoVer(B.idx-1);toast('已撤销：'+B.ops[B.idx+1].op,1);}
+function redo(){const B=br();if(B.idx>=B.ops.length-1){toast('没有可以重做的操作');return;}gotoVer(B.idx+1);toast('已重做：'+B.ops[B.idx].op,1);}
+
+/* ================= 渲染 ================= */
+function nodeHTML(n,ghost){
+  const P=ports(n);
+  const ins=P.in.map(p=>`<div class="prow in${p[3]?' promo':''}"><span class="dot" data-n="${n.id}" data-p="${p[0]}" data-d="in" title="${p[1]}"></span>${p[0]}<em>${p[1]}</em></div>`).join('');
+  const outs=P.out.map(p=>`<div class="prow out"><em>${p[1]}</em>${p[0]}<span class="dot" data-n="${n.id}" data-p="${p[0]}" data-d="out" title="${p[1]}"></span></div>`).join('');
+  const grp=n.children?`<div class="ng">子图 · ${n.children.nodes.length} 个节点 · 双击进入</div>`:'';
+  const mb=n.mby&&!ghost?`<span class="mb" title="模型修改：${esc(n.mby)}">模型</span>`:'';
+  const ps=pend&&pend.setNode===n.id?' pset':'';
+  const cls=ghost?'node ghost':`node st-${n.status}${sel.has(n.id)?' nsel':''}${n.flash?' flash':''}${ps}`;
+  return `<div class="${cls}" data-id="${n.id}" style="left:${n.x}px;top:${n.y}px">
+    <div class="nh"><span class="nt">${ghost?'模型提议 · ':''}${n.type}${n.type==='Agent'&&n.params.lifecycle==='resident'?' · resident':''}</span><span class="nl">${esc(n.label)}</span>${mb}</div>
+    <div class="np"><div>${ins}</div><div>${outs}</div></div>${grp}
+    <div class="ns"><div class="bar"><i style="width:${n.prog||0}%"></i></div><span class="stx">${ghost?'待采纳':stTxt(n)}</span></div></div>`;
+}
+function stTxt(n){return n.sub||({idle:'待运行',run:'运行中',done:'完成',wait:'等待中',skip:'未触发'})[n.status]||'待运行';}
+function ghostHere(){return pend&&pend.ghost&&pend.gpath===stackKey()?pend.ghost:null;}
+const stackKey=()=>stack.map(s=>s.id).join('/');
+function render(){
+  const g=cur(),gh=ghostHere();
+  world.innerHTML='<svg class="edges" id="svg"><g id="eg" transform="translate(3000,3000)"></g></svg>'+g.nodes.map(n=>nodeHTML(n)).join('')+(gh?nodeHTML(gh.node,true):'');
+  g.nodes.forEach(n=>n.flash=false);
+  applyT();
+  requestAnimationFrame(()=>{ if(needFit&&view==='canvas'){fit();needFit=false;} drawEdges(); });
+  crumb(); insp(); refreshMeta();
+  if(view==='yaml'&&!yDirty) fillYaml();
+  if(view==='ops') renderOps();
+}
+function upd(n){
+  const el=world.querySelector(`.node[data-id="${n.id}"]`); if(!el) return;
+  el.className=`node st-${n.status}${sel.has(n.id)?' nsel':''}`;
+  el.querySelector('.stx').textContent=stTxt(n);
+  el.querySelector('.bar i').style.width=(n.prog||0)+'%';
+}
+function dotPos(nid,port,dir){
+  const d=world.querySelector(`.dot[data-n="${nid}"][data-p="${port}"][data-d="${dir}"]`); if(!d) return null;
+  const r=d.getBoundingClientRect(),w=world.getBoundingClientRect();
+  return [(r.left+r.width/2-w.left)/zoom,(r.top+r.height/2-w.top)/zoom];
+}
+const curve=(a,b)=>{const dx=Math.max(40,Math.abs(b[0]-a[0])/2);return `M${a[0]},${a[1]} C${a[0]+dx},${a[1]} ${b[0]-dx},${b[1]} ${b[0]},${b[1]}`;};
+function edgeActive(e,g){const s=g.nodes.find(x=>x.id===e.f);return s&&s.status==='done'&&(!s.activeOut||s.activeOut===e.fp);}
+function drawEdges(){
+  const eg=$('eg'); if(!eg) return; const g=cur(); let h='';
+  g.edges.forEach(e=>{
+    const a=dotPos(e.f,e.fp,'out'),b=dotPos(e.t,e.tp,'in'); if(!a||!b) return;
+    const cls=e.id===selEdge?'esel':(e.flow?'flow':(edgeActive(e,g)?'done':''));
+    const src=g.nodes.find(x=>x.id===e.f);
+    const ty=src?(ports(src).out.find(p=>p[0]===e.fp)||[,''])[1]:'';
+    const d=curve(a,b);
+    h+=`<path class="edge ${cls}" d="${d}"></path><path class="ehit" data-e="${e.id}" d="${d}"><title>${e.fp} → ${e.tp}（${ty}）</title></path>`;
+  });
+  const gh=ghostHere();
+  if(gh) gh.edges.forEach(e=>{const a=dotPos(e.f,e.fp,'out'),b=dotPos(e.t,e.tp,'in');if(a&&b)h+=`<path class="edge ghost" d="${curve(a,b)}"></path>`;});
+  eg.innerHTML=h+'<path class="edge tmp" id="tmp" d=""/>';
+}
+function applyT(){world.style.transform=`translate(${pan.x}px,${pan.y}px) scale(${zoom})`;}
+function fit(){
+  const g=cur(); if(!g.nodes.length) return;
+  let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+  g.nodes.forEach(n=>{const el=world.querySelector(`.node[data-id="${n.id}"]`);if(!el)return;x0=Math.min(x0,n.x);y0=Math.min(y0,n.y);x1=Math.max(x1,n.x+el.offsetWidth);y1=Math.max(y1,n.y+el.offsetHeight);});
+  const W=cv.clientWidth,H=cv.clientHeight; if(!W||x1<x0) return;
+  zoom=Math.max(.35,Math.min(1,(W-60)/(x1-x0),(H-60)/(y1-y0)));
+  pan.x=(W-(x1-x0)*zoom)/2-x0*zoom; pan.y=(H-(y1-y0)*zoom)/2-y0*zoom; applyT(); drawEdges();
+}
+function crumb(){
+  const L=pathLabels();
+  $('crumb').innerHTML=L.map((s,i)=>`${i?'<i>/</i>':''}<button data-i="${i}" class="${i===L.length-1?'cur':''}">${esc(s)}</button>`).join('');
+}
+$('crumb').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const i=+b.dataset.i;if(i<stack.length-1){stack=stack.slice(0,i+1);sel.clear();selEdge=null;needFit=true;yDirty=false;render();}});
+function refreshMeta(){
+  const B=br();
+  $('verPill').textContent='v'+B.idx+' / '+(B.ops.length-1);
+  $('bUndo').disabled=B.idx<=0; $('bRedo').disabled=B.idx>=B.ops.length-1;
+  $('brSel').innerHTML=Object.keys(branches).map(k=>`<option ${k===curBr?'selected':''}>${k}</option>`).join('');
+  $('bMerge').disabled=curBr==='主线';
+  const bp=$('brPill'); bp.textContent='分支：'+curBr; bp.className='pill br'+(curBr==='主线'?' main':'');
+  if(view==='ops') renderOps();
+}
+
+/* ================= 节点库 ================= */
+$('pal').innerHTML=PAL.map(g=>`<div class="pg">${g[0]}</div>`+g[1].map(t=>`<button class="pi" draggable="true" data-t="${t}">${t}</button>`).join('')).join('');
+$('pal').addEventListener('click',e=>{const b=e.target.closest('.pi');if(!b)return;const c=toWorld(cv.clientWidth/2,cv.clientHeight/2);addNode(b.dataset.t,c[0]-88+Math.random()*40,c[1]-50+Math.random()*40);});
+$('pal').addEventListener('dragstart',e=>{const b=e.target.closest('.pi');if(b)e.dataTransfer.setData('text/plain',b.dataset.t);});
+cv.addEventListener('dragover',e=>e.preventDefault());
+cv.addEventListener('drop',e=>{e.preventDefault();const t=e.dataTransfer.getData('text/plain');if(!DEF[t])return;const r=cv.getBoundingClientRect();const c=toWorld(e.clientX-r.left,e.clientY-r.top);addNode(t,c[0]-88,c[1]-20);});
+const toWorld=(sx,sy)=>[(sx-pan.x)/zoom,(sy-pan.y)/zoom];
+function addNode(t,x,y,label,params){
+  const n=mk(t,label,Math.round(x),Math.round(y),params);n.flash=true;
+  if(ACT.actor==='模型') n.mby=ACT.reason;
+  cur().nodes.push(n);sel=new Set([n.id]);selEdge=null;
+  commit('add_node',`${pathLabels().join('/')}/${n.label}（${t}）`);
+  render();return n;
+}
+
+/* ================= 画布交互 ================= */
+let drag=null;
+cv.addEventListener('pointerdown',e=>{
+  if(e.button!==0) return;
+  const dot=e.target.closest('.dot');
+  if(dot&&dot.dataset.d==='out'){drag={k:'link',n:dot.dataset.n,p:dot.dataset.p};e.preventDefault();return;}
+  if(e.target.closest('.ehit')){selEdge=e.target.closest('.ehit').dataset.e;sel.clear();render();return;}
+  const ne=e.target.closest('.node');
+  if(ne){
+    const id=ne.dataset.id;
+    if(e.shiftKey||e.ctrlKey||e.metaKey){sel.has(id)?sel.delete(id):sel.add(id);}
+    else if(!sel.has(id)){sel=new Set([id]);}
+    selEdge=null;
+    world.querySelectorAll('.node').forEach(el=>el.classList.toggle('nsel',sel.has(el.dataset.id)));
+    insp();drawEdges();
+    if(e.target.closest('.nh')) drag={k:'move',x:e.clientX,y:e.clientY,moved:0};
+    return;
+  }
+  drag={k:'pan',x:e.clientX,y:e.clientY,moved:0};cv.classList.add('panning');
+});
+window.addEventListener('pointermove',e=>{
+  if(!drag) return;
+  if(drag.k==='pan'){pan.x+=e.clientX-drag.x;pan.y+=e.clientY-drag.y;drag.moved+=Math.abs(e.clientX-drag.x)+Math.abs(e.clientY-drag.y);drag.x=e.clientX;drag.y=e.clientY;applyT();}
+  else if(drag.k==='move'){
+    const dx=(e.clientX-drag.x)/zoom,dy=(e.clientY-drag.y)/zoom;drag.x=e.clientX;drag.y=e.clientY;drag.moved+=Math.abs(dx)+Math.abs(dy);
+    cur().nodes.forEach(n=>{if(sel.has(n.id)){n.x+=dx;n.y+=dy;const el=world.querySelector(`.node[data-id="${n.id}"]`);if(el){el.style.left=n.x+'px';el.style.top=n.y+'px';}}});
+    drawEdges();
+  } else if(drag.k==='link'){
+    const a=dotPos(drag.n,drag.p,'out'),r=cv.getBoundingClientRect(),b=toWorld(e.clientX-r.left,e.clientY-r.top);
+    const t=$('tmp'); if(t&&a) t.setAttribute('d',curve(a,b));
+  }
+});
+window.addEventListener('pointerup',e=>{
+  if(!drag) return;
+  if(drag.k==='link'){
+    const el=document.elementFromPoint(e.clientX,e.clientY),dot=el&&el.closest('.dot');
+    if(dot&&dot.dataset.d==='in'&&!dot.closest('.ghost')) connect(drag.n,drag.p,dot.dataset.n,dot.dataset.p);
+    else {const t=$('tmp');if(t)t.setAttribute('d','');}
+  }
+  if(drag.k==='move'&&drag.moved>2){
+    cur().nodes.forEach(n=>{if(sel.has(n.id)){n.x=Math.round(n.x);n.y=Math.round(n.y);}});
+    commit('move_node',[...sel].map(id=>(cur().nodes.find(n=>n.id===id)||{}).label).join('、'));
+    if(view==='yaml'&&!yDirty)fillYaml();
+  }
+  if(drag.k==='pan'){cv.classList.remove('panning');if(drag.moved<4&&(sel.size||selEdge)){sel.clear();selEdge=null;render();}}
+  drag=null;
+});
+cv.addEventListener('wheel',e=>{e.preventDefault();const r=cv.getBoundingClientRect(),sx=e.clientX-r.left,sy=e.clientY-r.top,w=toWorld(sx,sy);
+  zoom=Math.max(.3,Math.min(1.8,zoom*(e.deltaY<0?1.1:.9)));pan.x=sx-w[0]*zoom;pan.y=sy-w[1]*zoom;applyT();},{passive:false});
+cv.addEventListener('dblclick',e=>{const ne=e.target.closest('.node');if(!ne)return;const n=cur().nodes.find(x=>x.id===ne.dataset.id);if(n&&n.children)enter(n);});
+function enter(n){stack.push({id:n.id});sel.clear();selEdge=null;needFit=true;yDirty=false;render();}
+
+function reach(edges,from,to){const st=[from],seen=new Set();while(st.length){const x=st.pop();if(x===to)return true;if(seen.has(x))continue;seen.add(x);edges.forEach(e=>{if(e.f===x)st.push(e.t);});}return false;}
+function checkEdge(g,fn,fp,tn,tp,edges){
+  const A=g.nodes.find(x=>x.id===fn),B=g.nodes.find(x=>x.id===tn);
+  if(!A||!B) return '连线引用了不存在的节点';
+  if(fn===tn) return '不能连到自己';
+  const o=ports(A).out.find(p=>p[0]===fp), i=ports(B).in.find(p=>p[0]===tp);
+  if(!o) return `「${A.label}」没有输出端口 ${fp}`;
+  if(!i) return `「${B.label}」没有输入端口 ${tp}`;
+  if(!compat(o[1],i[1])) return `类型不匹配：${o[1]} 不能接到 ${i[1]}`;
+  if(reach(edges||g.edges,tn,fn)) return '内核规则：环只能通过「循环」节点形成，把要迭代的部分封装进循环';
+  return '';
+}
+function connect(fn,fp,tn,tp,quiet){
+  const g=cur(),err=checkEdge(g,fn,fp,tn,tp);
+  if(err){if(!quiet)toast(err);drawEdges();return false;}
+  if(g.edges.some(e=>e.f===fn&&e.fp===fp&&e.t===tn&&e.tp===tp)){drawEdges();return false;}
+  const A=g.nodes.find(x=>x.id===fn),B=g.nodes.find(x=>x.id===tn);
+  const multi=ports(B).in.find(p=>p[0]===tp)[2];
+  if(!multi) g.edges=g.edges.filter(e=>!(e.t===tn&&e.tp===tp));
+  g.edges.push(E(A,fp,B,tp));
+  commit('connect',`${A.label}.${fp} → ${B.label}.${tp}`);
+  drawEdges(); if(view==='yaml'&&!yDirty)fillYaml();
+  if(!quiet) toast(`已连接 ${A.label}.${fp} → ${B.label}.${tp}`,1);
+  return true;
+}
+function toast(t,ok){const el=$('toast');el.textContent=t;el.className='toast'+(ok?' ok':'');el.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(()=>el.style.display='none',2400);}
+function delSel(){
+  const g=cur();
+  if(selEdge){const e=g.edges.find(x=>x.id===selEdge);g.edges=g.edges.filter(x=>x.id!==selEdge);selEdge=null;
+    if(e){const A=g.nodes.find(n=>n.id===e.f),B=g.nodes.find(n=>n.id===e.t);commit('disconnect',`${A?A.label:e.f}.${e.fp} → ${B?B.label:e.t}.${e.tp}`);}
+    render();return;}
+  if(!sel.size) return;
+  const names=g.nodes.filter(n=>sel.has(n.id)).map(n=>n.label).join('、');
+  g.nodes=g.nodes.filter(n=>!sel.has(n.id));g.edges=g.edges.filter(e=>!sel.has(e.f)&&!sel.has(e.t));sel.clear();
+  commit('remove_node',names);render();
+}
+document.addEventListener('keydown',e=>{
+  const typing=/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);
+  if((e.ctrlKey||e.metaKey)&&!typing&&e.key.toLowerCase()==='z'&&!e.shiftKey){e.preventDefault();undo();return;}
+  if((e.ctrlKey||e.metaKey)&&!typing&&(e.key.toLowerCase()==='y'||(e.key.toLowerCase()==='z'&&e.shiftKey))){e.preventDefault();redo();return;}
+  if(typing) return;
+  if(view!=='canvas') return;
+  if(e.key==='Delete'||e.key==='Backspace'){e.preventDefault();delSel();}
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='g'){e.preventDefault();groupSel(true);}
+});
+
+/* ================= 封装为子图 ================= */
+function groupSel(say,name){
+  const g=cur();const ids=[...sel].filter(id=>g.nodes.some(n=>n.id===id));
+  if(ids.length<2){toast('先按住 Shift 选中至少 2 个节点');if(say)ai('要封装的话，先按住 Shift 点选至少 2 个节点，再点「封装选中」。');return null;}
+  const S=new Set(ids),inside=g.nodes.filter(n=>S.has(n.id));
+  const innerE=g.edges.filter(e=>S.has(e.f)&&S.has(e.t)),inc=g.edges.filter(e=>!S.has(e.f)&&S.has(e.t)),out=g.edges.filter(e=>S.has(e.f)&&!S.has(e.t));
+  const x0=Math.min(...inside.map(n=>n.x)),y0=Math.min(...inside.map(n=>n.y)),x1=Math.max(...inside.map(n=>n.x));
+  const en=mk('子图端口','入口',x0-230,y0,{role:'entry'}),ex=mk('子图端口','出口',x1+230,y0,{role:'exit'});
+  const ch={nodes:[en,...inside,ex],edges:[...innerE]};
+  inc.forEach(e=>ch.edges.push(E(en,'out',inside.find(n=>n.id===e.t),e.tp)));
+  out.forEach(e=>ch.edges.push(E(inside.find(n=>n.id===e.f),e.fp,ex,'in')));
+  const nm=name||'新子图';
+  const G=mk('子图引用',nm,Math.round(x0),Math.round(y0),{ref:nm+'@v0.1'},ch);G.flash=true;
+  if(ACT.actor==='模型')G.mby=ACT.reason;
+  g.nodes=g.nodes.filter(n=>!S.has(n.id)).concat(G);
+  g.edges=g.edges.filter(e=>!S.has(e.f)&&!S.has(e.t));
+  const seenIn=new Set();inc.forEach(e=>{const k=e.f+e.fp;if(!seenIn.has(k)){seenIn.add(k);g.edges.push({id:'e'+(++UID),f:e.f,fp:e.fp,t:G.id,tp:'in'});}});
+  out.forEach(e=>g.edges.push({id:'e'+(++UID),f:G.id,fp:'out',t:e.t,tp:e.tp}));
+  sel=new Set([G.id]);
+  commit('group',`${inside.map(n=>n.label).join('、')} → 子图「${nm}」`);
+  render();
+  if(say) ai(`已把 ${ids.length} 个节点封装成子图「${esc(nm)}」，自动补了入口和出口端口，外部连线改接到了子图上。双击它能进入内部。`);
+  return G;
+}
+
+/* ================= 检查器 ================= */
+function insp(){
+  const el=$('insp'),g=cur();
+  if(selEdge){const e=g.edges.find(x=>x.id===selEdge);if(!e){el.classList.remove('open');return;}
+    const A=g.nodes.find(n=>n.id===e.f),B=g.nodes.find(n=>n.id===e.t);
+    el.innerHTML=`<div class="ih">连线</div><h4>${esc(A.label)} → ${esc(B.label)}</h4><div class="isec"><b>${e.fp}</b> → <b>${e.tp}</b><br>类型：${ports(A).out.find(p=>p[0]===e.fp)[1]}</div><div class="isec"><button class="btn" id="iDel">删除连线</button></div>`;
+    el.classList.add('open');$('iDel').onclick=delSel;return;}
+  if(sel.size!==1){
+    if(sel.size>1){el.innerHTML=`<div class="ih">多选</div><h4>已选 ${sel.size} 个节点</h4><div class="isec">可以一起拖动，或封装成一个子图，作为新的积木复用。</div><div class="isec"><button class="btn pri" id="iGrp">封装为子图</button> <button class="btn" id="iDel">删除</button></div>`;
+      el.classList.add('open');$('iGrp').onclick=()=>groupSel(false);$('iDel').onclick=delSel;}
+    else el.classList.remove('open');
+    return;}
+  const n=g.nodes.find(x=>x.id===[...sel][0]); if(!n){el.classList.remove('open');return;}
+  const d=DEF[n.type];
+  let h=`<div class="ih">${d.cat} · ${n.type} · ${n.id}</div><h4>${esc(n.label)}</h4>`;
+  h+=`<div class="fld"><label>名称</label><input data-k="__label" value="${esc(n.label)}"></div>`;
+  for(const k in d.params){
+    const v=d.params[k],pr=n.promoted.includes(k);
+    h+=`<div class="fld"><label>${k}<button data-pro="${k}" class="${pr?'on':''}" title="把参数转成输入端口，值由上游提供">${pr?'已转端口':'转端口'}</button></label>`;
+    h+=Array.isArray(v)?`<select data-k="${k}" ${pr?'disabled':''}>${v[1].map(o=>`<option ${o===n.params[k]?'selected':''}>${o}</option>`).join('')}</select>`
+      :`<input data-k="${k}" value="${esc(n.params[k])}" ${pr?'disabled':''}>`;
+    h+='</div>';
+  }
+  if(n.mby) h+=`<div class="isec mby"><span class="tagm">模型</span>最近一次由模型修改<br>理由：${esc(n.mby)}</div>`;
+  h+=`<div class="isec">状态：<b>${stTxt(n)}</b>${n.out?`<br>最近输出：${esc(n.out)}`:''}</div>`;
+  if(n.children) h+=`<div class="isec"><button class="btn" id="iEnter">进入子图（${n.children.nodes.length} 个节点）</button></div>`;
+  h+=`<div class="isec"><button class="btn" id="iDel">删除节点</button></div>`;
+  el.innerHTML=h;el.classList.add('open');
+  if($('iEnter'))$('iEnter').onclick=()=>enter(n);
+  $('iDel').onclick=delSel;
+}
+const selNode=()=>cur().nodes.find(x=>x.id===[...sel][0]);
+$('insp').addEventListener('input',e=>{
+  const k=e.target.dataset.k;if(k!=='__label')return;const n=selNode();if(!n)return;
+  n.label=e.target.value;const el=world.querySelector(`.node[data-id="${n.id}"] .nl`);if(el)el.textContent=n.label;
+});
+$('insp').addEventListener('change',e=>{
+  const k=e.target.dataset.k;if(!k)return;const n=selNode();if(!n)return;
+  if(k==='__label'){commit('set_param',`${n.id}.label = ${n.label}`);crumb();}
+  else{n.params[k]=e.target.value;commit('set_param',`${n.label}.${k} = ${e.target.value}`);}
+  if(view==='yaml'&&!yDirty)fillYaml();
+});
+$('insp').addEventListener('click',e=>{
+  const k=e.target.dataset.pro;if(!k)return;const n=selNode();if(!n)return;
+  const on=!n.promoted.includes(k);
+  promote(n,k,on);
+});
+function promote(n,k,on){
+  if(on){if(!n.promoted.includes(k))n.promoted.push(k);}
+  else{n.promoted=n.promoted.filter(x=>x!==k);cur().edges=cur().edges.filter(x=>!(x.t===n.id&&x.tp===k));}
+  commit(on?'promote_param':'demote_param',`${n.label}.${k}`);
+  render();
+}
+
+/* ================= YAML 视图 ================= */
+function toYaml(g){
+  let s=`# 当前层：${pathLabels().join(' / ')}\n# 分支：${curBr}   版本：v${br().idx}\nnodes:\n`;
+  g.nodes.forEach(n=>{
+    s+=`  - id: ${n.id}\n    type: ${n.type}\n    label: ${n.label}\n    pos: [${Math.round(n.x)}, ${Math.round(n.y)}]\n`;
+    if(n.promoted.length) s+=`    promoted: [${n.promoted.join(', ')}]\n`;
+    s+='    params:\n'; for(const k in n.params) s+=`      ${k}: ${n.params[k]}\n`;
+    if(n.children) s+=`    children: ${n.children.nodes.length} 个节点（在画布上双击进入编辑）\n`;
+    if(n.mby) s+=`    modified_by: 模型（${n.mby}）\n`;
+  });
+  s+='edges:\n'; g.edges.forEach(e=>{s+=`  - ${e.f}.${e.fp} -> ${e.t}.${e.tp}\n`;});
+  return s;
+}
+function fillYaml(){$('yta').value=toYaml(cur());yDirty=false;$('yDirty').textContent='';$('yScope').textContent='当前层：'+pathLabels().join(' / ');}
+function parseYaml(txt){
+  const nodes=[],edges=[];let sec=null,cn=null,inP=false;
+  const lines=txt.split('\n');
+  for(let i=0;i<lines.length;i++){
+    const raw=lines[i];
+    if(!raw.trim()||raw.trim().startsWith('#')) continue;
+    const ind=raw.match(/^ */)[0].length, t=raw.trim();
+    if(/^nodes:\s*$/.test(t)&&ind===0){sec='n';continue;}
+    if(/^edges:\s*$/.test(t)&&ind===0){sec='e';continue;}
+    if(sec==='e'){const m=t.match(/^-\s*(\w+)\.(\w+)\s*->\s*(\w+)\.(\w+)\s*$/);if(!m)throw `第 ${i+1} 行：连线格式应为「- 节点id.端口 -> 节点id.端口」`;edges.push({f:m[1],fp:m[2],t:m[3],tp:m[4]});continue;}
+    if(sec!=='n') throw `第 ${i+1} 行：不在 nodes 或 edges 段里`;
+    let m=t.match(/^-\s*id:\s*(\S+)\s*$/);
+    if(m){cn={id:m[1],params:{}};nodes.push(cn);inP=false;continue;}
+    if(!cn) throw `第 ${i+1} 行：节点要以「- id:」开头`;
+    m=t.match(/^(\w+):\s*(.*)$/);
+    if(!m) throw `第 ${i+1} 行：无法解析「${t}」`;
+    if(m[1]==='params'&&ind<=4){inP=true;continue;}
+    if(inP&&ind>=6){cn.params[m[1]]=m[2].trim();continue;}
+    inP=false;
+    const k=m[1],v=m[2].trim();
+    if(k==='type')cn.type=v;
+    else if(k==='label')cn.label=v;
+    else if(k==='pos'){const p=v.match(/-?\d+/g);if(!p||p.length<2)throw `第 ${i+1} 行：pos 应为 [x, y]`;cn.x=+p[0];cn.y=+p[1];}
+    else if(k==='promoted')cn.promoted=v.match(/[^\[\],\s]+/g)||[];
+  }
+  return {nodes,edges};
+}
+function yMsg(t,err){const el=$('ymsg');el.innerHTML=t;el.className='ymsg'+(err?' err':'');el.style.display='block';}
+function applyYaml(){
+  if(R.running){yMsg('运行中不能整体替换这一层，先停止运行。',1);return;}
+  let P;try{P=parseYaml($('yta').value);}catch(err){yMsg(esc(err),1);return;}
+  const g=cur(),old=new Map(g.nodes.map(n=>[n.id,n])),out=[];let add=0,mod=0;
+  const seen=new Set();
+  for(const pn of P.nodes){
+    if(seen.has(pn.id)){yMsg(`节点 id 重复：${esc(pn.id)}`,1);return;} seen.add(pn.id);
+    let n=old.get(pn.id);
+    if(!n){
+      if(!pn.type||!DEF[pn.type]){yMsg(`新节点 ${esc(pn.id)} 的 type 不是 13 个原子节点之一：${esc(pn.type||'未填写')}`,1);return;}
+      n=mk(pn.type,pn.label,pn.x==null?120:pn.x,pn.y==null?120:pn.y);n.id=pn.id;n.flash=true;add++;
+    } else {
+      if(pn.type&&pn.type!==n.type){yMsg(`不能直接改节点 ${esc(pn.id)} 的类型（${n.type} → ${esc(pn.type)}），请删掉后新建`,1);return;}
+      const before=JSON.stringify([n.label,n.x,n.y,n.params,n.promoted]);
+      n=JSON.parse(JSON.stringify(n,(k,v)=>RUNKEYS.includes(k)?undefined:v));norm({nodes:[n]});
+      if(pn.label)n.label=pn.label;
+      if(pn.x!=null){n.x=pn.x;n.y=pn.y;}
+      for(const k in pn.params){if(!(k in n.params)){yMsg(`${esc(n.label)} 没有参数 ${esc(k)}`,1);return;}n.params[k]=pn.params[k];}
+      if(pn.promoted){const bad=pn.promoted.find(k=>!(k in n.params));if(bad){yMsg(`promoted 里的 ${esc(bad)} 不是 ${esc(n.label)} 的参数`,1);return;}n.promoted=pn.promoted;} else n.promoted=[];
+      if(JSON.stringify([n.label,n.x,n.y,n.params,n.promoted])!==before){mod++;n.flash=true;}
+    }
+    out.push(n);
+  }
+  const tmp={nodes:out,edges:[]};
+  for(const e of P.edges){
+    const err=checkEdge(tmp,e.f,e.fp,e.t,e.tp,tmp.edges);
+    if(err){yMsg(`连线 ${esc(e.f)}.${esc(e.fp)} -> ${esc(e.t)}.${esc(e.tp)}：${esc(err)}`,1);return;}
+    tmp.edges.push({id:'e'+(++UID),f:e.f,fp:e.fp,t:e.t,tp:e.tp});
+  }
+  const del=g.nodes.filter(n=>!seen.has(n.id)).length;
+  const oldE=new Set(g.edges.map(e=>e.f+e.fp+e.t+e.tp)),newE=new Set(tmp.edges.map(e=>e.f+e.fp+e.t+e.tp));
+  const eAdd=[...newE].filter(x=>!oldE.has(x)).length,eDel=[...oldE].filter(x=>!newE.has(x)).length;
+  if(!add&&!mod&&!del&&!eAdd&&!eDel){yMsg('没有检测到改动。');return;}
+  g.nodes=out;g.edges=tmp.edges;
+  const sum=`新增 ${add}、修改 ${mod}、删除 ${del} 个节点，连线 +${eAdd} / −${eDel}`;
+  commit('yaml_apply',`${pathLabels().join('/')}：${sum}`);
+  yDirty=false;render();fillYaml();
+  yMsg('已应用：'+sum+'。切回画布就能看到，改动的节点会闪一下。');
+}
+$('yta').addEventListener('input',()=>{yDirty=true;$('yDirty').textContent='· 有未应用的修改';});
+$('yApply').onclick=applyYaml;
+$('yReset').onclick=()=>{fillYaml();yMsg('已放弃修改，恢复为当前画布内容。');};
+
+/* ================= 操作日志视图 ================= */
+function renderOps(){
+  const B=br();
+  $('oBr').textContent=curBr;$('oN').textContent=B.ops.length;$('oV').textContent='v'+B.idx;
+  $('obody').innerHTML=B.ops.map((o,i)=>{
+    const cls=i===B.idx?'curv':(i>B.idx?'undone':'');
+    const a=o.actor==='模型'?'model':(o.actor==='用户'?'user':'');
+    const btn=i===B.idx?'<span class="curmark">当前</span>':`<button data-go="${i}">回到此版本</button>`;
+    return `<tr class="${cls}"><td class="m">v${o.v}</td><td class="m">${o.t}</td><td><span class="act ${a}">${o.actor}</span></td><td class="m">${o.op}</td><td>${esc(o.target)}${i>B.idx?' <span class="why">（已撤销，可重做）</span>':''}</td><td class="why">${esc(o.reason||'—')}</td><td>${btn}</td></tr>`;
+  }).reverse().join('');
+}
+$('obody').addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(!b)return;const i=+b.dataset.go;gotoVer(i);toast(`已回到 v${i}，之后的操作可以重做`,1);});
+
+/* ================= 视图切换 ================= */
+function setView(v){
+  if(view==='yaml'&&yDirty&&v!=='yaml'){if(!confirm('YAML 里有未应用的修改，切换视图会丢弃，继续吗？'))return;yDirty=false;}
+  view=v;
+  document.querySelectorAll('#views button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  $('vCanvas').classList.toggle('on',v==='canvas');$('vYaml').classList.toggle('on',v==='yaml');$('vOps').classList.toggle('on',v==='ops');
+  if(v==='yaml'){fillYaml();$('ymsg').style.display='none';}
+  if(v==='ops')renderOps();
+  if(v==='canvas'){render();}
+}
+$('views').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setView(b.dataset.v);});
+
+/* ================= 分支与合并 ================= */
+let draftN=0;
+$('bBranch').onclick=()=>{
+  if(busy())return;
+  draftN++;const name='草稿-'+draftN;
+  branches[name]={ops:[{v:0,t:now(),actor:'用户',op:'branch',target:`从 ${curBr} v${br().idx} 分出`,reason:'',snap:snap()}],idx:0,from:curBr};
+  curBr=name;refreshMeta();render();
+  ai(`已新建草稿分支「${name}」。接下来的修改只在草稿里，主线不受影响；改好后点「合并到主线」，我会列出差异给你确认。`);
+};
+$('brSel').addEventListener('change',e=>{
+  if(R.running){toast('运行中不能切换分支');refreshMeta();return;}
+  curBr=e.target.value;restore(br().ops[br().idx].snap);stack=[{id:null}];needFit=true;render();
+  toast('已切换到分支：'+curBr,1);
+});
+function flat(g,path,acc){
+  g.nodes.forEach(n=>{acc.n[n.id]={label:n.label,type:n.type,p:n.params,pr:(n.promoted||[]).join(','),x:n.x,y:n.y,path:path+'/'+n.label};if(n.children)flat(n.children,path+'/'+n.label,acc);});
+  g.edges.forEach(e=>{acc.e[e.f+'.'+e.fp+'>'+e.t+'.'+e.tp]={f:e.f,fp:e.fp,t:e.t,tp:e.tp,path};});
+  return acc;
+}
+function diff(a,b){
+  const A=flat(a,'根图',{n:{},e:{}}),B=flat(b,'根图',{n:{},e:{}}),out=[];
+  const lab=(id)=>(B.n[id]||A.n[id]||{label:id}).label;
+  for(const id in B.n) if(!A.n[id]) out.push(['add','节点',`${B.n[id].path}（${B.n[id].type}）`]);
+  for(const id in A.n) if(!B.n[id]) out.push(['del','节点',`${A.n[id].path}（${A.n[id].type}）`]);
+  for(const id in B.n) if(A.n[id]){
+    const x=A.n[id],y=B.n[id],ch=[];
+    if(x.label!==y.label)ch.push(`名称 ${x.label} → ${y.label}`);
+    for(const k in y.p) if(x.p[k]!==y.p[k]) ch.push(`${k}: ${x.p[k]} → ${y.p[k]}`);
+    if(x.pr!==y.pr)ch.push(`转端口 [${x.pr}] → [${y.pr}]`);
+    if(x.x!==y.x||x.y!==y.y)ch.push('位置移动');
+    if(ch.length) out.push(['mod','节点',`${y.path}：${ch.join('；')}`]);
+  }
+  for(const k in B.e) if(!A.e[k]){const e=B.e[k];out.push(['add','连线',`${lab(e.f)}.${e.fp} → ${lab(e.t)}.${e.tp}`]);}
+  for(const k in A.e) if(!B.e[k]){const e=A.e[k];out.push(['del','连线',`${lab(e.f)}.${e.fp} → ${lab(e.t)}.${e.tp}`]);}
+  return out;
+}
+$('bMerge').onclick=()=>{
+  if(curBr==='主线'||busy())return;
+  const M=branches['主线'],mainG=JSON.parse(M.ops[M.idx].snap);
+  const d=diff(mainG,root);
+  const T={add:'新增',del:'删除',mod:'修改'};
+  $('mTitle').textContent=`合并「${curBr}」到主线 · ${d.length} 处差异`;
+  $('mList').innerHTML=d.length?d.map(x=>`<div class="dl"><span class="ty ${x[0]}">${T[x[0]]}</span><span class="tx"><em>${x[1]}</em> ${esc(x[2])}</span></div>`).join(''):'<div class="why" style="padding:10px 0">草稿和主线没有差异。</div>';
+  $('mOk').disabled=!d.length;
+  $('modal').classList.add('on');
+};
+$('mCancel').onclick=()=>$('modal').classList.remove('on');
+$('mOk').onclick=()=>{
+  const s=snap(),name=curBr,n=br().ops.length-1;
+  $('modal').classList.remove('on');
+  delete branches[name];curBr='主线';
+  restore(s);commit('merge',`合并「${name}」（${n} 条操作）`);stack=[{id:null}];needFit=true;render();
+  ai(`已把「${esc(name)}」合并到主线，记为一条 <span class="k">merge</span> 操作。需要的话可以在操作日志里回到合并前的版本。`);
+};
+
+/* ================= 授权档位与急停 ================= */
+function setLevel(l){
+  level=+l;$('lvlSel').value=String(level);$('lvlBox').className='lvl l'+level;
+  if(level===0&&pend){pend=null;hidePr();render();}
+}
+$('lvlSel').addEventListener('change',e=>{setLevel(e.target.value);
+  const tip=['模型只能看图和运行状态，不能改。','模型的修改会先显示成虚线幽灵节点，你采纳后才生效。','模型可以直接加节点、连线、改参数；删除、清空这类破坏性操作仍需你确认。','模型几乎都能直接做，只有你列出的例外项需要确认。','模型和你同权，可以改任何层级。所有操作仍会留痕、可撤销，急停在你手里。'][level];
+  ai(`模型授权已调到 <b>${LV[level]}</b>：${tip}`);});
+$('bStop').onclick=()=>{
+  const was=R.running;
+  if(R.running){R.stop=true;answer('rejected');}
+  setLevel(0);
+  toast('急停：已停止运行，模型授权降到 0 只读');
+  ai(`<b>急停</b>：${was?'运行已停止，已完成节点的结果保留；':''}模型授权已降到 0 只读。模型无法自己调回档位，需要你手动调整。`);
+};
+
+/* ================= 模型操作：提议 / 直接执行 ================= */
+function hidePr(){$('prbar').style.display='none';}
+function modelAct(a){
+  if(level===0){ai('当前模型授权是 <b>0 只读</b>，我只能看，不能改。把档位调到 1 以上，我就能提建议或直接改。');return;}
+  const ask=level===1||(level===2&&a.destructive);
+  if(ask){propose(a);return;}
+  asModel(a.reason,a.apply);
+  ai(`<span class="tagm">模型</span>已直接执行（${LV[level]}）：${a.desc}<br><span class="why">理由：${esc(a.reason)}</span><br><span class="why">不满意可以 Ctrl+Z 撤销，或在操作日志里回到之前的版本。</span>`);
+}
+function propose(a){
+  if(pend) reject(true);
+  pend=a;
+  const why=level===1?'当前是 1 建议档，':'这是破坏性操作，2 部分授权档需要你确认，';
+  const bar=$('prbar');
+  bar.innerHTML=`<span class="tagm">模型提议</span><span>${a.desc}</span><span class="why" title="${esc(a.reason)}">理由：${esc(a.reason)}</span><button class="btn pri" data-pr="yes">采纳</button><button class="btn" data-pr="no">拒绝</button>`;
+  bar.style.display='flex';
+  render();
+  ai(`<span class="tagm">模型提议</span>${a.desc}<br><span class="why">理由：${esc(a.reason)}</span><br><span class="why">${why}画布上${a.ghost?'虚线节点是提议的内容':'虚线框标出了要改的节点'}，采纳后才会生效。</span><div class="appr" id="pr${a.pid}"><button class="btn pri" data-pr="yes">采纳</button><button class="btn" data-pr="no">拒绝</button></div>`);
+}
+let PID=0;
+function adopt(){
+  if(!pend)return;const a=pend;pend=null;hidePr();disablePr(a);
+  asModel(a.reason,a.apply);
+  ai(`已采纳，记为一条<span class="tagm">模型</span>操作：${a.desc}`);
+}
+function reject(silent){
+  if(!pend)return;const a=pend;pend=null;hidePr();disablePr(a);render();
+  if(!silent) ai('已拒绝这条提议，图没有变化。你可以告诉我原因，我换个方案。');
+}
+function disablePr(a){const el=$('pr'+a.pid);if(el)el.querySelectorAll('button').forEach(b=>b.disabled=true);}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-pr]');if(!b||b.disabled)return;b.dataset.pr==='yes'?adopt():reject();});
+
+function planAdd(ty,label,params,reason){
+  const g=cur(),s=g.nodes.find(n=>sel.has(n.id))||null;
+  let x=s?s.x+230:200,y=s?s.y+30:120;
+  while(g.nodes.some(o=>Math.abs(o.x-x)<185&&Math.abs(o.y-y)<120))y+=135;
+  const n=mk(ty,label,x,y,params);
+  let edge=null;
+  if(s){outer:for(const o of ports(s).out){for(const i of ports(n).in){if(compat(o[1],i[1])){edge={f:s.id,fp:o[0],t:n.id,tp:i[0]};break outer;}}}}
+  const key=stackKey();
+  return {pid:++PID,desc:`在${s?`「${esc(s.label)}」后面`:'画布上'}加一个「${esc(n.label)}」（${ty}）节点${edge?`，并连上 <span class="k">${esc(s.label)}.${edge.fp} → ${edge.tp}</span>`:''}`,
+    reason:reason||(s?`「${s.label}」的输出直接流向下游，加一个${ty}节点来处理这一步`:`按你的要求加一个${ty}节点`),
+    ghost:{node:n,edges:edge?[edge]:[]},gpath:key,
+    apply:()=>{
+      if(stackKey()!==key){stack=key.split('/').map(id=>({id:id||null}));}
+      const g2=cur();n.flash=true;n.mby=ACT.reason;g2.nodes.push(n);sel=new Set([n.id]);
+      commit('add_node',`${pathLabels().join('/')}/${n.label}（${ty}）`);
+      if(edge){const ok=connect(edge.f,edge.fp,edge.t,edge.tp,true);if(!ok)toast('连线没接上：目标位置已变化');}
+      render();
+    }};
+}
+function planSet(n,k,v,reason){
+  return {pid:++PID,setNode:n.id,desc:`把「${esc(n.label)}」的 <span class="k">${k}</span> 从 ${esc(n.params[k])} 改成 ${esc(v)}`,reason,ghost:null,gpath:stackKey(),
+    apply:()=>{const m=findNode(n.id);if(!m){toast('目标节点已不存在');return;}m.params[k]=v;m.mby=ACT.reason;m.flash=true;commit('set_param',`${m.label}.${k} = ${v}`);render();}};
+}
+function findNode(id,g){g=g||root;for(const n of g.nodes){if(n.id===id)return n;if(n.children){const r=findNode(id,n.children);if(r)return r;}}return null;}
+function findWithParam(k){
+  const s=cur().nodes.find(n=>sel.has(n.id)&&k in n.params); if(s)return s;
+  const q=[root];while(q.length){const g=q.shift();for(const n of g.nodes){if(k in n.params&&(k!=='concurrency'||/执行/.test(n.label)))return n;if(n.children)q.push(n.children);}}
+  return null;
+}
+
+/* ================= 运行（模拟） ================= */
+let R={running:false};
+const sleep=ms=>new Promise((res,rej)=>setTimeout(()=>R.stop?rej('stop'):res(),ms));
+function log(p,m,w){const el=$('log');const t=((Date.now()-R.t0)/1000).toFixed(1).padStart(5,' ');
+  el.insertAdjacentHTML('beforeend',`<div><span class="t">${t}s</span> <span class="p">${esc(p)}</span> <span class="${w?'w':''}">${m}</span></div>`);el.scrollTop=el.scrollHeight;}
+function resetAll(g){g.nodes.forEach(n=>{n.status='idle';n.sub='';n.prog=0;n.activeOut=null;n.out='';upd(n);if(n.children)resetAll(n.children);});}
+function flowOut(n,g){g.edges.forEach(e=>{if(e.f===n.id&&(!n.activeOut||n.activeOut===e.fp)){e.flow=true;setTimeout(()=>{e.flow=false;if(cur()===g)drawEdges();},900);}});if(cur()===g)drawEdges();}
+async function runGraph(g,path,ctx){
+  g.nodes.forEach(n=>{n.status='idle';n.sub='';n.prog=0;n.activeOut=null;upd(n);});
+  if(cur()===g)drawEdges();
+  const done=new Set();
+  let lvl=g.nodes.filter(n=>!g.edges.some(e=>e.t===n.id));
+  while(lvl.length){
+    await Promise.all(lvl.map(n=>runNode(n,g,path,ctx)));
+    lvl.forEach(n=>done.add(n.id));
+    lvl=g.nodes.filter(n=>!done.has(n.id)&&g.edges.filter(e=>e.t===n.id).every(e=>done.has(e.f)));
+  }
+}
+async function runNode(n,g,path,ctx){
+  const inc=g.edges.filter(e=>e.t===n.id);
+  if(inc.length&&inc.every(e=>!edgeActive(e,g))){n.status='skip';upd(n);return;}
+  const p=path+'/'+n.label;
+  n.status='run';upd(n);ctx.report&&ctx.report(n.label);$('mC').textContent=p;
+  const tk=k=>{R.tokens+=k;};
+  switch(n.type){
+    case 'Agent':{for(let i=1;i<=6;i++){await sleep(130);tk(150+Math.round(Math.random()*120));n.prog=i/6*100;n.sub='生成中 '+(i*16)+'%';upd(n);}
+      n.out=n.params.output_schema;log(p,'输出 '+esc(n.params.output_schema));break;}
+    case '扇出':{const N=+n.params.n||3,C=Math.max(1,+n.params.concurrency||3);
+      for(let i=1;i<=N;i++){await sleep(C>=N?260:420);tk(700);n.prog=i/N*100;n.sub=`${i}/${N} 完成`;upd(n);ctx.report&&ctx.report(`${n.label} ${i}/${N}`);}
+      log(p,`${N} 份并行完成（并发 ${C}）`);break;}
+    case '分支':{await sleep(250);const ok=(ctx.round||2)>=2;ctx.achieved=ok;n.activeOut=ok?'yes':'no';n.sub=ok?'是 → yes':'否 → no';
+      log(p,ok?'判定达成':'判定未达成：缺 B 公司数据',!ok);break;}
+    case '人工':{n.status='wait';n.sub='等待审批';upd(n);const r=await ask(n,p);n.activeOut=r;n.sub=r==='approved'?'已批准':'已驳回';log(p,n.sub,r!=='approved');break;}
+    case '循环':case '子图引用':{
+      const max=n.type==='循环'?Math.max(1,+n.params.max_rounds||5):1;let r=1,ok=false;
+      for(;r<=max;r++){
+        const pre=n.type==='循环'?`第 ${r}/${max} 轮 · `:'';
+        const c2={round:r,report:t=>{n.sub=pre+t;n.prog=n.type==='循环'?r/max*100:50;upd(n);ctx.report&&ctx.report(n.label+' › '+t);}};
+        if(n.type==='循环')log(p,`第 ${r} 轮开始`);
+        await runGraph(n.children,p+(n.type==='循环'?'#r'+r:''),c2);
+        ok=c2.achieved!==false&&(c2.achieved||n.type!=='循环'||!n.children.nodes.some(x=>x.type==='分支'));
+        if(n.type!=='循环'||ok)break;
+        if(r<max){ai(`「${esc(n.label)}」第 ${r} 轮未达成，验收者生成了差距报告（缺 B 公司数据，官网已查过）。带着差距报告进入第 ${r+1} 轮。`);}
+      }
+      n.sub=n.type==='循环'?(ok?`第 ${r} 轮达成`:'达到最大轮数'):'完成';
+      if(n.type==='循环'&&ok)ai(`「${esc(n.label)}」在第 ${r} 轮通过验收，结果已交给下游。`);
+      break;}
+    default:{await sleep(280);tk(40);}
+  }
+  n.status='done';n.prog=100;if(n.type!=='循环'&&n.type!=='子图引用'&&n.type!=='分支'&&n.type!=='人工')n.sub='';
+  upd(n);R.n++;flowOut(n,g);
+  if(sel.has(n.id))insp();
+}
+let apend=null;
+function ask(n,p){
+  return new Promise(res=>{
+    const id='ap'+n.id+Date.now();
+    apend={res,id};
+    ai(`「${esc(n.label)}」需要你审批才能继续。<div class="appr" id="${id}"><button class="btn pri" data-r="approved">批准</button><button class="btn" data-r="rejected">驳回</button></div>`);
+    const bar=$('apbar');bar.innerHTML=`<span>「${esc(n.label)}」等待审批</span><button class="btn pri" data-r="approved">批准</button><button class="btn" data-r="rejected">驳回</button>`;bar.style.display='flex';
+    if(AUTO_APPROVE)setTimeout(()=>{ai('<span class="why">（演示脚本：1.5 秒后自动批准）</span>');answer('approved');},1500);
+  });
+}
+function answer(r){if(!apend)return;const p=apend;apend=null;$('apbar').style.display='none';const el=$(p.id);if(el)el.querySelectorAll('button').forEach(b=>b.disabled=true);p.res(r);}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-r]');if(b&&!b.disabled)answer(b.dataset.r);});
+
+async function run(){
+  if(R.running){R.stop=true;answer('rejected');return;}
+  if(view!=='canvas')setView('canvas');
+  R={running:true,stop:false,t0:Date.now(),tokens:0,n:0};
+  $('log').innerHTML='';resetAll(root);
+  $('bRun').textContent='停止';$('bRun').className='tbtn run stop';
+  const gs=$('gstat');gs.textContent='运行中 · '+curBr+' v'+br().idx;gs.className='pill run';
+  const tm=setInterval(()=>{$('mT').textContent=((Date.now()-R.t0)/1000).toFixed(1)+'s';$('mK').textContent=(R.tokens/1000).toFixed(1)+'k';$('mN').textContent=R.n;},100);
+  ai(`开始运行（${curBr} v${br().idx}，运行期间按启动时的版本执行）。节点状态实时显示在画布上，下面的日志按层级路径记录每一步。`);
+  let ok=true;
+  try{await runGraph(root,'根图',{});}catch(e){ok=false;}
+  clearInterval(tm);$('mT').textContent=((Date.now()-R.t0)/1000).toFixed(1)+'s';$('mK').textContent=(R.tokens/1000).toFixed(1)+'k';$('mN').textContent=R.n;
+  R.running=false;$('bRun').textContent='运行';$('bRun').className='tbtn run';$('apbar').style.display='none';
+  gs.textContent=ok?'已完成':'已停止';gs.className='pill'+(ok?' ok':'');
+  $('mC').textContent=ok?'运行完成':'已停止';
+  ai(ok?`运行完成：用时 ${$('mT').textContent}，约 ${$('mK').textContent} tokens，节点共执行 ${R.n} 次。`:'已停止运行，已完成的节点结果都保留着。');
+}
+
+/* ================= 对话（模拟模型理解指令） ================= */
+function addMsg(role,html){
+  const m=document.createElement('div');m.className='msg '+role;
+  m.innerHTML=`<div class="av">${role==='ai'?'AI':'我'}</div><div class="bd">${html}</div>`;
+  $('msgs').appendChild(m);$('msgs').scrollTop=$('msgs').scrollHeight;return m;
+}
+const ai=h=>addMsg('ai',h);
+const KW=[[/人工|审批/,'人工','人工审批','关键结论对外交付前需要人确认'],[/复核|agent|Agent/i,'Agent','复核员','加一道独立复核，降低单个 Agent 出错直接流到下游的风险'],[/工具|检索|搜索/,'工具','检索','下游需要补充资料，接一个只读检索工具（L0）'],[/扇出|并行/,'扇出','并行处理','同类任务可以并行，缩短耗时'],[/汇合/,'汇合','汇合','把并行分支的结果收拢'],[/聚合|投票|去重/,'聚合','聚合','多份结果需要合并成一份'],[/分支|判断|条件/,'分支','条件分支','按结果走不同路径'],[/循环|迭代/,'循环','循环','需要多轮迭代直到达标'],[/账本|记忆/,'账本','账本写入','把结果写回外置状态，避免长驻 Agent 靠对话历史记事'],[/上下文|装配/,'上下文装配','上下文装配','控制下游 Agent 能看到的内容'],[/资源|模型/,'资源','模型资源','给下游 Agent 提供模型引用'],[/子图/,'子图引用','子图','引用一个封装好的子流程']];
+function handle(t){
+  if(/急停/.test(t)){$('bStop').click();return;}
+  if(/停止/.test(t)){if(R.running)run();else ai('当前没有在运行。');return;}
+  if(/运行|跑一下|执行一下|开始/.test(t)){if(R.running)ai('已经在运行了。');else run();return;}
+  if(/撤销/.test(t)){undo();ai('已撤销上一步。');return;}
+  let m=t.match(/(并发|concurrency)\D*(\d+)/);
+  if(m){const n=findWithParam('concurrency');if(!n){ai('没找到带并发参数的节点。');return;}
+    modelAct(planSet(n,'concurrency',m[2],`执行池目前并发 ${n.params.concurrency}，任务卡数量常常多于并发数，调到 ${m[2]} 能缩短每轮耗时；注意工具限流`));return;}
+  m=t.match(/(轮数|轮|max_rounds)\D*(\d+)/);
+  if(m){const n=findWithParam('max_rounds');if(!n){ai('没找到循环节点。');return;}
+    modelAct(planSet(n,'max_rounds',m[2],`把最大轮数设为 ${m[2]}，配合无进展检测控制成本`));return;}
+  if(/封装|打包|组合成/.test(t)){
+    const g=cur();if([...sel].filter(id=>g.nodes.some(n=>n.id===id)).length<2){ai('要封装的话，先按住 Shift 点选至少 2 个节点。');return;}
+    modelAct({pid:++PID,desc:`把选中的 ${sel.size} 个节点封装成一个子图`,reason:'这几个节点一起完成一件事，封装后可以复用，外层图也更清晰',ghost:null,gpath:stackKey(),apply:()=>groupSel(false,'模型封装子图')});return;}
+  if(/清空/.test(t)){const n=cur().nodes.length;
+    modelAct({pid:++PID,destructive:true,desc:`清空「${esc(pathLabels().slice(-1)[0])}」这一层的全部 ${n} 个节点`,reason:'按你的要求清空这一层，重新搭建',ghost:null,gpath:stackKey(),
+      apply:()=>{cur().nodes=[];cur().edges=[];sel.clear();commit('clear',pathLabels().join('/'));render();}});return;}
+  if(/模板|重置/.test(t)&&!/加/.test(t)){
+    modelAct({pid:++PID,destructive:true,desc:'重新载入「闭环迭代」模板（会替换整张图）',reason:'按你的要求恢复到模板初始状态',ghost:null,gpath:stackKey(),
+      apply:()=>{root=template();stack=[{id:null}];sel.clear();needFit=true;commit('load_template','闭环迭代');render();}});return;}
+  for(const [re,ty,label,why] of KW) if(re.test(t)){
+    const s=cur().nodes.find(n=>sel.has(n.id));
+    modelAct(planAdd(ty,label,ty==='人工'?{mode:'approve'}:null,s?`「${s.label}」之后：${why}`:why));return;}
+  ai('这个 demo 里我能听懂：<span class="k">加一个 XX 节点</span>（会接在选中节点后面）、<span class="k">把并发改成 5</span>、<span class="k">最大轮数改成 3</span>、<span class="k">封装选中节点</span>、<span class="k">清空这一层</span>、<span class="k">重新载入模板</span>、<span class="k">运行 / 停止 / 撤销</span>。我的每次修改都受当前授权档位约束。');
+}
+function send(){const ta=$('ta'),t=ta.value.trim();if(!t)return;ta.value='';addMsg('user',esc(t));
+  const ty=addMsg('ai','<span class="typing">…</span>');setTimeout(()=>{ty.remove();handle(t);},300);}
+$('send').onclick=send;
+$('ta').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});
+const CH=['在选中节点后加一个人工审批','把执行池并发改成 5','封装选中的节点','清空这一层','运行','撤销'];
+$('chips').innerHTML=CH.map(c=>`<button class="chip">${c}</button>`).join('');
+$('chips').addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;$('ta').value=b.textContent;send();});
+
+/* ================= 演示脚本 ================= */
+async function demo(){
+  if(R.running||DEMO)return;
+  DEMO=true;$('bDemo').disabled=true;
+  const w=ms=>new Promise(r=>setTimeout(r,ms));
+  try{
+    if(view!=='canvas')setView('canvas');
+    stack=[{id:null}];sel.clear();needFit=true;render();
+    ai('<b>演示开始</b>：依次演示 ① 加节点 → ② 连线 → ③ 参数转端口 → ④ 封装子图 → ⑤ 模型提议 → ⑥ 运行。每一步都会记进操作日志。');
+    await w(1200);
+    const g=cur(),sp=g.nodes.find(n=>n.label==='摘要端口')||g.nodes[g.nodes.length-1];
+    const a=addNode('Agent',sp.x,sp.y+250,'复核员',{output_schema:'复核意见@1'});
+    ai('① 从节点库加了一个 <span class="k">Agent</span>，命名「复核员」。');await w(1200);
+    const r=addNode('资源',sp.x-240,sp.y+290,'小模型',{kind:'模型',value:'small-model'});
+    ai('　 再加一个 <span class="k">资源</span> 节点，提供小模型引用。');await w(1200);
+    connect(sp.id,'out',a.id,'context');await w(800);
+    connect(r.id,'ref',a.id,'model');
+    ai('② 连了两根线：<span class="k">摘要端口.out → 复核员.context</span>、<span class="k">小模型.ref → 复核员.model</span>。连线时会做类型检查和环检测。');await w(1500);
+    sel=new Set([a.id]);render();await w(500);
+    promote(a,'max_tool_calls',true);
+    ai('③ 把复核员的 <span class="k">max_tool_calls</span> 转成了输入端口（节点左侧多出一个橙色端口），以后它的值可以由上游节点在运行时决定。');await w(1700);
+    sel=new Set([a.id,r.id]);render();await w(700);
+    groupSel(false,'复核子图');
+    ai('④ 选中复核员和小模型，封装成子图「复核子图」。它对外就是一块新积木，可以存进库里复用。');await w(1700);
+    setLevel(1);ai('⑤ 把模型授权调到 <b>1 建议</b>，然后让模型加一个人工审批。');await w(1000);
+    addMsg('user','在选中节点后加一个人工审批');await w(500);
+    handle('在选中节点后加一个人工审批');await w(2600);
+    adopt();await w(1400);
+    setLevel(2);
+    ai('⑥ 把授权调回 2，开始运行。运行到人工审批时会暂停，演示里 1.5 秒后自动批准。');await w(1200);
+    AUTO_APPROVE=true;await run();
+    ai('<b>演示结束</b>。切到「操作日志」可以看到刚才每一步，带<span class="tagm">模型</span>标记的是模型做的；点「回到此版本」可以回到任何一步。');
+  }finally{AUTO_APPROVE=false;DEMO=false;$('bDemo').disabled=false;}
+}
+
+/* ================= 工具栏 ================= */
+$('bRun').onclick=run;
+$('bDemo').onclick=demo;
+$('bUndo').onclick=undo;
+$('bRedo').onclick=redo;
+$('bFit').onclick=fit;
+$('bZi').onclick=()=>{zoom=Math.min(1.8,zoom*1.15);applyT();};
+$('bZo').onclick=()=>{zoom=Math.max(.3,zoom/1.15);applyT();};
+$('bGroup').onclick=()=>groupSel(true);
+$('bMax').onclick=()=>{const c=$('card');c.classList.toggle('max');$('bMax').textContent=c.classList.contains('max')?'收起':'展开';requestAnimationFrame(fit);};
+$('bLog').onclick=()=>{const l=$('log');l.classList.toggle('hide');$('bLog').textContent=l.classList.contains('hide')?'展开日志':'收起日志';requestAnimationFrame(drawEdges);};
+window.addEventListener('resize',()=>drawEdges());
+
+render();
+</script>
+</body>
+</html>

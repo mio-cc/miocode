@@ -1,0 +1,10 @@
+/* ===== 07_extra.css · 补充规则 ===== */
+.hx-seg:not(:has(.hx-seg__thumb)) button.is-on{background:var(--hx-bg-2);box-shadow:0 0 0 1px var(--hx-line-2),0 1px 2px rgba(0,0,0,.08)}
+.hx-node .hx-seg{background:var(--hx-bg-4)}
+.hx-menu__i .hx-node__ico{width:22px;height:22px;flex:none}
+.hx-menu__i .hx-node__ico svg{width:13px;height:13px;color:var(--hx-text-2)}
+.hx-libfab{width:36px;height:36px;border-radius:var(--hx-r-md)}
+.hx-composer__hint svg{flex:none}
+.hx-stage:focus-within .hx-viewport{outline:0}
+.hx-viewport:focus-visible{box-shadow:inset 0 0 0 1px var(--hx-line-3)}
+[data-theme="dark"] .hx-seg__thumb{box-shadow:inset 0 1px 0 var(--hx-highlight),0 0 0 1px var(--hx-line-2)}

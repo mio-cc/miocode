@@ -1,0 +1,70 @@
+# U.03.05 内置主题
+
+| 项 | 内容 |
+|---|---|
+| 编号 | U.03.05 |
+| 类型 | 规范 |
+| 上级 | U.03 色彩与主题 |
+| 下级 | 无 |
+| 状态 | 草稿 |
+| 素材 | demo v0.5 |
+| 最后修改 | 2026-11-22 |
+
+## 1. 主题是什么
+**主题 = 配色 × 明暗。** 内置 4 套配色，每套都有浅色和深色两份完整的令牌值；明暗有三个选项：浅色、深色、跟随系统。用户在顶部条的主题菜单或"设置 › 外观"里选择。
+
+| 配色 | 键 | 参考 | 气质 |
+|---|---|---|---|
+| 宣纸（**默认**） | `paper` | Claude | 暖调纸面，所有灰色带一点黄褐；主色陶土橙；模型色灰蓝 |
+| 石墨 | `graphite` | Codex | 冷灰哑光，像原生开发工具；主按钮是墨色（深色下为白色），蓝色只表示"运行中"；模型色紫 |
+| 墨鲸 | `whale` | DeepSeek Harness | 冷白与墨色底，主色浅海蓝（`#6b88ff`，主按钮 `#4866f8`，`U.23` §4），模型色紫 |
+| 琥珀 | `amber` | 设计规范 v0.3 | 中性灰底，主色琥珀，模型色靛蓝（原有方案，保留） |
+
+## 2. 关键色值（完整令牌见源文件）
+| 配色 | 明暗 | bg-0 / bg-1 | text-1 | 主色 accent | 主按钮 primary | 模型色 model | 完成 · 失败 · 等待 |
+|---|---|---|---|---|---|---|---|
+| 琥珀 `amber` | 浅色 | `#f3f3f1` / `#f8f8f6` | `#16171b` | `#f0a01e` | `#f0a01e` | `#4f5fd6` | `#1d8250` · `#d0414a` · `#94700a` |
+| 琥珀 `amber` | 深色 | `#0a0b0e` / `#101217` | `#ecebe6` | `#f5a524` | `#f5a524` | `#93a5ff` | `#5fc48a` · `#ec6a6f` · `#e9c46a` |
+| 宣纸 `paper` | 浅色 | `#ebe8df` / `#f4f2ec` | `#1f1d18` | `#b9573a` | `#b9573a` | `#46659c` | `#3d7448` · `#a8323e` · `#82651a` |
+| 宣纸 `paper` | 深色 | `#141413` / `#1a1a18` | `#f0eee6` | `#d97757` | `#d97757` | `#8fb0e3` | `#8fb47c` · `#f07a7c` · `#dbb45e` |
+| 石墨 `graphite` | 浅色 | `#efeff1` / `#f8f8f9` | `#111215` | `#2f6bdc` | `#18191d` | `#7048d6` | `#167a3b` · `#cc3535` · `#9a5d06` |
+| 石墨 `graphite` | 深色 | `#0f0f11` / `#151517` | `#ececee` | `#5c92f4` | `#ececee` | `#a78bfa` | `#58c180` · `#ef6e6e` · `#e2b347` |
+| 墨鲸 `whale` | 浅色 | `#f1f3f7` / `#f9fafc` | `#0f1115` | `#4361f0` | `#4361f0` | `#8a3fd1` | `#0f7a55` · `#c5303b` · `#93630c` |
+| 墨鲸 `whale` | 深色 | `#0c0d11` / `#121318` | `#eceef4` | `#6d86ff` | `#6d86ff` | `#c58cfb` | `#4fc290` · `#f26b72` · `#e4b64e` |
+
+源文件：设计原型 `sj/配色demo_v0.5/src/09_palettes.css`（琥珀即 `tokens.css` 的值）。迁入仓库后放 `design/themes/<键>.css`，见 §4。
+
+## 3. 规则
+| 编号 | 规则 |
+|---|---|
+| U.03.05-R1 | **语义不随主题变**：每种语义色在任何主题里都只表达一种含义（`U.03-R1`、`U.03.02`）。换主题只换色值，不换"哪个颜色表示什么" |
+| U.03.05-R2 | 每套主题必须定义 `U.03.05` §5 清单里的**全部**颜色令牌，浅色、深色各一份；缺一个都不能合并 |
+| U.03.05-R3 | 每套主题都要通过对比度检查（`U.02-R6`、`U.16`）：正文、次要、辅助文字和 `accent-strong`、`ok`、`danger`、`wait`、`model` 在 `bg-1`、`bg-2` 上 ≥ 4.5:1，在 `bg-4` 上辅助文字 ≥ 4:1、其余 ≥ 4.5:1；`primary-fg` 在 `primary` 上 ≥ 4.5:1；8 种端口类型色在 `bg-3` 上 ≥ 3:1。检查由 `tools/contrast` 在 CI 里自动跑 |
+| U.03.05-R4 | 模型色必须和主色在色相上明显不同（色相差 ≥ 60°），否则"AI 做的事"和"运行中"会混淆。宣纸的主色是橙，所以模型色用灰蓝 |
+| U.03.05-R5 | 新增令牌 `--hx-primary` / `--hx-primary-fg`：主按钮、发送按钮、Logo 的底色和文字色。缺省等于 `accent` / `text-inv`；石墨把它设为墨色，使"运行中"的蓝色只用在状态上 |
+| U.03.05-R6 | 主题只改颜色和阴影；字号、间距、圆角、动效、尺寸与主题无关（写在 `:root`，主题文件里出现会被检查拒绝） |
+| U.03.05-R7 | 切换方式：`<html data-palette="键" data-theme="light\|dark">`。`data-palette` 缺省时为琥珀（`tokens.css` 里 `:root` 的值）；组件不写任何主题分支（`U.03.04-R1`） |
+| U.03.05-R8 | 选择的保存：配置 `ui.theme.palette`（默认 `paper`）、`ui.theme.mode`（默认 `light`，可选 `dark`、`system`）；前端同时写 localStorage `hx:theme-palette`、`hx:theme-mode`，首屏内联脚本据此在渲染前设置属性（`U.03.04-R3`） |
+| U.03.05-R9 | 主题切换立即生效、不加过渡；canvas 绘制的缩略图重绘（`U.03.04-R6`、`R7`） |
+
+## 4. 主题文件与新增流程
+```
+design/
+├── tokens.css            # 与主题无关的令牌 + 琥珀（:root 缺省值）
+└── themes/
+    ├── paper.css         # [data-palette="paper"] 与 [data-palette="paper"][data-theme="dark"] 两段
+    ├── graphite.css
+    └── whale.css
+```
+- 构建时合并成 `web/src/styles/themes.css`（`G.16` 生成物）；主题列表（键、中文名、说明、预览色）生成到 `web/src/theme/registry.ts`，主题菜单和设置页都读这个列表，不在组件里写死。
+- 新增或修改一套主题：① 在本文 §1、§2 登记；② 写主题文件；③ `make check` 通过对比度和完整性检查；④ 提交浅色、深色两张截图（`U.20`）。
+- **预留**：允许用户把自定义主题文件放进 `<DataDir>/themes/`，通过同样的检查后出现在主题菜单里。v1 不做，登记为 `P.09` Q22。
+
+## 5. 每套主题必须定义的颜色令牌
+`bg-0`…`bg-5`、`line-1`…`line-3`、`highlight`、`text-1`…`text-3`、`text-inv`、`accent`、`accent-strong`、`accent-weak`、`accent-line`、`primary`、`primary-fg`、`ok`、`ok-weak`、`danger`、`danger-weak`、`wait`、`wait-weak`、`model`、`model-weak`、`model-line`、`focus`、`type-any`、`type-ctx`、`type-ref`、`type-list`、`type-tool`、`type-gen`、`type-ctrl`、`type-state`、`grid-dot`、`marquee`、`marquee-line`、`scrim`、`shadow-node`、`shadow-node-drag`、`shadow-float`、`shadow-pop`（均带 `--hx-` 前缀）。
+
+## 6. 验收标准
+1. 4 套 × 2 种明暗共 8 种组合，每种都通过 `tools/contrast` 检查。
+2. 8 种组合的整页截图里没有看不清的元素；模型色和主色一眼能区分。
+3. 切换主题后刷新页面，主题保持；首屏不闪烁。
+4. 选"跟随系统"时，系统切换明暗后界面同步切换。

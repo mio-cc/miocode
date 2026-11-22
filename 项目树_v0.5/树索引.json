@@ -1,0 +1,4573 @@
+[
+ {
+  "id": "P",
+  "name": "产品总纲",
+  "desc": "这个产品是什么、做到哪、不做什么；所有文档的最上层约束",
+  "type": "总",
+  "src": "交接说明, v0.1/v0.2 docx, 引00",
+  "lvl": 1,
+  "children": [
+   {
+    "id": "P.01",
+    "name": "愿景与定位",
+    "desc": "一句话定义；和 ComfyUI / n8n / Dify / LangGraph 的区别；目标用户为什么要用它",
+    "type": "说",
+    "src": "交接说明, 选§1",
+    "lvl": 2,
+    "children": [],
+    "path": "P_产品总纲/P.01_愿景与定位.md"
+   },
+   {
+    "id": "P.02",
+    "name": "范围与非目标",
+    "desc": "v1 做什么；明确不做什么（多用户协作、云托管、移动端…），防止实施时擅自扩张",
+    "type": "规",
+    "src": "引15",
+    "lvl": 2,
+    "children": [],
+    "path": "P_产品总纲/P.02_范围与非目标.md"
+   },
+   {
+    "id": "P.03",
+    "name": "用户与使用场景",
+    "desc": "2–3 个用户画像；5 个典型任务（调研、代码评审、内容生产…）从头到尾怎么用",
+    "type": "说",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "P_产品总纲/P.03_用户与使用场景.md"
+   },
+   {
+    "id": "P.04",
+    "name": "核心理念与系统不变量",
+    "desc": "13 原子节点、Op 是唯一修改入口、事件溯源、模型是一等操作者、急停模型不能解除……任何下层文档都不能违反",
+    "type": "规",
+    "src": "引_关键决定, v0.1",
+    "lvl": 2,
+    "children": [],
+    "path": "P_产品总纲/P.04_核心理念与系统不变量.md"
+   },
+   {
+    "id": "P.05",
+    "name": "系统全景",
+    "desc": "三层（节点库 + 契约层 + 运行时）和各一级分支之间的关系图；数据从哪来到哪去",
+    "type": "说",
+    "src": "引00, 引01",
+    "lvl": 2,
+    "children": [],
+    "path": "P_产品总纲/P.05_系统全景.md"
+   },
+   {
+    "id": "P.06",
+    "name": "术语表",
+    "desc": "全项目唯一术语来源：中文名、英文名、代码名、一句话定义、不能混用的近义词",
+    "type": "规",
+    "src": "设15, 引00",
+    "lvl": 2,
+    "children": [],
+    "path": "P_产品总纲/P.06_术语表.md"
+   },
+   {
+    "id": "P.07",
+    "name": "路线图与里程碑",
+    "desc": "M0–M5 每个里程碑的交付物和验收标准（不写人天）",
+    "type": "说",
+    "src": "引13",
+    "lvl": 2,
+    "children": [],
+    "path": "P_产品总纲/P.07_路线图与里程碑.md"
+   },
+   {
+    "id": "P.08",
+    "name": "决策记录 ADR",
+    "desc": "每个重大决定一份：背景、可选方案、结论、代价；以后想推翻必须新开一条 ADR",
+    "type": "规",
+    "src": "引_关键决定, 引15",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "P.08.01",
+      "name": "ADR-001 独立产品而不是嵌入宿主",
+      "desc": "为什么改成独立产品",
+      "type": "规",
+      "src": "引15",
+      "lvl": 3,
+      "children": [],
+      "path": "P_产品总纲/P.08_决策记录_ADR/P.08.01_ADR-001_独立产品而不是嵌入宿主.md"
+     },
+     {
+      "id": "P.08.02",
+      "name": "ADR-002 Go 自研内核 + 事件日志",
+      "desc": "为什么不用 Temporal / LangGraph 等做基座",
+      "type": "规",
+      "src": "选§3",
+      "lvl": 3,
+      "children": [],
+      "path": "P_产品总纲/P.08_决策记录_ADR/P.08.02_ADR-002_Go_自研内核_事件日志.md"
+     },
+     {
+      "id": "P.08.03",
+      "name": "ADR-003 前端 Vite + React（不用 Next.js）",
+      "desc": "单二进制、本机运行的取舍",
+      "type": "规",
+      "src": "选§5",
+      "lvl": 3,
+      "children": [],
+      "path": "P_产品总纲/P.08_决策记录_ADR/P.08.03_ADR-003_前端_Vite_React_不用_Next.js.md"
+     },
+     {
+      "id": "P.08.04",
+      "name": "ADR-004 单二进制 + go:embed",
+      "desc": "发布形态",
+      "type": "规",
+      "src": "引15",
+      "lvl": 3,
+      "children": [],
+      "path": "P_产品总纲/P.08_决策记录_ADR/P.08.04_ADR-004_单二进制_go_embed.md"
+     },
+     {
+      "id": "P.08.05",
+      "name": "ADR-005 三家官方模型 SDK + OpenAI 兼容接入",
+      "desc": "模型接入策略",
+      "type": "规",
+      "src": "选§4",
+      "lvl": 3,
+      "children": [],
+      "path": "P_产品总纲/P.08_决策记录_ADR/P.08.05_ADR-005_三家官方模型_SDK_OpenAI_兼容接入.md"
+     },
+     {
+      "id": "P.08.06",
+      "name": "ADR-006 SQLite 本地优先",
+      "desc": "存储选型，以后怎么升级 Postgres",
+      "type": "规",
+      "src": "引01",
+      "lvl": 3,
+      "children": [],
+      "path": "P_产品总纲/P.08_决策记录_ADR/P.08.06_ADR-006_SQLite_本地优先.md"
+     },
+     {
+      "id": "P.08.07",
+      "name": "ADR-007 授权判定：Cedar 候选 + 自研回退",
+      "desc": "授权引擎选型与 PoC 判定条件",
+      "type": "规",
+      "src": "选§4",
+      "lvl": 3,
+      "children": [],
+      "path": "P_产品总纲/P.08_决策记录_ADR/P.08.07_ADR-007_授权判定_Cedar_候选_自研回退.md"
+     },
+     {
+      "id": "P.08.08",
+      "name": "ADR-008 布局：画布居中 + 底部对话 + 左右侧栏",
+      "desc": "布局定稿依据",
+      "type": "规",
+      "src": "demo v0.4",
+      "lvl": 3,
+      "children": [],
+      "path": "P_产品总纲/P.08_决策记录_ADR/P.08.08_ADR-008_布局_画布居中_底部对话_左右侧栏.md"
+     },
+     {
+      "id": "P.08.09",
+      "name": "ADR-009 嵌套子图：预览 / 进入 / 结构树三种打开方式",
+      "desc": "嵌套交互定稿依据",
+      "type": "规",
+      "src": "demo v0.4",
+      "lvl": 3,
+      "children": [],
+      "path": "P_产品总纲/P.08_决策记录_ADR/P.08.09_ADR-009_嵌套子图_预览_进入_结构树三种打开方式.md"
+     },
+     {
+      "id": "P.08.10",
+      "name": "ADR-010 只参考不引入开源代码",
+      "desc": "许可证与代码来源原则",
+      "type": "规",
+      "src": "选§7",
+      "lvl": 3,
+      "children": [],
+      "path": "P_产品总纲/P.08_决策记录_ADR/P.08.10_ADR-010_只参考不引入开源代码.md"
+     }
+    ],
+    "path": "P_产品总纲/P.08_决策记录_ADR/P.08_决策记录_ADR.md"
+   },
+   {
+    "id": "P.09",
+    "name": "待决问题与已知不一致",
+    "desc": "还没定的问题清单；旧文档之间的冲突及最终以谁为准",
+    "type": "规",
+    "src": "摘要中的 7 处不一致",
+    "lvl": 2,
+    "children": [],
+    "path": "P_产品总纲/P.09_待决问题与已知不一致.md"
+   },
+   {
+    "id": "P.10",
+    "name": "参考与竞品",
+    "desc": "链接技术选型调研、参考实现对照，说明每个参考学什么、不学什么",
+    "type": "说",
+    "src": "选, 引16",
+    "lvl": 2,
+    "children": [],
+    "path": "P_产品总纲/P.10_参考与竞品.md"
+   }
+  ],
+  "path": "P_产品总纲/P_产品总纲.md"
+ },
+ {
+  "id": "G",
+  "name": "工程规范",
+  "desc": "所有人（包括实施模型）写代码、写文档、提交时都必须遵守的规矩",
+  "type": "总",
+  "src": "新",
+  "lvl": 1,
+  "children": [
+   {
+    "id": "G.01",
+    "name": "文档体系规范",
+    "desc": "编号规则、模板、上层约束下层、引用写法、改文档的流程、谁能改哪一层",
+    "type": "规",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "G_工程规范/G.01_文档体系规范.md"
+   },
+   {
+    "id": "G.02",
+    "name": "AI 实施者守则",
+    "desc": "给后续实施模型的硬规则：只按文档做、不得改契约、不得引入未登记依赖、遇到矛盾停下上报",
+    "type": "规",
+    "src": "新",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "G.02.01",
+      "name": "实施任务包格式",
+      "desc": "派一个任务给模型时必须附带什么：叶子文档 + 祖先链 + 相关契约 + 验收用例",
+      "type": "规",
+      "src": "新",
+      "lvl": 3,
+      "children": [],
+      "path": "G_工程规范/G.02_AI_实施者守则/G.02.01_实施任务包格式.md"
+     },
+     {
+      "id": "G.02.02",
+      "name": "上下文最小集规则",
+      "desc": "每类任务需要读哪些文档、不需要读哪些（避免模型读太多跑偏）",
+      "type": "规",
+      "src": "新",
+      "lvl": 3,
+      "children": [],
+      "path": "G_工程规范/G.02_AI_实施者守则/G.02.02_上下文最小集规则.md"
+     },
+     {
+      "id": "G.02.03",
+      "name": "偏移检测与上报",
+      "desc": "发现文档冲突、文档没写到、需要越界时怎么写上报单",
+      "type": "规",
+      "src": "新",
+      "lvl": 3,
+      "children": [],
+      "path": "G_工程规范/G.02_AI_实施者守则/G.02.03_偏移检测与上报.md"
+     },
+     {
+      "id": "G.02.04",
+      "name": "提交前自检清单",
+      "desc": "编译、测试、lint、契约一致、没碰禁区文件、更新变更日志",
+      "type": "规",
+      "src": "新",
+      "lvl": 3,
+      "children": [],
+      "path": "G_工程规范/G.02_AI_实施者守则/G.02.04_提交前自检清单.md"
+     },
+     {
+      "id": "G.02.05",
+      "name": "禁止事项总表",
+      "desc": "全项目不允许做的事一次列全（手改生成物、绕过 Op、直接写库……）",
+      "type": "规",
+      "src": "新",
+      "lvl": 3,
+      "children": [],
+      "path": "G_工程规范/G.02_AI_实施者守则/G.02.05_禁止事项总表.md"
+     }
+    ],
+    "path": "G_工程规范/G.02_AI_实施者守则/G.02_AI_实施者守则.md"
+   },
+   {
+    "id": "G.03",
+    "name": "仓库与目录规范",
+    "desc": "完整目录树；每个目录放什么、不许放什么；新建目录的规则",
+    "type": "规",
+    "src": "引01§1",
+    "lvl": 2,
+    "children": [],
+    "path": "G_工程规范/G.03_仓库与目录规范.md"
+   },
+   {
+    "id": "G.04",
+    "name": "命名规范",
+    "desc": "统一命名规则",
+    "type": "规",
+    "src": "新",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "G.04.01",
+      "name": "Go 命名",
+      "desc": "包、类型、接口、函数、常量、错误变量",
+      "type": "规",
+      "src": "新",
+      "lvl": 3,
+      "children": [],
+      "path": "G_工程规范/G.04_命名规范/G.04.01_Go_命名.md"
+     },
+     {
+      "id": "G.04.02",
+      "name": "TypeScript / React 命名",
+      "desc": "组件、hook、store、类型、文件",
+      "type": "规",
+      "src": "设18",
+      "lvl": 3,
+      "children": [],
+      "path": "G_工程规范/G.04_命名规范/G.04.02_TypeScript_React_命名.md"
+     },
+     {
+      "id": "G.04.03",
+      "name": "文件与目录命名",
+      "desc": "大小写、分隔符、测试文件、生成文件",
+      "type": "规",
+      "src": "新",
+      "lvl": 3,
+      "children": [],
+      "path": "G_工程规范/G.04_命名规范/G.04.03_文件与目录命名.md"
+     },
+     {
+      "id": "G.04.04",
+      "name": "API 与 JSON 字段命名",
+      "desc": "snake_case、复数资源名、时间与 ID 字段",
+      "type": "规",
+      "src": "引09",
+      "lvl": 3,
+      "children": [],
+      "path": "G_工程规范/G.04_命名规范/G.04.04_API_与_JSON_字段命名.md"
+     },
+     {
+      "id": "G.04.05",
+      "name": "事件名与错误码命名",
+      "desc": "点分事件名、错误码码段格式",
+      "type": "规",
+      "src": "引14",
+      "lvl": 3,
+      "children": [],
+      "path": "G_工程规范/G.04_命名规范/G.04.05_事件名与错误码命名.md"
+     },
+     {
+      "id": "G.04.06",
+      "name": "CSS 类名与设计令牌命名",
+      "desc": "hx- 前缀、BEM 变体、--hx-* 令牌",
+      "type": "规",
+      "src": "DESIGN, 设18",
+      "lvl": 3,
+      "children": [],
+      "path": "G_工程规范/G.04_命名规范/G.04.06_CSS_类名与设计令牌命名.md"
+     }
+    ],
+    "path": "G_工程规范/G.04_命名规范/G.04_命名规范.md"
+   },
+   {
+    "id": "G.05",
+    "name": "Go 编码规范",
+    "desc": "Go 代码怎么写",
+    "type": "规",
+    "src": "新",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "G.05.01",
+      "name": "错误处理与包装",
+      "desc": "哨兵错误、wrap、何时 panic、错误码映射",
+      "type": "规",
+      "src": "新",
+      "lvl": 3,
+      "children": [],
+      "path": "G_工程规范/G.05_Go_编码规范/G.05.01_错误处理与包装.md"
+     },
+     {
+      "id": "G.05.02",
+      "name": "并发与 context",
+      "desc": "goroutine 生命周期、取消传递、禁止裸 go",
+      "type": "规",
+      "src": "新",
+      "lvl": 3,
+      "children": [],
+      "path": "G_工程规范/G.05_Go_编码规范/G.05.02_并发与_context.md"
+     },
+     {
+      "id": "G.05.03",
+      "name": "包设计与接口放置",
+      "desc": "接口定义在使用方、禁止全局可变状态、包注释",
+      "type": "规",
+      "src": "引01§2",
+      "lvl": 3,
+      "children": [],
+      "path": "G_工程规范/G.05_Go_编码规范/G.05.03_包设计与接口放置.md"
+     },
+     {
+      "id": "G.05.04",
+      "name": "Go 测试写法",
+      "desc": "表驱动、testify、黄金文件、并发测试",
+      "type": "规",
+      "src": "引12",
+      "lvl": 3,
+      "children": [],
+      "path": "G_工程规范/G.05_Go_编码规范/G.05.04_Go_测试写法.md"
+     },
+     {
+      "id": "G.05.05",
+      "name": "Go lint 配置",
+      "desc": "golangci-lint 规则集及理由",
+      "type": "规",
+      "src": "新",
+      "lvl": 3,
+      "children": [],
+      "path": "G_工程规范/G.05_Go_编码规范/G.05.05_Go_lint_配置.md"
+     }
+    ],
+    "path": "G_工程规范/G.05_Go_编码规范/G.05_Go_编码规范.md"
+   },
+   {
+    "id": "G.06",
+    "name": "TypeScript / React 编码规范",
+    "desc": "前端代码怎么写",
+    "type": "规",
+    "src": "设18",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "G.06.01",
+      "name": "组件写法",
+      "desc": "函数组件、props 约定、何时拆组件",
+      "type": "规",
+      "src": "设18",
+      "lvl": 3,
+      "children": [],
+      "path": "G_工程规范/G.06_TypeScript_React_编码规范/G.06.01_组件写法.md"
+     },
+     {
+      "id": "G.06.02",
+      "name": "状态使用规则",
+      "desc": "哪些状态进 store、哪些留组件内、画布层禁止依赖 React",
+      "type": "规",
+      "src": "设18§1",
+      "lvl": 3,
+      "children": [],
+      "path": "G_工程规范/G.06_TypeScript_React_编码规范/G.06.02_状态使用规则.md"
+     },
+     {
+      "id": "G.06.03",
+      "name": "样式写法",
+      "desc": "只用设计令牌、禁止写死颜色和尺寸、CSS 组织方式",
+      "type": "规",
+      "src": "DESIGN",
+      "lvl": 3,
+      "children": [],
+      "path": "G_工程规范/G.06_TypeScript_React_编码规范/G.06.03_样式写法.md"
+     },
+     {
+      "id": "G.06.04",
+      "name": "前端 lint 与格式化",
+      "desc": "ESLint、Prettier、tsconfig strict 规则",
+      "type": "规",
+      "src": "新",
+      "lvl": 3,
+      "children": [],
+      "path": "G_工程规范/G.06_TypeScript_React_编码规范/G.06.04_前端_lint_与格式化.md"
+     }
+    ],
+    "path": "G_工程规范/G.06_TypeScript_React_编码规范/G.06_TypeScript_React_编码规范.md"
+   },
+   {
+    "id": "G.07",
+    "name": "Git 工作流",
+    "desc": "分支模型、提交信息格式（Conventional Commits）、PR 模板",
+    "type": "规",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "G_工程规范/G.07_Git_工作流.md"
+   },
+   {
+    "id": "G.08",
+    "name": "代码评审与合并门禁",
+    "desc": "评审看什么、必须通过的自动检查",
+    "type": "规",
+    "src": "引01§6",
+    "lvl": 2,
+    "children": [],
+    "path": "G_工程规范/G.08_代码评审与合并门禁.md"
+   },
+   {
+    "id": "G.09",
+    "name": "版本与变更日志",
+    "desc": "语义化版本、CHANGELOG 写法、schema 版本与数据版本分开",
+    "type": "规",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "G_工程规范/G.09_版本与变更日志.md"
+   },
+   {
+    "id": "G.10",
+    "name": "依赖管理",
+    "desc": "引入新依赖的审批流程、已登记依赖清单、升级节奏",
+    "type": "规",
+    "src": "引01§5",
+    "lvl": 2,
+    "children": [],
+    "path": "G_工程规范/G.10_依赖管理.md"
+   },
+   {
+    "id": "G.11",
+    "name": "配置与环境变量",
+    "desc": "配置文件格式、优先级（命令行 > 环境变量 > 文件 > 默认）、HARNESS_* 命名",
+    "type": "规",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "G_工程规范/G.11_配置与环境变量.md"
+   },
+   {
+    "id": "G.12",
+    "name": "日志规范",
+    "desc": "slog 字段、级别含义、必须脱敏的内容",
+    "type": "规",
+    "src": "引11",
+    "lvl": 2,
+    "children": [],
+    "path": "G_工程规范/G.12_日志规范.md"
+   },
+   {
+    "id": "G.13",
+    "name": "错误码与错误信息",
+    "desc": "码段分配、给用户看的文案和给开发看的细节分开",
+    "type": "规",
+    "src": "引09",
+    "lvl": 2,
+    "children": [],
+    "path": "G_工程规范/G.13_错误码与错误信息.md"
+   },
+   {
+    "id": "G.14",
+    "name": "完成定义 DoD",
+    "desc": "一个任务什么时候算做完：代码、测试、文档、截图、变更日志",
+    "type": "规",
+    "src": "设19",
+    "lvl": 2,
+    "children": [],
+    "path": "G_工程规范/G.14_完成定义_DoD.md"
+   },
+   {
+    "id": "G.15",
+    "name": "开发环境搭建",
+    "desc": "Windows / macOS / Linux 需要的工具和版本；make dev 跑起来",
+    "type": "说",
+    "src": "引01§4",
+    "lvl": 2,
+    "children": [],
+    "path": "G_工程规范/G.15_开发环境搭建.md"
+   },
+   {
+    "id": "G.16",
+    "name": "代码生成规范",
+    "desc": "哪些是生成物、怎么重新生成、为什么不能手改",
+    "type": "规",
+    "src": "引01§4",
+    "lvl": 2,
+    "children": [],
+    "path": "G_工程规范/G.16_代码生成规范.md"
+   },
+   {
+    "id": "G.17",
+    "name": "许可证与第三方声明",
+    "desc": "项目许可证、NOTICE、字体与图标的授权",
+    "type": "规",
+    "src": "选",
+    "lvl": 2,
+    "children": [],
+    "path": "G_工程规范/G.17_许可证与第三方声明.md"
+   }
+  ],
+  "path": "G_工程规范/G_工程规范.md"
+ },
+ {
+  "id": "C",
+  "name": "契约层",
+  "desc": "前后端共用的数据格式，是唯一事实来源；先定这一层，其他层才不会各写一套",
+  "type": "总",
+  "src": "引02, 引14",
+  "lvl": 1,
+  "children": [
+   {
+    "id": "C.01",
+    "name": "契约总则",
+    "desc": "JSON Schema 2020-12、兼容性规则（只增不改）、破坏性变更流程",
+    "type": "规",
+    "src": "引02",
+    "lvl": 2,
+    "children": [],
+    "path": "C_契约层/C.01_契约总则.md"
+   },
+   {
+    "id": "C.02",
+    "name": "图文档",
+    "desc": "graph.schema 的完整定义",
+    "type": "实",
+    "src": "引02",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "C.02.01",
+      "name": "Graph 顶层结构",
+      "desc": "id、版本、元数据、节点表、边表",
+      "type": "实",
+      "src": "引02",
+      "lvl": 3,
+      "children": [],
+      "path": "C_契约层/C.02_图文档/C.02.01_Graph_顶层结构.md"
+     },
+     {
+      "id": "C.02.02",
+      "name": "Node 节点",
+      "desc": "类型、参数、端口提升、版本号 rev",
+      "type": "实",
+      "src": "引02",
+      "lvl": 3,
+      "children": [],
+      "path": "C_契约层/C.02_图文档/C.02.02_Node_节点.md"
+     },
+     {
+      "id": "C.02.03",
+      "name": "Edge 连线",
+      "desc": "端点、端口、类型检查结果",
+      "type": "实",
+      "src": "引02",
+      "lvl": 3,
+      "children": [],
+      "path": "C_契约层/C.02_图文档/C.02.03_Edge_连线.md"
+     },
+     {
+      "id": "C.02.04",
+      "name": "子图与嵌套",
+      "desc": "内联子图 children、子图引用 ref、版本钉住 snapshot / link、嵌套层数上限",
+      "type": "实",
+      "src": "引02, demo v0.4",
+      "lvl": 3,
+      "children": [],
+      "path": "C_契约层/C.02_图文档/C.02.04_子图与嵌套.md"
+     },
+     {
+      "id": "C.02.05",
+      "name": "视图元数据",
+      "desc": "坐标、折叠、注释，不影响运行语义",
+      "type": "实",
+      "src": "引02",
+      "lvl": 3,
+      "children": [],
+      "path": "C_契约层/C.02_图文档/C.02.05_视图元数据.md"
+     }
+    ],
+    "path": "C_契约层/C.02_图文档/C.02_图文档.md"
+   },
+   {
+    "id": "C.03",
+    "name": "节点定义 NodeDef",
+    "desc": "节点类型怎么描述",
+    "type": "实",
+    "src": "引02",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "C.03.01",
+      "name": "NodeDef 结构",
+      "desc": "分类、端口、参数、执行器绑定",
+      "type": "实",
+      "src": "引02",
+      "lvl": 3,
+      "children": [],
+      "path": "C_契约层/C.03_节点定义_NodeDef/C.03.01_NodeDef_结构.md"
+     },
+     {
+      "id": "C.03.02",
+      "name": "参数 schema 与控件映射",
+      "desc": "num/sel/seg/text/bool/slider 对应什么控件",
+      "type": "实",
+      "src": "设10",
+      "lvl": 3,
+      "children": [],
+      "path": "C_契约层/C.03_节点定义_NodeDef/C.03.02_参数_schema_与控件映射.md"
+     },
+     {
+      "id": "C.03.03",
+      "name": "锁定字段",
+      "desc": "kernel 锁、def 锁：哪些参数用户不能改",
+      "type": "实",
+      "src": "引02",
+      "lvl": 3,
+      "children": [],
+      "path": "C_契约层/C.03_节点定义_NodeDef/C.03.03_锁定字段.md"
+     },
+     {
+      "id": "C.03.04",
+      "name": "声明式节点格式",
+      "desc": "prompt / http / mcp / subgraph 四种声明式写法",
+      "type": "实",
+      "src": "引15 D7",
+      "lvl": 3,
+      "children": [],
+      "path": "C_契约层/C.03_节点定义_NodeDef/C.03.04_声明式节点格式.md"
+     },
+     {
+      "id": "C.03.05",
+      "name": "参数界面提示",
+      "desc": "分组、常用 / 高级、多行文本、接线绑定、条件显示",
+      "type": "实",
+      "src": "demo v0.5.2",
+      "lvl": 3,
+      "children": [],
+      "path": "C_契约层/C.03_节点定义_NodeDef/C.03.05_参数界面提示.md"
+     }
+    ],
+    "path": "C_契约层/C.03_节点定义_NodeDef/C.03_节点定义_NodeDef.md"
+   },
+   {
+    "id": "C.04",
+    "name": "端口类型系统",
+    "desc": "端口能连什么",
+    "type": "实",
+    "src": "引02, DESIGN§2.4",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "C.04.01",
+      "name": "8 类基础类型",
+      "desc": "any / ctx / ref / list / tool / gen(T) / ctrl / state 的含义",
+      "type": "实",
+      "src": "DESIGN§2.4",
+      "lvl": 3,
+      "children": [],
+      "path": "C_契约层/C.04_端口类型系统/C.04.01_8_类基础类型.md"
+     },
+     {
+      "id": "C.04.02",
+      "name": "兼容规则",
+      "desc": "严格匹配的类型、可隐式转换的类型、报错文案",
+      "type": "实",
+      "src": "引02",
+      "lvl": 3,
+      "children": [],
+      "path": "C_契约层/C.04_端口类型系统/C.04.02_兼容规则.md"
+     },
+     {
+      "id": "C.04.03",
+      "name": "泛型 T 推断",
+      "desc": "T 怎么沿连线推断、冲突怎么报",
+      "type": "实",
+      "src": "引02",
+      "lvl": 3,
+      "children": [],
+      "path": "C_契约层/C.04_端口类型系统/C.04.03_泛型_T_推断.md"
+     },
+     {
+      "id": "C.04.04",
+      "name": "多连与列表",
+      "desc": "多连端口的合并语义",
+      "type": "实",
+      "src": "引02",
+      "lvl": 3,
+      "children": [],
+      "path": "C_契约层/C.04_端口类型系统/C.04.04_多连与列表.md"
+     }
+    ],
+    "path": "C_契约层/C.04_端口类型系统/C.04_端口类型系统.md"
+   },
+   {
+    "id": "C.05",
+    "name": "Op 操作",
+    "desc": "唯一修改图的方式",
+    "type": "实",
+    "src": "引08",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "C.05.01",
+      "name": "Op 信封",
+      "desc": "actor（user/model/runtime/external）、base_rev、时间、原因",
+      "type": "实",
+      "src": "引08, 引_关键决定",
+      "lvl": 3,
+      "children": [],
+      "path": "C_契约层/C.05_Op_操作/C.05.01_Op_信封.md"
+     },
+     {
+      "id": "C.05.02",
+      "name": "Op 类型目录",
+      "desc": "每种 Op 的字段、前置条件、效果（增删节点、连线、改参数、编组、解组……）",
+      "type": "实",
+      "src": "引08",
+      "lvl": 3,
+      "children": [],
+      "path": "C_契约层/C.05_Op_操作/C.05.02_Op_类型目录.md"
+     },
+     {
+      "id": "C.05.03",
+      "name": "逆操作规则",
+      "desc": "每种 Op 的逆 Op 怎么算",
+      "type": "实",
+      "src": "引08",
+      "lvl": 3,
+      "children": [],
+      "path": "C_契约层/C.05_Op_操作/C.05.03_逆操作规则.md"
+     },
+     {
+      "id": "C.05.04",
+      "name": "并发与冲突",
+      "desc": "rebase、三方合并、冲突判定",
+      "type": "实",
+      "src": "引08",
+      "lvl": 3,
+      "children": [],
+      "path": "C_契约层/C.05_Op_操作/C.05.04_并发与冲突.md"
+     }
+    ],
+    "path": "C_契约层/C.05_Op_操作/C.05_Op_操作.md"
+   },
+   {
+    "id": "C.06",
+    "name": "事件",
+    "desc": "运行、图、会话三类事件",
+    "type": "实",
+    "src": "引14",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "C.06.01",
+      "name": "事件信封",
+      "desc": "seq、path、ts、actor、因果链",
+      "type": "实",
+      "src": "引14",
+      "lvl": 3,
+      "children": [],
+      "path": "C_契约层/C.06_事件/C.06.01_事件信封.md"
+     },
+     {
+      "id": "C.06.02",
+      "name": "运行事件目录",
+      "desc": "run.* / node.* 全部事件及载荷",
+      "type": "实",
+      "src": "引14",
+      "lvl": 3,
+      "children": [],
+      "path": "C_契约层/C.06_事件/C.06.02_运行事件目录.md"
+     },
+     {
+      "id": "C.06.03",
+      "name": "图事件目录",
+      "desc": "graph.* 事件",
+      "type": "实",
+      "src": "引14",
+      "lvl": 3,
+      "children": [],
+      "path": "C_契约层/C.06_事件/C.06.03_图事件目录.md"
+     },
+     {
+      "id": "C.06.04",
+      "name": "会话事件目录",
+      "desc": "session.* / message.* 事件",
+      "type": "实",
+      "src": "引14",
+      "lvl": 3,
+      "children": [],
+      "path": "C_契约层/C.06_事件/C.06.04_会话事件目录.md"
+     },
+     {
+      "id": "C.06.05",
+      "name": "路径 ID 规则",
+      "desc": "嵌套 + 循环轮次 + 扇出份号的路径写法（如 /闭环迭代#r2/执行池[3]）",
+      "type": "实",
+      "src": "引11",
+      "lvl": 3,
+      "children": [],
+      "path": "C_契约层/C.06_事件/C.06.05_路径_ID_规则.md"
+     }
+    ],
+    "path": "C_契约层/C.06_事件/C.06_事件.md"
+   },
+   {
+    "id": "C.07",
+    "name": "运行状态机",
+    "desc": "节点状态与运行状态唯一定义及转换图（解决 03 与 14 号不一致）",
+    "type": "实",
+    "src": "引03, 引14",
+    "lvl": 2,
+    "children": [],
+    "path": "C_契约层/C.07_运行状态机.md"
+   },
+   {
+    "id": "C.08",
+    "name": "GraphPatch",
+    "desc": "模型改图用的补丁格式、提议状态",
+    "type": "实",
+    "src": "引10",
+    "lvl": 2,
+    "children": [],
+    "path": "C_契约层/C.08_GraphPatch.md"
+   },
+   {
+    "id": "C.09",
+    "name": "授权书 Mandate",
+    "desc": "档位、作用域、有效期、撤销",
+    "type": "实",
+    "src": "引07",
+    "lvl": 2,
+    "children": [],
+    "path": "C_契约层/C.09_授权书_Mandate.md"
+   },
+   {
+    "id": "C.10",
+    "name": "会话与消息",
+    "desc": "session.schema：会话、消息、附带的画布选中",
+    "type": "实",
+    "src": "引15",
+    "lvl": 2,
+    "children": [],
+    "path": "C_契约层/C.10_会话与消息.md"
+   },
+   {
+    "id": "C.11",
+    "name": "错误码表",
+    "desc": "全项目错误码统一登记",
+    "type": "实",
+    "src": "引09",
+    "lvl": 2,
+    "children": [],
+    "path": "C_契约层/C.11_错误码表.md"
+   },
+   {
+    "id": "C.12",
+    "name": "版本与迁移",
+    "desc": "schema 版本号、旧文档自动升级器",
+    "type": "实",
+    "src": "引02",
+    "lvl": 2,
+    "children": [],
+    "path": "C_契约层/C.12_版本与迁移.md"
+   },
+   {
+    "id": "C.13",
+    "name": "内置资产格式",
+    "desc": "随产品发布的数据文件格式",
+    "type": "实",
+    "src": "引02",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "C.13.01",
+      "name": "配方 recipe",
+      "desc": "上下文装配配方格式",
+      "type": "实",
+      "src": "引06",
+      "lvl": 3,
+      "children": [],
+      "path": "C_契约层/C.13_内置资产格式/C.13.01_配方_recipe.md"
+     },
+     {
+      "id": "C.13.02",
+      "name": "角色卡 rolecard",
+      "desc": "Agent 角色卡格式",
+      "type": "实",
+      "src": "引06",
+      "lvl": 3,
+      "children": [],
+      "path": "C_契约层/C.13_内置资产格式/C.13.02_角色卡_rolecard.md"
+     },
+     {
+      "id": "C.13.03",
+      "name": "类型声明 types",
+      "desc": "自定义结构类型（任务卡@1 等）",
+      "type": "实",
+      "src": "引02",
+      "lvl": 3,
+      "children": [],
+      "path": "C_契约层/C.13_内置资产格式/C.13.03_类型声明_types.md"
+     },
+     {
+      "id": "C.13.04",
+      "name": "模板包",
+      "desc": "模板包清单与内容",
+      "type": "实",
+      "src": "新",
+      "lvl": 3,
+      "children": [],
+      "path": "C_契约层/C.13_内置资产格式/C.13.04_模板包.md"
+     }
+    ],
+    "path": "C_契约层/C.13_内置资产格式/C.13_内置资产格式.md"
+   },
+   {
+    "id": "C.14",
+    "name": "代码生成映射",
+    "desc": "schema 到 Go / TS 的映射规则和特殊情况（oneOf、判别联合）",
+    "type": "实",
+    "src": "引01§4",
+    "lvl": 2,
+    "children": [],
+    "path": "C_契约层/C.14_代码生成映射.md"
+   },
+   {
+    "id": "C.15",
+    "name": "包与贡献点",
+    "desc": "一切能力由包贡献：节点预设、工具、连接类型、设置项、模板",
+    "type": "实",
+    "src": "demo v0.5.2",
+    "lvl": 2,
+    "children": [],
+    "path": "C_契约层/C.15_包与贡献点.md"
+   },
+   {
+    "id": "C.16",
+    "name": "连接类型与连接",
+    "desc": "共用的账号、地址、密钥；表单由连接类型声明生成",
+    "type": "实",
+    "src": "demo v0.5.2",
+    "lvl": 2,
+    "children": [],
+    "path": "C_契约层/C.16_连接类型与连接.md"
+   }
+  ],
+  "path": "C_契约层/C_契约层.md"
+ },
+ {
+  "id": "E",
+  "name": "内核 engine/",
+  "desc": "执行引擎：图模型、校验、调度、执行、持久化、授权；不依赖 HTTP，可单独当库用",
+  "type": "总",
+  "src": "引01, 引03",
+  "lvl": 1,
+  "children": [
+   {
+    "id": "E.01",
+    "name": "内核总则",
+    "desc": "包依赖方向、禁止 import 的东西、Executor 接口唯一定义（解决三版不一致）",
+    "type": "规",
+    "src": "引01, 引03§4",
+    "lvl": 2,
+    "children": [],
+    "path": "E_内核_engine/E.01_内核总则.md"
+   },
+   {
+    "id": "E.02",
+    "name": "graph 图模型",
+    "desc": "内存图模型",
+    "type": "实",
+    "src": "引01",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "E.02.01",
+      "name": "数据结构与索引",
+      "desc": "按 id、按端口反查",
+      "type": "实",
+      "src": "引01",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.02_graph_图模型/E.02.01_数据结构与索引.md"
+     },
+     {
+      "id": "E.02.02",
+      "name": "遍历与拓扑排序",
+      "desc": "分层拓扑、环检测（只有循环节点能成环）",
+      "type": "实",
+      "src": "引03",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.02_graph_图模型/E.02.02_遍历与拓扑排序.md"
+     },
+     {
+      "id": "E.02.03",
+      "name": "深拷贝与快照",
+      "desc": "子图复制、不可变快照",
+      "type": "实",
+      "src": "新",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.02_graph_图模型/E.02.03_深拷贝与快照.md"
+     }
+    ],
+    "path": "E_内核_engine/E.02_graph_图模型/E.02_graph_图模型.md"
+   },
+   {
+    "id": "E.03",
+    "name": "schema 注册与校验",
+    "desc": "节点定义注册与图检查",
+    "type": "实",
+    "src": "引02",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "E.03.01",
+      "name": "Registry",
+      "desc": "NodeDef、类型、配方的注册与查询",
+      "type": "实",
+      "src": "引01",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.03_schema_注册与校验/E.03.01_Registry.md"
+     },
+     {
+      "id": "E.03.02",
+      "name": "类型检查与 T 推断",
+      "desc": "端口类型检查实现",
+      "type": "实",
+      "src": "引02",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.03_schema_注册与校验/E.03.02_类型检查与_T_推断.md"
+     },
+     {
+      "id": "E.03.03",
+      "name": "图校验规则清单",
+      "desc": "每条规则：编号、条件、报错文案、严重级别",
+      "type": "实",
+      "src": "引02",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.03_schema_注册与校验/E.03.03_图校验规则清单.md"
+     },
+     {
+      "id": "E.03.04",
+      "name": "诊断 Diag 格式",
+      "desc": "错误定位到节点 / 端口 / 参数",
+      "type": "实",
+      "src": "引02",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.03_schema_注册与校验/E.03.04_诊断_Diag_格式.md"
+     }
+    ],
+    "path": "E_内核_engine/E.03_schema_注册与校验/E.03_schema_注册与校验.md"
+   },
+   {
+    "id": "E.04",
+    "name": "ext 扩展包加载",
+    "desc": "清单读取、校验、签名、注册",
+    "type": "实",
+    "src": "引15 D7",
+    "lvl": 2,
+    "children": [],
+    "path": "E_内核_engine/E.04_ext_扩展包加载.md"
+   },
+   {
+    "id": "E.05",
+    "name": "op Op 引擎",
+    "desc": "Op 的执行",
+    "type": "实",
+    "src": "引08",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "E.05.01",
+      "name": "应用 Apply",
+      "desc": "校验 → 应用 → 产生事件",
+      "type": "实",
+      "src": "引08",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.05_op_Op_引擎/E.05.01_应用_Apply.md"
+     },
+     {
+      "id": "E.05.02",
+      "name": "撤销与重做",
+      "desc": "逆 Op 栈、按 actor 撤销",
+      "type": "实",
+      "src": "引08",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.05_op_Op_引擎/E.05.02_撤销与重做.md"
+     },
+     {
+      "id": "E.05.03",
+      "name": "rebase 与三方合并",
+      "desc": "并发编辑合并",
+      "type": "实",
+      "src": "引08",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.05_op_Op_引擎/E.05.03_rebase_与三方合并.md"
+     },
+     {
+      "id": "E.05.04",
+      "name": "拖动合并",
+      "desc": "连续拖动合并成一条 Op",
+      "type": "实",
+      "src": "引08",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.05_op_Op_引擎/E.05.04_拖动合并.md"
+     },
+     {
+      "id": "E.05.05",
+      "name": "授权钩子",
+      "desc": "Op 落地前检查档位",
+      "type": "实",
+      "src": "引07",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.05_op_Op_引擎/E.05.05_授权钩子.md"
+     }
+    ],
+    "path": "E_内核_engine/E.05_op_Op_引擎/E.05_op_Op_引擎.md"
+   },
+   {
+    "id": "E.06",
+    "name": "authz 授权",
+    "desc": "五档授权实现",
+    "type": "实",
+    "src": "引07",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "E.06.01",
+      "name": "五档模型",
+      "desc": "0 只读 → 4 全自动 每档能做什么",
+      "type": "实",
+      "src": "引07",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.06_authz_授权/E.06.01_五档模型.md"
+     },
+     {
+      "id": "E.06.02",
+      "name": "Check 判定流程",
+      "desc": "主体、动作、资源、上下文 → 允许 / 拒绝 / 需审批",
+      "type": "实",
+      "src": "引07",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.06_authz_授权/E.06.02_Check_判定流程.md"
+     },
+     {
+      "id": "E.06.03",
+      "name": "污染标记传播",
+      "desc": "外部内容带来的污染怎么沿数据流传播、影响授权",
+      "type": "实",
+      "src": "引07",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.06_authz_授权/E.06.03_污染标记传播.md"
+     },
+     {
+      "id": "E.06.04",
+      "name": "急停",
+      "desc": "触发、效果、只有人能解除",
+      "type": "实",
+      "src": "引07",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.06_authz_授权/E.06.04_急停.md"
+     },
+     {
+      "id": "E.06.05",
+      "name": "Cedar PoC 与回退",
+      "desc": "PoC 判定标准、不达标时的自研方案",
+      "type": "实",
+      "src": "选§4",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.06_authz_授权/E.06.05_Cedar_PoC_与回退.md"
+     }
+    ],
+    "path": "E_内核_engine/E.06_authz_授权/E.06_authz_授权.md"
+   },
+   {
+    "id": "E.07",
+    "name": "store 持久化",
+    "desc": "存储接口与实现",
+    "type": "实",
+    "src": "引04",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "E.07.01",
+      "name": "Store 接口",
+      "desc": "各仓库接口定义",
+      "type": "实",
+      "src": "引01§2",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.07_store_持久化/E.07.01_Store_接口.md"
+     },
+     {
+      "id": "E.07.02",
+      "name": "SQLite 表结构",
+      "desc": "每张表的字段、索引、hx_ 前缀",
+      "type": "实",
+      "src": "引04",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.07_store_持久化/E.07.02_SQLite_表结构.md"
+     },
+     {
+      "id": "E.07.03",
+      "name": "迁移",
+      "desc": "goose 迁移文件规则",
+      "type": "实",
+      "src": "引01§5",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.07_store_持久化/E.07.03_迁移.md"
+     },
+     {
+      "id": "E.07.04",
+      "name": "事务与并发",
+      "desc": "事务边界、写锁、WAL",
+      "type": "实",
+      "src": "引04",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.07_store_持久化/E.07.04_事务与并发.md"
+     },
+     {
+      "id": "E.07.05",
+      "name": "memstore",
+      "desc": "测试用内存实现",
+      "type": "实",
+      "src": "引04",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.07_store_持久化/E.07.05_memstore.md"
+     }
+    ],
+    "path": "E_内核_engine/E.07_store_持久化/E.07_store_持久化.md"
+   },
+   {
+    "id": "E.08",
+    "name": "blob 内容寻址存储",
+    "desc": "大文本、工具结果、附件按哈希存",
+    "type": "实",
+    "src": "引04",
+    "lvl": 2,
+    "children": [],
+    "path": "E_内核_engine/E.08_blob_内容寻址存储.md"
+   },
+   {
+    "id": "E.09",
+    "name": "obs 可观测",
+    "desc": "事件、trace、成本",
+    "type": "实",
+    "src": "引11",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "E.09.01",
+      "name": "事件写入",
+      "desc": "先落事件再处理",
+      "type": "实",
+      "src": "引_关键决定",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.09_obs_可观测/E.09.01_事件写入.md"
+     },
+     {
+      "id": "E.09.02",
+      "name": "Trace",
+      "desc": "OTel GenAI 语义约定",
+      "type": "实",
+      "src": "引11",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.09_obs_可观测/E.09.02_Trace.md"
+     },
+     {
+      "id": "E.09.03",
+      "name": "成本累计与价格表",
+      "desc": "按模型计费、预算告警",
+      "type": "实",
+      "src": "引11",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.09_obs_可观测/E.09.03_成本累计与价格表.md"
+     },
+     {
+      "id": "E.09.04",
+      "name": "指标",
+      "desc": "Prometheus 指标清单",
+      "type": "实",
+      "src": "引11",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.09_obs_可观测/E.09.04_指标.md"
+     }
+    ],
+    "path": "E_内核_engine/E.09_obs_可观测/E.09_obs_可观测.md"
+   },
+   {
+    "id": "E.10",
+    "name": "llm 模型适配",
+    "desc": "统一模型接口",
+    "type": "实",
+    "src": "引05",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "E.10.01",
+      "name": "Model 统一接口",
+      "desc": "请求、流式、工具调用、结构化输出",
+      "type": "实",
+      "src": "引01§2",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.10_llm_模型适配/E.10.01_Model_统一接口.md"
+     },
+     {
+      "id": "E.10.02",
+      "name": "OpenAI 适配",
+      "desc": "含 OpenAI 兼容厂商（国内厂商、本地模型）",
+      "type": "实",
+      "src": "引05",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.10_llm_模型适配/E.10.02_OpenAI_适配.md"
+     },
+     {
+      "id": "E.10.03",
+      "name": "Anthropic 适配",
+      "desc": "",
+      "type": "实",
+      "src": "引05",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.10_llm_模型适配/E.10.03_Anthropic_适配.md"
+     },
+     {
+      "id": "E.10.04",
+      "name": "Gemini 适配",
+      "desc": "",
+      "type": "实",
+      "src": "引05",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.10_llm_模型适配/E.10.04_Gemini_适配.md"
+     },
+     {
+      "id": "E.10.05",
+      "name": "quirks 厂商差异表",
+      "desc": "各家差异写成数据（如某模型只支持 low/high/max）",
+      "type": "实",
+      "src": "引_关键决定",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.10_llm_模型适配/E.10.05_quirks_厂商差异表.md"
+     },
+     {
+      "id": "E.10.06",
+      "name": "结构化输出与修复",
+      "desc": "JSON 不合法时的修复与重试",
+      "type": "实",
+      "src": "引05",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.10_llm_模型适配/E.10.06_结构化输出与修复.md"
+     },
+     {
+      "id": "E.10.07",
+      "name": "Token 计数",
+      "desc": "各家计数方式",
+      "type": "实",
+      "src": "引05",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.10_llm_模型适配/E.10.07_Token_计数.md"
+     },
+     {
+      "id": "E.10.08",
+      "name": "fake 与录放 cassette",
+      "desc": "测试时不调真模型",
+      "type": "实",
+      "src": "引12",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.10_llm_模型适配/E.10.08_fake_与录放_cassette.md"
+     },
+     {
+      "id": "E.10.09",
+      "name": "重试、超时与限流",
+      "desc": "",
+      "type": "实",
+      "src": "引05",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.10_llm_模型适配/E.10.09_重试_超时与限流.md"
+     }
+    ],
+    "path": "E_内核_engine/E.10_llm_模型适配/E.10_llm_模型适配.md"
+   },
+   {
+    "id": "E.11",
+    "name": "tools 工具",
+    "desc": "工具注册与调用",
+    "type": "实",
+    "src": "引05",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "E.11.01",
+      "name": "Tool 接口与注册",
+      "desc": "",
+      "type": "实",
+      "src": "引01§2",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.11_tools_工具/E.11.01_Tool_接口与注册.md"
+     },
+     {
+      "id": "E.11.02",
+      "name": "结果裁剪与原文指针",
+      "desc": "超长结果裁剪，保留指针",
+      "type": "实",
+      "src": "引06",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.11_tools_工具/E.11.02_结果裁剪与原文指针.md"
+     },
+     {
+      "id": "E.11.03",
+      "name": "内置工具：检索",
+      "desc": "",
+      "type": "实",
+      "src": "引05",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.11_tools_工具/E.11.03_内置工具_检索.md"
+     },
+     {
+      "id": "E.11.04",
+      "name": "内置工具：HTTP",
+      "desc": "",
+      "type": "实",
+      "src": "引05",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.11_tools_工具/E.11.04_内置工具_HTTP.md"
+     },
+     {
+      "id": "E.11.05",
+      "name": "内置工具：文件读写",
+      "desc": "工作区限制",
+      "type": "实",
+      "src": "引05",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.11_tools_工具/E.11.05_内置工具_文件读写.md"
+     },
+     {
+      "id": "E.11.06",
+      "name": "内置工具：代码执行",
+      "desc": "wazero 沙箱",
+      "type": "实",
+      "src": "选§4",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.11_tools_工具/E.11.06_内置工具_代码执行.md"
+     },
+     {
+      "id": "E.11.07",
+      "name": "技能 SKILL.md",
+      "desc": "技能文件格式与加载",
+      "type": "实",
+      "src": "选§7",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.11_tools_工具/E.11.07_技能_SKILL.md.md"
+     }
+    ],
+    "path": "E_内核_engine/E.11_tools_工具/E.11_tools_工具.md"
+   },
+   {
+    "id": "E.12",
+    "name": "mcp 接入",
+    "desc": "官方 go-sdk 客户端、桥接成工具、进程生命周期",
+    "type": "实",
+    "src": "引05, 选",
+    "lvl": 2,
+    "children": [],
+    "path": "E_内核_engine/E.12_mcp_接入.md"
+   },
+   {
+    "id": "E.13",
+    "name": "ctxasm 上下文装配",
+    "desc": "Agent 能看到什么",
+    "type": "实",
+    "src": "引06",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "E.13.01",
+      "name": "配方解析",
+      "desc": "",
+      "type": "实",
+      "src": "引06",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.13_ctxasm_上下文装配/E.13.01_配方解析.md"
+     },
+     {
+      "id": "E.13.02",
+      "name": "装配流程",
+      "desc": "",
+      "type": "实",
+      "src": "引06",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.13_ctxasm_上下文装配/E.13.02_装配流程.md"
+     },
+     {
+      "id": "E.13.03",
+      "name": "预算计算",
+      "desc": "预算 × 窗口",
+      "type": "实",
+      "src": "引06",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.13_ctxasm_上下文装配/E.13.03_预算计算.md"
+     },
+     {
+      "id": "E.13.04",
+      "name": "溢出处理",
+      "desc": "pointer / summarize / truncate / reject",
+      "type": "实",
+      "src": "引06",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.13_ctxasm_上下文装配/E.13.04_溢出处理.md"
+     },
+     {
+      "id": "E.13.05",
+      "name": "提示词六段拼装",
+      "desc": "",
+      "type": "实",
+      "src": "引06",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.13_ctxasm_上下文装配/E.13.05_提示词六段拼装.md"
+     },
+     {
+      "id": "E.13.06",
+      "name": "inherit 透传",
+      "desc": "",
+      "type": "实",
+      "src": "引06",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.13_ctxasm_上下文装配/E.13.06_inherit_透传.md"
+     }
+    ],
+    "path": "E_内核_engine/E.13_ctxasm_上下文装配/E.13_ctxasm_上下文装配.md"
+   },
+   {
+    "id": "E.14",
+    "name": "exec 执行器",
+    "desc": "13 个原子节点 + 声明式执行器",
+    "type": "实",
+    "src": "引03",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "E.14.01",
+      "name": "资源",
+      "desc": "",
+      "type": "实",
+      "src": "引03",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.14_exec_执行器/E.14.01_资源.md"
+     },
+     {
+      "id": "E.14.02",
+      "name": "Agent",
+      "desc": "唯一调用模型的节点",
+      "type": "实",
+      "src": "引03",
+      "lvl": 3,
+      "children": [
+       {
+        "id": "E.14.02.01",
+        "name": "工具调用循环",
+        "desc": "调用上限、失败处理",
+        "type": "实",
+        "src": "引03",
+        "lvl": 4,
+        "children": [],
+        "path": "E_内核_engine/E.14_exec_执行器/E.14.02_Agent/E.14.02.01_工具调用循环.md"
+       },
+       {
+        "id": "E.14.02.02",
+        "name": "生命周期",
+        "desc": "ephemeral / resident",
+        "type": "实",
+        "src": "引03",
+        "lvl": 4,
+        "children": [],
+        "path": "E_内核_engine/E.14_exec_执行器/E.14.02_Agent/E.14.02.02_生命周期.md"
+       },
+       {
+        "id": "E.14.02.03",
+        "name": "输出类型校验",
+        "desc": "output_schema 校验与修复",
+        "type": "实",
+        "src": "引03",
+        "lvl": 4,
+        "children": [],
+        "path": "E_内核_engine/E.14_exec_执行器/E.14.02_Agent/E.14.02.03_输出类型校验.md"
+       }
+      ],
+      "path": "E_内核_engine/E.14_exec_执行器/E.14.02_Agent/E.14.02_Agent.md"
+     },
+     {
+      "id": "E.14.03",
+      "name": "上下文装配节点",
+      "desc": "",
+      "type": "实",
+      "src": "引03",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.14_exec_执行器/E.14.03_上下文装配节点.md"
+     },
+     {
+      "id": "E.14.04",
+      "name": "工具节点",
+      "desc": "",
+      "type": "实",
+      "src": "引03",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.14_exec_执行器/E.14.04_工具节点.md"
+     },
+     {
+      "id": "E.14.05",
+      "name": "扇出",
+      "desc": "N 份并行、并发、隔离",
+      "type": "实",
+      "src": "引03",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.14_exec_执行器/E.14.05_扇出.md"
+     },
+     {
+      "id": "E.14.06",
+      "name": "汇合",
+      "desc": "all / k_of_n / first / timeout",
+      "type": "实",
+      "src": "引03",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.14_exec_执行器/E.14.06_汇合.md"
+     },
+     {
+      "id": "E.14.07",
+      "name": "聚合",
+      "desc": "纯规则算子：分组、投票、去重、排序",
+      "type": "实",
+      "src": "引03",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.14_exec_执行器/E.14.07_聚合.md"
+     },
+     {
+      "id": "E.14.08",
+      "name": "分支",
+      "desc": "表达式求值（expr）、无副作用",
+      "type": "实",
+      "src": "引03",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.14_exec_执行器/E.14.08_分支.md"
+     },
+     {
+      "id": "E.14.09",
+      "name": "循环",
+      "desc": "唯一能成环的节点",
+      "type": "实",
+      "src": "引03",
+      "lvl": 3,
+      "children": [
+       {
+        "id": "E.14.09.01",
+        "name": "轮次与停止条件",
+        "desc": "最大轮数、无进展停止、事件触发",
+        "type": "实",
+        "src": "引03",
+        "lvl": 4,
+        "children": [],
+        "path": "E_内核_engine/E.14_exec_执行器/E.14.09_循环/E.14.09.01_轮次与停止条件.md"
+       },
+       {
+        "id": "E.14.09.02",
+        "name": "轮间状态传递",
+        "desc": "差距报告怎么带进下一轮",
+        "type": "实",
+        "src": "引03",
+        "lvl": 4,
+        "children": [],
+        "path": "E_内核_engine/E.14_exec_执行器/E.14.09_循环/E.14.09.02_轮间状态传递.md"
+       }
+      ],
+      "path": "E_内核_engine/E.14_exec_执行器/E.14.09_循环/E.14.09_循环.md"
+     },
+     {
+      "id": "E.14.10",
+      "name": "账本",
+      "desc": "read / write / append / cas / watch",
+      "type": "实",
+      "src": "引03",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.14_exec_执行器/E.14.10_账本.md"
+     },
+     {
+      "id": "E.14.11",
+      "name": "人工",
+      "desc": "审批 / 输入 / 选择",
+      "type": "实",
+      "src": "引03",
+      "lvl": 3,
+      "children": [
+       {
+        "id": "E.14.11.01",
+        "name": "等待与恢复",
+        "desc": "等待时进程重启也能恢复",
+        "type": "实",
+        "src": "引04",
+        "lvl": 4,
+        "children": [],
+        "path": "E_内核_engine/E.14_exec_执行器/E.14.11_人工/E.14.11.01_等待与恢复.md"
+       },
+       {
+        "id": "E.14.11.02",
+        "name": "超时与升级",
+        "desc": "超时后怎么处理",
+        "type": "实",
+        "src": "引03",
+        "lvl": 4,
+        "children": [],
+        "path": "E_内核_engine/E.14_exec_执行器/E.14.11_人工/E.14.11.02_超时与升级.md"
+       }
+      ],
+      "path": "E_内核_engine/E.14_exec_执行器/E.14.11_人工/E.14.11_人工.md"
+     },
+     {
+      "id": "E.14.12",
+      "name": "子图端口",
+      "desc": "入口 / 出口 / 摘要 / 升级",
+      "type": "实",
+      "src": "引03",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.14_exec_执行器/E.14.12_子图端口.md"
+     },
+     {
+      "id": "E.14.13",
+      "name": "子图引用",
+      "desc": "引用版本化的子图",
+      "type": "实",
+      "src": "引03",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.14_exec_执行器/E.14.13_子图引用.md"
+     },
+     {
+      "id": "E.14.14",
+      "name": "声明式执行器",
+      "desc": "解释执行声明式节点",
+      "type": "实",
+      "src": "引15 D7",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.14_exec_执行器/E.14.14_声明式执行器.md"
+     }
+    ],
+    "path": "E_内核_engine/E.14_exec_执行器/E.14_exec_执行器.md"
+   },
+   {
+    "id": "E.15",
+    "name": "sched 调度",
+    "desc": "谁先跑、并发多少",
+    "type": "实",
+    "src": "引03",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "E.15.01",
+      "name": "就绪判定",
+      "desc": "",
+      "type": "实",
+      "src": "引03",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.15_sched_调度/E.15.01_就绪判定.md"
+     },
+     {
+      "id": "E.15.02",
+      "name": "并发与资源池",
+      "desc": "",
+      "type": "实",
+      "src": "引03",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.15_sched_调度/E.15.02_并发与资源池.md"
+     },
+     {
+      "id": "E.15.03",
+      "name": "令牌桶限流",
+      "desc": "",
+      "type": "实",
+      "src": "引03",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.15_sched_调度/E.15.03_令牌桶限流.md"
+     },
+     {
+      "id": "E.15.04",
+      "name": "虚拟时钟",
+      "desc": "测试用",
+      "type": "实",
+      "src": "引12",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.15_sched_调度/E.15.04_虚拟时钟.md"
+     }
+    ],
+    "path": "E_内核_engine/E.15_sched_调度/E.15_sched_调度.md"
+   },
+   {
+    "id": "E.16",
+    "name": "run 运行",
+    "desc": "一次运行的完整生命周期",
+    "type": "实",
+    "src": "引03, 引04",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "E.16.01",
+      "name": "运行生命周期",
+      "desc": "创建、运行、暂停、完成、失败",
+      "type": "实",
+      "src": "引03",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.16_run_运行/E.16.01_运行生命周期.md"
+     },
+     {
+      "id": "E.16.02",
+      "name": "作用域与安全点",
+      "desc": "作用域边界即安全点",
+      "type": "实",
+      "src": "引_关键决定",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.16_run_运行/E.16.02_作用域与安全点.md"
+     },
+     {
+      "id": "E.16.03",
+      "name": "检查点与续跑",
+      "desc": "",
+      "type": "实",
+      "src": "引04",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.16_run_运行/E.16.03_检查点与续跑.md"
+     },
+     {
+      "id": "E.16.04",
+      "name": "崩溃恢复",
+      "desc": "进程崩溃后重启续跑",
+      "type": "实",
+      "src": "引04",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.16_run_运行/E.16.04_崩溃恢复.md"
+     },
+     {
+      "id": "E.16.05",
+      "name": "fork 与回放",
+      "desc": "从任一检查点分叉重跑",
+      "type": "实",
+      "src": "选§7 Burr",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.16_run_运行/E.16.05_fork_与回放.md"
+     },
+     {
+      "id": "E.16.06",
+      "name": "取消与急停联动",
+      "desc": "",
+      "type": "实",
+      "src": "引07",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.16_run_运行/E.16.06_取消与急停联动.md"
+     }
+    ],
+    "path": "E_内核_engine/E.16_run_运行/E.16_run_运行.md"
+   },
+   {
+    "id": "E.17",
+    "name": "orch 模型编排",
+    "desc": "模型怎么改图",
+    "type": "实",
+    "src": "引10",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "E.17.01",
+      "name": "GraphPatch 应用",
+      "desc": "",
+      "type": "实",
+      "src": "引10",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.17_orch_模型编排/E.17.01_GraphPatch_应用.md"
+     },
+     {
+      "id": "E.17.02",
+      "name": "图操作工具集",
+      "desc": "给模型用的工具定义",
+      "type": "实",
+      "src": "引10",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.17_orch_模型编排/E.17.02_图操作工具集.md"
+     },
+     {
+      "id": "E.17.03",
+      "name": "提议与幽灵节点",
+      "desc": "生命周期：提议 → 采纳 / 拒绝 → 过期",
+      "type": "实",
+      "src": "引10, 设12",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.17_orch_模型编排/E.17.03_提议与幽灵节点.md"
+     },
+     {
+      "id": "E.17.04",
+      "name": "运行时展开",
+      "desc": "运行中动态生成子图（Node Expansion）",
+      "type": "实",
+      "src": "选§7 ComfyUI",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.17_orch_模型编排/E.17.04_运行时展开.md"
+     },
+     {
+      "id": "E.17.05",
+      "name": "档位约束",
+      "desc": "不同档位下模型能做什么",
+      "type": "实",
+      "src": "引10",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.17_orch_模型编排/E.17.05_档位约束.md"
+     }
+    ],
+    "path": "E_内核_engine/E.17_orch_模型编排/E.17_orch_模型编排.md"
+   }
+  ],
+  "path": "E_内核_engine/E_内核_engine.md"
+ },
+ {
+  "id": "B",
+  "name": "后端服务",
+  "desc": "把内核包装成本机服务：HTTP 接口、实时事件流、会话与对话、设置",
+  "type": "总",
+  "src": "引09, 引15",
+  "lvl": 1,
+  "children": [
+   {
+    "id": "B.01",
+    "name": "后端总则",
+    "desc": "进程模型、启动顺序、优雅关闭、单实例",
+    "type": "规",
+    "src": "引15",
+    "lvl": 2,
+    "children": [],
+    "path": "B_后端服务/B.01_后端总则.md"
+   },
+   {
+    "id": "B.02",
+    "name": "harnessd 启动与组装",
+    "desc": "配置加载、依赖组装、开发模式代理、前端 embed、打开浏览器",
+    "type": "实",
+    "src": "引15",
+    "lvl": 2,
+    "children": [],
+    "path": "B_后端服务/B.02_harnessd_启动与组装.md"
+   },
+   {
+    "id": "B.03",
+    "name": "HTTP API 总则",
+    "desc": "所有接口共同遵守的规则",
+    "type": "规",
+    "src": "引09",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "B.03.01",
+      "name": "URL 与版本",
+      "desc": "/api/v1、资源命名",
+      "type": "规",
+      "src": "引09",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.03_HTTP_API_总则/B.03.01_URL_与版本.md"
+     },
+     {
+      "id": "B.03.02",
+      "name": "请求响应格式与分页",
+      "desc": "",
+      "type": "规",
+      "src": "引09",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.03_HTTP_API_总则/B.03.02_请求响应格式与分页.md"
+     },
+     {
+      "id": "B.03.03",
+      "name": "错误响应格式",
+      "desc": "",
+      "type": "规",
+      "src": "引09",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.03_HTTP_API_总则/B.03.03_错误响应格式.md"
+     },
+     {
+      "id": "B.03.04",
+      "name": "幂等键",
+      "desc": "",
+      "type": "规",
+      "src": "引09",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.03_HTTP_API_总则/B.03.04_幂等键.md"
+     },
+     {
+      "id": "B.03.05",
+      "name": "本机鉴权",
+      "desc": "随机 token、Origin 校验",
+      "type": "规",
+      "src": "引15",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.03_HTTP_API_总则/B.03.05_本机鉴权.md"
+     },
+     {
+      "id": "B.03.06",
+      "name": "OpenAPI 文档生成",
+      "desc": "",
+      "type": "规",
+      "src": "新",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.03_HTTP_API_总则/B.03.06_OpenAPI_文档生成.md"
+     }
+    ],
+    "path": "B_后端服务/B.03_HTTP_API_总则/B.03_HTTP_API_总则.md"
+   },
+   {
+    "id": "B.04",
+    "name": "API 资源",
+    "desc": "每组接口一份文档：路径、参数、响应、错误码、示例",
+    "type": "实",
+    "src": "引09",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "B.04.01",
+      "name": "graphs 图",
+      "desc": "",
+      "type": "实",
+      "src": "引09",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.04_API_资源/B.04.01_graphs_图.md"
+     },
+     {
+      "id": "B.04.02",
+      "name": "ops 操作提交",
+      "desc": "",
+      "type": "实",
+      "src": "引09",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.04_API_资源/B.04.02_ops_操作提交.md"
+     },
+     {
+      "id": "B.04.03",
+      "name": "runs 运行",
+      "desc": "",
+      "type": "实",
+      "src": "引09",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.04_API_资源/B.04.03_runs_运行.md"
+     },
+     {
+      "id": "B.04.04",
+      "name": "approvals 审批",
+      "desc": "",
+      "type": "实",
+      "src": "引09",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.04_API_资源/B.04.04_approvals_审批.md"
+     },
+     {
+      "id": "B.04.05",
+      "name": "mandates 授权书",
+      "desc": "",
+      "type": "实",
+      "src": "引09",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.04_API_资源/B.04.05_mandates_授权书.md"
+     },
+     {
+      "id": "B.04.06",
+      "name": "defs 节点库",
+      "desc": "",
+      "type": "实",
+      "src": "引09",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.04_API_资源/B.04.06_defs_节点库.md"
+     },
+     {
+      "id": "B.04.07",
+      "name": "models 模型与提供方",
+      "desc": "",
+      "type": "实",
+      "src": "引09",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.04_API_资源/B.04.07_models_模型与提供方.md"
+     },
+     {
+      "id": "B.04.08",
+      "name": "tools 与 MCP",
+      "desc": "",
+      "type": "实",
+      "src": "引09",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.04_API_资源/B.04.08_tools_与_MCP.md"
+     },
+     {
+      "id": "B.04.09",
+      "name": "sessions 与 messages 会话",
+      "desc": "",
+      "type": "实",
+      "src": "引15",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.04_API_资源/B.04.09_sessions_与_messages_会话.md"
+     },
+     {
+      "id": "B.04.10",
+      "name": "settings 设置",
+      "desc": "",
+      "type": "实",
+      "src": "引15",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.04_API_资源/B.04.10_settings_设置.md"
+     },
+     {
+      "id": "B.04.11",
+      "name": "audit 审计",
+      "desc": "",
+      "type": "实",
+      "src": "引09",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.04_API_资源/B.04.11_audit_审计.md"
+     },
+     {
+      "id": "B.04.12",
+      "name": "extensions 扩展包",
+      "desc": "",
+      "type": "实",
+      "src": "新",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.04_API_资源/B.04.12_extensions_扩展包.md"
+     },
+     {
+      "id": "B.04.13",
+      "name": "templates 模板",
+      "desc": "",
+      "type": "实",
+      "src": "新",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.04_API_资源/B.04.13_templates_模板.md"
+     },
+     {
+      "id": "B.04.14",
+      "name": "health 与诊断",
+      "desc": "",
+      "type": "实",
+      "src": "新",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.04_API_资源/B.04.14_health_与诊断.md"
+     }
+    ],
+    "path": "B_后端服务/B.04_API_资源/B.04_API_资源.md"
+   },
+   {
+    "id": "B.05",
+    "name": "SSE 事件流",
+    "desc": "实时推送",
+    "type": "实",
+    "src": "引09",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "B.05.01",
+      "name": "订阅中心",
+      "desc": "",
+      "type": "实",
+      "src": "引09",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.05_SSE_事件流/B.05.01_订阅中心.md"
+     },
+     {
+      "id": "B.05.02",
+      "name": "断线续传",
+      "desc": "Last-Event-ID、seq 补齐",
+      "type": "实",
+      "src": "引09",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.05_SSE_事件流/B.05.02_断线续传.md"
+     },
+     {
+      "id": "B.05.03",
+      "name": "心跳与背压",
+      "desc": "",
+      "type": "实",
+      "src": "引09",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.05_SSE_事件流/B.05.03_心跳与背压.md"
+     },
+     {
+      "id": "B.05.04",
+      "name": "三种流",
+      "desc": "运行流、图协同流、会话流",
+      "type": "实",
+      "src": "引09",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.05_SSE_事件流/B.05.04_三种流.md"
+     }
+    ],
+    "path": "B_后端服务/B.05_SSE_事件流/B.05_SSE_事件流.md"
+   },
+   {
+    "id": "B.06",
+    "name": "app 产品层",
+    "desc": "会话、对话、设置、引导",
+    "type": "实",
+    "src": "引15",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "B.06.01",
+      "name": "会话管理",
+      "desc": "",
+      "type": "实",
+      "src": "引15",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.06_app_产品层/B.06.01_会话管理.md"
+     },
+     {
+      "id": "B.06.02",
+      "name": "编排者对话 Agent",
+      "desc": "中间底部对话框背后的那个 Agent",
+      "type": "实",
+      "src": "引10, 引15",
+      "lvl": 3,
+      "children": [
+       {
+        "id": "B.06.02.01",
+        "name": "意图理解与工具选择",
+        "desc": "",
+        "type": "实",
+        "src": "引10",
+        "lvl": 4,
+        "children": [],
+        "path": "B_后端服务/B.06_app_产品层/B.06.02_编排者对话_Agent/B.06.02.01_意图理解与工具选择.md"
+       },
+       {
+        "id": "B.06.02.02",
+        "name": "与画布联动",
+        "desc": "附带选中节点、定位、高亮",
+        "type": "实",
+        "src": "demo v0.4",
+        "lvl": 4,
+        "children": [],
+        "path": "B_后端服务/B.06_app_产品层/B.06.02_编排者对话_Agent/B.06.02.02_与画布联动.md"
+       },
+       {
+        "id": "B.06.02.03",
+        "name": "回复流式输出",
+        "desc": "",
+        "type": "实",
+        "src": "引15",
+        "lvl": 4,
+        "children": [],
+        "path": "B_后端服务/B.06_app_产品层/B.06.02_编排者对话_Agent/B.06.02.03_回复流式输出.md"
+       }
+      ],
+      "path": "B_后端服务/B.06_app_产品层/B.06.02_编排者对话_Agent/B.06.02_编排者对话_Agent.md"
+     },
+     {
+      "id": "B.06.03",
+      "name": "设置",
+      "desc": "",
+      "type": "实",
+      "src": "引15",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.06_app_产品层/B.06.03_设置.md"
+     },
+     {
+      "id": "B.06.04",
+      "name": "首次引导",
+      "desc": "",
+      "type": "实",
+      "src": "引15",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.06_app_产品层/B.06.04_首次引导.md"
+     },
+     {
+      "id": "B.06.05",
+      "name": "模板实例化",
+      "desc": "",
+      "type": "实",
+      "src": "新",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.06_app_产品层/B.06.05_模板实例化.md"
+     }
+    ],
+    "path": "B_后端服务/B.06_app_产品层/B.06_app_产品层.md"
+   },
+   {
+    "id": "B.07",
+    "name": "platform 平台层",
+    "desc": "本机默认实现",
+    "type": "实",
+    "src": "引15",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "B.07.01",
+      "name": "本地鉴权",
+      "desc": "",
+      "type": "实",
+      "src": "引15",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.07_platform_平台层/B.07.01_本地鉴权.md"
+     },
+     {
+      "id": "B.07.02",
+      "name": "密钥存储",
+      "desc": "系统 keyring，失败回退加密文件",
+      "type": "实",
+      "src": "引01§5",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.07_platform_平台层/B.07.02_密钥存储.md"
+     },
+     {
+      "id": "B.07.03",
+      "name": "配置",
+      "desc": "",
+      "type": "实",
+      "src": "引15",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.07_platform_平台层/B.07.03_配置.md"
+     },
+     {
+      "id": "B.07.04",
+      "name": "单实例锁",
+      "desc": "",
+      "type": "实",
+      "src": "引15",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.07_platform_平台层/B.07.04_单实例锁.md"
+     },
+     {
+      "id": "B.07.05",
+      "name": "数据目录布局",
+      "desc": "数据库、blob、日志、扩展各放哪",
+      "type": "实",
+      "src": "新",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.07_platform_平台层/B.07.05_数据目录布局.md"
+     }
+    ],
+    "path": "B_后端服务/B.07_platform_平台层/B.07_platform_平台层.md"
+   },
+   {
+    "id": "B.08",
+    "name": "harnessctl 命令行",
+    "desc": "audit verify / estop / eval / export / import / doctor",
+    "type": "实",
+    "src": "引01",
+    "lvl": 2,
+    "children": [],
+    "path": "B_后端服务/B.08_harnessctl_命令行.md"
+   },
+   {
+    "id": "B.09",
+    "name": "后台维护任务",
+    "desc": "事件日志压缩、blob 回收、过期清理",
+    "type": "实",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "B_后端服务/B.09_后台维护任务.md"
+   }
+  ],
+  "path": "B_后端服务/B_后端服务.md"
+ },
+ {
+  "id": "W",
+  "name": "前端实现 web/",
+  "desc": "界面代码：外壳、画布引擎、面板、对话、页面",
+  "type": "总",
+  "src": "设18, demo v0.4",
+  "lvl": 1,
+  "children": [
+   {
+    "id": "W.01",
+    "name": "前端总则",
+    "desc": "Vite + React + TS；画布命令式渲染和 React 面板怎么分工；目录结构",
+    "type": "规",
+    "src": "设18",
+    "lvl": 2,
+    "children": [],
+    "path": "W_前端实现_web/W.01_前端总则.md"
+   },
+   {
+    "id": "W.02",
+    "name": "应用外壳与路由",
+    "desc": "整体框架",
+    "type": "实",
+    "src": "设18",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "W.02.01",
+      "name": "路由表",
+      "desc": "/、/c/:sessionId、/settings……",
+      "type": "实",
+      "src": "引01§3",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.02_应用外壳与路由/W.02.01_路由表.md"
+     },
+     {
+      "id": "W.02.02",
+      "name": "外壳布局",
+      "desc": "顶部条、左栏、画布、右栏、对话框的挂载和尺寸联动",
+      "type": "实",
+      "src": "demo v0.4",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.02_应用外壳与路由/W.02.02_外壳布局.md"
+     },
+     {
+      "id": "W.02.03",
+      "name": "主题切换",
+      "desc": "明暗主题、跟随系统",
+      "type": "实",
+      "src": "设02",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.02_应用外壳与路由/W.02.03_主题切换.md"
+     },
+     {
+      "id": "W.02.04",
+      "name": "快捷键注册中心",
+      "desc": "全局快捷键统一注册、冲突检测",
+      "type": "实",
+      "src": "设13",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.02_应用外壳与路由/W.02.04_快捷键注册中心.md"
+     }
+    ],
+    "path": "W_前端实现_web/W.02_应用外壳与路由/W.02_应用外壳与路由.md"
+   },
+   {
+    "id": "W.03",
+    "name": "状态层",
+    "desc": "zustand stores",
+    "type": "实",
+    "src": "设18§1",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "W.03.01",
+      "name": "graph store",
+      "desc": "",
+      "type": "实",
+      "src": "设18",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.03_状态层/W.03.01_graph_store.md"
+     },
+     {
+      "id": "W.03.02",
+      "name": "view store",
+      "desc": "只给画布用",
+      "type": "实",
+      "src": "设18",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.03_状态层/W.03.02_view_store.md"
+     },
+     {
+      "id": "W.03.03",
+      "name": "ui store",
+      "desc": "",
+      "type": "实",
+      "src": "设18",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.03_状态层/W.03.03_ui_store.md"
+     },
+     {
+      "id": "W.03.04",
+      "name": "run store",
+      "desc": "",
+      "type": "实",
+      "src": "设18",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.03_状态层/W.03.04_run_store.md"
+     },
+     {
+      "id": "W.03.05",
+      "name": "session store",
+      "desc": "",
+      "type": "实",
+      "src": "引15",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.03_状态层/W.03.05_session_store.md"
+     },
+     {
+      "id": "W.03.06",
+      "name": "model store",
+      "desc": "提议与幽灵节点",
+      "type": "实",
+      "src": "设12",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.03_状态层/W.03.06_model_store.md"
+     }
+    ],
+    "path": "W_前端实现_web/W.03_状态层/W.03_状态层.md"
+   },
+   {
+    "id": "W.04",
+    "name": "协议层",
+    "desc": "和后端通信",
+    "type": "实",
+    "src": "设18",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "W.04.01",
+      "name": "REST 客户端",
+      "desc": "",
+      "type": "实",
+      "src": "设18",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.04_协议层/W.04.01_REST_客户端.md"
+     },
+     {
+      "id": "W.04.02",
+      "name": "SSE 订阅与续传",
+      "desc": "",
+      "type": "实",
+      "src": "设18",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.04_协议层/W.04.02_SSE_订阅与续传.md"
+     },
+     {
+      "id": "W.04.03",
+      "name": "字段映射",
+      "desc": "snake_case ↔ camelCase",
+      "type": "实",
+      "src": "引01§3",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.04_协议层/W.04.03_字段映射.md"
+     },
+     {
+      "id": "W.04.04",
+      "name": "生成类型使用规则",
+      "desc": "",
+      "type": "规",
+      "src": "引01§4",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.04_协议层/W.04.04_生成类型使用规则.md"
+     },
+     {
+      "id": "W.04.05",
+      "name": "离线与重连",
+      "desc": "",
+      "type": "实",
+      "src": "新",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.04_协议层/W.04.05_离线与重连.md"
+     }
+    ],
+    "path": "W_前端实现_web/W.04_协议层/W.04_协议层.md"
+   },
+   {
+    "id": "W.05",
+    "name": "前端 Op 层",
+    "desc": "apply / inverse / validate / merge / dispatch、乐观更新与回滚",
+    "type": "实",
+    "src": "设18",
+    "lvl": 2,
+    "children": [],
+    "path": "W_前端实现_web/W.05_前端_Op_层.md"
+   },
+   {
+    "id": "W.06",
+    "name": "画布引擎",
+    "desc": "canvas/core，不依赖 React",
+    "type": "实",
+    "src": "设07, demo src",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "W.06.01",
+      "name": "引擎生命周期",
+      "desc": "挂载、订阅、销毁",
+      "type": "实",
+      "src": "设18",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.06_画布引擎/W.06.01_引擎生命周期.md"
+     },
+     {
+      "id": "W.06.02",
+      "name": "视图变换",
+      "desc": "平移、缩放、适应画布",
+      "type": "实",
+      "src": "设07",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.06_画布引擎/W.06.02_视图变换.md"
+     },
+     {
+      "id": "W.06.03",
+      "name": "节点渲染",
+      "desc": "",
+      "type": "实",
+      "src": "设08",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.06_画布引擎/W.06.03_节点渲染.md"
+     },
+     {
+      "id": "W.06.04",
+      "name": "连线渲染",
+      "desc": "",
+      "type": "实",
+      "src": "设09",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.06_画布引擎/W.06.04_连线渲染.md"
+     },
+     {
+      "id": "W.06.05",
+      "name": "LOD 与视口裁剪",
+      "desc": "",
+      "type": "实",
+      "src": "设17",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.06_画布引擎/W.06.05_LOD_与视口裁剪.md"
+     },
+     {
+      "id": "W.06.06",
+      "name": "DOM 池",
+      "desc": "",
+      "type": "实",
+      "src": "设17",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.06_画布引擎/W.06.06_DOM_池.md"
+     },
+     {
+      "id": "W.06.07",
+      "name": "选择与拖动",
+      "desc": "单选、多选、框选、拖动",
+      "type": "实",
+      "src": "设13",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.06_画布引擎/W.06.07_选择与拖动.md"
+     },
+     {
+      "id": "W.06.08",
+      "name": "连线交互",
+      "desc": "拖线、类型提示、吸附",
+      "type": "实",
+      "src": "设09",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.06_画布引擎/W.06.08_连线交互.md"
+     },
+     {
+      "id": "W.06.09",
+      "name": "键盘交互",
+      "desc": "",
+      "type": "实",
+      "src": "设13",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.06_画布引擎/W.06.09_键盘交互.md"
+     },
+     {
+      "id": "W.06.10",
+      "name": "几何计算",
+      "desc": "端口位置、贝塞尔、命中测试",
+      "type": "实",
+      "src": "设07",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.06_画布引擎/W.06.10_几何计算.md"
+     },
+     {
+      "id": "W.06.11",
+      "name": "自动布局",
+      "desc": "",
+      "type": "实",
+      "src": "demo src",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.06_画布引擎/W.06.11_自动布局.md"
+     },
+     {
+      "id": "W.06.12",
+      "name": "小地图",
+      "desc": "",
+      "type": "实",
+      "src": "设07",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.06_画布引擎/W.06.12_小地图.md"
+     },
+     {
+      "id": "W.06.13",
+      "name": "嵌套子图",
+      "desc": "预览、进入 / 返回转场、结构树、父图位置卡",
+      "type": "实",
+      "src": "demo v0.4 29_nest.js",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.06_画布引擎/W.06.13_嵌套子图.md"
+     },
+     {
+      "id": "W.06.14",
+      "name": "幽灵节点与提议渲染",
+      "desc": "",
+      "type": "实",
+      "src": "设12",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.06_画布引擎/W.06.14_幽灵节点与提议渲染.md"
+     },
+     {
+      "id": "W.06.15",
+      "name": "运行状态渲染",
+      "desc": "高频事件按帧合并",
+      "type": "实",
+      "src": "引09§5",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.06_画布引擎/W.06.15_运行状态渲染.md"
+     }
+    ],
+    "path": "W_前端实现_web/W.06_画布引擎/W.06_画布引擎.md"
+   },
+   {
+    "id": "W.07",
+    "name": "面板组件",
+    "desc": "画布以外的界面",
+    "type": "实",
+    "src": "设11, demo v0.4",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "W.07.01",
+      "name": "顶部条",
+      "desc": "面包屑、分支、模型、档位、运行 / 急停",
+      "type": "实",
+      "src": "demo v0.4",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.07_面板组件/W.07.01_顶部条.md"
+     },
+     {
+      "id": "W.07.02",
+      "name": "左侧栏",
+      "desc": "会话列表、结构树、节点库、设置入口；收成图标栏",
+      "type": "实",
+      "src": "demo v0.4",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.07_面板组件/W.07.02_左侧栏.md"
+     },
+     {
+      "id": "W.07.03",
+      "name": "右侧栏：属性",
+      "desc": "",
+      "type": "实",
+      "src": "设11",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.07_面板组件/W.07.03_右侧栏_属性.md"
+     },
+     {
+      "id": "W.07.04",
+      "name": "右侧栏：对话",
+      "desc": "完整对话历史",
+      "type": "实",
+      "src": "demo v0.4",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.07_面板组件/W.07.04_右侧栏_对话.md"
+     },
+     {
+      "id": "W.07.05",
+      "name": "右侧栏：运行",
+      "desc": "时间线、日志、指标",
+      "type": "实",
+      "src": "设11",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.07_面板组件/W.07.05_右侧栏_运行.md"
+     },
+     {
+      "id": "W.07.06",
+      "name": "停靠工具栏",
+      "desc": "",
+      "type": "实",
+      "src": "设11",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.07_面板组件/W.07.06_停靠工具栏.md"
+     },
+     {
+      "id": "W.07.07",
+      "name": "底部对话输入框",
+      "desc": "快捷指令、附带选中、编排者模型标签",
+      "type": "实",
+      "src": "demo v0.4",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.07_面板组件/W.07.07_底部对话输入框.md"
+     },
+     {
+      "id": "W.07.08",
+      "name": "浮动回复",
+      "desc": "最近 3 条",
+      "type": "实",
+      "src": "demo v0.4",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.07_面板组件/W.07.08_浮动回复.md"
+     },
+     {
+      "id": "W.07.09",
+      "name": "审批卡片",
+      "desc": "",
+      "type": "实",
+      "src": "设12",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.07_面板组件/W.07.09_审批卡片.md"
+     },
+     {
+      "id": "W.07.10",
+      "name": "提示与横幅",
+      "desc": "Toast、急停横幅",
+      "type": "实",
+      "src": "设14",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.07_面板组件/W.07.10_提示与横幅.md"
+     },
+     {
+      "id": "W.07.11",
+      "name": "右键菜单与命令面板",
+      "desc": "",
+      "type": "实",
+      "src": "设13",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.07_面板组件/W.07.11_右键菜单与命令面板.md"
+     }
+    ],
+    "path": "W_前端实现_web/W.07_面板组件/W.07_面板组件.md"
+   },
+   {
+    "id": "W.08",
+    "name": "基础组件库",
+    "desc": "components/ui",
+    "type": "实",
+    "src": "设10",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "W.08.01",
+      "name": "按钮类",
+      "desc": "",
+      "type": "实",
+      "src": "设10",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.08_基础组件库/W.08.01_按钮类.md"
+     },
+     {
+      "id": "W.08.02",
+      "name": "输入类",
+      "desc": "文本、数字步进、滑块",
+      "type": "实",
+      "src": "设10",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.08_基础组件库/W.08.02_输入类.md"
+     },
+     {
+      "id": "W.08.03",
+      "name": "选择类",
+      "desc": "下拉、分段、开关",
+      "type": "实",
+      "src": "设10",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.08_基础组件库/W.08.03_选择类.md"
+     },
+     {
+      "id": "W.08.04",
+      "name": "浮层类",
+      "desc": "Tooltip、Menu、Dialog、Popover",
+      "type": "实",
+      "src": "设10",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.08_基础组件库/W.08.04_浮层类.md"
+     },
+     {
+      "id": "W.08.05",
+      "name": "反馈类",
+      "desc": "Toast、Badge、进度",
+      "type": "实",
+      "src": "设10",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.08_基础组件库/W.08.05_反馈类.md"
+     }
+    ],
+    "path": "W_前端实现_web/W.08_基础组件库/W.08_基础组件库.md"
+   },
+   {
+    "id": "W.09",
+    "name": "页面",
+    "desc": "整页界面",
+    "type": "实",
+    "src": "新",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "W.09.01",
+      "name": "会话首页与空状态",
+      "desc": "",
+      "type": "实",
+      "src": "设14",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.09_页面/W.09.01_会话首页与空状态.md"
+     },
+     {
+      "id": "W.09.02",
+      "name": "设置页",
+      "desc": "模型提供方、密钥、价格表、MCP、外观",
+      "type": "实",
+      "src": "引15",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.09_页面/W.09.02_设置页.md"
+     },
+     {
+      "id": "W.09.03",
+      "name": "首次引导页",
+      "desc": "",
+      "type": "实",
+      "src": "引15",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.09_页面/W.09.03_首次引导页.md"
+     },
+     {
+      "id": "W.09.04",
+      "name": "扩展与节点库管理",
+      "desc": "",
+      "type": "实",
+      "src": "新",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.09_页面/W.09.04_扩展与节点库管理.md"
+     },
+     {
+      "id": "W.09.05",
+      "name": "运行历史与回放",
+      "desc": "",
+      "type": "实",
+      "src": "设11",
+      "lvl": 3,
+      "children": [],
+      "path": "W_前端实现_web/W.09_页面/W.09.05_运行历史与回放.md"
+     }
+    ],
+    "path": "W_前端实现_web/W.09_页面/W.09_页面.md"
+   },
+   {
+    "id": "W.10",
+    "name": "国际化与格式化",
+    "desc": "文案抽取、数字时间格式",
+    "type": "实",
+    "src": "设18",
+    "lvl": 2,
+    "children": [],
+    "path": "W_前端实现_web/W.10_国际化与格式化.md"
+   },
+   {
+    "id": "W.11",
+    "name": "前端性能实现",
+    "desc": "200 节点基准、帧率监控",
+    "type": "实",
+    "src": "设17",
+    "lvl": 2,
+    "children": [],
+    "path": "W_前端实现_web/W.11_前端性能实现.md"
+   },
+   {
+    "id": "W.12",
+    "name": "前端测试",
+    "desc": "vitest、Playwright、视觉回归",
+    "type": "实",
+    "src": "引12",
+    "lvl": 2,
+    "children": [],
+    "path": "W_前端实现_web/W.12_前端测试.md"
+   }
+  ],
+  "path": "W_前端实现_web/W_前端实现_web.md"
+ },
+ {
+  "id": "U",
+  "name": "UI/UX 规范",
+  "desc": "界面长什么样、怎么交互；前端实现必须照这个做",
+  "type": "总",
+  "src": "DESIGN, 设00–19",
+  "lvl": 1,
+  "children": [
+   {
+    "id": "U.01",
+    "name": "设计原则与气质",
+    "desc": "",
+    "type": "规",
+    "src": "设01",
+    "lvl": 2,
+    "children": [],
+    "path": "U_UI_UX_规范/U.01_设计原则与气质.md"
+   },
+   {
+    "id": "U.02",
+    "name": "设计令牌治理",
+    "desc": "令牌是唯一样式来源；新增令牌的流程",
+    "type": "规",
+    "src": "DESIGN",
+    "lvl": 2,
+    "children": [],
+    "path": "U_UI_UX_规范/U.02_设计令牌治理.md"
+   },
+   {
+    "id": "U.03",
+    "name": "色彩与主题",
+    "desc": "色彩系统",
+    "type": "规",
+    "src": "设02",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "U.03.01",
+      "name": "色板",
+      "desc": "",
+      "type": "规",
+      "src": "设02",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.03_色彩与主题/U.03.01_色板.md"
+     },
+     {
+      "id": "U.03.02",
+      "name": "语义色",
+      "desc": "成功、警告、危险、模型、等待",
+      "type": "规",
+      "src": "设02",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.03_色彩与主题/U.03.02_语义色.md"
+     },
+     {
+      "id": "U.03.03",
+      "name": "端口类型色",
+      "desc": "",
+      "type": "规",
+      "src": "DESIGN§2.4",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.03_色彩与主题/U.03.03_端口类型色.md"
+     },
+     {
+      "id": "U.03.04",
+      "name": "暗色主题适配",
+      "desc": "",
+      "type": "规",
+      "src": "设02",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.03_色彩与主题/U.03.04_暗色主题适配.md"
+     },
+     {
+      "id": "U.03.05",
+      "name": "内置主题",
+      "desc": "4 套内置配色 × 浅色 / 深色，主题文件格式与新增流程",
+      "type": "规",
+      "src": "demo v0.5",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.03_色彩与主题/U.03.05_内置主题.md"
+     }
+    ],
+    "path": "U_UI_UX_规范/U.03_色彩与主题/U.03_色彩与主题.md"
+   },
+   {
+    "id": "U.04",
+    "name": "字体与排版",
+    "desc": "改为自托管字体",
+    "type": "规",
+    "src": "设03",
+    "lvl": 2,
+    "children": [],
+    "path": "U_UI_UX_规范/U.04_字体与排版.md"
+   },
+   {
+    "id": "U.05",
+    "name": "间距、尺寸与栅格",
+    "desc": "",
+    "type": "规",
+    "src": "设04",
+    "lvl": 2,
+    "children": [],
+    "path": "U_UI_UX_规范/U.05_间距_尺寸与栅格.md"
+   },
+   {
+    "id": "U.06",
+    "name": "圆角、阴影与层级",
+    "desc": "z-index 分层表",
+    "type": "规",
+    "src": "设04",
+    "lvl": 2,
+    "children": [],
+    "path": "U_UI_UX_规范/U.06_圆角_阴影与层级.md"
+   },
+   {
+    "id": "U.07",
+    "name": "动效",
+    "desc": "动画规则",
+    "type": "规",
+    "src": "设05",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "U.07.01",
+      "name": "时长与缓动曲线",
+      "desc": "",
+      "type": "规",
+      "src": "设05",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.07_动效/U.07.01_时长与缓动曲线.md"
+     },
+     {
+      "id": "U.07.02",
+      "name": "嵌套转场",
+      "desc": "进入 / 返回子图的放大缩小",
+      "type": "规",
+      "src": "demo v0.4",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.07_动效/U.07.02_嵌套转场.md"
+     },
+     {
+      "id": "U.07.03",
+      "name": "运行状态动效",
+      "desc": "",
+      "type": "规",
+      "src": "设05",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.07_动效/U.07.03_运行状态动效.md"
+     },
+     {
+      "id": "U.07.04",
+      "name": "减少动效模式",
+      "desc": "",
+      "type": "规",
+      "src": "设16",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.07_动效/U.07.04_减少动效模式.md"
+     }
+    ],
+    "path": "U_UI_UX_规范/U.07_动效/U.07_动效.md"
+   },
+   {
+    "id": "U.08",
+    "name": "图标",
+    "desc": "",
+    "type": "规",
+    "src": "设06",
+    "lvl": 2,
+    "children": [],
+    "path": "U_UI_UX_规范/U.08_图标.md"
+   },
+   {
+    "id": "U.09",
+    "name": "应用布局",
+    "desc": "按新布局重写",
+    "type": "规",
+    "src": "设11, demo v0.4",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "U.09.01",
+      "name": "整体布局",
+      "desc": "画布居中、底部对话、左右侧栏、右栏默认收起",
+      "type": "规",
+      "src": "demo v0.4",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.09_应用布局/U.09.01_整体布局.md"
+     },
+     {
+      "id": "U.09.02",
+      "name": "侧栏收展规则",
+      "desc": "快捷键、记忆状态、专注模式",
+      "type": "规",
+      "src": "demo v0.4",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.09_应用布局/U.09.02_侧栏收展规则.md"
+     },
+     {
+      "id": "U.09.03",
+      "name": "响应式与窄屏",
+      "desc": "多宽时右栏改覆盖、左栏改图标栏",
+      "type": "规",
+      "src": "demo v0.4",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.09_应用布局/U.09.03_响应式与窄屏.md"
+     },
+     {
+      "id": "U.09.04",
+      "name": "会话切换",
+      "desc": "每个会话各自保存的现场，切换时整体恢复；结构树跟随当前会话",
+      "type": "规",
+      "src": "demo v0.5",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.09_应用布局/U.09.04_会话切换.md"
+     },
+     {
+      "id": "U.09.05",
+      "name": "通知中心",
+      "desc": "铃铛：待我处理、动态；可以直接批准 / 驳回",
+      "type": "规",
+      "src": "demo v0.5",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.09_应用布局/U.09.05_通知中心.md"
+     },
+     {
+      "id": "U.09.06",
+      "name": "底部输入框",
+      "desc": "模型与推理强度、附件与 @、斜杠命令、上下文环",
+      "type": "规",
+      "src": "demo v0.5",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.09_应用布局/U.09.06_底部输入框.md"
+     },
+     {
+      "id": "U.09.07",
+      "name": "会话监控",
+      "desc": "筛选 → 运行列表 → 瀑布 + 按层分组的步骤 → 定位到画布",
+      "type": "规",
+      "src": "demo v0.5.3",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.09_应用布局/U.09.07_会话监控.md"
+     }
+    ],
+    "path": "U_UI_UX_规范/U.09_应用布局/U.09_应用布局.md"
+   },
+   {
+    "id": "U.10",
+    "name": "画布视觉",
+    "desc": "画布上的视觉规则",
+    "type": "规",
+    "src": "设07–09",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "U.10.01",
+      "name": "背景与网格",
+      "desc": "",
+      "type": "规",
+      "src": "设07",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.10_画布视觉/U.10.01_背景与网格.md"
+     },
+     {
+      "id": "U.10.02",
+      "name": "节点视觉与状态",
+      "desc": "各运行状态的样子",
+      "type": "规",
+      "src": "设08",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.10_画布视觉/U.10.02_节点视觉与状态.md"
+     },
+     {
+      "id": "U.10.03",
+      "name": "端口与连线",
+      "desc": "",
+      "type": "规",
+      "src": "设09",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.10_画布视觉/U.10.03_端口与连线.md"
+     },
+     {
+      "id": "U.10.04",
+      "name": "子图节点视觉",
+      "desc": "叠层阴影、缩略图、节点数",
+      "type": "规",
+      "src": "设08, demo v0.4",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.10_画布视觉/U.10.04_子图节点视觉.md"
+     },
+     {
+      "id": "U.10.05",
+      "name": "选中与高亮",
+      "desc": "",
+      "type": "规",
+      "src": "设08",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.10_画布视觉/U.10.05_选中与高亮.md"
+     },
+     {
+      "id": "U.10.06",
+      "name": "LOD 分级",
+      "desc": "缩小到多少隐藏什么",
+      "type": "规",
+      "src": "设17",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.10_画布视觉/U.10.06_LOD_分级.md"
+     },
+     {
+      "id": "U.10.07",
+      "name": "参数与接口",
+      "desc": "直接填或接线；提示词写在哪；预览最终提示词",
+      "type": "规",
+      "src": "demo v0.5.2",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.10_画布视觉/U.10.07_参数与接口.md"
+     }
+    ],
+    "path": "U_UI_UX_规范/U.10_画布视觉/U.10_画布视觉.md"
+   },
+   {
+    "id": "U.11",
+    "name": "控件规范",
+    "desc": "",
+    "type": "规",
+    "src": "设10",
+    "lvl": 2,
+    "children": [],
+    "path": "U_UI_UX_规范/U.11_控件规范.md"
+   },
+   {
+    "id": "U.12",
+    "name": "模型操作者界面",
+    "desc": "AI 标记、提议、幽灵节点、采纳 / 拒绝、档位展示",
+    "type": "规",
+    "src": "设12",
+    "lvl": 2,
+    "children": [],
+    "path": "U_UI_UX_规范/U.12_模型操作者界面.md"
+   },
+   {
+    "id": "U.13",
+    "name": "交互模式",
+    "desc": "交互规则",
+    "type": "规",
+    "src": "设13",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "U.13.01",
+      "name": "选择与多选",
+      "desc": "",
+      "type": "规",
+      "src": "设13",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.13_交互模式/U.13.01_选择与多选.md"
+     },
+     {
+      "id": "U.13.02",
+      "name": "拖拽与连线",
+      "desc": "",
+      "type": "规",
+      "src": "设13",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.13_交互模式/U.13.02_拖拽与连线.md"
+     },
+     {
+      "id": "U.13.03",
+      "name": "撤销与重做",
+      "desc": "按 actor 撤销、历史面板",
+      "type": "规",
+      "src": "设13",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.13_交互模式/U.13.03_撤销与重做.md"
+     },
+     {
+      "id": "U.13.04",
+      "name": "快捷键总表",
+      "desc": "全部快捷键一张表，不许冲突",
+      "type": "规",
+      "src": "设13, demo v0.4",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.13_交互模式/U.13.04_快捷键总表.md"
+     },
+     {
+      "id": "U.13.05",
+      "name": "右键菜单与命令面板",
+      "desc": "",
+      "type": "规",
+      "src": "设13",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.13_交互模式/U.13.05_右键菜单与命令面板.md"
+     },
+     {
+      "id": "U.13.06",
+      "name": "嵌套导航",
+      "desc": "预览、进入、返回、直达的规则",
+      "type": "规",
+      "src": "demo v0.4",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.13_交互模式/U.13.06_嵌套导航.md"
+     }
+    ],
+    "path": "U_UI_UX_规范/U.13_交互模式/U.13_交互模式.md"
+   },
+   {
+    "id": "U.14",
+    "name": "状态反馈与异常",
+    "desc": "各种状态怎么告诉用户",
+    "type": "规",
+    "src": "设14",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "U.14.01",
+      "name": "加载",
+      "desc": "",
+      "type": "规",
+      "src": "设14",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.14_状态反馈与异常/U.14.01_加载.md"
+     },
+     {
+      "id": "U.14.02",
+      "name": "空状态",
+      "desc": "",
+      "type": "规",
+      "src": "设14",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.14_状态反馈与异常/U.14.02_空状态.md"
+     },
+     {
+      "id": "U.14.03",
+      "name": "错误与恢复",
+      "desc": "",
+      "type": "规",
+      "src": "设14",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.14_状态反馈与异常/U.14.03_错误与恢复.md"
+     },
+     {
+      "id": "U.14.04",
+      "name": "运行中、等待审批、急停",
+      "desc": "",
+      "type": "规",
+      "src": "设14",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.14_状态反馈与异常/U.14.04_运行中_等待审批_急停.md"
+     },
+     {
+      "id": "U.14.05",
+      "name": "离线与重连",
+      "desc": "",
+      "type": "规",
+      "src": "新",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.14_状态反馈与异常/U.14.05_离线与重连.md"
+     }
+    ],
+    "path": "U_UI_UX_规范/U.14_状态反馈与异常/U.14_状态反馈与异常.md"
+   },
+   {
+    "id": "U.15",
+    "name": "文案与术语",
+    "desc": "语气、用词、错误提示写法",
+    "type": "规",
+    "src": "设15",
+    "lvl": 2,
+    "children": [],
+    "path": "U_UI_UX_规范/U.15_文案与术语.md"
+   },
+   {
+    "id": "U.16",
+    "name": "可访问性",
+    "desc": "键盘可达、对比度、读屏",
+    "type": "规",
+    "src": "设16",
+    "lvl": 2,
+    "children": [],
+    "path": "U_UI_UX_规范/U.16_可访问性.md"
+   },
+   {
+    "id": "U.17",
+    "name": "性能体验预算",
+    "desc": "首屏、交互响应、帧率指标",
+    "type": "规",
+    "src": "设17",
+    "lvl": 2,
+    "children": [],
+    "path": "U_UI_UX_规范/U.17_性能体验预算.md"
+   },
+   {
+    "id": "U.18",
+    "name": "首次使用体验",
+    "desc": "第一次打开到第一次成功运行",
+    "type": "规",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "U_UI_UX_规范/U.18_首次使用体验.md"
+   },
+   {
+    "id": "U.19",
+    "name": "用户流程",
+    "desc": "关键任务的完整步骤图",
+    "type": "规",
+    "src": "新",
+    "lvl": 2,
+    "children": [
+     {
+      "id": "U.19.01",
+      "name": "新建会话到第一次运行",
+      "desc": "",
+      "type": "规",
+      "src": "新",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.19_用户流程/U.19.01_新建会话到第一次运行.md"
+     },
+     {
+      "id": "U.19.02",
+      "name": "用对话改图",
+      "desc": "",
+      "type": "规",
+      "src": "设12",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.19_用户流程/U.19.02_用对话改图.md"
+     },
+     {
+      "id": "U.19.03",
+      "name": "审批",
+      "desc": "",
+      "type": "规",
+      "src": "设12",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.19_用户流程/U.19.03_审批.md"
+     },
+     {
+      "id": "U.19.04",
+      "name": "急停与恢复",
+      "desc": "",
+      "type": "规",
+      "src": "设14",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.19_用户流程/U.19.04_急停与恢复.md"
+     },
+     {
+      "id": "U.19.05",
+      "name": "调试失败节点",
+      "desc": "",
+      "type": "规",
+      "src": "设11",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.19_用户流程/U.19.05_调试失败节点.md"
+     },
+     {
+      "id": "U.19.06",
+      "name": "打开子图",
+      "desc": "",
+      "type": "规",
+      "src": "demo v0.4",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.19_用户流程/U.19.06_打开子图.md"
+     },
+     {
+      "id": "U.19.07",
+      "name": "配置模型与密钥",
+      "desc": "",
+      "type": "规",
+      "src": "新",
+      "lvl": 3,
+      "children": [],
+      "path": "U_UI_UX_规范/U.19_用户流程/U.19.07_配置模型与密钥.md"
+     }
+    ],
+    "path": "U_UI_UX_规范/U.19_用户流程/U.19_用户流程.md"
+   },
+   {
+    "id": "U.20",
+    "name": "交付验收清单",
+    "desc": "界面上线前逐项检查",
+    "type": "规",
+    "src": "设19",
+    "lvl": 2,
+    "children": [],
+    "path": "U_UI_UX_规范/U.20_交付验收清单.md"
+   },
+   {
+    "id": "U.21",
+    "name": "中心窗口",
+    "desc": "包 · 连接 · 资源库 · 设置 四个分区",
+    "type": "规",
+    "src": "demo v0.5.2",
+    "lvl": 2,
+    "children": [],
+    "path": "U_UI_UX_规范/U.21_中心窗口.md"
+   },
+   {
+    "id": "U.22",
+    "name": "节点库",
+    "desc": "分类树、来源、搜索、收藏、最近、灰显未启用",
+    "type": "规",
+    "src": "demo v0.5.2",
+    "lvl": 2,
+    "children": [],
+    "path": "U_UI_UX_规范/U.22_节点库.md"
+   },
+   {
+    "id": "U.23",
+    "name": "视觉精修规则",
+    "desc": "色彩比例、去边框、卡片材质、画布背景、少文字",
+    "type": "规",
+    "src": "demo v0.5.3",
+    "lvl": 2,
+    "children": [],
+    "path": "U_UI_UX_规范/U.23_视觉精修规则.md"
+   },
+   {
+    "id": "U.24",
+    "name": "待修问题清单",
+    "desc": "用户对 demo 的反馈，尚未处理",
+    "type": "说",
+    "src": "用户反馈",
+    "lvl": 2,
+    "children": [],
+    "path": "U_UI_UX_规范/U.24_待修问题清单.md"
+   }
+  ],
+  "path": "U_UI_UX_规范/U_UI_UX_规范.md"
+ },
+ {
+  "id": "S",
+  "name": "安全与隐私",
+  "desc": "产品会调用模型、执行工具和代码，必须单独说明怎么防出事",
+  "type": "总",
+  "src": "引07",
+  "lvl": 1,
+  "children": [
+   {
+    "id": "S.01",
+    "name": "威胁模型",
+    "desc": "攻击面：本机服务、浏览器、模型输出、工具、扩展、MCP；每项的风险与对策",
+    "type": "规",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "S_安全与隐私/S.01_威胁模型.md"
+   },
+   {
+    "id": "S.02",
+    "name": "本机服务安全",
+    "desc": "只监听 127.0.0.1、Origin 校验、防 DNS 重绑定、CSRF",
+    "type": "规",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "S_安全与隐私/S.02_本机服务安全.md"
+   },
+   {
+    "id": "S.03",
+    "name": "密钥与凭据管理",
+    "desc": "存哪、怎么显示、日志里绝不出现",
+    "type": "规",
+    "src": "引07",
+    "lvl": 2,
+    "children": [],
+    "path": "S_安全与隐私/S.03_密钥与凭据管理.md"
+   },
+   {
+    "id": "S.04",
+    "name": "授权与审批规则",
+    "desc": "五档授权在规范层面的定义",
+    "type": "规",
+    "src": "引07",
+    "lvl": 2,
+    "children": [],
+    "path": "S_安全与隐私/S.04_授权与审批规则.md"
+   },
+   {
+    "id": "S.05",
+    "name": "提示词注入与污染防护",
+    "desc": "外部内容可能藏指令，怎么标记、怎么限制",
+    "type": "规",
+    "src": "引07",
+    "lvl": 2,
+    "children": [],
+    "path": "S_安全与隐私/S.05_提示词注入与污染防护.md"
+   },
+   {
+    "id": "S.06",
+    "name": "工具与代码执行沙箱",
+    "desc": "文件范围、网络、资源上限",
+    "type": "规",
+    "src": "引07",
+    "lvl": 2,
+    "children": [],
+    "path": "S_安全与隐私/S.06_工具与代码执行沙箱.md"
+   },
+   {
+    "id": "S.07",
+    "name": "网络出站控制",
+    "desc": "允许访问哪些地址",
+    "type": "规",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "S_安全与隐私/S.07_网络出站控制.md"
+   },
+   {
+    "id": "S.08",
+    "name": "扩展与 MCP 信任",
+    "desc": "签名、权限声明、首次启用确认",
+    "type": "规",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "S_安全与隐私/S.08_扩展与_MCP_信任.md"
+   },
+   {
+    "id": "S.09",
+    "name": "急停机制规范",
+    "desc": "触发方式、效果、解除只能由人",
+    "type": "规",
+    "src": "引07",
+    "lvl": 2,
+    "children": [],
+    "path": "S_安全与隐私/S.09_急停机制规范.md"
+   },
+   {
+    "id": "S.10",
+    "name": "审计日志与防篡改",
+    "desc": "哈希链、校验命令",
+    "type": "规",
+    "src": "引07",
+    "lvl": 2,
+    "children": [],
+    "path": "S_安全与隐私/S.10_审计日志与防篡改.md"
+   },
+   {
+    "id": "S.11",
+    "name": "本地数据与隐私",
+    "desc": "存了什么、存在哪、怎么导出、怎么彻底删除",
+    "type": "规",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "S_安全与隐私/S.11_本地数据与隐私.md"
+   },
+   {
+    "id": "S.12",
+    "name": "供应链安全",
+    "desc": "依赖扫描、SBOM、发布签名",
+    "type": "规",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "S_安全与隐私/S.12_供应链安全.md"
+   },
+   {
+    "id": "S.13",
+    "name": "安全测试与漏洞响应",
+    "desc": "",
+    "type": "规",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "S_安全与隐私/S.13_安全测试与漏洞响应.md"
+   }
+  ],
+  "path": "S_安全与隐私/S_安全与隐私.md"
+ },
+ {
+  "id": "Q",
+  "name": "质量与测试",
+  "desc": "怎么证明做对了；每个实施叶子的验收都引用这里",
+  "type": "总",
+  "src": "引12",
+  "lvl": 1,
+  "children": [
+   {
+    "id": "Q.01",
+    "name": "测试策略总则",
+    "desc": "测试分层、覆盖率门槛、哪些必须测",
+    "type": "规",
+    "src": "引12",
+    "lvl": 2,
+    "children": [],
+    "path": "Q_质量与测试/Q.01_测试策略总则.md"
+   },
+   {
+    "id": "Q.02",
+    "name": "单元测试规范",
+    "desc": "",
+    "type": "规",
+    "src": "引12",
+    "lvl": 2,
+    "children": [],
+    "path": "Q_质量与测试/Q.02_单元测试规范.md"
+   },
+   {
+    "id": "Q.03",
+    "name": "属性测试",
+    "desc": "Op 逆操作、合并等用随机测试",
+    "type": "规",
+    "src": "引12",
+    "lvl": 2,
+    "children": [],
+    "path": "Q_质量与测试/Q.03_属性测试.md"
+   },
+   {
+    "id": "Q.04",
+    "name": "集成测试",
+    "desc": "内核 + 存储 + 执行器",
+    "type": "规",
+    "src": "引12",
+    "lvl": 2,
+    "children": [],
+    "path": "Q_质量与测试/Q.04_集成测试.md"
+   },
+   {
+    "id": "Q.05",
+    "name": "端到端测试",
+    "desc": "Playwright 关键用户流程",
+    "type": "规",
+    "src": "引12",
+    "lvl": 2,
+    "children": [],
+    "path": "Q_质量与测试/Q.05_端到端测试.md"
+   },
+   {
+    "id": "Q.06",
+    "name": "模型调用测试",
+    "desc": "fake 模型与录放，CI 不调真模型",
+    "type": "规",
+    "src": "引12",
+    "lvl": 2,
+    "children": [],
+    "path": "Q_质量与测试/Q.06_模型调用测试.md"
+   },
+   {
+    "id": "Q.07",
+    "name": "评测体系",
+    "desc": "模板效果评测（Promptfoo）",
+    "type": "规",
+    "src": "引12, 选",
+    "lvl": 2,
+    "children": [],
+    "path": "Q_质量与测试/Q.07_评测体系.md"
+   },
+   {
+    "id": "Q.08",
+    "name": "性能基准",
+    "desc": "画布帧率、调度吞吐、事件写入速度",
+    "type": "规",
+    "src": "设17, 引12",
+    "lvl": 2,
+    "children": [],
+    "path": "Q_质量与测试/Q.08_性能基准.md"
+   },
+   {
+    "id": "Q.09",
+    "name": "崩溃恢复与故障注入",
+    "desc": "杀进程、断网、磁盘满",
+    "type": "规",
+    "src": "引04",
+    "lvl": 2,
+    "children": [],
+    "path": "Q_质量与测试/Q.09_崩溃恢复与故障注入.md"
+   },
+   {
+    "id": "Q.10",
+    "name": "视觉回归",
+    "desc": "截图对比",
+    "type": "规",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "Q_质量与测试/Q.10_视觉回归.md"
+   },
+   {
+    "id": "Q.11",
+    "name": "测试数据与夹具",
+    "desc": "",
+    "type": "规",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "Q_质量与测试/Q.11_测试数据与夹具.md"
+   },
+   {
+    "id": "Q.12",
+    "name": "缺陷管理与回归",
+    "desc": "",
+    "type": "规",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "Q_质量与测试/Q.12_缺陷管理与回归.md"
+   }
+  ],
+  "path": "Q_质量与测试/Q_质量与测试.md"
+ },
+ {
+  "id": "O",
+  "name": "构建、发布与运维",
+  "desc": "怎么打包给用户、怎么升级、出问题怎么查",
+  "type": "总",
+  "src": "引01, 引15",
+  "lvl": 1,
+  "children": [
+   {
+    "id": "O.01",
+    "name": "构建流水线",
+    "desc": "make gen / dev / build",
+    "type": "实",
+    "src": "引01§4",
+    "lvl": 2,
+    "children": [],
+    "path": "O_构建_发布与运维/O.01_构建流水线.md"
+   },
+   {
+    "id": "O.02",
+    "name": "CI 门禁",
+    "desc": "",
+    "type": "实",
+    "src": "引01§6",
+    "lvl": 2,
+    "children": [],
+    "path": "O_构建_发布与运维/O.02_CI_门禁.md"
+   },
+   {
+    "id": "O.03",
+    "name": "打包与单二进制",
+    "desc": "embed、六个平台交叉编译",
+    "type": "实",
+    "src": "引15",
+    "lvl": 2,
+    "children": [],
+    "path": "O_构建_发布与运维/O.03_打包与单二进制.md"
+   },
+   {
+    "id": "O.04",
+    "name": "发布与签名",
+    "desc": "Windows 签名、macOS 公证、校验和",
+    "type": "实",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "O_构建_发布与运维/O.04_发布与签名.md"
+   },
+   {
+    "id": "O.05",
+    "name": "安装、首次启动与卸载",
+    "desc": "",
+    "type": "实",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "O_构建_发布与运维/O.05_安装_首次启动与卸载.md"
+   },
+   {
+    "id": "O.06",
+    "name": "自动更新",
+    "desc": "检查、下载、校验、回滚",
+    "type": "实",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "O_构建_发布与运维/O.06_自动更新.md"
+   },
+   {
+    "id": "O.07",
+    "name": "数据目录、备份与迁移",
+    "desc": "",
+    "type": "实",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "O_构建_发布与运维/O.07_数据目录_备份与迁移.md"
+   },
+   {
+    "id": "O.08",
+    "name": "诊断与故障排查",
+    "desc": "doctor 命令、一键打包日志",
+    "type": "实",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "O_构建_发布与运维/O.08_诊断与故障排查.md"
+   },
+   {
+    "id": "O.09",
+    "name": "遥测",
+    "desc": "默认关闭，开启时只收什么",
+    "type": "规",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "O_构建_发布与运维/O.09_遥测.md"
+   },
+   {
+    "id": "O.10",
+    "name": "升级兼容策略",
+    "desc": "旧数据、旧图文档、旧扩展怎么兼容",
+    "type": "规",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "O_构建_发布与运维/O.10_升级兼容策略.md"
+   },
+   {
+    "id": "O.11",
+    "name": "桌面壳（可选）",
+    "desc": "Wails",
+    "type": "实",
+    "src": "引01§5",
+    "lvl": 2,
+    "children": [],
+    "path": "O_构建_发布与运维/O.11_桌面壳_可选.md"
+   }
+  ],
+  "path": "O_构建_发布与运维/O_构建_发布与运维.md"
+ },
+ {
+  "id": "X",
+  "name": "扩展生态",
+  "desc": "\"可扩展、高度自定义\"的落地：别人怎么加节点、加工具、做模板",
+  "type": "总",
+  "src": "引15 D7, 选§7",
+  "lvl": 1,
+  "children": [
+   {
+    "id": "X.01",
+    "name": "扩展体系总则",
+    "desc": "能扩展什么：节点、类型、配方、角色卡、工具、模板",
+    "type": "规",
+    "src": "引15 D7",
+    "lvl": 2,
+    "children": [],
+    "path": "X_扩展生态/X.01_扩展体系总则.md"
+   },
+   {
+    "id": "X.02",
+    "name": "扩展包格式与清单",
+    "desc": "",
+    "type": "规",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "X_扩展生态/X.02_扩展包格式与清单.md"
+   },
+   {
+    "id": "X.03",
+    "name": "声明式节点编写指南",
+    "desc": "不写代码，用 YAML 写 prompt / http / mcp / subgraph 节点",
+    "type": "说",
+    "src": "引15 D7",
+    "lvl": 2,
+    "children": [],
+    "path": "X_扩展生态/X.03_声明式节点编写指南.md"
+   },
+   {
+    "id": "X.04",
+    "name": "编程式节点 SDK",
+    "desc": "用 Go 写节点",
+    "type": "说",
+    "src": "引15 D7",
+    "lvl": 2,
+    "children": [],
+    "path": "X_扩展生态/X.04_编程式节点_SDK.md"
+   },
+   {
+    "id": "X.05",
+    "name": "自定义端口类型",
+    "desc": "",
+    "type": "说",
+    "src": "引02",
+    "lvl": 2,
+    "children": [],
+    "path": "X_扩展生态/X.05_自定义端口类型.md"
+   },
+   {
+    "id": "X.06",
+    "name": "配方与角色卡编写",
+    "desc": "",
+    "type": "说",
+    "src": "引06",
+    "lvl": 2,
+    "children": [],
+    "path": "X_扩展生态/X.06_配方与角色卡编写.md"
+   },
+   {
+    "id": "X.07",
+    "name": "工具与技能扩展",
+    "desc": "",
+    "type": "说",
+    "src": "引05",
+    "lvl": 2,
+    "children": [],
+    "path": "X_扩展生态/X.07_工具与技能扩展.md"
+   },
+   {
+    "id": "X.08",
+    "name": "MCP 服务接入",
+    "desc": "",
+    "type": "说",
+    "src": "引05",
+    "lvl": 2,
+    "children": [],
+    "path": "X_扩展生态/X.08_MCP_服务接入.md"
+   },
+   {
+    "id": "X.09",
+    "name": "模板包编写与分享",
+    "desc": "",
+    "type": "说",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "X_扩展生态/X.09_模板包编写与分享.md"
+   },
+   {
+    "id": "X.10",
+    "name": "扩展版本、兼容与签名",
+    "desc": "",
+    "type": "规",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "X_扩展生态/X.10_扩展版本_兼容与签名.md"
+   }
+  ],
+  "path": "X_扩展生态/X_扩展生态.md"
+ },
+ {
+  "id": "T",
+  "name": "内置模板",
+  "desc": "随产品发布的模板，也是最好的示例与测试用例",
+  "type": "总",
+  "src": "demo",
+  "lvl": 1,
+  "children": [
+   {
+    "id": "T.01",
+    "name": "模板总则",
+    "desc": "模板的质量标准、命名、必须带的说明",
+    "type": "规",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "T_内置模板/T.01_模板总则.md"
+   },
+   {
+    "id": "T.02",
+    "name": "闭环迭代",
+    "desc": "",
+    "type": "实",
+    "src": "demo",
+    "lvl": 2,
+    "children": [],
+    "path": "T_内置模板/T.02_闭环迭代.md"
+   },
+   {
+    "id": "T.03",
+    "name": "生成-评审",
+    "desc": "",
+    "type": "实",
+    "src": "引01",
+    "lvl": 2,
+    "children": [],
+    "path": "T_内置模板/T.03_生成-评审.md"
+   },
+   {
+    "id": "T.04",
+    "name": "代码评审",
+    "desc": "",
+    "type": "实",
+    "src": "引01",
+    "lvl": 2,
+    "children": [],
+    "path": "T_内置模板/T.04_代码评审.md"
+   },
+   {
+    "id": "T.05",
+    "name": "资料采集（可复用子图）",
+    "desc": "",
+    "type": "实",
+    "src": "demo v0.4",
+    "lvl": 2,
+    "children": [],
+    "path": "T_内置模板/T.05_资料采集_可复用子图.md"
+   }
+  ],
+  "path": "T_内置模板/T_内置模板.md"
+ },
+ {
+  "id": "D",
+  "name": "用户文档",
+  "desc": "写给最终用户看的说明",
+  "type": "总",
+  "src": "新",
+  "lvl": 1,
+  "children": [
+   {
+    "id": "D.01",
+    "name": "快速开始",
+    "desc": "",
+    "type": "说",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "D_用户文档/D.01_快速开始.md"
+   },
+   {
+    "id": "D.02",
+    "name": "概念讲解",
+    "desc": "节点、连线、子图、运行、授权档位，用大白话讲",
+    "type": "说",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "D_用户文档/D.02_概念讲解.md"
+   },
+   {
+    "id": "D.03",
+    "name": "操作手册",
+    "desc": "画布、对话、运行、审批",
+    "type": "说",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "D_用户文档/D.03_操作手册.md"
+   },
+   {
+    "id": "D.04",
+    "name": "模型与密钥配置",
+    "desc": "",
+    "type": "说",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "D_用户文档/D.04_模型与密钥配置.md"
+   },
+   {
+    "id": "D.05",
+    "name": "使用模板",
+    "desc": "",
+    "type": "说",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "D_用户文档/D.05_使用模板.md"
+   },
+   {
+    "id": "D.06",
+    "name": "常见问题与排错",
+    "desc": "",
+    "type": "说",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "D_用户文档/D.06_常见问题与排错.md"
+   },
+   {
+    "id": "D.07",
+    "name": "快捷键速查",
+    "desc": "",
+    "type": "说",
+    "src": "设13",
+    "lvl": 2,
+    "children": [],
+    "path": "D_用户文档/D.07_快捷键速查.md"
+   }
+  ],
+  "path": "D_用户文档/D_用户文档.md"
+ },
+ {
+  "id": "R",
+  "name": "参考与附录",
+  "desc": "背景资料，不作为约束",
+  "type": "总",
+  "src": "",
+  "lvl": 1,
+  "children": [
+   {
+    "id": "R.01",
+    "name": "技术选型调研",
+    "desc": "现有 v0.5 调研报告",
+    "type": "说",
+    "src": "选",
+    "lvl": 2,
+    "children": [],
+    "path": "R_参考与附录/R.01_技术选型调研.md"
+   },
+   {
+    "id": "R.02",
+    "name": "参考实现对照",
+    "desc": "现有 16 号",
+    "type": "说",
+    "src": "引16",
+    "lvl": 2,
+    "children": [],
+    "path": "R_参考与附录/R.02_参考实现对照.md"
+   },
+   {
+    "id": "R.03",
+    "name": "原型与 demo 索引",
+    "desc": "每个 demo 演示了什么、对应哪个文档",
+    "type": "说",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "R_参考与附录/R.03_原型与_demo_索引.md"
+   },
+   {
+    "id": "R.04",
+    "name": "旧文档映射",
+    "desc": "v0.1–v0.5 每份旧文档对应到新树的哪个节点",
+    "type": "说",
+    "src": "新",
+    "lvl": 2,
+    "children": [],
+    "path": "R_参考与附录/R.04_旧文档映射.md"
+   }
+  ],
+  "path": "R_参考与附录/R_参考与附录.md"
+ }
+]

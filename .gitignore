@@ -1,0 +1,6 @@
+_quick_tmp_bundle.zip
+__pycache__/
+*.pyc
+~$*
+.DS_Store
+Thumbs.db

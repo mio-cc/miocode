@@ -1,0 +1,139 @@
+/* ===== 13_polish.css · 视觉打磨（demo v0.5.2） =====
+   原则（参考 Linear、Vercel、Arc、Raycast、Things、Awwwards 年度站点的共同做法）：
+   ① 框架：顶部条和左栏是同一块底色，不画分割线；画布和右栏是浮在底色上的圆角卡片，交接处靠留白和极淡的阴影，不靠线。
+   ② 层次：靠背景明度和阴影分层，控件不加边框；只有键盘焦点有外环。
+   ③ 画布：点阵 + 极淡的两团主题色光晕 + 细颗粒质感 + 跟随指针的柔光；减少动效时全部静止。
+   ④ 浮在画布上的面板用半透明 + 背景模糊（玻璃），和画布内容自然融合。
+   全部引用令牌；新增的框架令牌 --hx-frame-* 在本文件按明暗定义。 */
+
+/* ---------- 0 令牌：框架与阴影（浅色更轻、更柔；深色用内高光） ---------- */
+:root:not([data-theme="dark"]){
+  --hx-frame-line:color-mix(in srgb,var(--hx-text-1) 6%,transparent);
+  --hx-frame-sh:0 0 0 1px var(--hx-frame-line),0 1px 2px color-mix(in srgb,var(--hx-text-1) 4%,transparent),0 12px 36px -18px color-mix(in srgb,var(--hx-text-1) 16%,transparent);
+  --hx-shadow-node:0 0 0 1px color-mix(in srgb,var(--hx-text-1) 5%,transparent),0 1px 2px color-mix(in srgb,var(--hx-text-1) 5%,transparent),0 6px 16px -6px color-mix(in srgb,var(--hx-text-1) 10%,transparent);
+  --hx-shadow-node-drag:0 0 0 1px color-mix(in srgb,var(--hx-text-1) 6%,transparent),0 4px 10px color-mix(in srgb,var(--hx-text-1) 6%,transparent),0 22px 44px -12px color-mix(in srgb,var(--hx-text-1) 22%,transparent);
+  --hx-shadow-float:0 0 0 1px color-mix(in srgb,var(--hx-text-1) 5%,transparent),0 1px 2px color-mix(in srgb,var(--hx-text-1) 4%,transparent),0 10px 30px -8px color-mix(in srgb,var(--hx-text-1) 14%,transparent);
+  --hx-shadow-pop:0 0 0 1px color-mix(in srgb,var(--hx-text-1) 6%,transparent),0 4px 10px color-mix(in srgb,var(--hx-text-1) 5%,transparent),0 28px 64px -16px color-mix(in srgb,var(--hx-text-1) 26%,transparent);
+  --hx-soft:0 1px 2px color-mix(in srgb,var(--hx-text-1) 5%,transparent),0 0 0 1px color-mix(in srgb,var(--hx-text-1) 3.5%,transparent);
+  --hx-glass:color-mix(in srgb,var(--hx-bg-2) 78%,transparent);
+  --hx-grain-op:.045;
+}
+:root[data-theme="dark"]{
+  --hx-frame-line:rgba(255,255,255,.055);
+  --hx-frame-sh:0 0 0 1px var(--hx-frame-line),inset 0 1px 0 rgba(255,255,255,.035),0 16px 40px -20px rgba(0,0,0,.7);
+  --hx-soft:inset 0 1px 0 rgba(255,255,255,.04),0 0 0 1px rgba(255,255,255,.045);
+  --hx-glass:color-mix(in srgb,var(--hx-bg-2) 74%,transparent);
+  --hx-grain-op:.06;
+}
+:root{--hx-frame:8px;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body{font-feature-settings:"cv11","ss01";text-rendering:optimizeLegibility}
+
+/* ---------- 1 框架：底色一体，画布和右栏是浮起的卡片 ---------- */
+.hx-app.hx-l4{background:var(--hx-bg-0)}
+.hx-l4top{border-bottom:0 !important;box-shadow:none !important;background:transparent !important}
+.hx-shell{padding:0 var(--hx-frame) var(--hx-frame) 0;transition:grid-template-columns var(--hx-t-4) var(--hx-ease-out)}
+.hx-ls{background:transparent !important;border:0 !important}
+.hx-l4 .hx-main{position:relative;border:0 !important;border-radius:var(--hx-r-xl);overflow:hidden;background:var(--hx-bg-1);box-shadow:var(--hx-frame-sh);isolation:isolate}
+.hx-shell.ls-min .hx-l4 .hx-main,.hx-shell.ls-min .hx-main{margin-left:0}
+.hx-rs{margin-left:var(--hx-frame);border:0 !important;border-radius:var(--hx-r-xl);background:var(--hx-bg-2) !important;box-shadow:var(--hx-frame-sh);animation:hxRsIn var(--hx-t-4) var(--hx-ease-out)}
+.hx-rs.is-collapsed{margin:0;box-shadow:none}
+@keyframes hxRsIn{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:none}}
+.hx-rs__head{border-bottom:0 !important;height:48px;padding:0 var(--hx-s-4) 0 var(--hx-s-5)}
+.hx-rs__pane{border-top:0}
+.hx-insp__head{border-bottom:0 !important}
+.hx-drawer,.hx-drawer__head{border:0 !important;background:transparent !important}
+
+/* ---------- 2 画布背景 ---------- */
+.hx-l4 .hx-stage{background:var(--hx-bg-1);box-shadow:none}
+.hx-l4 .hx-stage .hx-body{position:relative;z-index:1}
+.hx-l4 .hx-viewport{background-color:transparent !important}
+.hx-l4 .hx-stage::before{content:"";position:absolute;inset:-15%;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(42% 38% at 10% 6%,color-mix(in srgb,var(--hx-accent) 9%,transparent),transparent 72%),
+    radial-gradient(40% 44% at 96% 100%,color-mix(in srgb,var(--hx-model) 8%,transparent),transparent 72%),
+    radial-gradient(26% 26% at 78% 4%,color-mix(in srgb,var(--hx-type-list) 5%,transparent),transparent 70%);
+  animation:hxAura 48s ease-in-out infinite alternate}
+@keyframes hxAura{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(-4%,3%,0) scale(1.06)}}
+.hx-l4 .hx-stage::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;box-shadow:none !important;opacity:var(--hx-grain-op);
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  background-size:160px 160px}
+:root[data-theme="dark"] .hx-l4 .hx-stage::after{filter:invert(1)}
+.hx-spot{position:absolute;inset:0;pointer-events:none;z-index:0;opacity:0;transition:opacity var(--hx-t-4) var(--hx-ease);
+  background:radial-gradient(260px circle at var(--mx,50%) var(--my,50%),color-mix(in srgb,var(--hx-accent) 7%,transparent),transparent 70%)}
+.hx-stage:hover .hx-spot{opacity:1}
+/* 画布四角的柔和暗角，让中心更聚焦 */
+.hx-vign{position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(120% 90% at 50% 45%,transparent 60%,color-mix(in srgb,var(--hx-bg-0) 55%,transparent) 100%)}
+.hx-reduce .hx-l4 .hx-stage::before,.hx-reduce .hx-spot{animation:none;display:none}
+@media (prefers-reduced-motion: reduce){.hx-l4 .hx-stage::before{animation:none}.hx-spot{display:none}}
+
+/* ---------- 3 浮在画布上的面板：玻璃 ---------- */
+.hx-l4 .hx-panel,.hx-l4 .hx-dock,.hx-l4 .hx-composer,.hx-l4 .hx-proposal{background:var(--hx-glass) !important;
+  -webkit-backdrop-filter:blur(18px) saturate(1.6);backdrop-filter:blur(18px) saturate(1.6)}
+.hx-l4comp .hx-composer__box{background:color-mix(in srgb,var(--hx-bg-3) 70%,transparent) !important;box-shadow:none !important}
+.hx-l4 .hx-composer{border-radius:18px;padding:var(--hx-s-4)}
+.hx-l4 .hx-composer:focus-within{box-shadow:var(--hx-shadow-float),0 0 0 3px color-mix(in srgb,var(--hx-accent) 18%,transparent) !important}
+.hx-l4comp textarea{background:transparent !important}
+
+/* ---------- 4 节点：去掉外框，靠阴影浮起 ---------- */
+:root:not([data-theme="dark"]) .hx-node{--nb:transparent}
+:root[data-theme="dark"] .hx-node{--nb:rgba(255,255,255,.06)}
+.hx-node__head{border-bottom-color:transparent !important}
+.hx-node__widgets{border-top:0 !important;padding-top:0 !important}
+.hx-node.is-selected{--nb:color-mix(in srgb,var(--hx-accent) 70%,transparent) !important;--ng:0 0 0 4px color-mix(in srgb,var(--hx-accent) 14%,transparent) !important}
+
+/* ---------- 5 控件：不加边框，靠填充和明度 ---------- */
+.hx-btn{box-shadow:none !important}
+.hx-btn.is-primary{box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 1px 2px color-mix(in srgb,var(--hx-primary) 30%,transparent) !important}
+.hx-btn:not(.is-primary):not(.is-ghost):not(.is-danger):not(.is-model):not(.is-ok){background:var(--hx-bg-4)}
+.hx-btn:not(.is-primary):not(.is-ghost):not(.is-danger):not(.is-model):not(.is-ok):hover{background:var(--hx-bg-5)}
+.hx-input,select.hx-input,textarea.hx-input{box-shadow:none !important;background:var(--hx-bg-4)}
+.hx-input:hover{background:var(--hx-bg-5)}
+.hx-input:focus{background:var(--hx-bg-2) !important;box-shadow:0 0 0 2px color-mix(in srgb,var(--hx-accent) 32%,transparent) !important}
+.hx-select:hover{box-shadow:none !important;background:var(--hx-bg-5)}
+.hx-chip{background:var(--hx-bg-4) !important;box-shadow:none !important}
+.hx-chip:hover{background:var(--hx-bg-5) !important;color:var(--hx-text-1)}
+.hx-level{background:var(--hx-bg-4) !important;box-shadow:none !important}
+.hx-level:hover{background:var(--hx-bg-5) !important}
+.hx-pal__btn{box-shadow:none !important;background:var(--hx-bg-4)}
+.hx-pal__btn:hover{background:var(--hx-bg-5)}
+.hx-pal__sw{box-shadow:none !important}
+.hx-pal__it.is-on{box-shadow:none !important;background:color-mix(in srgb,var(--hx-primary) 9%,var(--hx-bg-4))}
+.hx-seg{background:var(--hx-bg-4)}
+.hx-ctr .hx-seg button.is-on,.hx-pick .hx-seg button.is-on,.hx-inbox .hx-seg button.is-on,.hx-sheet .hx-seg button.is-on{box-shadow:0 1px 2px color-mix(in srgb,var(--hx-text-1) 10%,transparent) !important}
+.hx-iconbtn:hover{background:var(--hx-bg-4)}
+.hx-btn:focus-visible,.hx-iconbtn:focus-visible,.hx-chip:focus-visible,.hx-ctr__it:focus-visible,.hx-lib2__it:focus-visible{outline:0;box-shadow:0 0 0 2px color-mix(in srgb,var(--hx-accent) 45%,transparent) !important}
+
+/* 设置中心里的卡片、列表、表格：去框，用面板底色 + 极柔的阴影 */
+.hx-sc,.hx-kpi,.hx-pcard,.hx-acard,.hx-thm button,.hx-onb__g button,.hx-cvempty__tpl button{box-shadow:var(--hx-soft) !important}
+.hx-pcard:hover,.hx-acard:hover,.hx-thm button:hover,.hx-onb__g button:hover,.hx-cvempty__tpl button:hover{box-shadow:var(--hx-shadow-node) !important;transform:translateY(-1px)}
+.hx-thm button.is-on,.hx-onb__g button.is-on{box-shadow:var(--hx-soft) !important;background:color-mix(in srgb,var(--hx-primary) 9%,var(--hx-bg-2))}
+.hx-thm button.is-on strong::after,.hx-onb__g button.is-on b::after{content:"✓";margin-left:6px;color:var(--hx-primary);font-weight:600}
+.hx-code,.hx-prompt,.hx-att{box-shadow:none !important}
+.hx-att{background:var(--hx-bg-4)}
+.hx-sr+.hx-sr,.hx-li+.hx-li{border-top-color:color-mix(in srgb,var(--hx-text-1) 4.5%,transparent) !important}
+.hx-tbl th,.hx-tbl td{border-bottom-color:color-mix(in srgb,var(--hx-text-1) 4.5%,transparent) !important}
+.hx-ctr__nav{border-right:0 !important}
+.hx-ctr__win{background:var(--hx-bg-1)}
+.hx-sheet{box-shadow:-24px 0 48px -24px color-mix(in srgb,var(--hx-text-1) 25%,transparent) !important}
+.hx-ctr__foot,.hx-pick__f,.hx-sheet__f,.hx-sheet__h,.hx-pal__f{border-color:transparent !important}
+.hx-sheet__f{background:color-mix(in srgb,var(--hx-bg-4) 40%,transparent)}
+
+/* ---------- 6 侧栏：选中项微微浮起，分区标题更安静 ---------- */
+.hx-sess__item.is-cur,.hx-tree__i.is-cur{background:var(--hx-bg-2) !important;box-shadow:var(--hx-soft)}
+.hx-sess__item:hover:not(.is-cur),.hx-lib2__it:hover,.hx-tree__i:hover:not(.is-cur){background:color-mix(in srgb,var(--hx-bg-4) 70%,transparent) !important}
+.hx-ls__sech{letter-spacing:.02em}
+.hx-ls__foot{border-top:0 !important}
+.hx-ls__newbtn{background:var(--hx-bg-2) !important;box-shadow:var(--hx-soft) !important}
+.hx-ls__newbtn:hover{background:var(--hx-bg-3) !important}
+.hx-sesssearch .hx-input,.hx-lib__search .hx-input{background:color-mix(in srgb,var(--hx-bg-4) 80%,transparent)}
+
+/* ---------- 7 小细节 ---------- */
+.hx-ctr__head h2,.hx-onb h3,.hx-cvempty__h{letter-spacing:-.015em}
+.hx-kpi b,.hx-tbl .num{font-variant-numeric:tabular-nums}
+::selection{background:color-mix(in srgb,var(--hx-accent) 26%,transparent)}
+*{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--hx-text-1) 16%,transparent) transparent}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--hx-text-1) 14%,transparent);border-radius:10px;border:3px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background-color:color-mix(in srgb,var(--hx-text-1) 26%,transparent)}
+::-webkit-scrollbar-track{background:transparent}

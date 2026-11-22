@@ -1,0 +1,100 @@
+/* ===== 17_fix.css · 按 U.24 修正（demo v0.5.4） ===== */
+
+/* ---------- 1 运行按钮、H 标识：保持 v0.5.3 的实心主色（用户 2026-11-23 要求恢复） ---------- */
+.hx-ctr__brand i,.hx-onb__steps i.is-on{background:var(--hx-text-2) !important}
+
+/* ---------- 2 去掉重复按钮：专注（F 键仍可用）、右栏里的收起按钮（顶部开关已有） ---------- */
+#fullBtn,#rsClose{display:none !important}
+.hx-rs__head{padding-right:12px !important}
+
+/* ---------- 3 顶部条：侧栏开关与收起后的图标栏中线对齐；右侧图标更安静 ---------- */
+.hx-l4top{padding-left:13px !important}
+.hx-l4top .hx-iconbtn,.hx-pal__btn{color:var(--hx-text-3) !important;background:transparent !important}
+.hx-l4top .hx-iconbtn:hover,.hx-pal__btn:hover{color:var(--hx-text-1) !important;background:var(--hx-bg-4) !important}
+.hx-l4top .hx-iconbtn.is-on{color:var(--hx-text-2) !important;background:transparent !important}
+.hx-pal__dots{opacity:.75}
+.hx-shell.ls-min .hx-ls__rail{padding-top:6px}
+
+/* ---------- 4 左栏：整列可以滚动；底部合成一排；不再重叠 ---------- */
+.hx-ls{overflow:hidden}
+.hx-ls__full{min-height:0;overflow:hidden}
+.hx-ls__scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;overscroll-behavior:contain}
+.hx-ls__sec{flex:none !important;border-top:0 !important}
+.hx-ls__sec.is-grow:not(.is-closed){flex:1 0 auto !important;min-height:300px}
+.hx-sess,.hx-tree{max-height:none !important;overflow:visible !important}
+.hx-l4 .hx-lib{flex:1 0 auto !important;min-height:0}
+.hx-lib__list{overflow:visible !important;flex:none !important;padding-bottom:12px !important}
+.hx-lib__tabs{display:none !important}
+.hx-ls__foot{display:flex !important;align-items:center;gap:2px;padding:6px 8px !important;border-top:0 !important;box-shadow:0 -1px 0 color-mix(in srgb,var(--hx-text-1) 5%,transparent)}
+.hx-ls__foot .hx-ls__me{flex:1;min-width:0;width:auto !important}
+.hx-ls__foot .hx-ls__me>span:nth-child(2){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hx-ls__foot .hx-ls__me>.sp,.hx-ls__foot .hx-ls__me>[data-ic="gear"],.hx-ls__foot .hx-ls__me>svg:last-child{display:none}
+.hx-ls__foot .hx-iconbtn{width:28px;height:28px;color:var(--hx-text-3)}
+.hx-ls__foot .hx-iconbtn:hover{color:var(--hx-text-1);background:var(--hx-bg-4)}
+.hx-ls__foot .hx-iconbtn svg{width:14px;height:14px}
+
+/* ---------- 5 左栏按钮：平时透明，悬停才出现底色 ---------- */
+.hx-ls__new{padding:4px 8px 2px !important}
+.hx-ls__newbtn{justify-content:flex-start !important;height:30px !important;padding:0 8px !important;background:transparent !important;box-shadow:none !important;
+  color:var(--hx-text-2) !important;font-weight:500 !important}
+.hx-ls__newbtn:hover{background:var(--hx-bg-4) !important;color:var(--hx-text-1) !important}
+.hx-ls__newbtn kbd{margin-left:auto}
+.hx-sesssearch .hx-input,.hx-lib__search .hx-input{background:transparent !important}
+.hx-sesssearch .hx-input:hover,.hx-lib__search .hx-input:hover{background:color-mix(in srgb,var(--hx-bg-4) 70%,transparent) !important}
+.hx-sesssearch .hx-input:focus,.hx-lib__search .hx-input:focus{background:var(--hx-bg-2) !important}
+.hx-sess__item.is-cur,.hx-tree__i.is-cur{background:color-mix(in srgb,var(--hx-bg-4) 85%,transparent) !important;box-shadow:none !important}
+.hx-sess__pin{display:none !important}
+/* 全部 / 收藏 / 最近：纯文字 */
+.hx-lib2__f{gap:12px !important;padding:2px 12px 6px !important}
+.hx-lib2__f button{height:22px !important;padding:0 !important;border-radius:0 !important;background:transparent !important;box-shadow:none !important;color:var(--hx-text-3) !important}
+.hx-lib2__f button.is-on{color:var(--hx-text-1) !important;font-weight:500;box-shadow:inset 0 -1.5px 0 var(--hx-text-1) !important}
+/* 节点库条目：去掉图标底板 */
+.hx-lib2__ic{background:transparent !important;box-shadow:none !important;width:16px !important;color:var(--hx-text-3) !important}
+.hx-lib2__it{gap:8px !important}
+.hx-lib2__ci{color:var(--hx-text-3) !important}
+.hx-lib2__ch{font-weight:500 !important}
+.hx-lib2__src{background:transparent !important;color:var(--hx-text-3) !important;padding:0 !important}
+
+/* ---------- 6 节点：接口的类型名不占位置（颜色已经表达类型，悬停看名称） ---------- */
+.hx-l4 .hx-port__type{display:none !important}
+.hx-l4 .hx-port__name{min-width:0}
+/* 节点上的 AI 标、状态图标更轻 */
+.hx-l4 .hx-ai{background:transparent !important;padding:0 !important}
+
+/* ---------- 7 浮动回复：可以关掉，会自己消失 ---------- */
+.hx-float__x{position:absolute;right:-6px;top:-6px;width:20px;height:20px;display:grid;place-items:center;border-radius:50%;
+  background:var(--hx-bg-2);color:var(--hx-text-3);box-shadow:var(--hx-shadow-float);opacity:0;transition:opacity var(--hx-t-1) var(--hx-ease)}
+.hx-float__x svg{width:10px;height:10px}
+.hx-float:hover .hx-float__x{opacity:1}
+.hx-float__x:hover{color:var(--hx-text-1)}
+.hx-l4 .hx-float__list{position:relative}
+.hx-l4 .hx-float.is-hidden,.hx-l4 .hx-float.is-empty{opacity:0 !important;visibility:hidden;transition:opacity .5s var(--hx-ease),visibility 0s .5s}
+
+/* ---------- 8 中心窗口：分区切换不压标题；窄窗口也不重叠 ---------- */
+.hx-ctr__modes{padding:14px 12px 8px !important}
+.hx-ctr__modes .hx-seg button{font-size:12.5px !important;min-width:0;padding:0 2px}
+@media (max-width: 900px){
+  .hx-ctr__win{grid-template-columns:200px minmax(0,1fr) !important}
+  .hx-ctr__it span,.hx-ctr__grp,.hx-ctr__search,.hx-ctr__foot,.hx-ctr__it em{display:revert !important}
+  .hx-ctr__it span{display:inline !important}
+  .hx-ctr__grp{display:block !important}
+  .hx-ctr__search{display:block !important}
+}
+@media (max-width: 640px){
+  .hx-ctr__win{grid-template-columns:56px minmax(0,1fr) !important}
+  .hx-ctr__it span,.hx-ctr__grp,.hx-ctr__search,.hx-ctr__foot,.hx-ctr__it em{display:none !important}
+  .hx-ctr__modes{padding:10px 6px !important}
+  .hx-ctr__modes .hx-seg{flex-direction:column;gap:2px}
+  .hx-ctr__modes .hx-seg button{height:24px;font-size:11px !important}
+}
+.hx-ctr__head{padding-top:22px !important}
+
+/* ---------- 9 资源库卡片：图标不再被撑大，卡片更紧凑 ---------- */
+:where(.hx-ctr) svg{width:14px;height:14px;flex:none}
+.hx-acard__t svg{width:14px !important;height:14px !important;color:var(--hx-text-3)}
+.hx-acard__t{white-space:nowrap;min-width:0}
+.hx-acard__t .hx-pill{flex:none}
+.hx-agrid{grid-template-columns:repeat(auto-fill,minmax(230px,1fr)) !important;gap:8px !important}
+.hx-acard{padding:12px 14px !important;gap:6px !important}
+.hx-acard__d{font-size:12px !important}
+.hx-acard__pv{height:72px !important}

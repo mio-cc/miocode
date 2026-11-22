@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Harness · 节点与类型库</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --page-bg:#14161b;--page-panel:#1b1e25;--page-panel2:#222630;--page-line:#2d313b;--page-line2:#3a3f4b;
+  --page-text:#e6e4df;--page-muted:#8b8f98;--page-amber:#f0a83c;--page-teal:#5bb8a9;--page-red:#e5646a;
+  --page-sans:'Noto Sans SC','Microsoft YaHei','PingFang SC',sans-serif;
+  --page-mono:'JetBrains Mono',Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--page-bg);color:var(--page-text);font-family:var(--page-sans);font-size:14px;overflow:hidden}
+button,select,input,textarea{font-family:inherit;font-size:13px}
+button{cursor:pointer}
+.app{display:flex;flex-direction:column;height:100vh}
+.top{height:48px;flex:none;border-bottom:1px solid var(--page-line);display:flex;align-items:center;gap:14px;padding:0 18px;background:#111317}
+.top .br{font-weight:700}
+.top .br span{color:var(--page-muted);font-weight:400}
+.top a{color:var(--page-muted);text-decoration:none;font-size:13px}
+.top a:hover{color:var(--page-text)}
+.sp{flex:1}
+.desc{flex:none;padding:8px 18px;color:var(--page-muted);font-size:13px;border-bottom:1px solid var(--page-line)}
+.desc b{color:var(--page-text);font-weight:500}
+.bar2{flex:none;display:flex;align-items:center;gap:6px;padding:0 18px;border-bottom:1px solid var(--page-line);height:42px}
+.tab{background:none;border:none;border-bottom:2px solid transparent;color:var(--page-muted);padding:10px 12px 9px;font-size:14px}
+.tab.on{color:var(--page-text);border-bottom-color:var(--page-amber)}
+.lvl{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--page-muted)}
+.lvl select{background:var(--page-panel);border:1px solid var(--page-line2);color:var(--page-amber);padding:4px 6px}
+.btn{background:var(--page-panel2);color:var(--page-text);border:1px solid var(--page-line2);padding:5px 12px}
+.btn:hover{border-color:var(--page-muted)}
+.btn.pri{background:var(--page-amber);color:#1a1a1a;border-color:var(--page-amber);font-weight:500}
+.btn.ok{border-color:var(--page-teal);color:var(--page-teal)}
+.btn.bad{border-color:var(--page-red);color:var(--page-red)}
+.btn.sm{padding:3px 9px;font-size:12px}
+.btn:disabled{opacity:.4;cursor:default}
+.work{flex:1;display:grid;grid-template-columns:240px 1fr 300px;min-height:0}
+.work>*{min-width:0;min-height:0;overflow-y:auto}
+.left{border-right:1px solid var(--page-line);padding:6px 0}
+.mid{padding:18px 24px 40px}
+.right{border-left:1px solid var(--page-line);padding:14px;background:#16181d}
+.grp{font-family:var(--page-mono);font-size:11px;color:var(--page-muted);padding:12px 14px 4px}
+.it{display:flex;justify-content:space-between;align-items:center;gap:6px;width:100%;text-align:left;background:none;border:none;border-left:2px solid transparent;color:var(--page-text);padding:5px 14px;font-size:13.5px}
+.it:hover{background:var(--page-panel)}
+.it.on{border-left-color:var(--page-amber);background:var(--page-panel);color:var(--page-amber)}
+.it small{font-family:var(--page-mono);font-size:10.5px;color:var(--page-muted)}
+.it.tmp small{color:var(--page-amber)}
+h2{margin:0 0 2px;font-size:22px}
+.sub{color:var(--page-muted);margin:0 0 16px;font-size:13.5px}
+.kv{font-family:var(--page-mono);font-size:11.5px;color:var(--page-teal)}
+.sec{margin:20px 0 8px;font-family:var(--page-mono);font-size:11.5px;color:var(--page-muted);display:flex;align-items:center;gap:10px}
+.sec::after{content:'';flex:1;height:1px;background:var(--page-line)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:500;color:var(--page-muted);font-size:12px;padding:6px 8px;border-bottom:1px solid var(--page-line2)}
+td{padding:6px 8px;border-bottom:1px solid var(--page-line);vertical-align:top}
+td.m{font-family:var(--page-mono);font-size:12.5px}
+tr.klock td{background:rgba(240,168,60,.06)}
+.bdg{display:inline-block;font-family:var(--page-mono);font-size:10.5px;padding:0 6px;border:1px solid var(--page-line2);color:var(--page-muted);margin:1px 3px 1px 0;white-space:nowrap}
+.bdg.k{border-color:var(--page-amber);color:var(--page-amber)}
+.bdg.d{border-color:var(--page-teal);color:var(--page-teal)}
+.bdg.n{color:#6b707c}
+.bdg.r{border-color:var(--page-red);color:var(--page-red)}
+.bdg.y{background:var(--page-amber);color:#1a1a1a;border-color:var(--page-amber)}
+.ports{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.ports>*{min-width:0}
+.port{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--page-line);font-family:var(--page-mono);font-size:12.5px;flex-wrap:wrap}
+.dot{width:9px;height:9px;border-radius:50%;flex:none}
+.dot.i{background:var(--page-teal)}.dot.o{background:var(--page-amber)}
+.tv{color:var(--page-amber)}
+.locks{border-left:3px solid var(--page-amber);background:var(--page-panel);padding:8px 12px;font-size:13px}
+.locks div{padding:2px 0}
+.meta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--page-line);border:1px solid var(--page-line)}
+.meta>div{background:var(--page-panel);padding:8px 10px;min-width:0}
+.meta label{display:block;font-family:var(--page-mono);font-size:10.5px;color:var(--page-muted)}
+.meta span{font-family:var(--page-mono);font-size:12.5px;word-break:break-all}
+.seg{display:inline-flex;border:1px solid var(--page-line2)}
+.seg button{background:none;border:none;color:var(--page-muted);padding:4px 12px;font-size:12.5px}
+.seg button.on{background:var(--page-panel2);color:var(--page-text)}
+pre.y{background:#101216;border:1px solid var(--page-line);padding:12px 14px;font-family:var(--page-mono);font-size:12.5px;line-height:1.6;overflow:auto;margin:0;color:#cfd2d8;white-space:pre}
+pre.y .c{color:#6b707c}.pre .k{color:var(--page-teal)}
+.chain{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:var(--page-mono);font-size:12.5px}
+.chain span{border:1px solid var(--page-line2);padding:2px 8px}
+.chain span.cur{border-color:var(--page-amber);color:var(--page-amber)}
+.chain i{color:var(--page-muted);font-style:normal}
+.vers div{display:grid;grid-template-columns:70px 1fr;gap:10px;padding:5px 0;border-bottom:1px solid var(--page-line);font-size:13px}
+.vers b{font-family:var(--page-mono);font-weight:400;color:var(--page-teal)}
+/* compat */
+.cmp{display:grid;grid-template-columns:1fr 60px 1fr;gap:14px;align-items:center;margin:8px 0 18px}
+.cmp>*{min-width:0}
+.cmp label{display:block;font-family:var(--page-mono);font-size:11px;color:var(--page-muted);margin-bottom:4px}
+.cmp select{width:100%;background:var(--page-panel);border:1px solid var(--page-line2);color:var(--page-text);padding:8px;font-family:var(--page-mono);font-size:13px}
+.arrow{text-align:center;color:var(--page-muted);font-family:var(--page-mono);padding-top:16px}
+.verdict{border:1px solid var(--page-line2);padding:16px 18px;background:var(--page-panel)}
+.verdict .vh{font-size:20px;font-weight:700;margin-bottom:6px}
+.verdict.yes{border-color:var(--page-teal)}.verdict.yes .vh{color:var(--page-teal)}
+.verdict.warn{border-color:var(--page-amber)}.verdict.warn .vh{color:var(--page-amber)}
+.verdict.no{border-color:var(--page-red)}.verdict.no .vh{color:var(--page-red)}
+.verdict ol{margin:6px 0 0;padding-left:20px;color:var(--page-muted);line-height:1.8}
+.verdict ol b{color:var(--page-text);font-weight:500}
+.presets{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.rules td:first-child{white-space:nowrap;font-weight:500}
+/* packages */
+.pk{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.cols3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.cols3>div{border:1px solid var(--page-line);background:var(--page-panel);padding:10px 12px;min-width:0}
+.cols3 h5{margin:0 0 6px;font-family:var(--page-mono);font-weight:400;font-size:11px;color:var(--page-muted)}
+.cols3 div div{font-size:13px;padding:2px 0}
+/* wizard */
+.steps{display:flex;gap:0;margin:6px 0 16px;border:1px solid var(--page-line)}
+.steps div{flex:1;padding:8px 12px;font-size:13px;color:var(--page-muted);border-right:1px solid var(--page-line)}
+.steps div:last-child{border-right:none}
+.steps div.on{color:var(--page-text);background:var(--page-panel2);box-shadow:inset 0 -2px 0 var(--page-amber)}
+.steps div.done{color:var(--page-teal)}
+.impls{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.impl{background:var(--page-panel);border:1px solid var(--page-line2);color:var(--page-text);padding:12px;text-align:left;min-width:0}
+.impl b{display:block;font-family:var(--page-mono);font-size:14px;margin-bottom:4px}
+.impl span{font-size:12px;color:var(--page-muted)}
+.impl.on{border-color:var(--page-amber)}
+.impl.on b{color:var(--page-amber)}
+.frm{display:grid;grid-template-columns:140px 1fr;gap:8px 14px;align-items:start}
+.frm label{font-family:var(--page-mono);font-size:12px;color:var(--page-muted);padding-top:7px}
+.frm input,.frm textarea{width:100%;background:#101216;border:1px solid var(--page-line2);color:var(--page-text);padding:6px 8px;font-family:var(--page-mono);font-size:12.5px;outline:none}
+.frm textarea{height:70px;resize:vertical}
+.frm input:focus,.frm textarea:focus{border-color:var(--page-muted)}
+.chk div{padding:5px 0;font-size:13px;border-bottom:1px solid var(--page-line);display:flex;gap:8px}
+.chk .ok{color:var(--page-teal)}.chk .er{color:var(--page-red)}.chk .wn{color:var(--page-amber)}
+.wbtns{display:flex;gap:8px;margin-top:16px}
+/* right */
+.rh{font-family:var(--page-mono);font-size:11px;color:var(--page-muted);margin:14px 0 6px}
+.rh:first-child{margin-top:0}
+.lvbox{border:1px solid var(--page-line2);padding:10px 12px;font-size:13px;line-height:1.6}
+.lvbox b{color:var(--page-amber);font-size:15px}
+.draft{border:1px dashed var(--page-amber);background:var(--page-panel);padding:10px 12px;margin-bottom:10px;font-size:13px}
+.draft.tmp{border-style:solid;border-color:var(--page-line2)}
+.draft.done{border-style:solid;border-color:var(--page-teal);opacity:.75}
+.draft.rej{border-style:solid;border-color:var(--page-line);opacity:.5}
+.draft .dh{display:flex;justify-content:space-between;gap:6px;align-items:baseline}
+.draft .dh b{font-family:var(--page-mono);font-weight:600}
+.draft .why{color:var(--page-muted);margin:6px 0;font-size:12.5px;line-height:1.6}
+.draft .acts{display:flex;gap:6px;flex-wrap:wrap}
+.empty{color:#6b707c;font-size:12.5px}
+.alog div{font-size:12px;padding:4px 0;border-bottom:1px solid var(--page-line);color:var(--page-muted);line-height:1.5}
+.alog div b{font-weight:500;color:var(--page-text)}
+.alog div .who{font-family:var(--page-mono);font-size:10.5px;padding:0 4px;border:1px solid var(--page-line2);margin-right:4px}
+.alog div .who.m{border-color:var(--page-amber);color:var(--page-amber)}
+.narr{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--page-panel2);border:1px solid var(--page-amber);padding:10px 16px;font-size:13.5px;max-width:640px;z-index:20;display:none;box-shadow:0 6px 24px rgba(0,0,0,.4)}
+.narr b{color:var(--page-amber);font-family:var(--page-mono);margin-right:8px}
+.hl{animation:hl 1.4s ease-out}
+@keyframes hl{0%{box-shadow:0 0 0 4px rgba(240,168,60,.6)}100%{box-shadow:0 0 0 0 rgba(240,168,60,0)}}
+@media (max-width:1100px){.work{grid-template-columns:200px 1fr}.right{display:none}.impls{grid-template-columns:repeat(3,minmax(0,1fr))}.meta{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <span class="br">Harness · <span>节点与类型库</span></span>
+    <span class="sp"></span>
+    <a href="index.html">← 返回总览</a>
+  </div>
+  <div class="desc">这个工作域定义<b>积木本身和凸点规格</b>：13 个通用原子节点、端口类型库、扩展包和自定义节点。模型可以起草新类型、新节点，按授权档位进入待审批或临时命名空间。</div>
+  <div class="bar2">
+    <button class="tab on" data-tab="nodes">节点库</button>
+    <button class="tab" data-tab="types">类型库</button>
+    <button class="tab" data-tab="compat">兼容性检查</button>
+    <button class="tab" data-tab="pkgs">扩展包</button>
+    <span class="sp"></span>
+    <span class="lvl">模型授权档位
+      <select id="lvl">
+        <option value="0">0 只读</option><option value="1" selected>1 建议</option><option value="2">2 部分授权</option><option value="3">3 高度授权</option><option value="4">4 完全授权</option>
+      </select>
+    </span>
+    <button class="btn pri" id="demo">演示脚本</button>
+  </div>
+  <div class="work">
+    <div class="left" id="left"></div>
+    <div class="mid" id="mid"></div>
+    <div class="right" id="right">
+      <div class="rh">当前档位</div>
+      <div class="lvbox" id="lvbox"></div>
+      <div class="rh">模型起草 · 待处理</div>
+      <div id="drafts"><div class="empty">暂无。在类型库或扩展包页点「让模型起草」。</div></div>
+      <div class="rh">活动记录</div>
+      <div class="alog" id="alog"></div>
+    </div>
+  </div>
+</div>
+<div class="narr" id="narr"></div>
+
+<script>
+/* ================= 数据 ================= */
+const NODES = [
+ {name:'资源',cat:'资源',kind:'atomic',impl:'builtin',
+  in:[],out:[['ref','资源引用<T>','T = kind']],
+  params:[['kind','资源类型引用','模型','模型/提示词/列表/常量/自定义','none',false],['source','枚举','inline','inline/library/file/url','none',true],['value','<kind 对应 schema>','—','随 kind 切换表单','none',true],['pin','枚举','snapshot','snapshot/link','none',false]],
+  locks:[]},
+ {name:'Agent',cat:'智能体',kind:'atomic',impl:'builtin',
+  in:[['context','上下文包@1','必填'],['model','资源引用<模型>','必填'],['prompt','资源引用<提示词>','必填'],['tools','工具端点','可多连']],out:[['result','T','T = output_schema']],
+  params:[['output_schema','类型引用','—','必填','none',true],['output_mode','枚举','single','single/list/stream','none',false],['lifecycle','枚举','ephemeral','ephemeral/resident','none',false],['limits','字典','{tool_calls:10, inner_turns:5}','tool_calls 1–50','def',true],['repair','策略引用','内置/自动修复+重试2次','—','none',false],['memory_policy','策略引用?','—','resident 时生效','none',false],['sampling','字典?','—','覆盖温度、种子','none',true]],
+  locks:['context 端口只接受 上下文包，不能直接连账本或上游原文']},
+ {name:'上下文装配',cat:'状态',kind:'atomic',impl:'builtin',
+  in:[['in_*','任意','动态插口'],['target_model','资源引用<模型>','必填'],['summarizer','资源引用<模型>?','可选']],out:[['context','上下文包@1',''],['dropped','列表[指针]','']],
+  params:[['recipe','配方引用 | 内联配方','—','必填','none',true],['budget','字典','{ratio:0.1, max_ratio:0.5}','ratio 0.01–0.5','def',true],['on_overflow','枚举','pointer','pointer/summarize/truncate/reject','none',false],['honor_inherit','布尔','true','—','kernel',false]],
+  locks:['类型里标了 inherit 的字段必须透传（honor_inherit）']},
+ {name:'工具',cat:'工具',kind:'atomic',impl:'builtin',
+  in:[['request','工具请求<tool>','direct 模式必填']],out:[['endpoint','工具端点','endpoint 模式'],['result','工具结果<tool>','direct 模式']],
+  params:[['tool','工具引用','—','内置 / MCP / HTTP / 脚本','none',false],['mode','枚举','endpoint','endpoint/direct','none',false],['config','<tool 对应 schema>','—','—','none',true],['risk','枚举','<注册等级>','L0–L3，只能调高','kernel',false],['policies','列表[策略引用]','[]','限流/白名单/审核/脱敏','none',false],['keep_pointer','布尔','true','—','kernel',false]],
+  locks:['风险等级只能调高','必须保留原文指针','L3 工具前必须接人工节点']},
+ {name:'扇出',cat:'拓扑',kind:'atomic',impl:'builtin',
+  in:[['items','列表[T]','与 n 二选一'],['n','整数','与 items 二选一'],['shared_*','任意','动态插口']],out:[['results','列表[U]','U = body 出口类型'],['meta','运行统计','']],
+  params:[['body','子图引用 | 内联子图','—','必填','none',false],['concurrency','整数','4','1–64','def',true],['isolation','布尔','true','—','none',true],['vary','字典<参数路径, 值列表>','{}','可改 body 中任意参数','none',true],['collect','汇合策略','{wait:all, on_fail:skip}','—','none',false],['budget_split','枚举','equal','equal/weighted/on_demand','none',false]],
+  locks:[]},
+ {name:'汇合',cat:'拓扑',kind:'atomic',impl:'builtin',
+  in:[['in_*','任意','动态插口，至少 2']],out:[['collected','列表[T] | 元组 | 字典',''],['meta','运行统计','']],
+  params:[['shape','枚举','list','list/tuple/dict','none',false],['wait','枚举','all','all/k_of_n/first/timeout','none',true],['k','整数','2','≥1','none',true],['timeout','时长','300s','—','none',true],['on_fail','枚举','skip','skip/retry/fail/default_value','none',false]],
+  locks:[]},
+ {name:'聚合',cat:'聚合',kind:'atomic',impl:'builtin',
+  in:[['items','列表[T]','必填']],out:[['result','U','U 由 op 推断']],
+  params:[['op','内置算子 | 表达式 | 脚本','—','count/group/ratio/vote/dedupe/sort/top_k/filter/divergence','none',true],['key','字段路径?','—','—','none',true],['levels','列表[{name, when}]','[]','由用户定义分级','none',true],['deterministic','布尔','true','—','kernel',false]],
+  locks:['不能调用模型，结果确定，可缓存']},
+ {name:'分支',cat:'控制',kind:'atomic',impl:'builtin',
+  in:[['value','T','']],out:[['<case>','T','每个 case 一个出口'],['default','T','']],
+  params:[['cases','列表[{name, when}]','[]','表达式','none',true],['match','枚举','first','first/all','none',false],['pure','布尔','true','—','kernel',false]],
+  locks:['表达式只能读字段：不调模型、无副作用']},
+ {name:'循环',cat:'控制',kind:'atomic',impl:'builtin',
+  in:[['init','T','']],out:[['final','T',''],['exit','出口名','']],
+  params:[['body','子图','—','必填','none',false],['trigger','枚举','rounds','rounds/event','none',false],['exits','列表[{name, when}]','[]','用户自定义出口','none',true],['carry','字段路径列表','[]','只带这些到下一轮','none',false],['stall','{metric, rounds}?','—','无进展检测','none',true],['max_rounds','整数','5','1–50','none',true],['events','列表[事件源]','[]','event 模式','none',false],['checkpoint','枚举','per_round','per_round/per_event/off','none',false]],
+  locks:['图中只有循环节点能形成环','至少一个有限出口（轮数 / 预算 / 超时）']},
+ {name:'账本',cat:'状态',kind:'atomic',impl:'builtin',
+  in:[['value','T','写操作时']],out:[['value','T + version',''],['ack','确认',''],['changed','事件','']],
+  params:[['store','账本引用','—','必填','none',false],['scope','枚举','local','local/parent/named','none',false],['op','枚举','read','read/write/append/cas/watch','none',false],['path','字段路径','—','—','none',true]],
+  locks:['写入遵守类型字段属性（readonly_except 等）','每次写入留痕']},
+ {name:'人工',cat:'人工',kind:'atomic',impl:'builtin',
+  in:[['request','T','']],out:[['<outcome>','T','每种结果一个出口']],
+  params:[['mode','枚举','approve','approve/input/choose/review','none',false],['form','类型引用?','—','input 模式','none',false],['view','视图配方引用','摘要 + 指针','—','none',false],['channel','渠道引用','应用内','应用内/邮件/IM','none',false],['assignee','用户 | tag','—','—','none',true],['timeout','时长','24h','—','none',true]],
+  locks:[]},
+ {name:'子图端口',cat:'边界',kind:'atomic',impl:'builtin',
+  in:[],out:[],
+  params:[['role','枚举','entry','entry/exit/summary/escalation/event','none',false],['name','文本','—','—','none',false],['type','类型引用','—','—','none',false],['summary','{format, trigger, budget}','—','role=summary','none',false],['escalation','{routes}','—','role=escalation','none',false]],
+  locks:['每个子图至少一个入口和一个出口']},
+ {name:'子图引用',cat:'组合',kind:'atomic',impl:'builtin',
+  in:[['<entry>','按子图端口生成','']],out:[['<exit>','按子图端口生成','']],
+  params:[['ref','子图引用@版本','—','必填','none',true],['pin','枚举','snapshot','snapshot/link','none',false],['exposed','字典','{}','子图标记为可暴露的参数','none',true],['overrides','字典<路径, 引用>','{}','替换内部模型/配方/策略','none',true],['grant','列表[工具 | tag]','[]','—','none',false],['budget','额度','父级划拨','—','none',true],['max_depth','整数','3','≤ 8','kernel',false]],
+  locks:['权限 = grant ∩ 子图声明 ∩ 父级','嵌套深度有上限']}
+];
+const EXT_NODES = [
+ {name:'价格标准化',cat:'扩展 · 闭环模板包',kind:'atomic',impl:'script',pkg:'闭环模板包',
+  in:[['raw','执行结果@1','']],out:[['normalized','价格表@1','']],
+  params:[['target_currency','枚举','CNY','CNY/USD/EUR','none',true],['period','枚举','年付','月付/年付','none',true]],locks:[],entry:'normalize.py'},
+ {name:'Jira 查询',cat:'扩展 · 代码评审包',kind:'atomic',impl:'mcp',pkg:'代码评审包',
+  in:[['query','文本','JQL']],out:[['issues','列表[工单@1]','']],
+  params:[['server','MCP 服务引用','jira-mcp','—','def',false],['max_results','整数','50','1–200','none',true]],locks:[]},
+ {name:'深度研究',cat:'扩展 · 闭环模板包',kind:'subgraph',impl:'subgraph',pkg:'闭环模板包',
+  in:[['goal','目标@1',''],['criteria','验收标准@1','']],out:[['report','研究报告@1',''],['verdict','判定@1','']],
+  params:[['ref','子图引用@版本','research_loop@v1.3','—','def',false],['brains_n','整数（暴露）','3','1–9','none',true],['max_rounds','整数（暴露）','5','1–20','none',true]],locks:[]}
+];
+const CUSTOM_NODES = [];
+
+const TYPES = {
+ base:[
+  {id:'文本',desc:'UTF-8 字符串'},{id:'数值',desc:'整数或小数'},{id:'布尔',desc:'true / false'},{id:'枚举',desc:'固定取值集合'},{id:'时间',desc:'ISO-8601 时间或时长'},
+  {id:'指针',desc:'指向工作区原文的引用 ws://…'},{id:'列表[T]',desc:'同类元素列表，接单值端口时自动展开'},{id:'元组',desc:'异构定长组合'},{id:'字典',desc:'键值对'},
+  {id:'资源引用<T>',desc:'指向资源节点产出的模型/提示词/配方等'},{id:'任意',desc:'只能进不能出：输出为任意时不能直接接具体类型'}],
+ sys:[
+  {id:'上下文包@1',producer:'上下文装配',desc:'Agent 的 context 端口只接受这个类型，从类型上堵住绕过装配节点的路。',
+   fields:[['sections','列表[{name, content, tokens}]',['required']],['total_tokens','数值',['required']],['dropped','列表[指针]',[]],['recipe','配方引用',['required']]],
+   vers:[['1.0','初版']]},
+  {id:'工具请求@1',producer:'Agent / 工具',desc:'调用工具的请求体。',fields:[['tool','工具引用',['required']],['args','字典',['required']],['idempotency_key','文本',['required_if: risk≥L2']]],vers:[['1.0','初版']]},
+  {id:'工具结果@1',producer:'工具',desc:'结果固定包含摘要、片段和原文指针。',fields:[['summary','文本',['required','max_chars: 500']],['snippets','列表[文本]',[]],['pointer','指针',['required']]],vers:[['1.0','初版'],['1.1','新增可选字段 cost']]},
+  {id:'聚合结果@1',producer:'聚合',desc:'分级结果或分歧度两种形态。',fields:[['groups','列表[{label, ratio, level, members}]',[]],['divergence','{score, clusters}?',[]]],vers:[['1.0','初版']]},
+  {id:'升级@1',producer:'任意节点的升级端口',desc:'本层解决不了的问题。',
+   fields:[['kind','枚举',['required','enum: 格式错误|单任务失败|目标歧义|标准冲突|结构性无法达成|预算不足|需审批|无进展']],['source','路径ID',['required']],['severity','枚举',['enum: 低|中|高']],['question','文本',['max_chars: 300']],['options','列表[文本]',[]],['merge_key','文本',['merge_key']]],
+   vers:[['1.0','初版']]}],
+ biz:[
+  {id:'目标@1',pkg:'闭环模板包',desc:'主脑设定的目标，构成目标树。',
+   fields:[['id','文本',['required']],['intent','文本',['required','readonly_except: tag:主脑']],['parent','指针?',[]],['constraints','字典',['required','inherit']],['criteria','资源引用<验收标准>',['required','readonly_except: tag:主脑']],['budget','{tokens, time, calls}',[]],['priority','枚举',['enum: P0|P1|P2']]],vers:[['1.0','初版']]},
+  {id:'验收标准@1',pkg:'闭环模板包',desc:'必须是可判定条目。',
+   fields:[['items','列表[{id, desc, method, rule, must}]',['required','readonly_except: tag:主脑']],['items[].method','枚举',['required','enum: 规则|抽检|评审']],['items[].rule','表达式',['required_if: method=规则']],['pass_rule','文本',[]],['spot_rate','数值',[]]],vers:[['1.0','初版']]},
+  {id:'方案@1',pkg:'闭环模板包',desc:'智囊产出。',
+   fields:[['understanding','文本',['required','max_chars: 200']],['core_approach','文本',['required','max_chars: 200']],['key_assumptions','列表[文本]',['required']],['steps','列表[{desc, expected_output, tools}]',[]],['avoids','列表[指针]',[]],['confidence','数值[0–1]',[]]],vers:[['1.0','初版'],['2.0','core_approach 拆成 means + rationale（不兼容，附迁移函数）']]},
+  {id:'簇标注@1',pkg:'闭环模板包',desc:'聚类员 Agent 产出，聚合节点按 cluster 计算比例。',
+   fields:[['understanding_consistent','布尔',['required']],['labels','列表[{plan_id, cluster, diff}]',['required']],['conflicts','列表[{a, b, reason}]',[]]],vers:[['1.0','初版']]},
+  {id:'任务@1',pkg:'闭环模板包',desc:'Agent 通用任务输入。',
+   fields:[['instruction','文本',['required']],['purpose','文本',['required']],['good_result','文本',['required']]],vers:[['1.0','初版']]},
+  {id:'任务卡@1',pkg:'闭环模板包',ext:'任务@1',desc:'派给执行者的原子任务，继承 任务@1 只加字段。',
+   fields:[['instruction','文本',['required','继承']],['purpose','文本',['required','继承']],['good_result','文本',['required','继承']],['id','文本',['required']],['from_cluster','指针',[]],['inputs','列表[指针]',[]],['output_type','类型名',['required']],['checklist','列表[文本]',['required']],['dedupe_key','文本',[]],['escalate_if','列表[文本]',[]]],vers:[['1.0','初版']]},
+  {id:'执行结果@1',pkg:'闭环模板包',desc:'"未找到"是合法结果。',
+   fields:[['task_id','文本',['required']],['status','枚举',['required','enum: 完成|部分|未找到|失败']],['conclusion','文本',['required','max_chars: 300']],['data','任意',[]],['sources','列表[{ptr, url, excerpt, time}]',['required_if: status∈{完成,部分}']],['confidence','数值[0–1]',[]]],vers:[['1.0','初版']]},
+  {id:'判定@1',pkg:'闭环模板包',desc:'验收者产出。',
+   fields:[['achieved','布尔',['required']],['items','列表[{criterion_id, result, evidence}]',['required']],['spot_checks','列表[{result_id, consistent}]',[]],['gap_type','枚举',['required','enum: 无|可补救|结构性']]],vers:[['1.0','初版'],['1.1','新增可选字段 score']]},
+  {id:'差距报告@1',pkg:'闭环模板包',desc:'循环中唯一带到下一轮的内容。',
+   fields:[['goal','指针',['required','readonly']],['round','数值',[]],['gaps','列表[{criterion_id, missing, how_far}]',['required']],['tried','列表[{direction, where, why_failed}]',['required']],['history_digest','文本',['max_chars: 300']],['gap_type','枚举',['enum: 可补救|结构性']]],vers:[['1.0','初版']]},
+  {id:'简报@1',pkg:'闭环模板包',desc:'发给上层，按 goal_id 滚动覆盖。',
+   fields:[['goal_id','文本',['required','merge_key']],['status','枚举',['required','enum: 心跳|进行中|完成|阻塞']],['conclusion','文本',['max_chars: 80']],['needs_decision','列表[{question, options}]?',[]],['evidence','列表[指针]',[]]],vers:[['1.0','初版']]},
+  {id:'决策记录@1',pkg:'闭环模板包',desc:'写入账本，推翻旧决策必须给新证据。',
+   fields:[['id','文本',['required']],['decision','文本',['required']],['reason','文本',['required']],['supersedes','指针?',[]],['new_evidence','列表[指针]',['required_if: supersedes 非空']]],vers:[['1.0','初版']]}],
+ user:[]
+};
+const ATTR_HELP={required:'必填',required_if:'满足条件时必填',readonly_except:'除指定标签外只读',readonly:'只读',inherit:'装配时必须透传',max_chars:'长度上限',enum:'固定取值',producer:'只能由指定节点产出',merge_key:'接收端按此键滚动覆盖',继承:'来自父类型'};
+
+/* 兼容性注册表 */
+const REG={
+ '方案@1':{n:'方案',ma:1,mi:0},'方案@2':{n:'方案',ma:2,mi:0},'任务@1':{n:'任务',ma:1,mi:0},'任务卡@1':{n:'任务卡',ma:1,mi:0,p:'任务@1'},
+ '判定@1':{n:'判定',ma:1,mi:0},'判定@1.1':{n:'判定',ma:1,mi:1},'执行结果@1':{n:'执行结果',ma:1,mi:0},'价格表@1':{n:'价格表',ma:1,mi:0,p:'执行结果@1'},
+ '簇标注@1':{n:'簇标注',ma:1,mi:0},'上下文包@1':{n:'上下文包',ma:1,mi:0},'评审意见@1':{n:'评审意见',ma:1,mi:0},'文本':{n:'文本',base:1},'任意':{n:'任意',any:1}
+};
+const REG_KEYS=Object.keys(REG);
+const COMPAT_OPTS=REG_KEYS.concat(['列表[方案@1]','列表[任务卡@1]','列表[执行结果@1]']);
+const PRESETS=[
+ ['任务卡@1','任务@1','子类型接父类型'],['任务@1','任务卡@1','父类型接子类型'],['判定@1.1','判定@1','次版本兼容'],['方案@2','方案@1','主版本不兼容'],
+ ['任意','方案@1','任意只能进不能出'],['列表[任务卡@1]','任务卡@1','列表自动展开'],['评审意见@1','方案@1','名义不同'],['执行结果@1','上下文包@1','绕过装配节点']
+];
+
+const PKGS=[
+ {id:'loop',name:'闭环模板包',ver:'1.3.0',installed:true,author:'官方',desc:'智囊团 → 决策者 → 执行池 → 验收者 的闭环迭代模板。',
+  nodes:['价格标准化 (script)','深度研究 (子图)'],types:['目标@1','验收标准@1','方案@1','簇标注@1','任务@1','任务卡@1','执行结果@1','判定@1','差距报告@1','简报@1','决策记录@1'],
+  recipes:['主脑配方@1','智囊配方@1','聚类员配方@1','决策者配方@1','执行者配方@1','验收者配方@1'],policies:['L2 白名单@1','抽检 20%@1'],roles:['独立智囊@1','决策者@1','执行者@1','验收者@1'],presets:['聚合·共识多数分级','循环·5轮无进展2轮停'],
+  deps:['内核 ≥ 0.2'],perms:['检索 (L0)','代码执行 (L1)','HTTP (L2，需白名单)']},
+ {id:'review',name:'代码评审包',ver:'0.9.2',installed:true,author:'官方',desc:'按变更文件扇出评审，严重问题走人工审批。',
+  nodes:['Jira 查询 (mcp)'],types:['评审意见@1','工单@1'],recipes:['评审配方@1'],policies:['评论频率 10/分钟@1'],roles:['代码评审员@1'],presets:['扇出·并发8'],
+  deps:['内核 ≥ 0.2','jira-mcp 服务'],perms:['仓库读 (L0)','发评论 (L2)']},
+ {id:'cs',name:'客服分诊包',ver:'0.4.0',installed:false,author:'社区',desc:'意图分类 → 分支路由到各专家子图，转人工兜底。',
+  nodes:['意图分类 (prompt)','工单创建 (http)'],types:['客户消息@1','意图@1','回复草稿@1'],recipes:['分诊配方@1'],policies:['敏感词脱敏@1'],roles:['分诊员@1','售后专家@1'],presets:['分支·按意图路由'],
+  deps:['内核 ≥ 0.2','闭环模板包 ≥ 1.0（复用 简报@1）'],perms:['工单系统 (L2)','发送回复 (L3，需人工)']}
+];
+
+/* ================= 状态 ================= */
+const S={tab:'nodes',node:'Agent',nodeView:'form',type:'任务卡@1',tlayer:'biz',cOut:'任务卡@1',cIn:'任务@1',pkg:'loop',pkgView:'detail',
+ wiz:{step:1,impl:'script',name:'汇率换算',inputs:'raw: 执行结果@1',outputs:'normalized: 价格表@1',params:'target_currency: 枚举[CNY,USD] = CNY',newType:'',newTypeExt:'',entry:'fx.py'},drafts:[]};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const lvl=()=>+$('lvl').value;
+const LVN=['0 只读','1 建议','2 部分授权','3 高度授权','4 完全授权'];
+
+function alog(who,txt){
+  const el=$('alog');const t=new Date();const ts=String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0')+':'+String(t.getSeconds()).padStart(2,'0');
+  el.insertAdjacentHTML('afterbegin','<div><span class="who'+(who==='模型'?' m':'')+'">'+who+'</span>'+ts+' '+txt+'</div>');
+}
+
+/* ================= 渲染：通用 ================= */
+function render(){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===S.tab));
+  ({nodes:rNodes,types:rTypes,compat:rCompat,pkgs:rPkgs})[S.tab]();
+  rRight();
+}
+function findNode(n){return NODES.concat(EXT_NODES,CUSTOM_NODES).find(x=>x.name===n);}
+function lockB(l){return l==='kernel'?'<span class="bdg k">kernel 锁</span>':l==='def'?'<span class="bdg d">def 锁</span>':'<span class="bdg n">none</span>';}
+function tvar(t){return esc(t).replace(/\b(T|U)\b/g,'<span class="tv">$1</span>');}
+
+/* ================= 节点库 ================= */
+function rNodes(){
+  const cats={};NODES.forEach(n=>{(cats[n.cat]=cats[n.cat]||[]).push(n);});
+  let h='';
+  for(const c in cats){h+='<div class="grp">'+c+'</div>'+cats[c].map(n=>'<button class="it'+(S.node===n.name?' on':'')+'" data-node="'+n.name+'">'+n.name+'<small>'+String(NODES.indexOf(n)+1).padStart(2,'0')+'</small></button>').join('');}
+  h+='<div class="grp">已安装扩展节点</div>'+EXT_NODES.map(n=>'<button class="it'+(S.node===n.name?' on':'')+'" data-node="'+n.name+'">'+n.name+'<small>'+n.impl+'</small></button>').join('');
+  if(CUSTOM_NODES.length) h+='<div class="grp">自定义节点</div>'+CUSTOM_NODES.map(n=>'<button class="it'+(n.tmp?' tmp':'')+(S.node===n.name?' on':'')+'" data-node="'+n.name+'">'+n.name+'<small>'+(n.tmp?'临时':n.impl)+'</small></button>').join('');
+  $('left').innerHTML=h;
+  const n=findNode(S.node)||NODES[1];
+  let m='<div class="pk"><div><h2>'+n.name+'</h2><div class="kv">'+n.cat+' · '+n.kind+' · impl: '+n.impl+(n.pkg?' · 来自 '+n.pkg:'')+(n.by?' · '+n.by:'')+'</div></div>'+
+    '<div class="seg"><button data-nv="form" class="'+(S.nodeView==='form'?'on':'')+'">表单视图</button><button data-nv="yaml" class="'+(S.nodeView==='yaml'?'on':'')+'">YAML 视图</button></div></div>';
+  if(S.nodeView==='yaml'){m+='<div class="sec">node_def</div><pre class="y">'+esc(nodeYaml(n))+'</pre>';$('mid').innerHTML=m;return;}
+  m+='<div class="sec">通用元定义</div><div class="meta">'+
+    '<div><label>kind</label><span>'+n.kind+'</span></div><div><label>impl</label><span>'+n.impl+(n.entry?' · '+n.entry:'')+'</span></div>'+
+    '<div><label>instance.tags</label><span>[] 用户自定义</span></div><div><label>instance.hooks</label><span>before / after / on_error</span></div>'+
+    '<div><label>auto_ports</label><span>escalation: 升级@1</span></div><div><label>auto_ports</label><span>trace: 日志指针</span></div>'+
+    '<div><label>params.extra</label><span>开放字典（扩展包可追加）</span></div><div><label>version</label><span>1.0</span></div></div>';
+  const pr=(a,c)=>a.length?a.map(p=>'<div class="port"><span class="dot '+c+'"></span><b style="font-weight:600">'+esc(p[0])+'</b><span style="color:var(--page-muted)">'+tvar(p[1])+'</span>'+(p[2]?'<span class="bdg n">'+esc(p[2])+'</span>':'')+'</div>').join(''):'<div class="port" style="color:var(--page-muted)">无（由 role 决定）</div>';
+  m+='<div class="sec">端口</div><div class="ports"><div>'+pr(n.in,'i')+'</div><div>'+pr(n.out,'o')+'</div></div>';
+  m+='<div class="sec">params_schema</div><table><tr><th>参数</th><th>type</th><th>default</th><th>range / enum</th><th>锁</th><th>可转端口</th></tr>'+
+    n.params.map(p=>'<tr class="'+(p[4]==='kernel'?'klock':'')+'"><td class="m">'+esc(p[0])+'</td><td class="m">'+tvar(p[1])+'</td><td class="m">'+esc(p[2])+'</td><td>'+esc(p[3])+'</td><td>'+lockB(p[4])+'</td><td>'+(p[5]?'<span class="bdg d">promotable</span>':'<span class="bdg n">—</span>')+'</td></tr>').join('')+'</table>';
+  m+='<div class="sec">内核锁定项</div>'+(n.locks.length?'<div class="locks">'+n.locks.map(l=>'<div>'+esc(l)+'</div>').join('')+'</div>':'<div class="locks" style="border-left-color:var(--page-teal)">无，全部参数可配置</div>');
+  m+='<p class="sub" style="margin-top:14px">三级锁：<span class="bdg k">kernel</span>内核规则，谁都改不了 <span class="bdg d">def</span>节点作者锁定，实例不可改 <span class="bdg n">none</span>实例上随意改。类型变量 <span class="tv mono">T</span>/<span class="tv mono">U</span> 跟随参数和连线推断。</p>';
+  $('mid').innerHTML=m;
+}
+function nodeYaml(n){
+  let y='node_def: '+n.name+'\nversion: 1.0\nkind: '+n.kind+'\ncategory: '+n.cat+'\nimpl: '+n.impl+(n.entry?'\nentry: '+n.entry:'')+'\nports:\n  inputs:'+(n.in.length?'':' {}')+'\n';
+  n.in.forEach(p=>{y+='    '+p[0]+': {type: '+p[1]+(p[2]?', note: '+p[2]:'')+'}\n';});
+  y+='  outputs:'+(n.out.length?'':' {}')+'\n';n.out.forEach(p=>{y+='    '+p[0]+': {type: '+p[1]+'}\n';});
+  y+='params_schema:\n';n.params.forEach(p=>{y+='  '+p[0]+': {type: '+p[1]+', default: '+p[2]+(p[3]&&p[3]!=='—'?', range: "'+p[3]+'"':'')+', lock: '+p[4]+', promotable: '+p[5]+'}\n';});
+  y+='  extra: {type: 开放字典}\ninstance:\n  tags: []\n  hooks: {before: [], after: [], on_error: []}\nauto_ports: {escalation: 升级@1, trace: 日志指针}\n';
+  if(n.locks.length){y+='# 内核锁定\n';n.locks.forEach(l=>{y+='#   - '+l+'\n';});}
+  return y;
+}
+
+/* ================= 类型库 ================= */
+function allTypes(){return TYPES.sys.concat(TYPES.biz,TYPES.user);}
+function rTypes(){
+  let h='<div class="grp">内置基础类型</div>'+TYPES.base.map(t=>'<button class="it'+(S.type===t.id?' on':'')+'" data-type="'+esc(t.id)+'">'+esc(t.id)+'<small>内置</small></button>').join('');
+  h+='<div class="grp">系统类型</div>'+TYPES.sys.map(t=>'<button class="it'+(S.type===t.id?' on':'')+'" data-type="'+esc(t.id)+'">'+t.id+'<small>系统</small></button>').join('');
+  h+='<div class="grp">业务类型 · 闭环模板包</div>'+TYPES.biz.map(t=>'<button class="it'+(S.type===t.id?' on':'')+'" data-type="'+esc(t.id)+'">'+t.id+'<small>'+(t.ext?'extends':'')+'</small></button>').join('');
+  if(TYPES.user.length) h+='<div class="grp">用户 / 模型新增</div>'+TYPES.user.map(t=>'<button class="it'+(t.tmp?' tmp':'')+(S.type===t.id?' on':'')+'" data-type="'+esc(t.id)+'">'+t.id+'<small>'+(t.tmp?'临时':'已入库')+'</small></button>').join('');
+  $('left').innerHTML=h;
+  const b=TYPES.base.find(t=>t.id===S.type);
+  let m='<div class="pk"><div></div><button class="btn" id="mdType">让模型起草新类型</button></div>';
+  if(b){
+    m+='<h2>'+esc(b.id)+'</h2><div class="kv">内置基础类型 · 内核提供 · 不可修改</div><p class="sub" style="margin-top:10px">'+esc(b.desc)+'</p>';
+    m+='<div class="sec">层次说明</div><table><tr><th>层</th><th>内容</th><th>谁能改</th></tr><tr><td>内置基础类型</td><td>文本、数值、布尔、枚举、时间、指针、列表[T]、元组、字典、资源引用&lt;T&gt;、任意</td><td>不可改</td></tr><tr><td>系统类型</td><td>上下文包、工具请求/结果、聚合结果、升级（绑定特定节点）</td><td>不可改</td></tr><tr><td>业务类型</td><td>由扩展包定义，如闭环模板包的 10 种</td><td>只能继承扩展</td></tr></table>';
+    $('mid').innerHTML=m;return;
+  }
+  const t=allTypes().find(x=>x.id===S.type)||TYPES.biz[5];
+  const layer=TYPES.sys.includes(t)?'系统类型':(TYPES.user.includes(t)?(t.tmp?'临时命名空间 tmp/':'用户类型'):'业务类型 · '+t.pkg);
+  m+='<h2>'+t.id+'</h2><div class="kv">'+layer+(t.producer?' · producer: '+t.producer:'')+(t.by?' · '+t.by:'')+'</div><p class="sub" style="margin-top:10px">'+esc(t.desc)+'</p>';
+  if(t.tmp) m+='<div class="locks" style="margin-bottom:10px">临时类型：只在当前运行的临时命名空间里可用，正式入库需审批。</div>';
+  const chain=[];let c=t;while(c){chain.unshift(c.id);c=c.ext?allTypes().find(x=>x.id===c.ext):null;}
+  m+='<div class="sec">继承链</div><div class="chain">'+(chain.length>1?'':'<span>（基础类型组合）</span><i>→</i>')+chain.map((x,i)=>(i?'<i>extends ←</i>':'')+'<span class="'+(x===t.id?'cur':'')+'">'+x+'</span>').join('')+'</div>';
+  m+='<div class="sec">字段</div><table><tr><th>字段</th><th>类型</th><th>属性</th></tr>'+t.fields.map(f=>'<tr><td class="m">'+esc(f[0])+'</td><td class="m">'+tvar(f[1])+'</td><td>'+(f[2].length?f[2].map(a=>{const k=a.split(':')[0];const cls=/readonly|inherit/.test(k)?'k':(k==='required'||k==='required_if'?'d':(k==='继承'?'n':''));return '<span class="bdg '+cls+'" title="'+esc(ATTR_HELP[k]||'')+'">'+esc(a)+'</span>';}).join(''):'<span class="bdg n">可选</span>')+'</td></tr>').join('')+'</table>';
+  m+='<div class="sec">版本历史</div><div class="vers">'+t.vers.map(v=>'<div><b>@'+v[0]+'</b><span>'+esc(v[1])+'</span></div>').join('')+'</div>';
+  m+='<div class="sec">字段属性词表（内核提供，由类型作者选用）</div><div>'+Object.keys(ATTR_HELP).filter(k=>k!=='继承').map(k=>'<span class="bdg">'+k+'</span><span style="color:var(--page-muted);font-size:12.5px;margin-right:12px">'+ATTR_HELP[k]+'</span>').join('')+'</div>';
+  $('mid').innerHTML=m;
+}
+
+/* ================= 兼容性 ================= */
+function parseT(s){const m=/^列表\[(.+)\]$/.exec(s);return m?{list:true,inner:m[1]}:{list:false,inner:s};}
+function isSub(a,b){let c=REG[a];while(c&&c.p){if(c.p===b)return true;c=REG[c.p];}return false;}
+function check(o,i){
+  const A=parseT(o),B=parseT(i),steps=[];let res='yes';
+  if(B.inner==='任意'&&!B.list){steps.push(['<b>输入端口为「任意」</b>：可以接收任何类型','ok']);return {res:'yes',steps};}
+  if(A.inner==='任意'){steps.push(['<b>输出为「任意」</b>：任意只能进不能出，不能直接接具体类型','er'],['先经过一个设定了 output_schema 的 Agent 节点再连','wn']);return {res:'no',steps};}
+  let a=A.inner,b=B.inner;
+  if(A.list&&!B.list){steps.push(['<b>列表自动展开</b>：列表['+a+'] 接到单值端口，将对每一项各跑一次（画布显示展开标记）','wn']);res='warn';}
+  else if(!A.list&&B.list){steps.push(['<b>单值接列表端口</b>：不会自动包装成列表，请经过汇合节点','er']);return {res:'no',steps};}
+  else if(A.list&&B.list) steps.push(['两端都是列表，比较元素类型','ok']);
+  if(B.inner==='上下文包@1'&&a!=='上下文包@1'){steps.push(['<b>内核规则</b>：上下文包只能由上下文装配节点产出，Agent 的 context 端口不接受其他类型','er']);return {res:'no',steps};}
+  const ra=REG[a],rb=REG[b];
+  if(a===b){steps.push(['<b>名义类型相同</b>：'+a,'ok']);return {res,steps};}
+  if(ra&&rb&&ra.n===rb.n){
+    if(ra.ma!==rb.ma){steps.push(['名义相同，<b>主版本不同</b>（@'+ra.ma+' → @'+rb.ma+'）：不兼容','er'],['类型作者提供迁移函数后可自动转换；否则画布标红连线','wn']);return {res:'no',steps};}
+    steps.push(['名义相同，<b>次版本不同</b>（'+ra.ma+'.'+ra.mi+' → '+rb.ma+'.'+rb.mi+'）：次版本只增加可选字段，向后兼容','ok']);return {res,steps};
+  }
+  if(isSub(a,b)){steps.push(['<b>'+a+' 继承自 '+b+'</b>：子类型只增加字段，不删除必填字段，可以传给父类型端口','ok'],['多出的字段（如 checklist、output_type）在下游不可见','wn']);return {res,steps};}
+  if(isSub(b,a)){steps.push(['<b>父类型接子类型端口</b>：'+a+' 缺少 '+b+' 的必填字段','er']);return {res:'no',steps};}
+  steps.push(['<b>名义类型不同</b>：'+a+' ≠ '+b+'。即使结构恰好一样也不允许，防止语义不匹配','er'],['需要转换时插一个适配节点（脚本或 Agent）','wn']);return {res:'no',steps};
+}
+function rCompat(){
+  $('left').innerHTML='<div class="grp">连接规则</div>'+['名义类型 + 继承','继承只能加字段','次版本兼容 / 主版本迁移','列表自动展开','任意只能进不能出','自定义类型只能继承'].map(x=>'<div class="it" style="cursor:default">'+x+'</div>').join('')+
+   '<div class="grp">已注册类型</div>'+REG_KEYS.map(k=>'<div class="it" style="cursor:default">'+k+'<small>'+(REG[k].p?'⊂ '+REG[k].p:'')+'</small></div>').join('');
+  const r=check(S.cOut,S.cIn);
+  const opt=v=>COMPAT_OPTS.map(o=>'<option'+(o===v?' selected':'')+'>'+o+'</option>').join('');
+  let m='<h2>兼容性检查器</h2><p class="sub">连线时运行时会做这个判断。选一个输出端口类型和一个输入端口类型，看能不能连、为什么。</p>';
+  m+='<div class="presets">'+PRESETS.map((p,i)=>'<button class="btn sm" data-pre="'+i+'">'+p[2]+'</button>').join('')+'</div>';
+  m+='<div class="cmp"><div><label>输出端口类型</label><select id="cOut">'+opt(S.cOut)+'</select></div><div class="arrow">──►</div><div><label>输入端口类型</label><select id="cIn">'+opt(S.cIn)+'</select></div></div>';
+  m+='<div class="verdict '+r.res+'" id="verdict"><div class="vh">'+({yes:'能连',warn:'能连（自动展开）',no:'不能连'})[r.res]+'</div><ol>'+r.steps.map(s=>'<li style="color:'+(s[1]==='er'?'var(--page-red)':s[1]==='wn'?'var(--page-amber)':'var(--page-muted)')+'">'+s[0]+'</li>').join('')+'</ol></div>';
+  m+='<div class="sec">规则说明</div><table class="rules"><tr><td>名义类型 + 继承</td><td>只有同名同主版本，或其子类型，才能连。结构相同但名字不同也不行。</td></tr><tr><td>继承只能加字段</td><td>不能删除必填字段，不能改字段类型，所以子类型总能传给父类型端口。</td></tr><tr><td>版本</td><td>次版本只加可选字段，向后兼容；主版本不兼容，需迁移函数，否则连线标红。</td></tr><tr><td>列表自动展开</td><td>列表[T] 接单个 T 的端口时，对每一项各跑一次。</td></tr><tr><td>任意</td><td>可以接收任何类型；但「任意」输出不能直接接具体类型，要经 Agent 定型。</td></tr></table>';
+  $('mid').innerHTML=m;
+}
+
+/* ================= 扩展包 ================= */
+function rPkgs(){
+  let h='<div class="grp">已安装</div>'+PKGS.filter(p=>p.installed).map(p=>'<button class="it'+(S.pkgView==='detail'&&S.pkg===p.id?' on':'')+'" data-pkg="'+p.id+'">'+p.name+'<small>'+p.ver+'</small></button>').join('');
+  h+='<div class="grp">可安装</div>'+(PKGS.filter(p=>!p.installed).map(p=>'<button class="it'+(S.pkgView==='detail'&&S.pkg===p.id?' on':'')+'" data-pkg="'+p.id+'">'+p.name+'<small>'+p.ver+'</small></button>').join('')||'<div class="empty" style="padding:4px 14px">全部已安装</div>');
+  h+='<div class="grp">开发</div><button class="it'+(S.pkgView==='wiz'?' on':'')+'" data-wiz="1">新建自定义节点<small>向导</small></button>';
+  $('left').innerHTML=h;
+  if(S.pkgView==='wiz'){rWiz();return;}
+  const p=PKGS.find(x=>x.id===S.pkg);
+  let m='<div class="pk"><div><h2>'+p.name+'</h2><div class="kv">v'+p.ver+' · '+p.author+' · '+(p.installed?'已安装':'未安装')+'</div></div><div style="display:flex;gap:8px"><button class="btn" id="mdNode">让模型起草新节点</button>'+(p.installed?'<button class="btn bad" id="pkUn">卸载</button>':'<button class="btn pri" id="pkIn">安装</button>')+'</div></div>';
+  m+='<p class="sub" style="margin-top:10px">'+esc(p.desc)+'</p>';
+  const col=(t,a)=>'<div><h5>'+t+' · '+a.length+'</h5>'+a.map(x=>'<div>'+esc(x)+'</div>').join('')+'</div>';
+  m+='<div class="sec">包内容</div><div class="cols3">'+col('节点',p.nodes)+col('类型',p.types)+col('上下文配方',p.recipes)+col('策略',p.policies)+col('角色卡',p.roles)+col('参数预设',p.presets)+'</div>';
+  m+='<div class="sec">依赖</div><div>'+p.deps.map(d=>'<span class="bdg">'+esc(d)+'</span>').join('')+'</div>';
+  m+='<div class="sec">权限需求（安装时提示，实际权限 = 授予 ∩ 声明 ∩ 父级）</div><div>'+p.perms.map(d=>'<span class="bdg '+(/L3/.test(d)?'r':/L2/.test(d)?'k':'d')+'">'+esc(d)+'</span>').join('')+'</div>';
+  m+='<div class="sec">package.yaml</div><pre class="y">'+esc('package: '+p.name+'\nversion: '+p.ver+'\nrequires: ['+p.deps.join(', ')+']\nprovides:\n  nodes: ['+p.nodes.join(', ')+']\n  types: ['+p.types.join(', ')+']\n  recipes: ['+p.recipes.join(', ')+']\n  policies: ['+p.policies.join(', ')+']\n  role_cards: ['+p.roles.join(', ')+']\n  presets: ['+p.presets.join(', ')+']\npermissions: ['+p.perms.join(', ')+']\nrules:\n  - 不得修改内核类型和系统类型\n  - 新类型只能继承已有类型或由基础类型组合')+'</pre>';
+  $('mid').innerHTML=m;
+}
+const IMPLS=[['script','Python / JS 脚本，确定性沙箱运行'],['prompt','提示词封装成节点，内部调用模型'],['http','调用外部 HTTP 接口'],['mcp','挂接 MCP 服务的工具'],['子图','把一张图封装成节点']];
+function wizYaml(){
+  const w=S.wiz,ln=s=>s.split('\n').map(x=>x.trim()).filter(Boolean);
+  let y='node_def: '+w.name+'\nversion: 0.1\nkind: '+(w.impl==='子图'?'subgraph':'atomic')+'\nimpl:\n  type: '+w.impl+'\n';
+  if(w.impl==='script') y+='  lang: python\n  entry: '+w.entry+'\n';
+  if(w.impl==='prompt') y+='  role_card: '+(w.entry||'未填')+'\n';
+  if(w.impl==='http') y+='  url: '+(w.entry||'未填')+'\n';
+  if(w.impl==='mcp') y+='  server: '+(w.entry||'未填')+'\n';
+  if(w.impl==='子图') y+='  ref: '+(w.entry||'未填')+'\n';
+  y+='ports:\n  inputs:\n'+ln(w.inputs).map(x=>'    '+x.replace(':',': {type:')+'}').join('\n')+'\n  outputs:\n'+ln(w.outputs).map(x=>'    '+x.replace(':',': {type:')+'}').join('\n')+'\nparams_schema:\n'+ln(w.params).map(x=>'  '+x).join('\n')+'\n';
+  if(w.newType) y+='defines_types:\n  - '+w.newType+(w.newTypeExt?' extends '+w.newTypeExt:'  # 未声明继承')+'\n';
+  return y;
+}
+function wizCheck(){
+  const w=S.wiz,out=[],known=new Set(REG_KEYS.concat(TYPES.base.map(t=>t.id),allTypes().map(t=>t.id),['工单@1','研究报告@1']));
+  if(w.newType) known.add(w.newType);
+  out.push(w.name.trim()?['ok','节点名称：'+w.name]:['er','节点名称不能为空']);
+  if(findNode(w.name.trim())&&!CUSTOM_NODES.some(n=>n.name===w.name.trim())) out.push(['er','名称与已有节点「'+w.name+'」冲突']);
+  const ports=(w.inputs+'\n'+w.outputs).split('\n').map(x=>x.trim()).filter(Boolean);
+  ports.forEach(p=>{const t=(p.split(':')[1]||'').trim().replace(/^列表\[(.+)\]$/,'$1');if(!t)out.push(['er','端口「'+p+'」缺少类型']);else if(!known.has(t))out.push(['wn','端口类型「'+t+'」未注册，需在 defines_types 中定义']);});
+  if(!w.outputs.trim()) out.push(['er','至少要有一个输出端口']);
+  if(w.newType){
+    const nm=w.newType.split('@')[0];
+    const core=TYPES.sys.concat(TYPES.biz).some(t=>t.id.split('@')[0]===nm)||TYPES.base.some(t=>t.id===nm);
+    if(core) out.push(['er','不能修改核心类型：「'+nm+'」已存在。请换名并用 extends 继承它']);
+    else if(!w.newTypeExt) out.push(['er','新类型「'+w.newType+'」必须声明 extends（只能继承已有类型或由基础类型组合）']);
+    else if(!known.has(w.newTypeExt)) out.push(['er','父类型「'+w.newTypeExt+'」不存在']);
+    else out.push(['ok','新类型 '+w.newType+' extends '+w.newTypeExt+'：只加字段，合规']);
+  }
+  if(w.impl==='script'&&!w.entry) out.push(['er','script 实现需要 entry 文件']);
+  if(w.impl==='prompt') out.push(['wn','prompt 实现的节点调用模型：不能作为聚合/分支使用（确定性要求）']);
+  if(w.impl==='http') out.push(['wn','http 节点默认风险 L2，运行前过规则审核']);
+  out.push(['ok','自动添加 auto_ports：escalation、trace']);
+  return out;
+}
+function rWiz(){
+  const w=S.wiz;
+  let m='<h2>新建自定义节点</h2><p class="sub">写一份定义，选一种实现方式，就是一个新的原子节点。它和内置节点一样有端口、参数、三级锁和自动端口。</p>';
+  m+='<div class="steps">'+['1 实现方式','2 端口与参数','3 YAML 预览与校验'].map((s,i)=>'<div class="'+(w.step===i+1?'on':(w.step>i+1?'done':''))+'">'+s+'</div>').join('')+'</div>';
+  if(w.step===1){
+    m+='<div class="impls">'+IMPLS.map(x=>'<button class="impl'+(w.impl===x[0]?' on':'')+'" data-impl="'+x[0]+'"><b>'+x[0]+'</b><span>'+x[1]+'</span></button>').join('')+'</div>';
+    m+='<div class="wbtns"><button class="btn pri" data-ws="2">下一步</button></div>';
+  } else if(w.step===2){
+    const lab={script:'entry 文件',prompt:'角色卡引用',http:'URL',mcp:'MCP 服务','子图':'子图引用@版本'}[w.impl];
+    m+='<div class="frm">'+
+     '<label>名称</label><input data-w="name" value="'+esc(w.name)+'">'+
+     '<label>'+lab+'</label><input data-w="entry" value="'+esc(w.entry)+'">'+
+     '<label>输入端口</label><textarea data-w="inputs">'+esc(w.inputs)+'</textarea>'+
+     '<label>输出端口</label><textarea data-w="outputs">'+esc(w.outputs)+'</textarea>'+
+     '<label>参数</label><textarea data-w="params">'+esc(w.params)+'</textarea>'+
+     '<label>定义新类型</label><input data-w="newType" placeholder="例如 汇率@1（可空）" value="'+esc(w.newType)+'">'+
+     '<label>extends</label><input data-w="newTypeExt" placeholder="例如 执行结果@1" value="'+esc(w.newTypeExt)+'">'+
+     '</div><p class="sub" style="margin-top:10px">端口一行一个，格式 <span class="mono">名称: 类型</span>。试试把「定义新类型」填成 <span class="mono">方案@1</span>，或去掉 extends，看校验怎么拦。</p>';
+    m+='<div class="wbtns"><button class="btn" data-ws="1">上一步</button><button class="btn pri" data-ws="3">生成预览</button></div>';
+  } else {
+    const c=wizCheck(),bad=c.some(x=>x[0]==='er');
+    m+='<div class="ports"><div><div class="sec">YAML 预览</div><pre class="y">'+esc(wizYaml())+'</pre></div><div><div class="sec">校验</div><div class="chk">'+c.map(x=>'<div><span class="'+x[0]+'">'+({ok:'通过',er:'错误',wn:'提示'})[x[0]]+'</span><span>'+esc(x[1])+'</span></div>').join('')+'</div></div></div>';
+    m+='<div class="wbtns"><button class="btn" data-ws="2">上一步修改</button><button class="btn pri" id="wReg" '+(bad?'disabled':'')+'>注册到节点库</button></div>';
+  }
+  $('mid').innerHTML=m;
+}
+
+/* ================= 右栏：档位与模型起草 ================= */
+function rRight(){
+  const l=lvl();
+  const txt=['模型只能查看节点和类型，不能起草。','模型起草的定义进入<b style="font-size:13px">待审批</b>，你逐条批准后才入库。','模型起草的定义直接进入<b style="font-size:13px">临时命名空间</b>，当前运行可用；正式入库需审批。','同 2 档；只有新增 L2 及以上权限需求的节点需要你审批。','模型可直接起草并入库；仍全程留痕，可回滚。'][l];
+  $('lvbox').innerHTML='<b>'+LVN[l]+'</b><br>'+txt;
+  const d=$('drafts');
+  if(!S.drafts.length){d.innerHTML='<div class="empty">暂无。在类型库或扩展包页点「让模型起草」。</div>';return;}
+  d.innerHTML=S.drafts.map((x,i)=>{
+    const st={pending:'待审批',tmp:'临时 · 正式入库需审批',done:'已入库',rej:'已拒绝'}[x.state];
+    let acts='';
+    if(x.state==='pending') acts='<button class="btn sm ok" data-ap="'+i+'">批准入库</button><button class="btn sm" data-rj="'+i+'">拒绝</button><button class="btn sm" data-vw="'+i+'">查看</button>';
+    if(x.state==='tmp') acts='<button class="btn sm ok" data-ap="'+i+'">批准正式入库</button><button class="btn sm" data-rj="'+i+'">丢弃</button><button class="btn sm" data-vw="'+i+'">查看</button>';
+    if(x.state==='done') acts='<button class="btn sm" data-vw="'+i+'">查看</button><button class="btn sm" data-ub="'+i+'">回滚</button>';
+    return '<div class="draft '+({pending:'',tmp:'tmp',done:'done',rej:'rej'})[x.state]+'"><div class="dh"><b>'+x.id+'</b><span class="bdg '+(x.state==='done'?'d':'k')+'">'+st+'</span></div><div class="kv" style="margin-top:2px">模型起草 · '+x.kind+'</div><div class="why">理由：'+esc(x.why)+'</div><div class="acts">'+acts+'</div></div>';
+  }).join('');
+}
+function modelDraft(kind){
+  const l=lvl();
+  if(l===0){alog('系统','档位 0 只读：已拒绝模型的起草请求');flashNarr('档位 0 只读，模型不能起草。把档位调到 1 以上再试。');return null;}
+  let d;
+  if(kind==='type'){
+    d={kind:'类型',id:'价格表@1',why:'推演中执行者返回的价格币种和计费周期不统一（美元月付 vs 人民币年付）。新增 价格表@1 继承 执行结果@1，把 currency、period、unit_price 固定成必填字段，并给 currency 标 inherit，保证全局约束透传。',
+     obj:{id:'价格表@1',ext:'执行结果@1',pkg:'用户',desc:'统一币种和计费周期后的价格结果。',
+      fields:[['task_id','文本',['required','继承']],['status','枚举',['required','继承']],['conclusion','文本',['required','继承']],['sources','列表[{ptr, url, excerpt, time}]',['required_if: status∈{完成,部分}','继承']],['company','文本',['required']],['unit_price','数值',['required']],['currency','枚举',['required','inherit','enum: CNY|USD|EUR']],['period','枚举',['required','enum: 月付|年付']],['tier','文本',[]]],
+      vers:[['1.0','模型起草']]}};
+  } else {
+    d={kind:'节点',id:'汇率换算',why:'价格标准化节点目前只接受同币种输入。起草一个 script 节点，把 价格表@1 按指定日期汇率统一换算，确定性运行，可缓存，不需要调用模型。',
+     obj:{name:'汇率换算',cat:'自定义',kind:'atomic',impl:'script',entry:'fx_convert.py',in:[['prices','列表[价格表@1]','']],out:[['converted','列表[价格表@1]','']],
+      params:[['target_currency','枚举','CNY','CNY/USD/EUR','none',true],['rate_date','时间','运行当天','—','none',true],['rate_source','枚举','央行中间价','央行中间价/市场价','def',false]],locks:[]}};
+  }
+  d.state=l===1?'pending':(l===4?'done':'tmp');
+  if(kind==='node'&&l===3){d.state='tmp';}
+  S.drafts.unshift(d);
+  if(d.state!=='pending') install(d,d.state==='tmp');
+  alog('模型','起草'+d.kind+' <b>'+d.id+'</b>（'+({pending:'待审批',tmp:'进入临时命名空间',done:'直接入库'})[d.state]+'）');
+  rRight();
+  return d;
+}
+function install(d,tmp){
+  if(d.kind==='类型'){
+    let t=TYPES.user.find(x=>x.id===d.obj.id);
+    if(!t){t=JSON.parse(JSON.stringify(d.obj));TYPES.user.push(t);}
+    t.tmp=tmp;t.by='模型起草';
+    REG['价格表@1']={n:'价格表',ma:1,mi:0,p:'执行结果@1'};
+  } else {
+    let n=CUSTOM_NODES.find(x=>x.name===d.obj.name);
+    if(!n){n=JSON.parse(JSON.stringify(d.obj));CUSTOM_NODES.push(n);}
+    n.tmp=tmp;n.by='模型起草';
+  }
+}
+function uninstall(d){
+  if(d.kind==='类型'){TYPES.user=TYPES.user.filter(x=>x.id!==d.obj.id);}
+  else{const i=CUSTOM_NODES.findIndex(x=>x.name===d.obj.name);if(i>=0)CUSTOM_NODES.splice(i,1);}
+}
+
+/* ================= 事件 ================= */
+document.querySelector('.bar2').addEventListener('click',e=>{const t=e.target.closest('.tab');if(!t)return;S.tab=t.dataset.tab;render();});
+$('lvl').addEventListener('change',()=>{alog('用户','授权档位改为 '+LVN[lvl()]);rRight();});
+$('left').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.node){S.node=b.dataset.node;}
+  else if(b.dataset.type){S.type=b.dataset.type;}
+  else if(b.dataset.pkg){S.pkg=b.dataset.pkg;S.pkgView='detail';}
+  else if(b.dataset.wiz){S.pkgView='wiz';}
+  else return;
+  render();
+});
+$('mid').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.nv){S.nodeView=b.dataset.nv;render();return;}
+  if(b.dataset.pre){const p=PRESETS[+b.dataset.pre];S.cOut=p[0];S.cIn=p[1];render();return;}
+  if(b.id==='mdType'){const d=modelDraft('type');if(d&&d.state!=='pending'){S.type=d.obj.id;}render();return;}
+  if(b.id==='mdNode'){const d=modelDraft('node');if(d&&d.state!=='pending'){S.tab='nodes';S.node=d.obj.name;}render();return;}
+  if(b.id==='pkIn'||b.id==='pkUn'){const p=PKGS.find(x=>x.id===S.pkg);p.installed=b.id==='pkIn';alog('用户',(p.installed?'安装':'卸载')+'扩展包 <b>'+p.name+'</b>');render();return;}
+  if(b.dataset.impl){S.wiz.impl=b.dataset.impl;S.wiz.entry={script:'fx.py',prompt:'汇率分析员@1',http:'https://api.example.com/fx',mcp:'fx-mcp','子图':'汇率子图@v0.1'}[b.dataset.impl];render();return;}
+  if(b.dataset.ws){S.wiz.step=+b.dataset.ws;render();return;}
+  if(b.id==='wReg'){
+    const w=S.wiz,ln=s=>s.split('\n').map(x=>x.trim()).filter(Boolean).map(x=>{const a=x.split(':');return [a[0].trim(),(a.slice(1).join(':')||'').trim(),''];});
+    const n={name:w.name.trim(),cat:'自定义',kind:w.impl==='子图'?'subgraph':'atomic',impl:w.impl,entry:w.entry,in:ln(w.inputs),out:ln(w.outputs),
+      params:ln(w.params).map(p=>[p[0],p[1].split('=')[0].trim(),(p[1].split('=')[1]||'—').trim(),'—','none',true]),locks:[],by:'用户创建'};
+    const i=CUSTOM_NODES.findIndex(x=>x.name===n.name);if(i>=0)CUSTOM_NODES.splice(i,1);CUSTOM_NODES.push(n);
+    if(w.newType&&w.newTypeExt&&!TYPES.user.some(t=>t.id===w.newType)){TYPES.user.push({id:w.newType,ext:allTypes().some(t=>t.id===w.newTypeExt)?w.newTypeExt:null,pkg:'用户',desc:'由自定义节点向导定义',fields:[['（继承父类型全部字段）','—',['继承']]],vers:[['0.1','向导创建']],by:'用户创建'});const nm=w.newType.split('@')[0];REG[w.newType]={n:nm,ma:1,mi:0,p:REG[w.newTypeExt]?w.newTypeExt:undefined};}
+    alog('用户','注册自定义节点 <b>'+n.name+'</b>（'+n.impl+'）');
+    S.tab='nodes';S.node=n.name;S.nodeView='form';render();return;
+  }
+});
+$('mid').addEventListener('change',e=>{
+  if(e.target.id==='cOut'){S.cOut=e.target.value;render();}
+  if(e.target.id==='cIn'){S.cIn=e.target.value;render();}
+});
+$('mid').addEventListener('input',e=>{const k=e.target.dataset.w;if(k)S.wiz[k]=e.target.value;});
+$('right').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  const get=k=>S.drafts[+b.dataset[k]];
+  if(b.dataset.ap!==undefined){const d=get('ap');install(d,false);d.state='done';alog('用户','批准 <b>'+d.id+'</b> 正式入库');render();return;}
+  if(b.dataset.rj!==undefined){const d=get('rj');if(d.state==='tmp')uninstall(d);d.state='rej';alog('用户','拒绝 <b>'+d.id+'</b>');render();return;}
+  if(b.dataset.ub!==undefined){const d=get('ub');uninstall(d);d.state='rej';alog('用户','回滚 <b>'+d.id+'</b>，已从库中移除');render();return;}
+  if(b.dataset.vw!==undefined){const d=get('vw');
+    if(d.kind==='类型'){S.tab='types';if(d.state==='pending'){previewDraftType(d);return;}S.type=d.obj.id;}
+    else{S.tab='nodes';if(d.state==='pending'){previewDraftNode(d);return;}S.node=d.obj.name;}
+    render();}
+});
+function previewDraftType(d){
+  S.tab='types';render();
+  const t=d.obj;
+  $('mid').innerHTML='<h2>'+t.id+' <span class="bdg k">草案 · 待审批</span></h2><div class="kv">模型起草 · extends '+t.ext+'</div><p class="sub" style="margin-top:10px">理由：'+esc(d.why)+'</p><div class="sec">字段</div><table><tr><th>字段</th><th>类型</th><th>属性</th></tr>'+t.fields.map(f=>'<tr><td class="m">'+esc(f[0])+'</td><td class="m">'+esc(f[1])+'</td><td>'+f[2].map(a=>'<span class="bdg">'+esc(a)+'</span>').join('')+'</td></tr>').join('')+'</table><div class="sec">内核校验</div><div class="chk"><div><span class="ok">通过</span>继承 执行结果@1，只增加字段</div><div><span class="ok">通过</span>未修改任何核心类型</div><div><span class="ok">通过</span>字段属性均来自内核词表</div></div>';
+}
+function previewDraftNode(d){
+  S.tab='nodes';render();
+  const n=d.obj;
+  $('mid').innerHTML='<h2>'+n.name+' <span class="bdg k">草案 · 待审批</span></h2><div class="kv">模型起草 · '+n.impl+' · entry: '+n.entry+'</div><p class="sub" style="margin-top:10px">理由：'+esc(d.why)+'</p><div class="sec">node_def</div><pre class="y">'+esc(nodeYaml(n))+'</pre>';
+}
+
+/* ================= 演示脚本 ================= */
+let demoRun=false;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function flashNarr(t,step){const n=$('narr');n.innerHTML=(step?'<b>'+step+'</b>':'')+t;n.style.display='block';clearTimeout(flashNarr.h);flashNarr.h=setTimeout(()=>{if(!demoRun)n.style.display='none';},3200);}
+function pulse(sel){const el=document.querySelector(sel);if(el){el.classList.remove('hl');void el.offsetWidth;el.classList.add('hl');el.scrollIntoView({block:'nearest'});}}
+$('demo').addEventListener('click',async()=>{
+  if(demoRun)return;demoRun=true;$('demo').disabled=true;
+  const steps=[
+   ['1/7','查看节点：Agent 节点没有任何业务含义，它是"智囊"还是"执行者"全看接进来的配置。',()=>{S.tab='nodes';S.node='Agent';S.nodeView='form';render();pulse('.locks');}],
+   ['2/7','同一份定义的 YAML 视图。画布、表单、YAML 编辑的是同一份数据。',()=>{S.nodeView='yaml';render();}],
+   ['3/7','查看类型：任务卡@1 继承 任务@1，字段属性用徽标标出，由运行时强制执行。',()=>{S.nodeView='form';S.tab='types';S.type='任务卡@1';render();pulse('.chain');}],
+   ['4/7','兼容性检查：子类型能接父类型端口。',()=>{S.tab='compat';S.cOut='任务卡@1';S.cIn='任务@1';render();pulse('#verdict');}],
+   ['5/7','主版本不同就不能连：方案@2 → 方案@1 需要迁移函数。',()=>{S.cOut='方案@2';S.cIn='方案@1';render();pulse('#verdict');}],
+   ['6/7','档位 1：让模型起草新类型 价格表@1，进入待审批，右侧可以看到理由。',()=>{$('lvl').value='1';rRight();S.tab='types';render();const d=modelDraft('type');rRight();pulse('.draft');}],
+   ['7/7','批准入库：价格表@1 出现在类型库，兼容性检查器也认识它了。',()=>{const i=S.drafts.findIndex(x=>x.state==='pending');if(i>=0){const d=S.drafts[i];install(d,false);d.state='done';alog('用户','批准 <b>'+d.id+'</b> 正式入库');}S.tab='types';S.type='价格表@1';render();pulse('.chain');}]
+  ];
+  for(const s of steps){s[2]();const n=$('narr');n.innerHTML='<b>'+s[0]+'</b>'+s[1];n.style.display='block';await sleep(3400);}
+  S.tab='compat';S.cOut='价格表@1';S.cIn='执行结果@1';render();
+  $('narr').innerHTML='<b>完成</b>价格表@1 继承 执行结果@1，可以直接接到原来的端口上。';
+  await sleep(3000);
+  $('narr').style.display='none';demoRun=false;$('demo').disabled=false;
+});
+
+alog('系统','已加载 13 个原子节点、3 个扩展节点、3 个扩展包');
+render();
+</script>
+</body>
+</html>

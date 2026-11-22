@@ -1,0 +1,61 @@
+/* ===== 21_flow.css · 不显眼的滚动条、流动高亮、浮动回复小尾巴、思考挡位、新建会话（demo v0.5.9） ===== */
+
+/* ---------- 滚动条：平时完全隐藏，鼠标移进区域才出现一根细细的、半透明的滑块 ---------- */
+.hx-ls__scroll,.hx-ls__rail,.hx-rs,.hx-rs *,.hx-mon__l,.hx-mon__steps,.hx-chat,.hx-ctr__list,.hx-ctr__body,.hx-pick__l,.hx-inbox__l{scrollbar-width:thin;scrollbar-color:transparent transparent}
+.hx-ls__scroll:hover,.hx-rs:hover *,.hx-mon__l:hover,.hx-mon__steps:hover,.hx-chat:hover,.hx-ctr__list:hover,.hx-ctr__body:hover,.hx-pick__l:hover,.hx-inbox__l:hover{scrollbar-color:color-mix(in srgb,var(--hx-text-1) 16%,transparent) transparent}
+.hx-ls__scroll::-webkit-scrollbar,.hx-rs ::-webkit-scrollbar,.hx-ctr ::-webkit-scrollbar,.hx-pick__l::-webkit-scrollbar,.hx-inbox__l::-webkit-scrollbar{width:6px;height:6px}
+.hx-ls__scroll::-webkit-scrollbar-thumb,.hx-rs ::-webkit-scrollbar-thumb,.hx-ctr ::-webkit-scrollbar-thumb,.hx-pick__l::-webkit-scrollbar-thumb,.hx-inbox__l::-webkit-scrollbar-thumb{background:transparent;border:0;border-radius:6px}
+.hx-ls__scroll:hover::-webkit-scrollbar-thumb,.hx-rs :hover::-webkit-scrollbar-thumb,.hx-ctr :hover::-webkit-scrollbar-thumb,.hx-pick__l:hover::-webkit-scrollbar-thumb,.hx-inbox__l:hover::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--hx-text-1) 16%,transparent)}
+.hx-ls__scroll::-webkit-scrollbar-track{background:transparent}
+.hx-ls__scroll{scrollbar-gutter:stable}
+
+/* ---------- 流动高亮 ---------- */
+.hx-glide{position:absolute;left:0;top:0;width:0;height:0;z-index:0;pointer-events:none;opacity:0;
+  background:color-mix(in srgb,var(--hx-text-1) 6%,transparent);
+  transition:transform .32s cubic-bezier(.22,1,.36,1),width .32s cubic-bezier(.22,1,.36,1),height .32s cubic-bezier(.22,1,.36,1),border-radius .32s,opacity .22s ease}
+.hx-glide.is-on{opacity:1}
+:root[data-theme="dark"] .hx-glide{background:rgba(255,255,255,.065)}
+.hx-glide-on>*:not(.hx-glide){position:relative}
+.hx-ls__foot.hx-glide-on{position:relative}
+.hx-glide-on .hx-ls__sec,.hx-glide-on .hx-ls__new,.hx-glide-on .hx-sess,.hx-glide-on .hx-tree,.hx-glide-on .hx-lib{z-index:1}
+.hx-glide-on :is(.hx-ls__sech,.hx-sess__item,.hx-tree__i,.hx-lib2__ch,.hx-lib2__sh,.hx-lib2__it,.hx-lib2__more,.hx-lib2__f button,.hx-iconbtn,.hx-ls__me):not(.is-cur):not(.is-on):hover{background:transparent !important}
+.hx-glide-on :is(.hx-ls__sech,.hx-sess__item,.hx-tree__i,.hx-lib2__ch,.hx-lib2__sh,.hx-lib2__it,.hx-lib2__more,.hx-iconbtn,.hx-ls__me){transition:color .25s ease,background-color .25s ease !important}
+.hx-dock.hx-glide-on .hx-iconbtn,.hx-ls__rail.hx-glide-on .hx-iconbtn,.hx-ls__foot.hx-glide-on .hx-iconbtn{position:relative;z-index:1}
+.hx-glide.is-icon{background:color-mix(in srgb,var(--hx-text-1) 7%,transparent)}
+.hx-reduce .hx-glide{transition:opacity .1s}
+
+/* ---------- 浮动回复：小尾巴 ---------- */
+.hx-float__x{display:none !important}
+.hx-l4 .hx-float.is-hidden:not(.is-tucked),.hx-l4 .hx-float.is-idle:not(.is-tucked){opacity:1 !important;visibility:visible !important}
+.hx-l4 .hx-float.is-hidden:not(.is-tucked) .hx-msg,.hx-l4 .hx-float.is-idle:not(.is-tucked) .hx-msg{opacity:1 !important;transform:none !important}
+.hx-l4 .hx-float.is-tucked{opacity:0 !important;visibility:hidden !important;pointer-events:none !important;transition:none !important}
+.hx-l4 .hx-float__list{transform-origin:50% 50%;will-change:transform}
+.hx-tail{position:absolute;right:26px;top:-11px;z-index:3;width:30px;height:12px;display:grid;place-items:center;padding:0;border-radius:8px 8px 3px 3px;
+  background:var(--hx-glass);-webkit-backdrop-filter:blur(14px) saturate(1.6);backdrop-filter:blur(14px) saturate(1.6);color:var(--hx-text-3);
+  box-shadow:0 -1px 0 color-mix(in srgb,var(--hx-text-1) 6%,transparent),0 -4px 10px -6px color-mix(in srgb,var(--hx-text-1) 25%,transparent);
+  transition:color .2s ease,height .25s cubic-bezier(.22,1,.36,1),top .25s cubic-bezier(.22,1,.36,1),background-color .2s}
+.hx-tail[hidden]{display:none}
+.hx-tail svg{width:12px;height:8px;transition:transform .35s cubic-bezier(.22,1,.36,1)}
+.hx-tail:hover{color:var(--hx-text-1);height:15px;top:-14px}
+.hx-tail.is-open svg{transform:rotate(180deg)}
+.hx-tail i{position:absolute;right:3px;top:2px;width:5px;height:5px;border-radius:50%;background:var(--hx-model);opacity:0;transform:scale(.4);transition:all .25s ease}
+.hx-tail.is-new i{opacity:1;transform:none}
+.hx-tail.is-land{animation:hxTailLand .42s cubic-bezier(.22,1,.36,1)}
+@keyframes hxTailLand{0%{transform:scaleX(1.6)}55%{transform:scaleX(.92)}100%{transform:none}}
+
+/* ---------- 思考挡位 ---------- */
+.hx-pick__f .hx-eff{background:var(--hx-bg-4)}
+.hx-pick__f .hx-eff button{padding:0 8px !important;font-size:12px}
+
+/* ---------- 新建会话：居中、更明显 ---------- */
+.hx-ls__new{padding:10px 10px 12px !important}
+.hx-ls__newbtn{justify-content:center !important;height:34px !important;gap:7px !important;padding:0 12px !important;border-radius:10px !important;font-size:13px !important;font-weight:600 !important;
+  background:color-mix(in srgb,var(--hx-accent) 11%,var(--hx-bg-2)) !important;color:var(--hx-accent-strong) !important;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--hx-accent) 18%,transparent),0 1px 2px color-mix(in srgb,var(--hx-accent) 12%,transparent) !important;
+  transition:background-color .25s ease,box-shadow .25s ease,transform .12s ease !important}
+.hx-ls__newbtn:hover{background:color-mix(in srgb,var(--hx-accent) 17%,var(--hx-bg-2)) !important;color:var(--hx-accent-strong) !important}
+.hx-ls__newbtn:active{transform:scale(.985)}
+.hx-ls__newbtn>[data-ic],.hx-ls__newbtn>svg{width:auto !important;height:auto !important;background:transparent !important;color:currentColor !important}
+.hx-ls__newbtn>[data-ic] svg{width:14px !important;height:14px !important}
+.hx-ls__newbtn kbd{position:absolute;right:10px;opacity:0 !important;color:var(--hx-accent-strong)}
+.hx-ls__newbtn:hover kbd{opacity:.6 !important}

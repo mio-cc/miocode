@@ -1,0 +1,48 @@
+/* ===== 04_edge.css · 连线、框选、AI 光标 ===== */
+.hx-edges{position:absolute;left:0;top:0;width:1px;height:1px;overflow:visible;pointer-events:none}
+.hx-eg{--ec:var(--hx-type-any)}
+.hx-edge{fill:none;stroke:var(--ec);stroke-width:1.75;stroke-opacity:.72;stroke-linecap:round;
+  transition:stroke-width var(--hx-t-1) var(--hx-ease),stroke-opacity var(--hx-t-2) var(--hx-ease)}
+.hx-edge-glow{fill:none;stroke:var(--ec);stroke-width:7;stroke-opacity:0;stroke-linecap:round;transition:stroke-opacity var(--hx-t-2) var(--hx-ease)}
+.hx-edge-flow{fill:none;stroke:var(--hx-accent-strong);stroke-width:2.6;stroke-linecap:round;stroke-dasharray:1 11;display:none}
+.hx-edge-hit{fill:none;stroke:transparent;stroke-width:14;pointer-events:stroke;cursor:pointer}
+.hx-eg.is-hover .hx-edge{stroke-width:2.5;stroke-opacity:1}
+.hx-eg.is-sel .hx-edge{stroke-width:2.5;stroke-opacity:1}
+.hx-eg.is-sel .hx-edge-glow{stroke-opacity:.2}
+.hx-eg.is-done .hx-edge{stroke-opacity:1}
+.hx-eg.is-flow .hx-edge{stroke-opacity:.35}
+.hx-eg.is-flow .hx-edge-flow{display:inline;animation:hxFlow .6s linear infinite}
+@keyframes hxFlow{to{stroke-dashoffset:-12}}
+.hx-eg.is-ghost .hx-edge{stroke:var(--hx-model);stroke-dasharray:5 5;stroke-opacity:.9}
+.hx-eg.is-removing .hx-edge{stroke:var(--hx-danger);stroke-dasharray:5 5;stroke-opacity:.9}
+.hx-eg.is-dim .hx-edge{stroke-opacity:.25}
+.hx-edge-tmp{fill:none;stroke:var(--ec,var(--hx-text-2));stroke-width:2;stroke-linecap:round}
+.hx-edge-tmp.is-bad{stroke:var(--hx-danger);stroke-dasharray:5 5}
+.hx-edge-tmp.is-snap{stroke-width:2.5}
+@media (prefers-reduced-motion:reduce){.hx-eg.is-flow .hx-edge-flow{animation:none;stroke-dasharray:none;stroke-opacity:.5}}
+
+/* 连线悬停时的中点按钮（插入 / 删除） */
+.hx-etools{position:absolute;left:0;top:0;display:flex;gap:var(--hx-s-2);padding:3px;border-radius:var(--hx-r-full);
+  background:var(--hx-bg-2);box-shadow:var(--hx-shadow-float);opacity:0;pointer-events:none;
+  transition:opacity var(--hx-t-1) var(--hx-ease)}
+.hx-etools.is-on{opacity:1;pointer-events:auto}
+.hx-etools button{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;color:var(--hx-text-2);
+  transition:background-color var(--hx-t-1) var(--hx-ease),color var(--hx-t-1) var(--hx-ease)}
+.hx-etools button svg{width:12px;height:12px}
+.hx-etools button:hover{background:var(--hx-bg-4);color:var(--hx-text-1)}
+.hx-etools button.is-danger:hover{background:var(--hx-danger-weak);color:var(--hx-danger)}
+
+/* 拖线时的原因提示 */
+.hx-linkwhy{position:absolute;left:0;top:0;padding:4px 8px;border-radius:var(--hx-r-sm);pointer-events:none;white-space:nowrap;
+  background:var(--hx-bg-2);color:var(--hx-danger);font-size:var(--hx-fs-12);box-shadow:0 0 0 1px var(--hx-danger-weak),var(--hx-shadow-float)}
+
+/* 框选 */
+.hx-marquee{position:absolute;left:0;top:0;pointer-events:none;border-radius:2px;background:var(--hx-marquee);box-shadow:inset 0 0 0 1px var(--hx-marquee-line)}
+
+/* 模型光标 */
+.hx-cursor{position:absolute;left:0;top:0;z-index:8;pointer-events:none;display:flex;align-items:flex-start;gap:2px;
+  transition:transform 640ms var(--hx-ease-out),opacity var(--hx-t-2) var(--hx-ease)}
+.hx-cursor svg{width:16px;height:16px;color:var(--hx-model);filter:drop-shadow(0 2px 4px rgba(0,0,0,.4))}
+.hx-cursor span{margin-top:12px;height:18px;padding:0 6px;border-radius:var(--hx-r-xs);background:var(--hx-model);color:var(--hx-text-inv);
+  font:600 var(--hx-fs-10)/18px var(--hx-font-mono);letter-spacing:.04em}
+.hx-cursor.is-off{opacity:0}

@@ -1,0 +1,17 @@
+/* ===== 11_sessions.css · 多会话：结构区标题带会话名、空白画布的空状态 ===== */
+.hx-ls__sub{font-style:normal;font-weight:400;color:var(--hx-text-3);margin-left:var(--hx-s-3);max-width:150px;display:inline-block;vertical-align:bottom;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hx-sess__item{transition:background-color var(--hx-t-1) var(--hx-ease)}
+.hx-cvempty{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;z-index:3;padding-bottom:140px}
+.hx-cvempty[hidden]{display:none}
+.hx-cvempty__card{pointer-events:auto;width:min(560px,calc(100% - 48px));padding:var(--hx-s-8);border-radius:var(--hx-r-xl);background:var(--hx-bg-2);
+  box-shadow:var(--hx-shadow-float);animation:hxPeekIn var(--hx-t-3) var(--hx-ease-out)}
+.hx-cvempty__h{font-size:var(--hx-fs-16);font-weight:600;color:var(--hx-text-1);margin-bottom:var(--hx-s-3)}
+.hx-cvempty p{margin:0 0 var(--hx-s-6);font-size:var(--hx-fs-13);line-height:1.6;color:var(--hx-text-2)}
+.hx-cvempty__tpl{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--hx-s-4)}
+.hx-cvempty__tpl button{display:flex;flex-direction:column;gap:var(--hx-s-2);align-items:flex-start;text-align:left;padding:var(--hx-s-5);border-radius:var(--hx-r-lg);
+  background:var(--hx-bg-3);box-shadow:0 0 0 1px var(--hx-line-2);transition:box-shadow var(--hx-t-1) var(--hx-ease),transform var(--hx-t-1) var(--hx-ease)}
+.hx-cvempty__tpl button:hover{box-shadow:0 0 0 1px var(--hx-line-3),var(--hx-shadow-node)}
+.hx-cvempty__tpl button:active{transform:scale(.98)}
+.hx-cvempty__tpl b{font-size:var(--hx-fs-13);font-weight:600;color:var(--hx-text-1)}
+.hx-cvempty__tpl span{font-size:var(--hx-fs-11);line-height:1.5;color:var(--hx-text-3)}

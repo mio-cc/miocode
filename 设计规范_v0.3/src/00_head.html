@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Harness · 画布旗舰 demo v0.3</title>
+<!--
+==============================================================================
+  Harness · 积木编排 · 画布旗舰 demo  v0.3
+  规范：同目录 DESIGN.md（交互/视觉规则）与 tokens.css（全部令牌）。
+  本文件由 src/ 下的源码按文件名顺序拼接生成（src/build.py）。改代码请改 src/，再重新拼装。
+
+  代码地图（src/ 文件 → 职责）
+  ──────────────────────────────────────────────────────────────────────────
+  00_head.html      文档头、字体、<style> 开始
+  01_tokens.css     tokens.css 原样内联（唯一的颜色/字号/间距/动效来源）
+  02_base.css       重置、应用骨架（侧栏/对话/卡片/输入框/舞台/顶部条）
+  03_node.css       画布、世界容器、节点（头部/端口/内联控件/状态脚）、8 种状态、LOD
+  04_edge.css       连线、流动光点、幽灵/删除态、连线浮动按钮、框选、AI 光标
+  05_panels.css     顶部条部件、节点库、检查器、小地图、停靠栏、提议栏、运行抽屉
+  06_controls.css   按钮、步进、滑块、下拉、分段、开关、输入、徽标、提示、菜单、命令面板、通知
+  10_body.html      </style>、静态 DOM 骨架
+  20_icons.js       HX.ICON（13 种节点图标）、HX.UI（界面图标）、HX.STI（状态图标）
+  21_defs.js        HX.DEF 节点定义、端口类型色、类型兼容、示例图模板
+  22_state.js       HX.S 全局状态、图操作 Op 工厂、dispatch / undo / redo（唯一修改入口）
+  23_geom.js        端口坐标（布局常数计算，不读 DOM）、贝塞尔、环检测、拓扑、自动布局
+  24_render.js      renderView / renderNode / renderEdges / sync / 小地图 / 视口裁剪
+  25_pointer.js     指针：平移、拖动、连线（吸附/兼容高亮）、框选、滚轮缩放、内联控件
+  26_keys.js        快捷键、右键菜单、命令面板、快速添加、封装/解散/复制/删除
+  27_panels.js      节点库、检查器、运行抽屉（时间线/日志/操作历史）、通知、提示、档位
+  28_run.js         运行模拟（拓扑执行、循环轮次、人工审批挂起、急停）
+  29_model.js       模型操作者：对话指令、提议（幽灵节点）/直接修改、AI 光标
+  30_embed.js       卡片/展开/全屏 FLIP、主题、压力测试 + FPS、初始化
+  99_tail.html      结束标记
+
+  约定：所有模块挂在 window.HX 上，每个文件是一个 IIFE。
+        修改图只能通过 HX.dispatch(op)；op = {kind,label,actor,reason,apply(),revert()}。
+==============================================================================
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ===== 来源：tokens.css（由 build.py 原样内联，请勿在此修改） ===== */

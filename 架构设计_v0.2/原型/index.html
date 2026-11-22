@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Harness · 积木编排架构 v0.2 总览</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --page-bg:#14161b;--page-panel:#1b1e25;--page-panel2:#222630;--page-line:#2d313b;--page-line2:#3a3f4b;
+  --page-text:#e6e4df;--page-muted:#8b8f98;--page-amber:#f0a83c;--page-teal:#5bb8a9;--page-red:#e5646a;
+  --page-sans:'Noto Sans SC','Microsoft YaHei','PingFang SC',sans-serif;
+  --page-mono:'JetBrains Mono',Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--page-bg);color:var(--page-text);font-family:var(--page-sans);line-height:1.6}
+body{background-image:radial-gradient(#252830 1px,transparent 1px);background-size:22px 22px}
+.bar{height:48px;display:flex;align-items:center;padding:0 24px;border-bottom:1px solid var(--page-line);background:#111317;font-size:14px}
+.bar b{font-weight:700}.bar span{color:var(--page-muted);margin-left:10px;font-family:var(--page-mono);font-size:12px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+.hero{padding:56px 0 30px;display:grid;grid-template-columns:1.25fr 1fr;gap:48px;align-items:end}
+.hero>*{min-width:0}
+.k{font-family:var(--page-mono);font-size:12px;color:var(--page-teal)}
+h1{font-size:clamp(30px,4.6vw,54px);line-height:1.15;margin:12px 0 0;font-weight:900}
+.lead{color:var(--page-muted);font-size:15px;margin:0}
+.lead b{color:var(--page-text);font-weight:500}
+.tenets{border:1px solid var(--page-line);background:var(--page-panel);margin:8px 0 40px}
+.tenets div{display:grid;grid-template-columns:230px 1fr;gap:18px;padding:12px 18px;border-top:1px solid var(--page-line);font-size:14px}
+.tenets div:first-child{border-top:none}
+.tenets div>*{min-width:0}
+.tenets b{font-weight:500}
+.tenets span{color:var(--page-muted)}
+h2{font-size:22px;margin:0 0 4px}
+.sub{color:var(--page-muted);font-size:14px;margin:0 0 18px}
+.flow{border:1px solid var(--page-line);background:#111317;overflow-x:auto;margin-bottom:44px}
+.flow svg{display:block;min-width:900px;width:100%}
+.dom{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--page-line);border-left:1px solid var(--page-line);margin-bottom:44px}
+.dom a{display:flex;flex-direction:column;gap:6px;padding:18px 20px 20px;border-right:1px solid var(--page-line);border-bottom:1px solid var(--page-line);color:inherit;text-decoration:none;background:var(--page-panel);min-width:0}
+.dom a:hover{background:var(--page-panel2)}
+.dom a:hover .go{color:var(--page-amber)}
+.dom .no{font-family:var(--page-mono);font-size:12px;color:var(--page-amber)}
+.dom .t{font-size:18px;font-weight:700}
+.dom .d{color:var(--page-muted);font-size:13.5px;flex:1}
+.dom .m{font-size:12.5px;border-left:2px solid var(--page-teal);padding-left:8px;color:var(--page-text)}
+.dom .go{font-family:var(--page-mono);font-size:12px;color:var(--page-muted);margin-top:6px}
+.levels{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid var(--page-line);margin-bottom:44px}
+.levels div{padding:14px 16px;border-left:1px solid var(--page-line);background:var(--page-panel);min-width:0}
+.levels div:first-child{border-left:none}
+.levels .lv{font-family:var(--page-mono);font-size:24px;font-weight:600;color:var(--page-muted)}
+.levels div:last-child .lv{color:var(--page-amber)}
+.levels .ln{font-weight:500;margin:2px 0 4px}
+.levels .ld{font-size:12.5px;color:var(--page-muted)}
+.files{border:1px solid var(--page-line);background:var(--page-panel);margin-bottom:60px;font-size:14px}
+.files div{display:grid;grid-template-columns:1fr 1.4fr;gap:16px;padding:10px 18px;border-top:1px solid var(--page-line)}
+.files div:first-child{border-top:none}
+.files div>*{min-width:0}
+.files code{font-family:var(--page-mono);font-size:12.5px;color:var(--page-teal);word-break:break-all}
+.files span{color:var(--page-muted)}
+footer{color:var(--page-muted);font-family:var(--page-mono);font-size:12px;padding:0 0 40px}
+@media(max-width:860px){.hero{grid-template-columns:1fr;gap:16px}.dom{grid-template-columns:1fr}.levels{grid-template-columns:1fr}.levels div{border-left:none;border-top:1px solid var(--page-line)}.tenets div,.files div{grid-template-columns:1fr;gap:2px}}
+</style>
+</head>
+<body>
+<div class="bar"><b>Harness · 积木编排架构</b><span>v0.2 · 2026-11-21</span></div>
+<div class="wrap">
+  <div class="hero">
+    <div>
+      <div class="k">一种 harness 运行模式</div>
+      <h1>人和大模型，用同一套积木编排多 Agent 流程</h1>
+    </div>
+    <p class="lead">系统只提供 <b>13 个通用原子节点</b>、一套<b>内核规则</b>和一个<b>运行时</b>。主脑、智囊团、执行池这些角色，只是用节点拼出的一种模板。大模型和你一样能搭图、改图、跑图，能做到哪一步，由你给它的<b>授权档位</b>决定。</p>
+  </div>
+
+  <h2>八条设计理念</h2>
+  <p class="sub">后面所有设计都从这里推出来。</p>
+  <div class="tenets">
+    <div><b>大模型是一等操作者</b><span>人能在画布上做的事，模型都能做，只是授权档位不同</span></div>
+    <div><b>一切皆数据、操作、授权</b><span>图、角色卡、配方、授权书都是文档；每次修改都是一条操作；每条操作都要经过授权检查</span></div>
+    <div><b>节点内聪明，节点间"笨"</b><span>agent 在节点内部自由思考；节点之间的通信、权限、连接规则由运行时强制执行</span></div>
+    <div><b>积木拼完还是积木</b><span>所有节点对外接口相同，封装后的子图可以无限组合、嵌套</span></div>
+    <div><b>最小充分上下文</b><span>每个 agent 只装它要干的那件事；该给的一样不少，无关的一样不放</span></div>
+    <div><b>状态外置</b><span>长期运行的节点靠账本重建认知，不靠越堆越长的对话历史</span></div>
+    <div><b>内核管机制，不管语义</b><span>业务含义通过类型、配方、策略、表达式填进去，原子节点本身不带业务词</span></div>
+    <div><b>授权可调，留有退路</b><span>从只读到完全授权共五档；即使完全授权，也保留留痕、快照和急停</span></div>
+  </div>
+
+  <h2>六个工作域如何协作</h2>
+  <p class="sub">橙色是一次运行的主路径：搭图，经过授权，运行，观测，再优化。</p>
+  <div class="flow">
+<svg viewBox="0 0 1000 300" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans SC, Microsoft YaHei, sans-serif">
+<defs>
+<marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#555a66"/></marker>
+<marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#f0a83c"/></marker>
+</defs>
+<g font-size="13" fill="#e6e4df">
+<rect x="30" y="40" width="170" height="64" fill="#1b1e25" stroke="#3a3f4b"/><text x="44" y="64" font-size="11" fill="#8b8f98" font-family="JetBrains Mono">01</text><text x="44" y="88" font-weight="500">画布编排</text>
+<rect x="30" y="200" width="170" height="64" fill="#1b1e25" stroke="#3a3f4b"/><text x="44" y="224" font-size="11" fill="#8b8f98" font-family="JetBrains Mono">05</text><text x="44" y="248" font-weight="500">模型自主编排</text>
+<rect x="300" y="120" width="170" height="64" fill="#1b1e25" stroke="#f0a83c"/><text x="314" y="144" font-size="11" fill="#8b8f98" font-family="JetBrains Mono">04</text><text x="314" y="168" font-weight="500">授权与安全</text>
+<rect x="560" y="120" width="170" height="64" fill="#1b1e25" stroke="#3a3f4b"/><text x="574" y="144" font-size="11" fill="#8b8f98" font-family="JetBrains Mono">06</text><text x="574" y="168" font-weight="500">运行与观测</text>
+<rect x="560" y="10" width="170" height="64" fill="#1b1e25" stroke="#3a3f4b"/><text x="574" y="34" font-size="11" fill="#8b8f98" font-family="JetBrains Mono">02</text><text x="574" y="58" font-weight="500">节点与类型</text>
+<rect x="560" y="226" width="170" height="64" fill="#1b1e25" stroke="#3a3f4b"/><text x="574" y="250" font-size="11" fill="#8b8f98" font-family="JetBrains Mono">03</text><text x="574" y="274" font-weight="500">角色卡与上下文</text>
+<rect x="820" y="120" width="150" height="64" fill="#111317" stroke="#5bb8a9" stroke-dasharray="5 4"/><text x="834" y="148" font-weight="500">留痕 · 版本</text><text x="834" y="168" font-size="11" fill="#8b8f98">撤销 · 回放 · 回滚</text>
+</g>
+<g fill="none" stroke-width="1.6">
+<path d="M200,72 C250,72 250,140 298,145" stroke="#f0a83c" marker-end="url(#b)"/>
+<path d="M200,232 C250,232 250,165 298,160" stroke="#f0a83c" marker-end="url(#b)"/>
+<path d="M470,152 L558,152" stroke="#f0a83c" marker-end="url(#b)"/>
+<path d="M730,152 L818,152" stroke="#555a66" marker-end="url(#a)"/>
+<path d="M645,120 L645,76" stroke="#555a66" marker-end="url(#a)"/>
+<path d="M645,184 L645,224" stroke="#555a66" marker-end="url(#a)"/>
+<path d="M600,184 C520,280 260,300 120,266" stroke="#f0a83c" stroke-dasharray="6 5" marker-end="url(#b)"/>
+</g>
+<g font-size="11" fill="#8b8f98" style="paint-order:stroke" stroke="#111317" stroke-width="5" stroke-linejoin="round">
+<text x="214" y="98">人的操作 Op</text>
+<text x="214" y="212">模型的操作 Op</text>
+<text x="482" y="144">通过的操作生效</text>
+<text x="740" y="144">全部记录</text>
+<text x="655" y="104">按定义校验类型</text>
+<text x="655" y="210">为 Agent 装配提示词</text>
+<text x="300" y="292" fill="#f0a83c">运行留痕交给模型，它据此提出优化补丁</text>
+</g>
+</svg>
+  </div>
+
+  <h2>六个工作域原型</h2>
+  <p class="sub">每个原型都能直接操作，右上角有「演示脚本」按钮可以一键看完整流程。青线标注的是该域里模型能做什么。</p>
+  <div class="dom">
+    <a href="01_画布编排工作台.html"><span class="no">01</span><span class="t">画布编排</span><span class="d">搭图、连线、类型检查、参数转端口、封装子图；画布、YAML、操作日志三种视图编辑同一份数据，支持撤销和草稿分支。</span><span class="m">模型：在对话里用文字改图，1 档生成幽灵节点，2 档以上直接改</span><span class="go">打开原型 →</span></a>
+    <a href="02_节点与类型库.html"><span class="no">02</span><span class="t">节点与类型</span><span class="d">13 个原子节点的通用定义和三级锁、类型库三层结构与字段属性、端口兼容性检查、扩展包与自定义节点。</span><span class="m">模型：起草新类型或新节点，先进临时命名空间，审批后入库</span><span class="go">打开原型 →</span></a>
+    <a href="03_角色卡与上下文工作室.html"><span class="no">03</span><span class="t">角色卡与上下文</span><span class="d">提示词由六段拼装，只有角色卡需要手写；上下文配方决定每个 Agent 看到什么、裁掉什么、哪些换成指针。</span><span class="m">模型：读运行留痕后改角色卡，并用 A/B 评测比较新旧版本</span><span class="go">打开原型 →</span></a>
+    <a href="04_授权与安全中心.html"><span class="no">04</span><span class="t">授权与安全</span><span class="d">五档授权可以按对象分别设置，部分授权按维度组合；包括提权申请、自动升降规则、污染标记、急停和审计。</span><span class="m">模型：申请提权；拿到 4 档后与你同权，但关不掉急停</span><span class="go">打开原型 →</span></a>
+    <a href="05_模型自主编排.html"><span class="no">05</span><span class="t">模型自主编排</span><span class="d">编排者本身也是节点组合：设计时生成整张图、运行时动态展开子图、运行后提出优化，授权逐级下传。</span><span class="m">模型：这一域的主角，从需求出发自己设计流程</span><span class="go">打开原型 →</span></a>
+    <a href="06_运行监控与调试.html"><span class="no">06</span><span class="t">运行与观测</span><span class="d">层级运行树、时间线、节点输入输出信封、四条通信通道、资源池与背压，可以时间旅行、单节点重放。</span><span class="m">模型：读留痕诊断瓶颈和失败原因，给出修复补丁</span><span class="go">打开原型 →</span></a>
+  </div>
+
+  <h2>授权五档</h2>
+  <p class="sub">档位可以分别设给会话、子图或单个节点，随时调整，在安全点生效。</p>
+  <div class="levels">
+    <div><div class="lv">0</div><div class="ln">只读</div><div class="ld">只看图、看状态、看留痕</div></div>
+    <div><div class="lv">1</div><div class="ln">建议</div><div class="ld">提出补丁，你逐条批准</div></div>
+    <div><div class="lv">2</div><div class="ln">部分授权</div><div class="ld">范围内直接做，范围外提建议</div></div>
+    <div><div class="lv">3</div><div class="ln">高度授权</div><div class="ld">只有你列的例外项要审批</div></div>
+    <div><div class="lv">4</div><div class="ln">完全授权</div><div class="ld">和你同权，保留留痕、快照、急停</div></div>
+  </div>
+
+  <h2>本目录里的文件</h2>
+  <p class="sub">全部放在 sj 文件夹下。</p>
+  <div class="files">
+    <div><code>架构设计_v0.2/多Agent积木架构设计文档_v0.2.docx</code><span>完整设计文档：目的与理念、总体架构、六个工作域、横切问题、参考模板、附录</span></div>
+    <div><code>架构设计_v0.2/原型/index.html</code><span>本页</span></div>
+    <div><code>架构设计_v0.2/原型/01–06_*.html</code><span>六个工作域原型，双击就能在浏览器里打开</span></div>
+  </div>
+  <footer>Harness · 多 Agent 积木式编排架构 · v0.2</footer>
+</div>
+</body>
+</html>

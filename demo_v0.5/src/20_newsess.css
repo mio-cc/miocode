@@ -1,0 +1,12 @@
+/* ===== 20_newsess.css · "新建会话"与分区分开（demo v0.5.8） ===== */
+/* 新建会话是一个独立的操作行，不属于任何分区：上下留白 + 下方一条与分区相同的分隔线 */
+.hx-ls__new{padding:8px 8px 10px !important;margin-bottom:6px;box-shadow:inset 0 -1px 0 color-mix(in srgb,var(--hx-text-1) 7%,transparent)}
+.hx-ls__newbtn{height:32px !important;gap:8px !important;padding:0 8px 0 6px !important;border-radius:9px !important;font-size:13px !important}
+.hx-ls__newbtn>[data-ic],.hx-ls__newbtn>svg{width:20px;height:20px;flex:none;display:grid;place-items:center;border-radius:6px;
+  background:color-mix(in srgb,var(--hx-accent) 14%,var(--hx-bg-2));color:var(--hx-accent-strong)}
+.hx-ls__newbtn>[data-ic] svg{width:12px;height:12px;margin:0}
+.hx-ls__newbtn kbd{font-size:10px;opacity:.7;background:transparent !important;box-shadow:none !important}
+.hx-ls__newbtn:not(:hover) kbd{opacity:0}
+/* 分区标题的图标：不受旧规则（箭头靠右、半透明）影响 */
+.hx-ls__sech__ic svg{margin:0 !important;opacity:1 !important;transform:none !important}
+.hx-ls__sec:first-of-type .hx-ls__sech,.hx-ls__new+.hx-ls__sec .hx-ls__sech{margin-top:0}
