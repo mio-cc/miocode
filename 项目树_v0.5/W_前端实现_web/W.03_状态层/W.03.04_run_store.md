@@ -18,7 +18,7 @@
 ## 2. 不做什么
 | 不做 | 归谁 |
 |---|---|
-| 把实时投影画到节点上、按帧合并、连线流动 | `W.06.15`（`RunBridge` 订阅 `subscribeLive`） |
+| 把实时投影画到节点上、按帧合并、连线流动 | `W.06.15`（`RunBridge` 订阅 `live.subscribe`） |
 | 审批的数据和处理 | `W.03.05`（全局待审批只存一份，`W.01-R14`）；本 store 只记节点执行等待的是哪个 `approval_id` |
 | 急停状态、全局急停 | `W.03.05` |
 | 监控页、节点详情的显示 | `W.07.05`、`W.07.03` |
@@ -41,6 +41,7 @@ export type ExecState = {
   pct?: number; note?: string; sub?: string;           // node.progress
   pool?: { name: string; waiting: number };            // node.throttled
   approvalId?: Ulid;                                   // waiting 时
+  activeOuts?: readonly string[];                      // done 时：分支、人工被激活的出口（node.state 的 active_outs；W.06.15 判断未激活的连线，K108）
   error?: { class: string; code: string; message: string; retryable: boolean };
   startedAt?: string; endedAt?: string;
 };
@@ -146,7 +147,7 @@ export function createRunStore(o: {
 | `run.status` | `status = to`；到 `done` / `failed` / `cancelled`：`stream='ended'`（服务端 5 秒后自己关流，前端到时关闭句柄）、`cancelRequested=false`、调 `onTerminal`、更新 `list` 里同 ID 的项 |
 | `run.cancel_requested` | `cancelRequested = true` |
 | `run.graph_swapped` | 追加到 `swaps` |
-| `node.state` | 按 `loc` 算执行键，更新或新建 `ExecState`（`from` 不对时也以 `to` 为准，C.07-R5 的非法转换由后端处理）；`waiting` 记 `approval_id`；`failed` 记 `error`；离开 `queued` 时清 `pool` |
+| `node.state` | 按 `loc` 算执行键，更新或新建 `ExecState`（`from` 不对时也以 `to` 为准，C.07-R5 的非法转换由后端处理）；`waiting` 记 `approval_id`；`done` 记 `active_outs`（有就记）；`failed` 记 `error`；离开 `queued` 时清 `pool` |
 | `node.progress` | 更新 `pct`、`note`、`sub` |
 | `node.throttled` | 记 `pool` |
 | `loop.round` | 循环节点的 `footOf` 记 `{cur: round, max}` |
@@ -235,3 +236,8 @@ export function createRunStore(o: {
 - 允许使用的依赖：`zustand`；测试用 `vitest`、`jsdom`。
 - 禁止事项：`G.02.05` 全部（特别是 R3、R25）；另：不把实时投影放进 zustand 状态；不在本 store 存审批和急停；同时不开两条运行流；不缓存节点详情超过 20 条。
 - 完成标志：`G.14` 全部条件；§10 六条验收通过。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | `ExecState` 增加 `activeOuts`（`node.state{to:done}` 的 `active_outs`）；`RunBridge` 的订阅写为 `live.subscribe` | `P.09` K108（第 7 棒，`W.06.15` 判断未激活的连线） |

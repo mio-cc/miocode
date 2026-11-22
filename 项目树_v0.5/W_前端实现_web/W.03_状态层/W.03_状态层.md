@@ -34,7 +34,7 @@
 | store | 文档 | 创建几份 | 放什么 | 谁写 | 谁读 |
 |---|---|---|---|---|---|
 | graph | `W.03.01` | 每份正在打开的图文档一份（工作区的当前图；回放页、子图库预览各自另建只读的） | 图（规范化后的 `GraphModel`）、服务器确认的版本、校验结果、谁在编辑、分支、操作历史 | 图数据只由 `W.05` 写；其余由事件路由写 | 面板（选择器）、画布引擎（`subscribe`） |
-| view | `W.03.02` | **每个画布实例一份**（主画布、预览浮层、回放画布） | 当前层和平移缩放 | 画布引擎（`W.06.02`） | 只有画布引擎；React 只能读缩放停下后才更新的缩放百分比 |
+| view | `W.03.02` | **每个画布实例一份**（主画布、回放画布、子图库预览） | 当前层和平移缩放 | 画布引擎（`W.06.02`） | 只有画布引擎；React 只能读缩放停下后才更新的缩放百分比 |
 | ui | `W.03.03` | 整个应用一份 | 侧栏与专注模式（收编 `W.02.02` 的 `ShellLayout`）、各会话的选中、工具、列表视图、监控筛选、中心窗口、连接状态、提示 | 外壳、面板、画布引擎、`W.04.05` | 外壳、面板、画布引擎 |
 | run | `W.03.04` | 每个工作区一份（回放页另建快照模式的） | 本会话的运行列表、当前运行的状态和费用、节点执行的实时投影 | 自己的 action（REST）、事件路由 | 面板（低频刷新计数）、`RunBridge`（`subscribeLive`） |
 | session | `W.03.05` | 整个应用一份 | 会话列表、各会话的活动摘要（运行中、待审批）、**全局**待审批、急停状态、已打开会话的对话 | 自己的 action、事件路由、活动刷新 | 左侧栏、顶部条、对话、通知中心、审批卡片 |
@@ -57,7 +57,7 @@ export type CanvasStores = {
   view: ViewStoreApi;              // W.03.02，本画布实例独有
   run: RunStoreApi | null;         // W.03.04；没有运行信息的画布为 null
   model: ModelStoreApi | null;     // W.03.06；只读画布为 null（不显示幽灵节点）
-  selectionKey: SelectionKey | null;   // null = 不能选中（预览浮层，U.13.06-R1）
+  selectionKey: SelectionKey | null;   // null = 不能选中（子图库预览；预览浮层不是画布实例，K103）
   readonly: boolean;
 };
 // 应用级 store：启动时创建一次（W.02 §6 第 2 步）
@@ -168,7 +168,7 @@ export type LoadStatus = 'idle' | 'loading' | 'ready' | 'error';
 |---|---|---|---|
 | 应用 | ui、session、catalog、工作区管理器 | `main.tsx` 渲染前（`W.02` §6 第 2 步） | 页面关闭 |
 | 会话工作区 | run；当前图的 graph、model、主画布的 view | 第一次进入这个会话（`W.03.05` §6.4） | 超过 5 个时释放最久没用的（`W.01-R16`）；切换到会话的另一张图时，旧图的 graph / model / view 销毁 |
-| 画布实例 | view（以及 `CanvasStores` 组合） | 画布挂载（预览浮层打开、回放页打开） | 画布卸载 |
+| 画布实例 | view（以及 `CanvasStores` 组合） | 画布挂载（回放页、子图库预览打开） | 画布卸载 |
 
 ### 6.2 事件路由
 三条流的事件由 `state/eventRouter.ts` 分发（只路由当前工作区的事件）。表里没列的事件忽略；不认识的 `kind` 记一次 `console.debug` 后忽略（`C.01-R18`）。
@@ -218,7 +218,7 @@ export type LoadStatus = 'idle' | 'loading' | 'ready' | 'error';
 
 ### 6.5 高频数据怎么走
 - 平移缩放：画布引擎 → view store（内存）→ 引擎自己读；React 只拿缩放停下 150ms 后才更新的缩放百分比（缩放过程中提交为 0）。
-- 运行状态：运行流 → run store 实时投影 → `subscribeLive` → `RunBridge` 按帧合并写 DOM；React 只订阅最多每 400ms 加一的 `tick`（结构树状态点、预览浮层、监控页）。
+- 运行状态：运行流 → run store 实时投影 → `live.subscribe` → `RunBridge` 按帧合并写 DOM；React 只订阅最多每 400ms 加一的 `tick`（结构树状态点、预览浮层、监控页）。
 - 流式回复：`message.delta` 按动画帧合并后写进对话（一帧最多一次 `set`）。
 - 拖动：拖动中的位置只在画布引擎里；`W.05` 每 250ms 提交一次时才写 graph store（`C.05.04` §4）。
 
@@ -258,3 +258,4 @@ export type LoadStatus = 'idle' | 'loading' | 'ready' | 'error';
 |---|---|---|
 | 2026-11-23 | §4.3 按 `W.04` 定稿补齐：`Query`、`getText`、`download`、`NetError`、`retryAfterMs`、`StreamState`、`onOpen.reconnected`、`onState`、`onError`；§6.2 补图协同流连上 / `resync`、会话流重连三行；§4.5 目录 store 加数据类型 `types` | 写 `W.04`、`W.05` 时对齐（`P.09` K83、K90） |
 | 2026-11-23 | §4.2 新增 `useAppStores()`（画布引擎需要 ui、catalog 的 store 实例） | `P.09` K98（写 `W.06.01` 时发现缺口） |
+| 2026-11-23 | 预览浮层不再算画布实例（view 行、`CanvasStores.selectionKey` 注释、生命周期表）；运行状态路径写为 `live.subscribe` | `P.09` K103、K108（第 7 棒） |

@@ -124,6 +124,8 @@ export function nodesIn(m: GraphModel, scope: Scope): readonly NodeRec[];
 export function edgesIn(m: GraphModel, scope: Scope): readonly EdgeRec[];
 export function notesIn(m: GraphModel, scope: Scope): readonly NoteRec[];
 export function crumbs(m: GraphModel, scope: Scope): readonly { scope: Scope; label: string }[];   // 根图 → … → 当前层（面包屑、父图位置卡）
+export type BoundaryLink = { dir: 'in' | 'out'; outer: { nodeId: Ulid; label: string; port: string }; inner: string };   // inner：容器节点上的端口名
+export function boundaryLinks(m: GraphModel, scope: Scope): readonly BoundaryLink[];   // 当前层（容器节点 scope）和上一层的连接：连到 / 连出这个容器节点的连线；父图位置卡的"进 {上游}.{端口} → {入口}"、"出 {出口} → {下游}.{端口}"（U.13.06 §3，W.07.06）；根图为空
 export type TreeItem = { scope: Scope; nodeId: Ulid | null; label: string; type: string; depth: number; nodeCount: number; children: readonly TreeItem[] };
 export function structureTree(m: GraphModel): TreeItem;         // 根图 + 所有容器节点（U.13.06 §3 结构树）
 export function stats(m: GraphModel): { layers: number; subgraphs: number; nodes: number };   // U.09.04-R2；nodes 不含子图端口节点
@@ -225,3 +227,8 @@ const tree  = useGraphStore((s) => (s.model ? structureTree(s.model) : null));
 - 允许使用的依赖：`zustand`（`G.10` §3.3）；测试用 `vitest`、`jsdom`。
 - 禁止事项：`G.02.05` 全部（特别是 R1、R2、R6）；另：不提供任何绕过 `GraphWriter` 修改 `model` 的方法（包括 `setState` 暴露给外部）；不在本 store 里存类型推断、校验预检这类派生结果；不在 localStorage 存图数据。
 - 完成标志：`G.14` 全部条件；§10 五条验收通过。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | §4.3 新增 `boundaryLinks`（父图位置卡的连接行） | `P.09` K109（第 7 棒写 `W.06.13` 时发现：连接行由 React 画，需要纯函数） |

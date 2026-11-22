@@ -7,7 +7,7 @@
 | 上级 | W 前端实现 web/ |
 | 下级 | W.06.01 引擎生命周期、W.06.02 视图变换、W.06.03 节点渲染、W.06.04 连线渲染、W.06.05 LOD 与视口裁剪、W.06.06 DOM 池、W.06.07 选择与拖动、W.06.08 连线交互、W.06.09 键盘交互、W.06.10 几何计算、W.06.11 自动布局、W.06.12 小地图、W.06.13 嵌套子图、W.06.14 幽灵节点与提议渲染、W.06.15 运行状态渲染 |
 | 状态 | 草稿 |
-| 素材 | 设07、设08、设09、设17（§1–§6、§9）；demo `设计规范_v0.3/src/23_geom.js`、`24_render.js`；demo v0.5（v0.5.11）`25_pointer.js`、`29_nest.js`、`37_nodes.js`、`40_tidy.js`、`14_nodes.css`、`15_art.css`；`P.09` K94–K101 |
+| 素材 | 设07、设08、设09、设17（§1–§6、§9）；demo `设计规范_v0.3/src/23_geom.js`、`24_render.js`；demo v0.5（v0.5.11）`25_pointer.js`、`29_nest.js`、`37_nodes.js`、`40_tidy.js`、`14_nodes.css`、`15_art.css`；`P.09` K94–K101、K102–K110 |
 | 最后修改 | 2026-11-23 |
 
 ## 1. 职责
@@ -33,7 +33,7 @@
 | 设计令牌取值 | `U.02`、`U.03`、`U.05`、`U.06` |
 
 ## 3. 继承的上级约束
-`W-R1`–`R4`、`R8`、`R9`、`R11`、`R14`；`W.01-R5`、`R6`、`R9`–`R11`、`R14`、`R16`；`W.01` §3.3；`W.03` §4.2、§6.3、§6.5；`G.06.02-R1`–`R6`；`G.06.03-R1`、`R6`–`R9`；`G.04.02`；`G.04.06`；`G.02.05-R23`–`R26`；`U.10` 全部；`U.17` 全部；`U.07.01`–`U.07.04`；`U.13.01`–`U.13.06`；`U.16` §3；`U.05`；`U.06` §3；`U.08-R3`；`U.12` §2–§5；`U.14.05`；`U.22-R7`；`U.23-R3`、`R7`–`R9`；INV-08、INV-20、INV-24；`P.09` K75、K76、K90、K94–K101。
+`W-R1`–`R4`、`R8`、`R9`、`R11`、`R14`；`W.01-R5`、`R6`、`R9`–`R11`、`R14`、`R16`；`W.01` §3.3；`W.03` §4.2、§6.3、§6.5；`G.06.02-R1`–`R6`；`G.06.03-R1`、`R6`–`R9`；`G.04.02`；`G.04.06`；`G.02.05-R23`–`R26`；`U.10` 全部；`U.17` 全部；`U.07.01`–`U.07.04`；`U.13.01`–`U.13.06`；`U.16` §3；`U.05`；`U.06` §3；`U.08-R3`；`U.12` §2–§5；`U.14.05`；`U.22-R7`；`U.23-R3`、`R7`–`R9`；INV-08、INV-20、INV-24；`P.09` K75、K76、K90、K94–K110。
 
 ## 4. 接口
 
@@ -75,7 +75,7 @@ import type { OpsApi, DispatchResult } from '@/ops/types';
 export type Pt = { x: number; y: number };                 // 世界坐标或屏幕坐标（相对画布根元素左上角），变量名写明：world / screen
 export type Rect = { x: number; y: number; w: number; h: number };
 export type Lod = 1 | 2 | 3;
-export type CanvasKind = 'main' | 'peek' | 'replay' | 'library';   // 主画布、预览浮层、回放页、子图库预览
+export type CanvasKind = 'main' | 'replay' | 'library';   // 主画布、回放页、子图库预览（预览浮层不是画布实例，是主画布 nest/ 里的 canvas 简化图，K103）
 
 export type CanvasShortcutId =                              // W.02.04 §4.1 里 layer 为 canvas / nest 的条目
   | 'tool.select' | 'tool.pan' | 'tool.pan.hold' | 'node.quickAdd' | 'sel.delete' | 'sel.all' | 'sel.duplicate'
@@ -85,6 +85,7 @@ export type CanvasShortcutId =                              // W.02.04 §4.1 里
 export type CanvasKeys = {                                  // Canvas.tsx 把 W.02.04 的 keys.on 适配进来（W.02.04 §4.2）
   on(id: CanvasShortcutId, h: (e: KeyboardEvent, phase: 'down' | 'up') => boolean, o?: { when?: () => boolean }): () => void;
   label(id: CanvasShortcutId): string;
+  overlay(kind: 'peek', h: (e: KeyboardEvent) => boolean): () => void;   // W.02.04 的 pushOverlay('peek')：预览浮层打开期间的 Esc / Enter（K104）
 };
 export type ThemeHooks = {                                  // W.02.03 themeController 的适配
   reducedMotion(): boolean;
@@ -122,6 +123,7 @@ export type EngineEvents = {                                // 引擎事件（P.
                       pick(v: string): void; close(): void };   // 节点内联下拉 → CanvasOverlays
   'hovercard.open': { anchor: Rect; kind: 'ai'; nodeId: Ulid };   // AI 角标悬停卡（U.12 §2）
   'hovercard.close': {};
+  'tree.locate': { scope: Scope };                         // 预览浮层的"在结构树中定位" → W.07.02（K104）
   'node.action': { nodeId: Ulid; act: 'approve' | 'deny' | 'rerun' | 'details' };   // 节点上的按钮 → Canvas.tsx 转给 session / run 的 action（rerun = 从这里重跑，U.19.05）
 };
 export type EngineCommands = {                              // 引擎命令（P.06 §10）：面板、快捷键、路由调用
@@ -132,9 +134,10 @@ export type EngineCommands = {                              // 引擎命令（P.
           o: { at: Pt | 'center'; connectFrom?: PortRef; insertInto?: Ulid }): Promise<DispatchResult>;   // W.06.07；快速添加、节点库点击添加
   tidy(ids?: readonly Ulid[]): Promise<DispatchResult>;                           // W.06.11
   locate(t: { scope: Scope; nodes: readonly Ulid[] }): void;                      // W.06.13：撤销后定位、监控页步骤、"看这里"
-  highlight(ids: readonly Ulid[], kind: 'look' | 'model'): void;                  // U.10.05 §2
+  highlight(ids: readonly Ulid[], kind: 'look' | 'model'): void;                  // W.06.13；U.10.05 §2
   peek(nodeId: Ulid): void;  closePeek(): void;                                   // W.06.13
   mountSlot(kind: 'minimap' | 'nestCard', host: HTMLElement): () => void;         // W.06.12、W.06.13：React 外框提供挂载点
+  exec(id: CanvasShortcutId, o?: { at?: Pt; target?: HitTarget }): Promise<boolean>;   // W.06.09：停靠栏、右键菜单、命令面板执行与快捷键相同的动作（K104）
 };
 ```
 ```ts
@@ -196,6 +199,7 @@ export type Geom = {
   edgePath(edgeId: Ulid): { d: string; mid: Pt } | null;  bezier(a: Pt, b: Pt): { d: string; mid: Pt };
   bounds(ids?: Iterable<Ulid>): Rect | null;  query(r: Rect): readonly Ulid[];
   nearestPort(c: readonly PortCand[], p: Pt, r: number): PortCand | null;  snap(v: number, on: boolean): number;
+  forModel(m: GraphModel): Pick<Geom, 'shape' | 'pos' | 'box' | 'portPos'>;   // 按另一份模型（幽灵预览图）计算，不读 live（K104）
 };
 // W.06.06 render/pool.ts
 export type Pool = { node(id: Ulid): HTMLDivElement; note(id: Ulid): HTMLDivElement; edge(id: Ulid): SVGGElement;
@@ -218,16 +222,17 @@ export type EdgeLayer = { sync(c: SceneChange): void; updateFor(nodeIds: Iterabl
   preview(a: Pt | null, b?: Pt, look?: 'free' | 'snap' | 'bad', cat?: Category): void };
 // W.06.07 interact/pointer.ts、select.ts、drag.ts
 export type PointerMode = 'idle' | 'pan' | 'drag' | 'marquee' | 'link' | 'control';
-export type PointerApi = { mode(): PointerMode; cancel(): boolean; setTempPan(on: boolean): void };   // cancel：Esc 取消进行中的拖动 / 框选 / 拖线，有进行中的返回 true
+export type PointerApi = { mode(): PointerMode; cancel(): boolean; setTempPan(on: boolean): void; last(): Pt | null };   // last：指针在画布里的最新屏幕坐标，离开画布为 null（K104）   // cancel：Esc 取消进行中的拖动 / 框选 / 拖线，有进行中的返回 true
 export type SelectionApi = { current(): CanvasSelection; set(s: Omit<CanvasSelection, 'scope'>): void; has(kind: 'node' | 'edge' | 'note', id: Ulid): boolean };
-export type DragApi = { activeGroup(): Ulid | null; moveBy(ids: readonly Ulid[], dx: number, dy: number): Promise<DispatchResult> };
+export type DragApi = { activeGroup(): Ulid | null; moveBy(ids: readonly Ulid[], dx: number, dy: number, o?: { groupId?: Ulid }): Promise<DispatchResult> };   // groupId：连续方向键共用一组（K104）
 // W.06.08 interact/link.ts（W.06.09 键盘连线也用它）
 export type LinkApi = { targets(from: PortRef): readonly { ref: PortRef; check: Precheck }[];
   connect(from: PortRef, to: PortRef, o?: { replacing?: Ulid }): Promise<DispatchResult>; disconnectPort(ref: PortRef, dir: 'in' | 'out'): Promise<DispatchResult>;
   firstFit(type: TypeRef, def: NodeDef, dir: 'in' | 'out'): string | null };   // 还不在图里的节点上第一个能接这种类型的端口（快速添加、插入连线）
 // W.06.13 nest/
 export type NestApi = { peek(nodeId: Ulid): void; closePeek(): boolean; peekOpen(): boolean;
-  beforeSwitch(from: Scope, to: Scope): void; afterSwitch(from: Scope, to: Scope): void; locate(t: { scope: Scope; nodes: readonly Ulid[] }): void };
+  beforeSwitch(from: Scope, to: Scope): void; afterSwitch(from: Scope, to: Scope): void; docSwitched(): void;   // docSwitched：切换会话后的进入转场（U.09.04-R5，K104）
+  locate(t: { scope: Scope; nodes: readonly Ulid[] }): void };
 // W.06.12 minimap/paint.ts
 export type ThumbPainter = { paint(cv: HTMLCanvasElement, src: { model: GraphModel; scope: Scope; live?: LiveRun | null },
   o: { mode: 'thumb' | 'mini' | 'card' | 'peek'; mark?: Ulid; view?: View }): { s: number; ox: number; oy: number } };
@@ -266,7 +271,7 @@ div.hx-canvas[tabindex=0][role=application]   ← 根；.lod-2 / .lod-3（W.06.0
 | `input` | W.06.07、W.06.08 | 取最新一次 `pointermove`，算拖动位移、拖线端点、框选框 |
 | `view` | W.06.02 | 写世界容器 `transform`、网格 `background-*`；帧末 `view.actions.setView` |
 | `struct` | W.06.03、W.06.04、W.06.06 | 换层、整图替换、增删元素（`change.full`、`scopes`） |
-| `patch` | W.06.03、W.06.04 | 改动过的节点、连线、便签的内容与位置；选中环 |
+| `patch` | W.06.03、W.06.04、W.06.14 | 改动过的节点、连线、便签的内容与位置；选中环；幽灵元素与提议条 |
 | `run` | W.06.15 | 合并后的运行状态写进节点和连线 |
 | `geom` | W.06.04 | 受影响连线的 `d`（只算相连的，`U.17-R4`） |
 | `cull` | W.06.05 | 视口裁剪（> 150 节点时） |
@@ -288,7 +293,7 @@ div.hx-canvas[tabindex=0][role=application]   ← 根；.lod-2 / .lod-3（W.06.0
 ### 6.4 换层
 URL 变化 → 工作区 `setLocation` → view `enterScope(scope)` → 引擎收到 `scope` 变化：
 1. `nest.beforeSwitch(from, to)`：记下转场原点（W.06.13）。
-2. `pool.switchScope(from, to)`：摘下上一层元素、挂上新一层（W.06.06）；`nodes.sync({full:true})`、`edges.sync({full:true})`。
+2. `pool.switchScope(from, to)`：摘下上一层元素、挂上新一层（W.06.06）；`nodes.sync({full:true})`、`edges.sync({full:true})`；`runBridge.resync()`（W.06.15）、`ghost.sync()`（W.06.14）补写本层的运行状态和幽灵元素（K104）。
 3. `needsFit` → `cmd.fit({animate:false})` 后 `markFitted`；否则 `viewport.apply(view)`（`U.07.02-R1`：转场前先定好视图）。
 4. `nest.afterSwitch(from, to)`：播放转场；返回时选中并闪刚离开的容器节点（`U.07.02`）。
 - 引擎自己不改当前层：双击、Enter、Esc 只发 `nav.enter` / `nav.leave`，由路由改 URL 后走上面的流程（`W.02.01` §6.3）。
@@ -306,13 +311,13 @@ URL 变化 → 工作区 `setLocation` → view `enterScope(scope)` → 引擎�
 一次用户动作只调一次 `dispatch`（数组），共用一个 `groupId`（`C.05-R3`）。引擎不直接写 graph store（INV-08）。
 
 ### 6.6 只读
-`ctx.readonly()` = `deps.kind ∈ {peek, replay, library}` 或 `doc.stores.readonly` 或 `doc.ops === null` 或 `canvasReadonly(ui)`（`U.14.05`）。只读时：拖动节点、连线、内联控件、删除、粘贴、放下全部不可用（控件 `disabled`，指针不进入这些模式）；平移、缩放、悬停提示照常；选中只在 `selectionKey ≠ null` 时可用（预览浮层不能选中，`U.13.06-R1`）。
+`ctx.readonly()` = `deps.kind ∈ {replay, library}` 或 `doc.stores.readonly` 或 `doc.ops === null` 或 `canvasReadonly(ui)`（`U.14.05`）。只读时：拖动节点、连线、内联控件、删除、粘贴、放下全部不可用（控件 `disabled`，指针不进入这些模式）；平移、缩放、悬停提示照常；选中只在 `selectionKey ≠ null` 时可用（预览浮层不能选中，`U.13.06-R1`）。
 
 ### 6.7 规则
 | 编号 | 规则 |
 |---|---|
 | W.06-R1 | `canvas/core/**` 只 import `W.01-R6` 允许的内容；不 import `react`、`react-dom`、`zustand/react`、`@/shell/**`、`@/panels/**`、`@/components/**`、`@/ops/**` 的实现（只能 import `@/ops/types`） |
-| W.06-R2 | 一个画布实例一个引擎；模块里没有可变的模块级变量（常量除外），主画布、预览浮层、回放画布的引擎可以同时存在、互不影响 |
+| W.06-R2 | 一个画布实例一个引擎；模块里没有可变的模块级变量（常量除外），主画布、回放画布、子图库预览的引擎可以同时存在、互不影响；预览浮层属于主画布引擎，不另建引擎（K103） |
 | W.06-R3 | 平移、缩放、拖动、框选、拖线、运行状态更新期间：不调用任何 React `setState`，只写 DOM；对 store 的写入只有 `view.actions.setView`（每帧最多一次）和 `OpsApi.gesture().update`（`W.05` 节流到 250ms） |
 | W.06-R4 | 写样式只写令牌引用和几何值（`G.06.03-R9`）：`el.style.transform`、`el.style.setProperty('--_x', 'var(--hx-…)')`、`d`、`width` / `height`（几何）；颜色、字号、阴影、时长一律在 CSS 里用令牌 |
 | W.06-R5 | 用户和模型写的文字（显示名、参数值、便签、提示）只用 `textContent` / `setAttribute` 写入；不对数据拼 `innerHTML` |
@@ -320,7 +325,7 @@ URL 变化 → 工作区 `setLocation` → view `enterScope(scope)` → 引擎�
 | W.06-R7 | 所有 JS 动画（视图过渡、转场、闪烁）在 `deps.theme.reducedMotion()` 为真时按 `U.07.04` 的替代处理 |
 | W.06-R8 | 界面文字只来自 `deps.t`，键名以 `canvas.` 开头（`W.10`）；用词以 `P.06` 为准 |
 | W.06-R9 | 一个帧任务抛错不影响其他任务：捕获、`console.error`（同一任务名每分钟最多一次），下一帧对当前层做一次全量同步 |
-| W.06-R10 | 节点、连线可以用键盘到达并有可访问名称（`U.16` §3）：节点 `role="group"`、`aria-label` = "{类型} {名称}，{状态}，{N} 个输入、{M} 个输出" |
+| W.06-R10 | 节点可以用键盘到达（`Tab`，`W.06.09`）；节点和连线都有可访问名称（`U.16` §3）：节点 `role="group"`、`aria-label` = "{类型} {名称}，{状态}，{N} 个输入、{M} 个输出"；连线逐条的键盘编辑走列表视图（`U.16` §4，K105） |
 
 ## 7. 不变量
 - 世界容器是唯一按视图变换的元素；节点位置只写 `translate3d`（`U.17-R1`、`R4`）。
@@ -352,7 +357,7 @@ URL 变化 → 工作区 `setLocation` → view `enterScope(scope)` → 引擎�
 ## 10. 验收标准
 1. 15 个叶子的验收全部通过。
 2. 200 节点、300 连线的基准图上：平移 1 秒、滚轮缩放 1 秒、拖动节点 1 秒、拖线 1 秒、框选 1 秒，Performance 录制无掉帧段、无 > 50ms 长任务、无强制同步布局，React Profiler 提交次数为 0（`Q.08`、`W.11`）。
-3. 主画布与预览浮层同时打开：两个引擎互不影响，关闭预览后没有残留监听（`W0601-T8`）。
+3. 主画布与回放画布（或子图库预览）同时存在：两个引擎互不影响，关闭后没有残留监听（`W0601-T8`）。
 4. ESLint：`canvas/core/` 下 import `react` 或 `@/ops/queue` 报错（`W.01` §4）。
 5. 断开服务 3 秒后画布不能拖动和编辑，可以平移缩放；恢复后可以编辑（`U.14.05`）。
 
@@ -360,3 +365,4 @@ URL 变化 → 工作区 `setLocation` → view `enterScope(scope)` → 引擎�
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | 首版：目录、共用类型、模块接口、帧阶段、订阅表 | 第 6 棒；`P.09` K94–K101 |
+| 2026-11-23 | `CanvasKind` 去掉 `peek`（预览浮层是 canvas 简化图）；接口补 `CanvasKeys.overlay`、`PointerApi.last`、`DragApi.moveBy` 的 `groupId`、`Geom.forModel`、`NestApi.docSwitched`、`cmd.exec`、`tree.locate`；§6.2 `patch` 阶段加 W.06.14；§6.4 第 2 步补 `runBridge.resync`、`ghost.sync`；R2、R10 措辞 | 第 7 棒写 `W.06.09`–`W.06.15`；`P.09` K103–K105 |

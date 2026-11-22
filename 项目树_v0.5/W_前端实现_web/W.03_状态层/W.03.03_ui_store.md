@@ -114,7 +114,7 @@ export function canvasReadonly(s: UiState): boolean;                       // ne
 不持久化：`focus`、`bp`、`fitInsets`、`selections`（只保留本次打开页面期间，`U.09.04` §2）、`tool`、`center`、`net`、`toasts`。
 
 ### 5.2 选中的键
-`SelectionKey` 为会话 ID（主画布），回放页为 `replay:<运行 ID>`；预览浮层没有键（不能选中，`U.13.06-R1`）。工作区被释放（`W.03.05` §6.6）时选中**不**清除，所以第 6 个会话挤掉的会话再打开时选中仍能恢复。
+`SelectionKey` 为会话 ID（主画布），回放页为 `replay:<运行 ID>`；子图库预览没有键（不能选中）；预览浮层不是画布实例、本来就不能选中（`U.13.06-R1`，`P.09` K103）。工作区被释放（`W.03.05` §6.6）时选中**不**清除，所以第 6 个会话挤掉的会话再打开时选中仍能恢复。
 
 ## 6. 行为
 ### 6.1 布局
@@ -155,7 +155,7 @@ export function canvasReadonly(s: UiState): boolean;                       // ne
 |---|---|
 | localStorage 值非法（不是 `"0"`/`"1"`、JSON 解析失败、标签页名不认识） | 用缺省值，不覆盖原值，直到用户下一次修改 |
 | localStorage 不可用 | 全部用缺省值，修改只在内存生效 |
-| `select` 传入 `key=null`（预览浮层误调用） | 开发模式抛错，生产模式忽略 |
+| `select` 传入 `key=null`（不能选中的画布误调用） | 开发模式抛错，生产模式忽略 |
 
 ## 9. 性能与资源
 - 每个 action ≤ 0.1ms；值不变不 `set`（§6.1、§6.2、§6.4）。
@@ -194,3 +194,4 @@ export function canvasReadonly(s: UiState): boolean;                       // ne
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | `NetState` 注释写明四个值的含义 | `P.09` K91 |
+| 2026-11-23 | `selectionKey` 为空的例子改为子图库预览 | `P.09` K103（第 7 棒） |

@@ -103,7 +103,7 @@ type Active =                                            // 同一时刻只有�
 | 单击空白（移动 < 3px） | 取消全部选中 |
 | 空白拖动（选择工具） | 框选：和节点或便签相交即选中；`Shift` 时与原选中合并（`P.09` K100：按 `U.13.01`，不是 demo v0.5 的"空白拖动 = 平移"） |
 - 写选中：`sel.set` → `ui.actions.select(selectionKey, {scope, nodeIds, edgeIds, noteIds})`；按下节点时立即写（属性页马上切换），框选只在松开时写一次（`W.03.03` §9）。
-- `selectionKey = null`（预览浮层）：不选中，第 5、6、7 行都降为 `pan`（`U.13.06-R1`）。
+- `selectionKey = null`（子图库预览这类不能选中的画布，`W.03` §4.2）：不选中，第 5、6、7 行都降为 `pan`（与 `U.13.06-R1` 的预览只读同一规则）。
 - 选中节点不打开右栏（`U.09.02-R1`，本文不调 `setRs`）。
 
 ### 6.3 拖动节点和便签（`U.13.02` §1）
@@ -150,8 +150,11 @@ type Active =                                            // 同一时刻只有�
 5. `insertInto`：原连线 `from → to`；`link.firstFit` 找到新节点兼容的输入和输出 → 加 `disconnect{ids:[原连线]}`、`connect(from → 新.输入)`、`connect(新.输出 → to)`；任一端不兼容 → 只放节点，不改连线，提示"类型不兼容，已放在旁边"。
 6. 一次 `ops.dispatch(批)`（`C.05-R3`）；结果 `applied` / `merged` → `sel.set({nodeIds:[id]})`。
 
-### 6.9 `drag.moveBy(ids, dx, dy)`（给方向键用）
-`dispatch(move_nodes{moves})` 一次（不走手势），`dx`、`dy` 是世界像素（`W.06.09` 传 20 或 100），结果吸附到网格；`frozen` 的节点跳过。
+### 6.9 `drag.moveBy(ids, dx, dy, o?)`（给方向键用）
+`dispatch(move_nodes{moves}, {groupId: o?.groupId})` 一次（不走手势），`dx`、`dy` 是世界像素（`W.06.09` 传 20 或 100），结果吸附到网格；`frozen` 的节点跳过。`W.06.09` 把连续的方向键传同一个 `groupId`，撤销一次回到原位（`P.09` K104）。
+
+### 6.10 `pointer.last()`
+根元素上的 `pointermove`（不论是否在拖动）记录最新屏幕坐标，`pointerleave` 时置 null；`last()` 返回它（`W.06.09` 的 `A` 快速添加、键盘粘贴的落点用，K104）。不额外加监听：与 `W.06.02` §6.8 指针柔光读同一次事件。
 
 ## 7. 不变量
 - 同一时刻只有一个指针模式；松开、`lostpointercapture`、`Esc` 后回到 `idle`。
@@ -206,8 +209,13 @@ type Active =                                            // 同一时刻只有�
   - `W0607-T16 右键`：右键多选中的一个 → `menu.open{target:{kind:'selection'}}`；右键未选中的节点 → 先只选它，`target.kind='node'`
   - `W0607-T17 放下`：`drop` 带 `{type:'Agent'}` → 一次 `dispatch`，含 `add_node`（ID 来自 `deps.newId`、位置吸附）；放在兼容连线上 → `add_node`、`disconnect`、两条 `connect` 在同一批
   - `W0607-T18 addNode connectFrom`：从 `result` 端口快速添加 → 批里有 `connect` 到新节点第一个兼容输入
-  - `W0607-T19 预览浮层`：`selectionKey=null` → 空白和节点上拖动都是平移，不调 `select`
+  - `W0607-T19 不能选中的画布`：`selectionKey=null` → 空白和节点上拖动都是平移，不调 `select`
   - `W0607-T20 端到端`：§10 验收 1–5、7（Playwright，`harnessd --fake-llm`）
 - 允许使用的依赖：无运行时依赖；测试用 `vitest`、`jsdom`、`@playwright/test`。
 - 禁止事项：`G.02.05` 全部（特别是 R6、R25）；另：拖动中不调 `dispatch`（只用手势的 `update`）；不给节点、连线元素单独绑定监听；不用 `event.target` 判断单击、双击、右键的目标；拖动中不写 ui store；不在框选过程中写选中。
 - 完成标志：`G.14` 全部条件；§10 七条验收通过。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | `drag.moveBy` 增加 `groupId`；新增 §6.10 `pointer.last()`；`selectionKey = null` 的例子改为子图库预览 | 第 7 棒；`P.09` K103、K104 |

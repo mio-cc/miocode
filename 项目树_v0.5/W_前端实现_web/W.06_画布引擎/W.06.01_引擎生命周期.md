@@ -7,7 +7,7 @@
 | 上级 | W.06 画布引擎 |
 | 下级 | 无 |
 | 状态 | 草稿 |
-| 素材 | 设18 §5（`Canvas` 外壳只渲染一次、非 React 订阅、StrictMode 可重入）；设17 §9.2；demo `设计规范_v0.3/src/24_render.js`（`sync`、`resetDOM`）；`W.01` §3.3 |
+| 素材 | 设18 §5（`Canvas` 外壳只渲染一次、非 React 订阅、StrictMode 可重入）；设17 §9.2；demo `设计规范_v0.3/src/24_render.js`（`sync`、`resetDOM`）；`W.01` §3.3；`P.09` K103、K104 |
 | 最后修改 | 2026-11-23 |
 
 ## 1. 职责
@@ -32,7 +32,7 @@
 // web/src/canvas/Canvas.tsx
 export type CanvasProps = {
   kind?: CanvasKind;                 // 缺省 'main'
-  stores?: CanvasStores | null;      // 缺省用 useCanvasStores()（主画布）；预览浮层、回放页自己传
+  stores?: CanvasStores | null;      // 缺省用 useCanvasStores()（主画布）；回放页、子图库预览自己传
   className?: string;
 };
 export function Canvas(p: CanvasProps): JSX.Element;            // 只渲染 <div className="hx-canvas …" ref>，之后不再因 store 变化重渲染
@@ -44,7 +44,7 @@ export function useCanvasEvent<K extends keyof EngineEvents>(k: K, fn: (p: Engin
 export function CanvasOverlays(p: { engine: CanvasEngine }): JSX.Element;   // 'popover.select' 下拉、'hovercard.open' AI 角标卡
 
 // web/src/canvas/adapters.ts
-export function adaptKeys(k: typeof keys): CanvasKeys;                       // W.02.04 的 keys.on / label
+export function adaptKeys(k: typeof keys): CanvasKeys;                       // W.02.04 的 keys.on / label / pushOverlay('peek', …)（overlay，K104）
 export function adaptTheme(c: typeof themeController): ThemeHooks;           // W.02.03
 ```
 
@@ -99,7 +99,7 @@ export function createScene(root: HTMLDivElement, kind: CanvasKind, t: EngineDep
 |---|---|
 | 相同的 `stores` 对象 | 什么都不做 |
 | 任何 → `null` | 退订文档级订阅；`pool.switchDoc(null)`（当前层元素摘下保留）；`is-empty` |
-| 任何 → 新文档 | ① 退订旧文档的订阅（`graph.change`、`view.scope`、`view.view`、`ui.selections`、model、run）；② `pool.switchDoc(graphId)`：同一文档之前绑定过就接回缓存的元素（`W.06.06`）；③ 订阅新文档（`W.06` §6.3）；④ `graph.status !== 'ready'` → 根元素 `is-loading`，等 `ready` 再走 ⑤；⑤ 当前层全量同步（`nodes.sync({full:true})`、`edges.sync({full:true})`）；⑥ 视图：`needsFit` → `cmd.fit({animate:false})` → `view.actions.markFitted`；否则 `viewport.apply(view)`；⑦ `emit('ready', {scope})` |
+| 任何 → 新文档 | ① 退订旧文档的订阅（`graph.change`、`view.scope`、`view.view`、`ui.selections`、model、run）；② `pool.switchDoc(graphId)`：同一文档之前绑定过就接回缓存的元素（`W.06.06`）；③ 订阅新文档（`W.06` §6.3）；④ `graph.status !== 'ready'` → 根元素 `is-loading`，等 `ready` 再走 ⑤；⑤ 当前层全量同步（`nodes.sync({full:true})`、`edges.sync({full:true})`），`runBridge.resync()`、`ghost.sync()`（K104）；⑥ 视图：`needsFit` → `cmd.fit({animate:false})` → `view.actions.markFitted`；否则 `viewport.apply(view)`；⑦ 不是第一次绑定时 `nest.docSwitched()`（切换会话的进入转场，`U.09.04-R5`）；⑧ `emit('ready', {scope})` |
 - 切换会话只换 `stores`（`W.03.05`），不重建引擎；目标是切到已在内存里的会话 ≤ 300ms（`U.17` §1），其中引擎部分 ≤ 120ms（200 节点、DOM 已缓存）。
 
 ### 6.4 换层
@@ -145,7 +145,7 @@ export function createScene(root: HTMLDivElement, kind: CanvasKind, t: EngineDep
 ## 10. 验收标准
 1. 主画布挂载、切换会话 20 次、卸载：没有残留监听和定时器；堆快照不持续增长。
 2. StrictMode 下挂载：只有一个引擎在工作，DOM 骨架只有一份。
-3. 主画布和预览浮层同时存在，各自平移缩放互不影响；关闭预览后预览引擎的监听全部移除。
+3. 主画布和回放画布同时存在，各自平移缩放互不影响；关闭回放页后它的引擎的监听全部移除。
 4. 进入子图、返回：从 URL 变化到新层画出 ≤ 100ms（不含转场）。
 5. 平移、拖动、30 个节点同时运行 5 秒：React Profiler 提交次数为 0。
 6. 双击容器节点：地址栏 `scope` 变为该节点（经 `nav.enter` → `enterLayer`），画布进入那一层。
@@ -166,8 +166,13 @@ export function createScene(root: HTMLDivElement, kind: CanvasKind, t: EngineDep
   - `W0601-T9 销毁`：`destroy()` 后 `window`、`document` 的监听计数回到构造前；`raf` 待办被取消；再调 `destroy()` 无异常
   - `W0601-T10 错误隔离`：某阶段任务抛错 → 同帧其他任务照常执行、`console.error` 1 次、下一帧 `full` 同步；连续 3 帧抛错 → `is-broken`
   - `W0601-T11 事件转发`：引擎发 `nav.enter` → `enterLayer` 被调用一次；`node.action{approve}` → `resolveApproval` 收到 `live` 里的 `approvalId`
-  - `W0601-T12 只读`：`kind='peek'`、`ops=null`、`ui.net='reconnecting'` 三种情况 `ctx.readonly()` 为 true
+  - `W0601-T12 只读`：`kind='library'`、`ops=null`、`ui.net='reconnecting'` 三种情况 `ctx.readonly()` 为 true
   - `W0601-T13 端到端`：§10 验收 4、5、6（Playwright，`harnessd --fake-llm`，示例图 `graph_loop.json`）
 - 允许使用的依赖：`react`、`react-dom`（只在 `Canvas.tsx`、`CanvasOverlays.tsx`）；`canvas/core/` 无运行时依赖；测试用 `vitest`、`jsdom`、`@playwright/test`。
 - 禁止事项：`G.02.05` 全部（特别是 R6、R24、R25）；另：`Canvas.tsx` 不用 `useGraphStore` / `useRunStore` 之类会随图变化重渲染的 hook；不把引擎实例或 DOM 放进 React state；`CanvasProvider` 的 Context 值只包含命令对象和订阅函数；不在构造函数里同步做 200 节点的渲染（交给第一帧）。
 - 完成标志：`G.14` 全部条件；§10 六条验收通过；`W.06-R1` 的 ESLint 规则在 `web/eslint.config.js` 里生效（由 `G.06.04` 维护，本叶子只验证）。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | `bind` 第 ⑤ 步补 `runBridge.resync`、`ghost.sync`，新增第 ⑦ 步 `nest.docSwitched`；`adaptKeys` 补 `overlay`；预览浮层不再是第二个引擎，§4.1、§10 验收 3、`W0601-T12` 改用回放画布 / 子图库预览 | 第 7 棒写 `W.06.09`–`W.06.15`；`P.09` K103、K104 |

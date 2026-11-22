@@ -19,7 +19,7 @@
 | Go 类型 | `omissis/go-jsonschema` | `gen/*.go` |
 | TS 类型 | `json-schema-to-typescript` | `web/src/lib/protocol/generated/*.ts` |
 | 常量（事件名、Op 种类、错误码、诊断码、动作名） | 自研小工具 `tools/gen/consts`，读 schema 里的枚举 | `gen/consts.go`、`generated/consts.ts` |
-| 数据表（容器规则、控件映射、判定表、状态机、类别映射） | `tools/gen/tables`，读 `schema/builtin/*.yaml` | `gen/tables.go`、`generated/tables.ts` |
+| 数据表（容器规则、控件映射、判定表、状态机、类别映射、布局常数 `layout.yaml`） | `tools/gen/tables`，读 `schema/builtin/*.yaml` | `gen/tables.go`、`generated/tables.ts`（布局常数为 `Layout` / `LAYOUT`，`W.06.10` §5.1） |
 | 前端字段映射表（不透明字段、映射字段，§5.1） | `tools/gen/wire`，读全部 `schema/*.schema.json` | `generated/wire.ts`（只有前端用） |
 
 ## 3. 映射规则
@@ -79,3 +79,4 @@ func DecodeAs[T any](o *Op) (*T, error)
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | §2 加前端字段映射表；R6 补 TS 常量对象名；新增 §5.1（R8、R9） | `P.09` K84、K85（写 `W.04.03`、`W.04.04` 时发现映射规则和 TS 常量名没有定义） |
+| 2026-11-23 | §2 数据表补布局常数 `layout.yaml` | `P.09` K102（第 7 棒） |

@@ -22,6 +22,7 @@
 | `web/src/styles/themes.css`、`web/src/styles/themes.ts` | `design/themes/*.css`（`U.03.05` §4） | `go run ./tools/gen tokens` | 是 |
 | `web/src/lib/protocol/generated/wire.ts`（前端字段映射表，`C.14-R8`） | `schema/*.schema.json` | `go run ./tools/gen` | 是 |
 | `web/src/lib/protocol/generated/tables.ts` 里的快捷键表 | `schema/builtin/shortcuts.yaml`（格式见 `W.02.04`） | `go run ./tools/gen` | 是 |
+| `gen/tables.go` 的 `Layout`、`generated/tables.ts` 的 `LAYOUT`（布局常数，`U.05-R3`） | `schema/builtin/layout.yaml`（格式见 `W.06.10` §5.1）；`go run ./tools/gen tokens` 同时检查 `design/tokens.css` 的 `--hx-node-*`、`--hx-grid`、`--hx-port` 与它相等 | `go run ./tools/gen` | 是 |
 | `web/public/fonts/*` | `design/fonts/` 原始字体 | `go run ./tools/gen fonts`（子集化） | 是 |
 | `engine/store/sqlite/queries.go` | `engine/store/sqlite/queries.sql` | `sqlc generate` | 是 |
 | `web/dist/` | 前端源码 | `pnpm -C web build` | **否** |
@@ -41,3 +42,4 @@
 |---|---|---|
 | 2026-11-23 | 生成物清单补上主题文件和快捷键表 | `P.09` K69 | |
 | 2026-11-23 | 生成物清单补 `generated/wire.ts` | `P.09` K84 |
+| 2026-11-23 | 生成物清单补布局常数（`layout.yaml` → `Layout` / `LAYOUT`）及令牌一致性检查 | `P.09` K102（第 7 棒） |

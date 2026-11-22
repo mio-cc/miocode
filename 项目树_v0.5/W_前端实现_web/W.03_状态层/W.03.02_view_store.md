@@ -53,7 +53,7 @@ export type ViewStoreApi = ReadonlyStore<ViewState> & { actions: ViewActions };
 export function createViewStore(o: {
   graphId: Ulid;
   scope: Scope;
-  persist: boolean;                     // 主画布 true；预览浮层、回放画布 false
+  persist: boolean;                     // 主画布 true；回放画布、子图库预览 false
   storage?: Storage;                    // 缺省 window.localStorage；测试注入
   now?: () => number;
 }): ViewStoreApi;
@@ -63,7 +63,7 @@ export function useZoomPercent(): number;   // 读 zoomPct；停靠栏的缩放�
 ```
 
 ### 4.1 依赖
-无其他模块。由工作区（`W.03.05`）为主画布创建；`W.06.13` 打开预览浮层时用 `persist:false` 另建一份；`W.09.05` 回放页同样。
+无其他模块。由工作区（`W.03.05`）为主画布创建；`W.09.05` 回放页、`W.09.02` 子图库预览用 `persist:false` 另建一份。预览浮层不建 view store：它的视图只在 `W.06.13` 的内存里（`P.09` K103）。
 
 ## 5. 数据结构
 ### 5.1 localStorage
@@ -125,7 +125,7 @@ view.subscribe((s) => s.view, (nv) => engine.applyView(nv));      // 只有 stor
 2. 刷新页面后停留在同一层且视图恢复；从未到过的层打开时"适应画布"（`U.13.06` §6 验收 3，K75）。
 3. 进入子图再返回：上一层恢复到离开前的位置（`U.13.06` §4）。
 4. 连续平移、缩放 5 秒（每帧 `setView`）：期间 React Profiler 提交次数为 0；停下后缩放百分比更新 1 次、localStorage 写 1 次（`U.17-R10`）。
-5. 预览浮层的平移缩放不影响主画布，也不写 localStorage。
+5. 回放画布的平移缩放不影响主画布，也不写 localStorage。
 
 ### 实施卡
 - 要建 / 要改的文件：`web/src/state/viewStore.ts`、`web/src/state/viewStore.test.ts`；`web/src/state/hooks.ts` 里只加 `useZoomPercent`（hooks 文件的其余部分归 `W.03.05`）。
@@ -145,3 +145,8 @@ view.subscribe((s) => s.view, (nv) => engine.applyView(nv));      // 只有 stor
 - 允许使用的依赖：`zustand`；测试用 `vitest`、`jsdom`。
 - 禁止事项：`G.02.05` 全部（特别是 R25）；另：不提供通用 React hook；不把视图写进图文档或任何请求；不在 localStorage 存视图以外的东西。
 - 完成标志：`G.14` 全部条件；§10 五条验收通过。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | 预览浮层不建 view store，`persist:false` 的例子改为回放画布、子图库预览 | `P.09` K103（第 7 棒） |
