@@ -72,7 +72,7 @@ go run ./tools/relay diff <叶子>            依据文档在领取后改了哪�
 go run ./tools/relay stale                  冻结后依据文档又被改过的叶子
 ```
 - **读设计文档**：位置按 `G.02.06-R1`（`ANYDOOR_DOCS`，缺省 `../sj/项目树_v0.5`）；读 `树索引.json`、各文档文件头（状态）、实施卡的"要建 / 要改的文件""不许碰的文件""测试用例"三行。设计仓库的提交号用 `git -C <文档目录> rev-parse HEAD` 取；文档目录有未提交的修改时 `start` 拒绝领取（依据必须是已提交的版本）。
-- **`status`**：列出 ① 已领取未合并的叶子：分支、领取人、最后一次提交、工作区有没有未提交的改动；② 每个已领取叶子的测试用例编号覆盖（实施卡里的编号 ÷ 已出现在测试名开头的编号）；③ 全部桩（扫描 `// STUB(` 开头的文件）；④ `docs/relay/` 里有"有疑问"或"不符合"未处理的评审记录。
+- **`status`**：列出 ① 已领取未合并的叶子：分支、领取人、最后一次提交、工作区有没有未提交的改动；② 每个已领取叶子的测试用例编号覆盖（实施卡里的编号 ÷ 已出现在测试名开头的编号）；③ 全部桩（扫描 `// STUB(` 开头的文件）；④ `docs/relay/*.review.md` 里没处理完的评审意见：评审记录是一张表头里有"结论"一列的表，结论一格以"不符合"或"有疑问"开头、而且这一行没有写"已处理"的才算；表头和说明文字不算（`G.02.06-R18`，`P.09` K199）。
 - **`next`**：按树的顺序列出状态为"已审"、还没有被领取的实施叶子。
 - **`start --resume --accept-docs`**：依据文档在领取后改过时，实施者先用 `diff` 读改动、确认代码怎么处理并记进 `RELAY.md` 本棒记录，再用这个选项把 `docs/relay/<叶子>.json` 的依据更新为当前的设计文档（`G.02.06-R13`）。不读改动就更新依据，等于跳过第 ⑥ 项，评审时退回。
 - **`start`**：按 `G.02.06-R4`–`R7` 检查，然后：建分支；写 `docs/relay/<叶子>.json`（§5）；在 `RELAY.md` 最上面插入一条领取记录（模板见 `RELAY.md` 顶部）；按 `G.02.01` §3、`G.02.02`（必读集合、一层引用、按任务类型的附加集合、不附的东西）拼出任务包 `.relay/tasks/<叶子>.md`，文档按原文附上（`G.02.01-R4`）。`--resume`：只重新生成任务包，不建分支、不改领取记录。
@@ -140,7 +140,7 @@ go run ./tools/relay stale                  冻结后依据文档又被改过的
   - `O01-T10 relay diff / stale`：领取后改动样例树里的一份文档 → `diff` 列出它和改动的小节，`check` 第 ⑥ 项不通过，`start --resume --accept-docs` 之后通过；只改状态和变更记录不算改动；冻结的叶子正文变化 → `stale` 列出它
   - `O01-T11 relay status`：两个已领取的叶子、一个桩、一份有"不符合"的评审记录都出现在输出里；测试用例覆盖数正确
 - 允许使用的依赖：Go 标准库。
-- 第 1 片的桩（`G.02.06-R10`，`P.09` K196）：`O.01` 的 `check`、`lint`、`build` 要调用还没实现的工具和程序，按它们将来的位置各写一个最小桩，第一行写 `STUB(<叶子>)`：`cmd/anydoor/main.go`、`cmd/anydoor/embed.go`（`B.02`：只做 `--version`、`/api/v1/health`、嵌入前端与"前端还没有构建"页、`--dev` 代理、优雅关闭）；`cmd/anydoorctl/main.go`（`B.08`：只做 `version`）；`tools/gen/main.go`（`G.16`）、`tools/depcheck/main.go`（`G.03`）、`tools/lint/quirkscheck/main.go`、`tools/lint/typenamecheck/main.go`（`G.05.05`）：只打印"还没有实现"并以 0 退出；`web/package.json`、`web/index.html`、`web/tsconfig.json`、`web/src/main.ts`、`web/scripts/stub.mjs`（`W.01`、`W.02`、`W.12`：一个不用 React 的空白页，`lint` = `tsc --noEmit`，`test`、`test:e2e`、`test:visual` 只打印还没有测试）。
+- 第 1 片的桩（`G.02.06-R10`，`P.09` K196）：`O.01` 的 `check`、`lint`、`build` 要调用还没实现的工具和程序，按它们将来的位置各写一个最小桩，第一行写 `STUB(<叶子>)`：`cmd/anydoor/main.go`、`cmd/anydoor/embed.go`、`cmd/anydoor/console_windows.go`、`cmd/anydoor/console_other.go`（`B.02`：只做 `--version`、`/api/v1/health`、嵌入前端与"前端还没有构建"页、`--dev` 代理、优雅关闭）；`cmd/anydoorctl/main.go`、`cmd/anydoorctl/console_windows.go`、`cmd/anydoorctl/console_other.go`（`B.08`：只做 `version`；两个程序的 `console_*.go` 是 Windows 控制台 UTF-8 编码，`P.09` K198）；`tools/gen/main.go`（`G.16`）、`tools/depcheck/main.go`（`G.03`）、`tools/lint/quirkscheck/main.go`、`tools/lint/typenamecheck/main.go`（`G.05.05`）：只打印"还没有实现"并以 0 退出；`web/package.json`、`web/index.html`、`web/tsconfig.json`、`web/src/main.ts`、`web/scripts/stub.mjs`（`W.01`、`W.02`、`W.12`：一个不用 React 的空白页，`lint` = `tsc --noEmit`，`test`、`test:e2e`、`test:visual` 只打印还没有测试）。
 - 禁止事项：`G.02.05` 全部；另：不写 shell 脚本；构建时间不取当前时间；不把 `web/dist-perf/` 或测试页面复制进 `cmd/anydoor/dist/`。
 - 完成标志：`G.14` 全部条件；§10 六条验收通过；`tools/relay` 合并后，下一个叶子按 `G.02.06` 正常领取（不再走 §5 例外）。
 
@@ -152,3 +152,4 @@ go run ./tools/relay stale                  冻结后依据文档又被改过的
 | 2026-11-23 | 状态改为"已审"（用户同意开始第 1 片，2026-11-23 10:51） | `G.02.01-R2` |
 | 2026-11-23 | 实施卡补 `go.mod`、第 1 片的桩清单；`check` ③ 在 `allow.txt` 之前读 `G.10`；`O01-T5` 用构建标签 `slow` | 第 1 片开工前；`P.09` K196 |
 | 2026-11-23 | §4.5 加 `start --resume --accept-docs`；§5 写明文档指纹的算法；`O01-T10` 相应补充 | 第 1 片实施中定下的细节（`G.02` §4 自主决定，回写文档） |
+| 2026-11-23 | 实施卡桩清单补 `console_windows.go`、`console_other.go`；§4.5 `status` 的评审意见判断改为按表格"结论"列 | 第 1 片交叉评审第 12、14 条；`P.09` K199 |
