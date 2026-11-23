@@ -40,10 +40,10 @@ NodeDef 的 `dynamic_ports`（定义在 `C.03.01`）从 `from_param` 指定的�
 
 ## 5. 行为
 - **C.03.05-R1** 节点上最多显示 4 个"常用"参数；超出的自动降为"高级"并在校验里给提示（不报错）。
-- **C.03.05-R2** `bind` 的端口必须在 NodeDef 的 `ports.inputs` 里声明，类型兼容参数类型。例外：文本参数可以绑定类型为 `资源引用@1` 的端口，运行时取上游提示词节点渲染出的文本（Agent 的 `instruction` ← `prompt`，`P.09` K213）；`rolecard_ref` 参数也可以绑定 `资源引用@1` 的端口，运行时取上游 `kind=角色卡` 资源节点的 `名称@版本`，上游 `kind` 不是角色卡时 Validate 报 V03（Agent 的 `rolecard` ← `rolecard`，`P.09` K233）。绑定后参数值保留，断开连线即恢复使用。
+- **C.03.05-R2** `bind` 的端口必须在 NodeDef 的 `ports.inputs` 里声明，类型兼容参数类型。例外：文本参数可以绑定类型为 `资源引用@1` 的端口，运行时取上游提示词节点渲染出的文本（Agent 的 `instruction` ← `prompt`，`P.09` K213）；`rolecard_ref` 参数也可以绑定 `资源引用@1` 的端口，运行时取上游 `kind=角色卡` 资源节点的 `名称@版本`，上游 `kind` 不是角色卡时 Validate 报 V03（Agent 的 `rolecard` ← `role`，`P.09` K233）。绑定后参数值保留，断开连线即恢复使用。
 - **C.03.05-R3** 原来的"转为端口"（`promoted`，`C.02`）改名为"接线"，实现上等价于运行时给参数自动生成一个 `bind` 端口；两种写法并存，界面一致。
 - **C.03.05-R4** `dynamic_ports` 生成的端口名：文本变量就是变量名，变量名只能是 `^[a-z_][a-z0-9_]*$`（与端口名同一规则，`C.02.03` §4），不合法的变量不生成端口，校验记 warn、渲染为空；`schema_from` 子参数按 `C.03.02-R8` 换算。变量改名、删除，或所选对象变化导致端口消失时，连到这些端口的连线随这次 `set_param` 一并删除，撤销时恢复（`C.05.02`、`C.05.03`）；v1 不做改名后自动迁移连线。
-- **C.03.05-R5** Agent 节点参数的界面：`rolecard`（widget=rolecard，常用，bind=rolecard）、`instruction`（widget=textarea，常用，bind=prompt）、`output_schema`（常用）、`lifecycle`（常用），其余高级；参数本身见 `E.14.02`。
+- **C.03.05-R5** Agent 节点参数的界面：`rolecard`（widget=rolecard，常用，bind=role）、`instruction`（widget=textarea，常用，bind=prompt）、`output_schema`（常用）、`lifecycle`（常用），其余高级；参数本身见 `E.14.02`。
 - **C.03.05-R6** 所有界面提示只影响显示，不进入执行；内核忽略它们（`E.03`）。
 
 ## 6. 不变量
@@ -83,4 +83,4 @@ NodeDef 的 `dynamic_ports`（定义在 `C.03.01`）从 `from_param` 指定的�
 | 2026-11-23 | 实施卡补上测试文件 `tools/schemacheck/paramui_test.go`（漏写会让 `relay check` ① 白名单不通过） | 第 3 片领取时发现；`G.02.06-R24` |
 | 2026-11-23 | 提示词节点的动态端口来源改为 `template` 参数 | `P.09` K226 |
 | 2026-11-23 | 状态改为"冻结"：第 3 片（`m0-contract-2`）squash 合并进代码仓库 `main`，提交 `2fd3c25a165e36565f95fa9b16fc3d22a0569ec6`（`G.02.06-R21`、`R23`） | 整片验证通过；整片评审 14 条全部符合，两条"有疑问"由设计方裁决（`P.09` K226）、返工并复核；按 `G.08-R3` 由验证者合并 |
-| 2026-11-23 | 冻结后修改，状态改回"已审"：R2 的例外加 `rolecard_ref` ← `资源引用@1`；Agent 的 `rolecard` 参数 bind=rolecard | `P.09` K233（`G.02.06-R21`） |
+| 2026-11-23 | 冻结后修改，状态改回"已审"：R2 的例外加 `rolecard_ref` ← `资源引用@1`；Agent 的 `rolecard` 参数 bind=role | `P.09` K233（`G.02.06-R21`） |

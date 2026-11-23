@@ -16,7 +16,7 @@
 ## 2. 执行方式
 - 每条助手回复是一次**内部运行**，`hx_runs.kind = chat`，`session_id` 为当前会话（运行列表默认不显示这类运行）。这样模型调用、工具调用、费用、授权、审计都复用内核的标准机制（`P.09` K36）。
 - 运行的图是这个会话的**对话入口图**（`P.06`）：会话的 `entry_graph_id`，没有就用设置 `chat.entry_graph`（`C.10-R9`）。它是一张普通的图，用户可以在画布上打开、编辑，像别的 Agent 一样给对话 Agent 连模型、角色卡、提示词、工具，或接子图（`P.09` K233）。
-- 默认的对话入口图由内置模板 `templates/_internal/chat.json` 在首次启动时生成，写进 `chat.entry_graph`：子图端口（入口：用户消息、会话上下文、选中附带）→ 上下文装配（配方"对话编排者配方@1"）→ Agent（`tags = [编排者]`；`model` ← 资源节点 kind=模型，取设置 `models.orchestrator`；`rolecard` ← 资源节点 kind=角色卡"对话编排者@1"；`tools` ← 图操作工具集 + 对话工具集）→ 子图端口（出口：回复）。
+- 默认的对话入口图由内置模板 `templates/_internal/chat.json` 在首次启动时生成，写进 `chat.entry_graph`：子图端口（入口：用户消息、会话上下文、选中附带）→ 上下文装配（配方"对话编排者配方@1"）→ Agent（`tags = [编排者]`；`model` ← 资源节点 kind=模型，取设置 `models.orchestrator`；`role` ← 资源节点 kind=角色卡"对话编排者@1"；`tools` ← 图操作工具集 + 对话工具集）→ 子图端口（出口：回复）。
 - 每条回复冻结一份入口图快照再跑（INV-12）：回复过程中改入口图，从下一条回复起生效。
 - actor：`model`，`id` = 实际使用的模型（`Session.orchestrator_model` 覆盖时是它，否则是入口图里连的），`instance_id = chat:<会话 ID>`，`tags` 取入口图里那个 Agent 节点的 `tags`（默认 `[编排者]`）。
 

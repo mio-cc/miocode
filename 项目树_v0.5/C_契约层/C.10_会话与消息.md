@@ -132,8 +132,8 @@
 - `Session`、`Message`、`MessageBlock`、`Block…`、`Selection`、`MessageRef`、`Ref…` 写在 `$defs` 里；三个示例登记进 `manifest.yaml`。
 - 不许碰的文件：`gen/`、`engine/`、`internal/`、`web/`、`cmd/`、`tools/relay/`、`tools/build/`
 - 测试用例：
-  - `C10-T1 示例`：3 个示例通过：会话（挂 2 张图，带 `last_location`、`orchestrator_effort`、一个 `session` 挂载点）；助手消息（7 种卡片块各一个，§6 验收 1）；用户消息（带 `selection` 和 4 种引用）
-  - `C10-T3 反例`：卡片块 `kind` 为 `chart`；`proposal` 块缺 `counts`；`file` 引用同时有 `ref` 和 `path`；`file` 引用两个都没有；`refs` 21 个；`selection.node_ids` 51 个；`Session` 多出字段；`orchestrator_effort` 的值为 `extreme`；`Message.error` 多出字段；`last_location.scope` 写成名称路径
+  - `C10-T1 示例`：3 个示例通过：会话（挂 2 张图，带 `entry_graph_id`、`last_location`、`orchestrator_effort`、一个 `session` 挂载点）；助手消息（7 种卡片块各一个，§6 验收 1）；用户消息（带 `selection` 和 4 种引用）
+  - `C10-T3 反例`：卡片块 `kind` 为 `chart`；`proposal` 块缺 `counts`；`file` 引用同时有 `ref` 和 `path`；`file` 引用两个都没有；`refs` 21 个；`selection.node_ids` 51 个；`Session` 多出字段；`orchestrator_effort` 的值为 `extreme`；`Message.error` 多出字段；`last_location.scope` 写成名称路径、`entry_graph_id` 不是 ULID
 - 在其他叶子跑的测试用例（不算本叶子的完成条件）：
   - 删除会话后它挂的图仍能读到（§6 验收 2，`C10-T2`）：`B.06` 的会话接口（复查 `B.06` 时写进它的实施卡）
 - 允许使用的依赖：标准库、`github.com/santhosh-tekuri/jsonschema/v6`、`github.com/goccy/go-yaml`（`G.10` 已登记，`C.01` 加进 `go.mod`）

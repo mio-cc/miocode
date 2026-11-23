@@ -444,7 +444,7 @@ fields:
   - `C1303-T1 内置类型校验`：`schema/builtin/types/` 下每个文件都通过 `typedef.schema.json`；文件名等于 `name`；`major` 为 1、`minor` 为 0
   - `C1303-T2 名单`：目录里恰好是 §5 的 17 个文件；`system: true` 的恰好是 §5.1 的 7 个，`producer` 与 `C.04.01` §4 一致，`整数` 是 `scalar: integer` 且没有 `producer`（表在测试里）；写了 `category` 的恰好是 `资源引用`、`上下文包`、`工具端点`、`状态`，值与 `category_map.yaml` 推出的类别相同；业务类型没有 `system`、`producer`、`category`
   - `C1303-T3 字段写法`：每个 `fields[].type` 是 `string`、`integer`、`number`、`boolean`、`object`、`任意`、符合 `TypeRef` 的命名类型或 `列表[…]`；带 `fields` 的字段 `type` 只能是 `object` 或 `列表[object]`；写了 `enum` 的字段 `type` 是 `string`；同一层字段名不重复
-  - `C1303-T4 引用闭合`：`aggregate_ops.yaml` 的值里出现的具体类型（去掉 `列表[…]`，不含 `$T`）都在 `schema/builtin/types/` 里有定义；字段 `type` 里出现的命名类型也都有定义
+  - `C1303-T4 引用闭合`：`aggregate_ops.yaml` 的值里出现的具体类型（去掉 `列表[…]`，不含 `$T`）都在 `schema/builtin/types/` 里有定义；字段 `type` 里出现的命名类型也都有定义；`资源引用` 的 `kind` 枚举与资源节点（`schema/builtin/nodedefs/资源.yaml`）参数 `kind` 的枚举相同（`P.09` K233）
   - `C1303-T5 schema 反例`：测试里内联：同时写 `scalar` 和 `fields` 失败；两个都不写失败；字段名 `Plan` 失败；`name` 为 `方案@1` 失败；字段带未定义的属性 `readonly` 失败
 - 在其他叶子跑的测试用例（不算本叶子的完成条件）：
   - 每个内置类型生成 JSON Schema（§6 验收 1 后半、R3）：`E0301-T8`（`E.03.01`）

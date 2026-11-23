@@ -106,7 +106,7 @@ INV-01、INV-02、`C.03-R1`–`R3`。
 | 节点 | 分类 | 输入端口 | 输出端口 | 类型变量 | 容器 |
 |---|---|---|---|---|---|
 | 资源 | 资源 | —；`kind=提示词` 时模板里每个 `{{变量}}` 一个动态端口（`C.03.05`） | `ref`: 资源引用@1 | — | 否 |
-| Agent | 智能体 | `context`: 上下文包@1（必）· `model`: 资源引用@1（必）· `prompt`: 资源引用@1 · `rolecard`: 资源引用@1 · `tools`: 工具端点@1（多） | `result`: $T | T ← `param:output_schema` | 否 |
+| Agent | 智能体 | `context`: 上下文包@1（必）· `model`: 资源引用@1（必）· `prompt`: 资源引用@1 · `role`: 资源引用@1（角色卡）· `tools`: 工具端点@1（多） | `result`: $T | T ← `param:output_schema` | 否 |
 | 上下文装配 | 状态 | `in`: 任意（多）· `model`: 资源引用@1 | `context`: 上下文包@1 · `dropped`: 列表[任意] | — | 否 |
 | 工具 | 工具 | `request`: 任意 · 所选工具的每个入参一个动态端口（`C.03.02` §5） | `endpoint`: 工具端点@1 · `result`: $T | T ← `param:result_type`（缺省 任意） | 否 |
 | 扇出 | 拓扑 | `items`: 列表[$T] · `shared`: 任意（多） | `results`: 列表[$U] | T ← `input:items.elem`，U ← `body:exit` | **必须** |
@@ -134,7 +134,7 @@ INV-01、INV-02、`C.03-R1`–`R3`。
 - 资源节点的 `kind` 有五种：模型、提示词、角色卡、列表、常量（`P.09` K233）。`kind=角色卡` 时用 `rolecard_ref` 参数 `rolecard`（`ui.show_if: kind == '角色卡'`），输出的 `ref` 是 `名称@版本`。资源节点的 `value`：`type: object`（任意 JSON，按 `kind` 不同），`ui.show_if: kind != '提示词' && kind != '角色卡'`；提示词模板单独一个 `text` 参数 `template`，`ui.show_if: kind == '提示词'`，`dynamic_ports` 从它里面抽取 `{{变量}}`（`from_param: template`，`C.03.05-R4`）。这样写提示词用的是多行文本框，不是 JSON 编辑框（`P.09` K226）。
 - 参数表"说明"里写着"某种方式下才用"的参数（如扇出 `k` 只在 `collect` 为 `k_of_n` 时用），写 `ui.show_if`，条件照说明写；表里没有这一列，以说明为准（`P.09` K226）。
 - 参数表里默认值随别的东西变化的（工具的 `risk`"取工具声明"、Agent 的 `max_output_tokens`"模型默认"、子图端口的 `port_name`"in / out"）不写 `default`；人工的 `on_timeout` 可以是 `rejected`、`fail` 或某个选项，写成 `string`，缺省 `rejected`。
-- 表里写"内联"的参数为 `ui.group: 常用`，按表中顺序；"kernel 锁"的参数写 `lock: kernel` 和 `C.03.03` §5 的默认值；Agent 的 `context` 端口写 `lock: kernel`（INV-07）；Agent 的 `rolecard` 参数写 `ui.bind: rolecard`：`rolecard` 端口接了角色卡资源节点时用上游的，没接时用参数（同 `instruction` ← `prompt`，`P.09` K233）。
+- 表里写"内联"的参数为 `ui.group: 常用`，按表中顺序；"kernel 锁"的参数写 `lock: kernel` 和 `C.03.03` §5 的默认值；Agent 的 `context` 端口写 `lock: kernel`（INV-07）；Agent 的 `rolecard` 参数写 `ui.bind: role`：`role` 端口（标签"角色卡"）接了角色卡资源节点时用上游的，没接时用参数；端口不叫 `rolecard`，因为参数名和端口名不能重名（R3）（同 `instruction` ← `prompt`，`P.09` K233）。
 
 ## 7. 验收标准
 1. `schema/builtin/nodedefs/` 下 13 个 YAML 全部通过 `nodedef.schema.json` 校验，端口与 §6 表格一致（脚本比对）。
@@ -166,4 +166,4 @@ INV-01、INV-02、`C.03-R1`–`R3`。
 | 2026-11-23 | R3 允许输入、输出端口同名；§6 汇合只写动态、聚合补 `T`；新增 §6.1 定义文件的写法 | 第 3 片实施 `C.03.01` 时发现；`P.09` K224 |
 | 2026-11-23 | §6.1 资源节点的提示词模板改为单独的 `template` 参数（`dynamic_ports` 从它抽变量）；写明 `show_if` 的来源 | 第 3 片整片评审；`P.09` K226 |
 | 2026-11-23 | 状态改为"冻结"：第 3 片（`m0-contract-2`）squash 合并进代码仓库 `main`，提交 `2fd3c25a165e36565f95fa9b16fc3d22a0569ec6`（`G.02.06-R21`、`R23`） | 整片验证通过；整片评审 14 条全部符合，两条"有疑问"由设计方裁决（`P.09` K226）、返工并复核；按 `G.08-R3` 由验证者合并 |
-| 2026-11-23 | 冻结后修改，状态改回"已审"：Agent 加 `rolecard` 端口（参数 `rolecard` 绑定它）；资源节点加 `kind=角色卡` 和 `rolecard` 参数 | 用户决定角色卡可以通过连线给 Agent（含对话入口的 Agent）；`P.09` K233（`G.02.06-R21`） |
+| 2026-11-23 | 冻结后修改，状态改回"已审"：Agent 加 `role` 端口（标签"角色卡"，参数 `rolecard` 绑定它）；资源节点加 `kind=角色卡` 和 `rolecard` 参数 | 用户决定角色卡可以通过连线给 Agent（含对话入口的 Agent）；`P.09` K233（`G.02.06-R21`） |
