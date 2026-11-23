@@ -261,7 +261,7 @@ export function describeOp(op: Op, m: GraphModel | null, t: (k: string, v?: Reco
 ## 10. 验收标准
 1. 11 个叶子的验收全部通过。
 2. 1440、1180、1100、900、760 五个宽度 × 浅色 / 深色截图：没有重叠、没有截断看不到的按钮（`U.09.03` §2、`U.20`）。
-3. 200 节点的图上平移、拖动、30 个节点同时运行 10 秒：React Profiler 里面板的提交只来自 `tick` 驱动的结构树、监控页，频率 ≤ 2.5 次 / 秒（`U.17-R10`、`R11`、`W.11`）。
+3. 200 节点的图上平移、拖动、30 个节点同时运行 10 秒：React Profiler 里面板的提交只来自 `tick` 驱动的结构树、监控页，频率 ≤ 2.5 次 / 秒（`U.17-R10`、`R11`、`W.11`；按 `W.11` 的性能区域统计，即只有 `ls`、`rs` 区域有提交，`P.09` K167）。
 4. 只用键盘能完成：新建会话 → 发一条消息 → 打开右栏属性页改一个参数 → 打开监控页定位一个步骤 → 用命令面板运行（`U.16-R3`）。
 5. 打开减少动效：浮动回复线条、流动高亮、分段滑块、呼吸点全部变为静态替代，状态仍能分辨（`U.07.04` §3）。
 6. ESLint：在 `panels/` 里 import `@/lib/protocol/client`、`graphWriter`、`canvas/core/**` 报错；在 `notice/ReleaseEstopDialog.tsx` 以外出现 `releaseEstop` 报错；`dangerouslySetInnerHTML` 报错。
@@ -271,3 +271,4 @@ export function describeOp(op: Op, m: GraphModel | null, t: (k: string, v?: Reco
 |---|---|---|
 | 2026-11-23 | 首版：目录与分工、共用 hook、`W.08` 需求表、引擎事件与命令的去向、视觉规则与 `U.24` 落实表 | 第 8 棒；`P.09` K111–K120 |
 | 2026-11-23 | §4.3：`Overlay` 经 `UiEnv` 压栈并加 `onKey` 等；`Menu` 的 `at` 可为元素、`MenuItem` 加 `run` / `model` / `checked`；`Picker` 加 `PickerHandle`；`Dialog` 加 `dismissible` / `busy` / `error`；`Toast` 的 `action` 改为 `actions` 并加 `onHover`；指向 `W.08` §4.5 | 第 9 棒写 `W.08`；`P.09` K121、K126 |
+| 2026-11-23 | §10 验收 3 写明按性能区域统计 | 第 10 棒写 `W.11`；`P.09` K167 |

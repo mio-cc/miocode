@@ -97,7 +97,7 @@ export type EngineDeps = {
   catalog: CatalogStoreApi;        // NodeDef、数据类型（W.03 §4.5）
   keys: CanvasKeys | null;         // 只有主画布注册快捷键
   theme: ThemeHooks;
-  t: (key: string, vars?: Record<string, string | number>) => string;   // W.10；文案键前缀 canvas.
+  t: (key: string, vars?: Record<string, string | number>) => string;   // W.10 的 t.dyn；自己写的键用 canvas. 或 common.，OpsApi 给的 textKey 原样传入（K159）
   newId: () => Ulid;               // W.04.01 的 newUlid：新建节点、便签、连线的 ID
   icon: (name: string) => SVGSVGElement;   // U.08 图标表里的图标（Canvas.tsx 从 W.08 的图标模块取，每次返回新元素）
   now?: () => number;              // 测试注入
@@ -325,7 +325,7 @@ URL 变化 → 工作区 `setLocation` → view `enterScope(scope)` → 引擎�
 | W.06-R5 | 用户和模型写的文字（显示名、参数值、便签、提示）只用 `textContent` / `setAttribute` 写入；不对数据拼 `innerHTML` |
 | W.06-R6 | 判断指针点到什么：`pointerdown` 用 `event.target`；`click`、`dblclick`、`pointerup` 用 `document.elementFromPoint`（`W.01-R11`）；拖线吸附、框选用几何计算 |
 | W.06-R7 | 所有 JS 动画（视图过渡、转场、闪烁）在 `deps.theme.reducedMotion()` 为真时按 `U.07.04` 的替代处理 |
-| W.06-R8 | 界面文字只来自 `deps.t`，键名以 `canvas.` 开头（`W.10`）；用词以 `P.06` 为准 |
+| W.06-R8 | 界面文字只来自 `deps.t`（`W.10`）：引擎自己写的键以 `canvas.` 或 `common.` 开头；`OpsApi` 预检返回的 `textKey`（`ops.precheck.*`、`assign.*`）原样传给 `deps.t`；用词以 `P.06` 为准（`P.09` K159） |
 | W.06-R9 | 一个帧任务抛错不影响其他任务：捕获、`console.error`（同一任务名每分钟最多一次），下一帧对当前层做一次全量同步 |
 | W.06-R10 | 节点可以用键盘到达（`Tab`，`W.06.09`）；节点和连线都有可访问名称（`U.16` §3）：节点 `role="group"`、`aria-label` = "{类型} {名称}，{状态}，{N} 个输入、{M} 个输出"；连线逐条的键盘编辑走列表视图（`U.16` §4，K105） |
 
@@ -370,3 +370,4 @@ URL 变化 → 工作区 `setLocation` → view `enterScope(scope)` → 引擎�
 | 2026-11-23 | `CanvasKind` 去掉 `peek`（预览浮层是 canvas 简化图）；接口补 `CanvasKeys.overlay`、`PointerApi.last`、`DragApi.moveBy` 的 `groupId`、`Geom.forModel`、`NestApi.docSwitched`、`cmd.exec`、`tree.locate`；§6.2 `patch` 阶段加 W.06.14；§6.4 第 2 步补 `runBridge.resync`、`ghost.sync`；R2、R10 措辞 | 第 7 棒写 `W.06.09`–`W.06.15`；`P.09` K103–K105 |
 | 2026-11-23 | §4.2 `addNode` 的 `d` 加 `meta`；新增引擎命令 `addNote` | 第 8 棒写 `W.07.02`、`W.07.11`；`P.09` K111、K114 |
 | 2026-11-23 | §6.3 订阅表加 catalog `libSigs`（只有 `ref` 的子图引用的端口签名，替代 K104 的临时做法） | 第 9 棒写 `W.09.02`；`P.09` K145 |
+| 2026-11-23 | R8 与 §4.2 `EngineDeps.t` 注释：允许 `common.` 键，预检的 `textKey` 原样传入 | 第 10 棒写 `W.10`；`P.09` K159 |

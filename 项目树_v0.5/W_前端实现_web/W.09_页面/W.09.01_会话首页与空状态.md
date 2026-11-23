@@ -117,7 +117,7 @@ export function TemplateInputsPopover(p: TemplateInputsPopoverProps): JSX.Elemen
 | 同时点第二张卡片 | `busy` 期间其他卡片禁用，不排队 |
 
 ### 6.7 视觉
-- 卡片：宽 `min(640, 100cqw - 2×--hx-float-inset)`；模板卡片三张等宽，间距 `--hx-s-2`，每张：图标 16px `text-3`（`U.22-R12` 同规则，不加底板）、标题 13/600、说明 12/`text-2` 两行截断、底部一行 `fmtCost` 的预计花费（`cost_hint`，没有时不显示）；悬停只加深底色（`U.23-R5`）。
+- 卡片：宽 `min(640, 100cqw - 2×--hx-float-inset)`；模板卡片三张等宽，间距 `--hx-s-2`，每张：图标 16px `text-3`（`U.22-R12` 同规则，不加底板）、标题 13/600、说明 12/`text-2` 两行截断、底部一行预计花费 `cost_hint`（模板声明的字符串，原样显示，不经 `fmtCost`，`C.13.04`、`P.09` K164；没有时不显示）；悬停只加深底色（`U.23-R5`）。
 - 没有实心主色按钮（`U.23-R2`：一屏一个实心按钮留给运行和发送）。
 - 不放插画；图标 ≤ 32px（`U.14.02-R2`）。
 - 文案温和具体，不用"暂无数据"（`U.14.02-R1`）。
@@ -169,3 +169,4 @@ export function TemplateInputsPopover(p: TemplateInputsPopoverProps): JSX.Elemen
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | 首版 | 第 9 棒（B）；`P.09` K148 |
+| 2026-11-23 | 模板卡片的预计花费 `cost_hint` 原样显示 | 第 10 棒；`P.09` K164 |

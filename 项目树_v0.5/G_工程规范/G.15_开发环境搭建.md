@@ -33,7 +33,7 @@ go run ./cmd/harnessd --dev        # 终端 1：后端（开发模式，代理�
 pnpm -C web dev                    # 终端 2：前端
 # 浏览器打开终端 1 打印的地址
 ```
-等价命令：`make dev`（macOS / Linux）或 `task dev`（Windows）。
+等价命令：`make dev`（macOS / Linux）或 `task dev`（Windows），二者都执行 `go run ./tools/dev`：在一个终端里同时启动后端和前端，按 Ctrl+C 两个一起退出（`O.01` §4.3）。
 
 ## 4. 开发模式的约定
 - `--dev`：不嵌入前端产物，非 `/api` 请求代理到 Vite（`http://127.0.0.1:5173`）；日志同时输出到终端；允许 `HARNESS_DEV_SECRET_*` 环境变量（`G.11-R3`）。
@@ -50,3 +50,8 @@ pnpm -C web dev                    # 终端 2：前端
 
 ## 6. 检查方式
 CI 的三平台任务就是按本文 §3 执行的；本文改动时同步改 CI。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | §3 写明 `make dev` / `task dev` 执行 `tools/dev` | 第 10 棒写 `O.01`；`P.09` K188 |

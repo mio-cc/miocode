@@ -18,7 +18,7 @@
 harness/
 ├─ go.mod  go.sum  Makefile  Taskfile.yaml  .golangci.yml  LICENSE  NOTICE  CHANGELOG.md  README.md
 ├─ cmd/
-│  ├─ harnessd/            # 服务入口：main.go、embed.go（go:embed web/dist）
+│  ├─ harnessd/            # 服务入口：main.go、embed.go（go:embed dist；构建时把 web/dist 复制到这里，B.02）
 │  └─ harnessctl/          # 命令行工具
 ├─ schema/                 # ★ 契约层唯一事实来源（C）
 │  ├─ *.schema.json
@@ -43,24 +43,27 @@ harness/
 │     ├─ ops/              # 前端 Op 层（W.05）
 │     ├─ lib/protocol/     # 协议层（W.04）；generated/ 禁止手改
 │     ├─ lib/i18n/         # 文案（W.10）
+│     ├─ lib/perf/         # 性能测量（W.11），只在性能构建里起作用
 │     └─ styles/           # tokens.css（复制自设计令牌源）、base.css
 ├─ design/                 # 设计令牌源 tokens.css、原始字体、图标 SVG 源（U）；web/ 里的副本由生成器复制
 ├─ templates/              # 内置模板包（T）
 ├─ evals/                  # 评测集（Q.07）
 ├─ testdata/               # 跨模块共用的测试数据（cassette、夹具）
 ├─ docs/                   # 只放面向开发者的简短说明；设计文档在 sj/项目树_v0.5，不复制进仓库
-└─ tools/                  # 开发工具：gen/ depcheck/ release/ lint 规则
+└─ tools/                  # 开发工具：gen/ build/ dev/ release/ ci/ deps/ depcheck/ lint/（O.01–O.03）
+
+不提交、由构建产生的输出目录（`.gitignore`）：`bin/`（本机构建）、`dist/`（发布归档）、`.harness-dev/`（开发数据目录），以及 `web/` 下的 `dist/`、`dist-perf/`、`.perf/`、`.test/`（`O.01` §6，`P.09` K188）。
 ```
 
 ## 3. 规则
 | 编号 | 规则 |
 |---|---|
-| G.03-R1 | 一级目录只能是上面列出的这些。新增一级目录必须改本文 |
+| G.03-R1 | 一级目录只能是上面列出的这些（加上面列出的不提交的输出目录）。新增一级目录必须改本文 |
 | G.03-R2 | `engine/` 下的包只能 import `gen/`、`engine/` 其他包和标准库 / 已登记依赖，不能 import `internal/`、`cmd/`（INV-19） |
 | G.03-R3 | `internal/platform/` 不能 import `engine/` 以外的产品层包；`internal/api/` 只能通过 `internal/app/` 暴露的接口使用产品层 |
 | G.03-R4 | 包之间的依赖只能向下（`引01` §2 依赖图）；环形依赖由 Go 编译器拦截，跨层的反向依赖由 `tools/depcheck` 拦截 |
 | G.03-R5 | 测试数据：只被一个包用的放在该包的 `testdata/`；多个包共用的放在仓库根 `testdata/` |
-| G.03-R6 | `gen/`、`web/src/lib/protocol/generated/`、`web/dist/` 是生成物：`gen/` 和 `generated/` 要提交进仓库（便于审查），`web/dist/` 不提交 |
+| G.03-R6 | `gen/`、`web/src/lib/protocol/generated/`、`web/dist/` 是生成物：`gen/` 和 `generated/` 要提交进仓库（便于审查），其他生成物是否提交以 `G.16` 清单的"是否提交"一列为准；`web/dist/` 不提交；性能构建的 `web/dist-perf/`、测量结果 `web/.perf/`、测试产物 `web/.test/` 也不提交（`W.11`、`W.12`） |
 | G.03-R7 | 不建 `utils/`、`common/`、`helpers/`、`misc/` 这类没有含义的目录。工具函数放在使用它的包里；被三个以上包用到时，新建一个按用途命名的包（如 `engine/internal/canon`） |
 | G.03-R8 | Go 的 `internal/` 子目录可以用来隐藏包内实现，例如 `engine/op/internal/rebase/` |
 | G.03-R9 | 前端 `src/` 下新建目录必须属于 W 树里的某个节点 |
@@ -68,3 +71,10 @@ harness/
 ## 4. 检查方式
 - `go run ./tools/depcheck`：按 R2、R3、R4 检查 import，规则写在 `tools/depcheck/rules.yaml`。
 - CI 脚本：一级目录白名单；`git ls-files gen/ generated/` 里的文件和生成器输出一致。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | §2 目录树补 `lib/perf/`；R6 补 `web/dist-perf/`、`web/.perf/` | 第 10 棒写 `W.11` |
+| 2026-11-23 | §2 `embed.go` 注释与 `B.02` 一致；R6 改为以 `G.16` 清单为准并补 `web/.test/` | W 全枝复查；`P.09` K185 |
+| 2026-11-23 | §2 `tools/` 子目录补全；列出不提交的输出目录；R1 相应修改 | 第 10 棒写 `O.01`；`P.09` K188 |

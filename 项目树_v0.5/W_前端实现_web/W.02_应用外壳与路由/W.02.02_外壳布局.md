@@ -44,6 +44,8 @@ export function AppShell({ mode, page }: AppShellProps): JSX.Element;
 //                            提议栏 W.07.09；浮动回复 W.07.08；对话框 W.07.07；FloatLayer 的子元素整体包在
 //                            W.07.08 的 <FloatReplyProvider> 里，对话框的 Esc 要先收拢浮动回复，P.09 K111）
 // <BannerSlot/>     本文      顶部条下方：急停横幅、离线横幅、子图库内容提示、窄屏提示（W.07.10）
+// 每个区域外面包一层 W.11 的 <PerfRegion id>：top、ls、canvas（只包 <Canvas/>）、float、rs、banner、overlay（canvasOverlay）、
+//                            cover、page；生产构建里 PerfRegion 原样返回 children（W.11 §4.1，P.09 K167）
 
 // web/src/shell/CanvasArea.tsx 另导出（P.09 K111）
 export function useCanvasAreaRect(): () => DOMRect | null;   // 画布区域的页面矩形：引擎事件的 at（相对画布根元素）换成页面坐标时用（W.07.11）
@@ -176,7 +178,7 @@ export function bpOf(width: number): ShellLayout['bp'];
   - `W0202-T5 小地图避让`：宽 1180、画布窄到与对话框相交时小地图隐藏
   - `W0202-T6 持久化`：§10 验收 6
   - `W0202-T7 视觉回归`：§10 验收 1
-- 允许使用的依赖：`react`、`zustand`；测试用 `vitest`、`jsdom`、`@playwright/test`。
+- 允许使用的依赖：`react`、`zustand`、`@/lib/perf` 的 `PerfRegion`（`W.11`）；测试用 `vitest`、`jsdom`、`@playwright/test`。
 - 禁止事项：`G.02.05` 全部；另：不对宽度、高度、`left`、`top` 做动画；不写宽度媒体查询；不在外壳里改画布视图。
 - 完成标志：`G.14` 全部条件（含浅色、深色截图）；§10 七条验收通过。
 
@@ -185,3 +187,4 @@ export function bpOf(width: number): ShellLayout['bp'];
 |---|---|---|
 | 2026-11-23 | §4.1：`FloatLayer` 的子元素包在 `FloatReplyProvider` 里；新增 `useCanvasAreaRect`；横幅列出子图库内容提示 | 第 8 棒写 `W.07`；`P.09` K111 |
 | 2026-11-23 | `AppShell` 新增 `canvasOverlay`、`cover` 两个插槽（§4.1、§6.5a） | 第 9 棒写 `W.09`；`P.09` K146、K148 |
+| 2026-11-23 | §4.1：各区域包 `PerfRegion` | 第 10 棒写 `W.11`；`P.09` K167 |

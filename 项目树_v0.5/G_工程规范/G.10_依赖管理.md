@@ -25,6 +25,7 @@
 | G.10-R7 | 升级节奏：安全更新随时；次版本每个里程碑结束时统一升级一次；主版本升级需要上报 |
 
 ## 3. 已登记依赖清单
+> 本节清单在代码仓库里有一份副本 `tools/deps/allow.txt`，CI 用它检查（`O.02`）；改本节时同一批改动里同步改副本（`P.09` K189）。
 ### 3.1 Go（运行时）
 | 用途 | 依赖 | 许可证 |
 |---|---|---|
@@ -65,7 +66,7 @@
 | 框架 | `react`、`react-dom`（19） |
 | 路由 | `react-router` |
 | 状态 | `zustand` |
-| 对话界面 | `@assistant-ui/react`（只用 headless 组件） |
+| 对话界面 | `@assistant-ui/react`（只用 headless 组件）；v1 不使用：对话页、输入框由 `W.07.04`、`W.07.07` 自己实现，只用 `react-markdown` + `rehype-sanitize`，以后要用时不需重新登记（`P.09` K184） |
 | Markdown 渲染 | `react-markdown` + `rehype-sanitize`（`W.07.04`） |
 | 浮层行为 | `@floating-ui/dom`（定位） |
 
@@ -74,3 +75,9 @@
 
 ## 4. 检查方式
 CI 脚本比对 `go.mod`（直接依赖）和 `web/package.json` 与本清单（清单的机器可读版：`tools/deps/allowlist.yaml`）。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | §3.3 注明 `@assistant-ui/react` v1 不使用 | W 全枝复查；`P.09` K184 |
+| 2026-11-23 | §3 写明代码仓库里的副本 `tools/deps/allow.txt` | 第 10 棒写 `O.02`；`P.09` K189 |

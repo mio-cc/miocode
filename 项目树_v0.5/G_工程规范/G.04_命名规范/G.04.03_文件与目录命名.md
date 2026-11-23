@@ -18,6 +18,9 @@
 | TS 组件文件 | PascalCase.tsx | `NestCard.tsx` |
 | TS 非组件文件 | camelCase.ts | `runBridge.ts`、`bezier.ts` |
 | 样式文件 | 与组件同名 `.css`，放在组件旁边 | `NestCard.css` |
+| 前端测试文件 | 单元测试与被测文件同名加 `.test.ts(x)`；Playwright 用例（端到端、视觉、性能场景）用 kebab-case 加 `.spec.ts`；微基准 kebab-case 加 `.bench.ts` | `runBridge.test.ts`、`canvas-run.spec.ts`、`canvas-pool.bench.ts` |
+| 前端工具脚本（Node 直接运行） | kebab-case `.mjs` | `run-tz.mjs` |
+| 目录出口文件 | `index.ts`；含 JSX 时 `index.tsx`（不受 PascalCase 限制） | `components/ui/index.ts`、`routes/index.tsx` |
 | 目录 | 小写；Go 目录不加分隔符，前端目录用 kebab-case | `ctxasm/`、`components/ui/`、`node-library/` |
 | schema 文件 | 见 `C.01` §2 | `graph.schema.json` |
 | 内置数据 | 原子节点 NodeDef 用中文类型名做文件名；其余用英文小写下划线 | `扇出.yaml`、`authz_matrix.yaml` |
@@ -27,3 +30,8 @@
 
 - **G.04.03-R1** 不用空格和中文作为目录名（内置 NodeDef 文件名例外，因为它就是类型名）。
 - **G.04.03-R2** 生成文件必须带上表的文件头；CI 检查带这个头的文件和生成器输出一致。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | §1 补前端测试文件、工具脚本、目录出口文件的命名（W 枝 53 个 `.spec.ts` 已按 kebab-case 写） | W 全枝复查；`P.09` K181 |

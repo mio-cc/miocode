@@ -178,7 +178,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, { error: 
 - 不用 JS 模拟滚动条、不监听滚动事件；`ref` 原样转给根元素。
 
 ### 6.8 `ErrorBoundary`（`W.07` §8、`P.09` K129）
-- `static getDerivedStateFromError(error)` → `{error}`；`componentDidCatch(error, info)` → `console.error('[ErrorBoundary]', this.props.name, error, info.componentStack)`（`G.12` 前端日志只写控制台）。
+- `static getDerivedStateFromError(error)` → `{error}`；`componentDidCatch(error, info)` → `console.error('[ErrorBoundary]', this.props.name, error, info.componentStack)`（`G.12` §2.1，`G.12-R10`）。
 - 有错误时渲染 `fallback(retry)`，`retry = () => this.setState({error: null})`；`componentDidUpdate` 里 `resetKey` 与上次不同（`Object.is`）且有错误 → 自动重试。
 - 只接住渲染、生命周期里的错误；事件处理函数和 Promise 里的错误不经过它（React 的行为），由调用方按 `W.07` §8 处理。
 - 这是全前端唯一的 class 组件；其余组件一律函数组件（`G.06-R2`，`W.08-R13`）。
@@ -237,3 +237,4 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, { error: 
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | 首版 | 第 9 棒；`P.09` K123、K124、K126、K128、K129 |
+| 2026-11-23 | `ErrorBoundary` 的日志规则改为引用 `G.12` §2.1 | W 全枝复查；`P.09` K180 |

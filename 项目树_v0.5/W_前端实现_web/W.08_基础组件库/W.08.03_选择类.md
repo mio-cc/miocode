@@ -33,7 +33,7 @@
 // web/src/components/ui/select/Select.tsx
 export type SelectOption<V extends string = string> = {
   value: V; label: string;
-  desc?: string;                      // 右侧次要信息（mono、text-3），如"128k"
+  desc?: string;                      // 右侧次要信息（mono、text-3），如"12.8 万"（调用方用 W.10 的 fmtTokens 格式化）
   icon?: IconName;
   disabled?: boolean; disabledReason?: string;
   group?: string;                     // 相同 group 的连续选项归一组，组名作标题
@@ -237,3 +237,4 @@ export function matchSpan(label: string, q: string): [number, number] | null;   
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | 首版 | 第 9 棒；`P.09` K123、K125–K127、K130 |
+| 2026-11-23 | `SelectOption.desc` 的示例改为"12.8 万" | 第 10 棒；`P.09` K163 |

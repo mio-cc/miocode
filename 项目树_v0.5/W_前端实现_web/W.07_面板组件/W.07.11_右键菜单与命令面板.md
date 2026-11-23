@@ -101,7 +101,7 @@ export function rank(items: readonly PaletteItem[], text: string): PaletteItem[]
 - 结果按组显示，每组最多 5 条，组底部"显示更多"（展开到 20 条）：
   | 组 | 来源 | 选中后 |
   |---|---|---|
-  | 命令 | `COMMANDS`：运行、急停、新建会话、切换主题（每个配色一条 + 浅色 / 深色 / 跟随系统）、打开中心窗口的四个分区、左侧栏、右侧栏属性 / 对话 / 监控、专注模式、适应画布、整理布局、撤销、重做、列表视图、快捷键速查、打开运行历史（`ui.openHistory({sessionId: 当前会话})`，`W.09.05`，K146）；右侧显示快捷键 | 执行（画布动作经 `cmd.exec`，其余调对应 action）；"急停"→ `session.triggerEstop()`；命令里没有"解除急停"（`W-R6`） |
+  | 命令 | `COMMANDS`：运行、急停、新建会话、切换主题（每个配色一条 + 浅色 / 深色 / 跟随系统）、打开中心窗口的四个分区、左侧栏、右侧栏属性 / 对话 / 监控、专注模式、适应画布、整理布局、撤销、重做、打包为子图 / 解散子图（有选中时可用，经 `cmd.exec('group' / 'ungroup')`）、模型档位 0–4（当前会话，每档一条，`model.setSessionLevel`，与顶部条档位胶囊同一动作，`W.07.01`）、列表视图、快捷键速查、打开运行历史（`ui.openHistory({sessionId: 当前会话})`，`W.09.05`，K146）；右侧显示快捷键 | 执行（画布动作经 `cmd.exec`，其余调对应 action）；"急停"→ `session.triggerEstop()`；命令里没有"解除急停"（`W-R6`） |
   | 节点 | 当前图所有层的节点（`model.nodes`），第二行是所在层路径（`crumbs`） | `useLocate({scope, nodes: [id], look: 'look'})`：进入那一层并高亮（`U.10.05` §2"搜索结果"） |
   | 节点类型 | `catalog.presets` 启用的条目 | `cmd.addNode(…, {at: 'center'})`（`U.13.05` §2"添加到画布中心"） |
   | 会话 | 会话列表 | `useNav().switchSession(id)` |
@@ -110,6 +110,7 @@ export function rank(items: readonly PaletteItem[], text: string): PaletteItem[]
 - 排序（`rank`）：前缀匹配 > 词首匹配 > 包含；同分时本次打开期间用过的命令在前。
 - 键盘：`↑` / `↓` 在所有组的结果里连续移动、`Enter` 执行、`Esc` 关闭；执行后关闭。模态期间其他快捷键不生效（`W.02.04` §6.1 ①），急停 `Mod+.` 例外。
 - 空结果："没有找到「{q}」"。
+- demo v0.5.11 命令面板里的"全屏"（浏览器自己有 F11；`F` 在产品里是专注模式）、"调试"组（压力测试、重新载入示例图，`P.09` K170）不做（`P.09` K183）。
 
 ### 6.4 快捷键速查（`KeysHelp`，`help.keys` = `?`）
 - `useShortcut('help.keys')` 打开；模态，宽 560；内容 `keys.list()` 按 `group` 分四组（全局、画布、嵌套导航、对话框，与 `U.13.04` 同序），每行：说明 + `Kbd`（`keys.label`，macOS 显示 ⌘）。顶部一个筛选框。只读；"在设置里查看"→ `ui.openCenter('settings', 'keys')`。
@@ -173,3 +174,4 @@ export function rank(items: readonly PaletteItem[], text: string): PaletteItem[]
 |---|---|---|
 | 2026-11-23 | 首版 | 第 8 棒；`P.09` K104、K111、K114 |
 | 2026-11-23 | `SETTING_ITEMS` 注明与 `W.09.02` §5.1 一致；命令加"打开运行历史" | 第 9 棒写 `W.09.02`、`W.09.05`；`P.09` K141、K146 |
+| 2026-11-23 | 命令组补"打包为子图 / 解散子图""模型档位"，写明 demo 的"全屏""调试"不做 | W 全枝复查：对照 demo v0.5.11 `26_keys.js`；`P.09` K183 |

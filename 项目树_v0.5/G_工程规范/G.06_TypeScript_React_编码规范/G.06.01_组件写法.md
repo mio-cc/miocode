@@ -33,10 +33,15 @@ export function NestCard({ parentLabel, onUp, collapsed = false }: NestCardProps
   return (
     <section className={`hx-nest${collapsed ? ' is-min' : ''}`}>
       <header className="hx-nest__h">
-        <span>{t('nest.parent')}</span><b>{parentLabel}</b>
-        <IconButton icon="arrowUp" label={t('nest.up')} shortcut="Esc" onClick={onUp} />
+        <span>{t('dock.nest.parent')}</span><b>{parentLabel}</b>
+        <IconButton icon="arrowUp" label={t('dock.nest.up')} shortcut="Esc" onClick={onUp} />
       </header>
     </section>
   );
 }
 ```
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | §2 示例的文案键改为 `dock.nest.parent`、`dock.nest.up`（区域前缀以 `W.10` §4.3 为准） | 第 10 棒；`P.09` K161 |

@@ -121,7 +121,7 @@ CurrentRun.pendingPatches: readonly PendingPatch[];               // RunView.pen
 - `node.action{details, nodeId}`（画布节点上的"查看详情"，`U.19.05` 第 2 步）：切到"运行"小标签，展开当前运行，筛选"全部"，展开这个节点最新一次执行的详情并滚到可见。
 
 ### 6.5 刷新节奏（`U.09.07-R3`、`U.17-R11`）
-- 当前运行在进行时：订阅 `run.tick`（≤ 每 400ms 一次），但步骤列表和四格数字的快照**最多每 700ms 重算一次**（`setTimeout` 节流，到点用最新的 `live`）；瀑布同步。
+- 当前运行在进行时：订阅 run store 的 `tick` 字段（不是事件，≤ 每 400ms 加一，`W.03.04` §6.4），但步骤列表和四格数字的快照**最多每 700ms 重算一次**（`setTimeout` 节流，到点用最新的 `live`）；瀑布同步。
 - 搜索框有焦点、页面不可见（`rsTab ≠ 'mon'` 或文档隐藏）时暂停重算；恢复时立即算一次。
 - 展开一次运行时 `run.timeline(id)`；运行在进行时不再重拉时间线，靠 `live.all()` 合并（新出现的执行从投影里取 `loc`、`nodeId`）。
 
@@ -155,7 +155,7 @@ CurrentRun.pendingPatches: readonly PendingPatch[];               // RunView.pen
 | `focus` / `timeline` 失败 | 详情位置"没能加载这次运行 · 重试"（`W.03.04` §6.2 第 5 步） |
 | 控制类请求 409 `run_state` | 提示"运行状态已经变了"；状态以 store 里对齐后的为准 |
 | 423（急停中运行 / 分叉） | 不提示（横幅已说明） |
-| `hotpatch` 409 | 提示"这处修改已经过时"，从列表里去掉 |
+| `hotpatch` 确认 / 丢弃返回 409 `run_state` | 提示"这处修改已经过时"，从列表里去掉 |
 | 历史加载失败 | 历史位置"没能加载操作历史 · 重试" |
 | 撤销 / 回到这里失败 | §6.7 |
 
@@ -203,3 +203,4 @@ CurrentRun.pendingPatches: readonly PendingPatch[];               // RunView.pen
 |---|---|---|
 | 2026-11-23 | 首版 | 第 8 棒；`P.09` K114、K117 |
 | 2026-11-23 | 运行详情的操作加"在运行历史中打开" | 第 9 棒写 `W.09.05`；`P.09` K146 |
+| 2026-11-23 | §6 `tick` 的写法、hotpatch 409 写明错误码 | W 全枝复查；`P.09` K185 |

@@ -25,6 +25,7 @@
 | `generated/tables.ts` 的 `AUTHZ_MATRIX`（档位 × 动作默认判定表，设置 › 授权与安全显示用；后端判定读同一份，`C.09` §7） | `schema/builtin/authz_matrix.yaml` | `go run ./tools/gen` | 是 |
 | `gen/tables.go` 的 `Layout`、`generated/tables.ts` 的 `LAYOUT`（布局常数，`U.05-R3`） | `schema/builtin/layout.yaml`（格式见 `W.06.10` §5.1）；`go run ./tools/gen tokens` 同时检查 `design/tokens.css` 的 `--hx-node-*`、`--hx-grid`、`--hx-port` 与它相等 | `go run ./tools/gen` | 是 |
 | `web/src/styles/icons.ts`（图标表 `ICONS`、`IconName`，`U.08-R2`） | `design/icons/*.svg`、`design/icons/node/*.svg`（文件名用 `schema/builtin/aliases.yaml` 的英文别名，生成时换回 `U.08` 表里的名字）；检查 `U.08-R1`、`R4`，不通过则生成失败 | `go run ./tools/gen icons` | 是 |
+| `web/src/lib/i18n/generated/messages.ts`（`ERRORS`：错误码 → 文案；`ASSIGN`：兼容规则号 → 提示，`W.10` §4.5） | `schema/builtin/messages/errors.zh.yaml`、`assign.zh.yaml`；检查每个 `C.11` 错误码都有文案、`assign.zh.yaml` 恰好覆盖 C1、C2、C4、C6、C8、C10 | `go run ./tools/gen` | 是 |
 | `web/public/fonts/*` | `design/fonts/` 原始字体 | `go run ./tools/gen fonts`（子集化） | 是 |
 | `engine/store/sqlite/queries.go` | `engine/store/sqlite/queries.sql` | `sqlc generate` | 是 |
 | `web/dist/` | 前端源码 | `pnpm -C web build` | **否** |
@@ -47,3 +48,4 @@
 | 2026-11-23 | 生成物清单补布局常数（`layout.yaml` → `Layout` / `LAYOUT`）及令牌一致性检查 | `P.09` K102（第 7 棒） |
 | 2026-11-23 | 生成物清单补图标表 `web/src/styles/icons.ts` | 第 9 棒写 `W.08`；`P.09` K122 |
 | 2026-11-23 | 生成物清单补 `AUTHZ_MATRIX` | 第 9 棒写 `W.09.02`；`P.09` K153 |
+| 2026-11-23 | 生成物清单补前端文案生成物 `web/src/lib/i18n/generated/messages.ts` | 第 10 棒写 `W.10`；`P.09` K158 |

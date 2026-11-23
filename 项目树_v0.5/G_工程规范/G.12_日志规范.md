@@ -25,6 +25,15 @@
 | G.12-R7 | 所有日志经过脱敏 handler：按键名（`key`、`secret`、`token`、`password`、`authorization`、`cookie`）和值的模式（`sk-`、`AIza`、`Bearer `、长度 ≥ 32 的随机串）替换为 `[REDACTED]` |
 | G.12-R8 | 高频路径（每个节点每次调度、每个 SSE 帧）不打 info 日志；需要观察时用指标（`E.09.04`） |
 
+### 2.1 前端（浏览器里）
+`web/` 没有日志文件，也不上报日志（INV-21）；能看到的只有浏览器控制台。`G.12-R1`–`R4` 只适用于后端，前端按下面几条（`P.09` K180）：
+| 编号 | 规则 |
+|---|---|
+| G.12-R9 | 前端只用 `console.debug`、`console.warn`、`console.error`，不用 `console.log`、`console.info`。`debug`：不认识的枚举值、事件种类（`C.01-R18`）等开发时想看到的情况；`warn`：能自动降级的异常（令牌解析失败、图标缺失、动画不可用）；`error`：程序缺陷（帧任务抛错、错误边界接住的异常、违反契约的数据） |
+| G.12-R10 | 第一个参数是区域标记 `'[canvas]'`、`'[ErrorBoundary]'`、`'[sse]'` 这样的方括号短名，其后是对象；同一种问题限频：只记一次，或同一来源每 60 秒最多一次 |
+| G.12-R11 | `G.12-R6` 同样适用于前端：不打印密钥、token、cookie、消息正文、提示词、参数值、工具输入输出；需要定位时只打印 ID、长度、类型名 |
+| G.12-R12 | 开发模式能直接抛错的契约违例（例如 `IconButton` 缺 `label`）在生产构建里改为 `console.error` 一次并降级，不让界面崩溃；测试里出现未声明的 `warn` / `error` 即失败（`W.12` §6.2） |
+
 ## 3. 例子
 ```go
 log := base.With("component", "sched", "run_id", runID)
@@ -35,3 +44,8 @@ log.Warn("llm.retry", "provider", p, "attempt", 2, "backoff_ms", 2000, "err", er
 ## 4. 检查方式
 - 脱敏测试：向 logger 写入各种密钥形态，输出里不出现原文（`Q.04`、INV-22）。
 - `forbidigo`：禁止 `fmt.Print`、`log.Print`（`G.05.05`）。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | §2.1 补前端控制台输出的规则 R9–R12 | W 全枝复查：`W.08.05` 引用了不存在的"`G.12` 前端日志"；`P.09` K180 |

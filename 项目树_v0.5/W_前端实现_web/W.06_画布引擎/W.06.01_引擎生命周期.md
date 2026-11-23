@@ -108,6 +108,7 @@ export function createScene(root: HTMLDivElement, kind: CanvasKind, t: EngineDep
 ### 6.5 帧调度
 - 任何模块要写 DOM 时 `frame.request(phase, task)`；调度器在第一次 `request` 时申请一次 `rAF`，帧内按 `PHASES` 顺序清空各阶段集合；某阶段执行中又 `request` 了更早的阶段 → 放到下一帧；同阶段或更晚的阶段 → 本帧内执行。
 - `flushNow()`：测试和 `pointerup` 收尾用，同步执行当前所有待办（不再申请 `rAF`）。
+- 性能构建（`__HX_PERF__`，`W.11` §4.2）里，每执行一个非空阶段，前后各调一次 `performance.mark('hx:frame:<phase>:s')` / `'…:e'`，一帧结束时 `performance.mark('hx:frame:end')`；用 `if (__HX_PERF__)` 包住，生产构建里整段去掉（`W.11` §6.2，`P.09` K168）。这是全局编译期常量和浏览器内置 API，不是 import，不违反 `W.01-R6`。
 - 页面不可见（`document.hidden`）时照常接受 `request`，但只在可见后执行一次合并后的帧（浏览器本来就暂停 `rAF`；本文保证可见后第一帧补齐）。
 
 ### 6.6 graph `change` 转成 `SceneChange`
@@ -177,3 +178,4 @@ export function createScene(root: HTMLDivElement, kind: CanvasKind, t: EngineDep
 |---|---|---|
 | 2026-11-23 | `bind` 第 ⑤ 步补 `runBridge.resync`、`ghost.sync`，新增第 ⑦ 步 `nest.docSwitched`；`adaptKeys` 补 `overlay`；预览浮层不再是第二个引擎，§4.1、§10 验收 3、`W0601-T12` 改用回放画布 / 子图库预览 | 第 7 棒写 `W.06.09`–`W.06.15`；`P.09` K103、K104 |
 | 2026-11-23 | §6.8 连接、角色卡下拉的数据来源定为 `hubStore`；"新建连接…"创建后回填 | 第 9 棒写 `W.09.02`、`W.09.04`；`P.09` K143、K144 |
+| 2026-11-23 | §6.5 加性能构建里的帧阶段标记 | 第 10 棒写 `W.11`；`P.09` K168 |

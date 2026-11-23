@@ -34,6 +34,7 @@
 
 // web/src/App.tsx
 export function App(): JSX.Element;               // <UiEnvProvider value={shellUiEnv}> 包住 <AppBootstrap> 包住 <RouterProvider>
+//   中心窗口 CenterHost 外面包 W.11 的 <PerfRegion id="center">；开发模式与性能构建里，地址带 ?perf=1 时在 #hx-layers 末尾渲染 <PerfHud/>（W.11 §6.9，P.09 K167、K170）
 
 // web/src/shell/uiEnv.ts —— 给基础组件库的界面环境（W.08 §4.3，P.09 K121）
 export const shellUiEnv: UiEnv;                   // pushOverlay → keys.pushOverlay；reducedMotion → themeController.get().reducedMotion；portalRoot → body 末尾的 <div id="hx-layers">（没有就建）
@@ -105,3 +106,4 @@ export function bootstrap(client: RestClient): Promise<BootState>;
 | 2026-11-23 | §6 第 2 步写明协议层组装；§6.1 的 401 行补上启动后的触发方式 | `P.09` K91（写 `W.04.05` 时对齐） |
 | 2026-11-23 | §4.1 新增 `shell/uiEnv.ts` 的 `shellUiEnv`，`App.tsx` 外层放 `UiEnvProvider` | 第 9 棒写 `W.08`；`P.09` K121 |
 | 2026-11-23 | §6 写明 `App.tsx` 懒加载中心窗口的方式 | 第 9 棒写 `W.09.02`；`P.09` K141 |
+| 2026-11-23 | §4.1 `App.tsx`：`center` 性能区域与开发用性能浮层 | 第 10 棒写 `W.11`；`P.09` K167、K170 |

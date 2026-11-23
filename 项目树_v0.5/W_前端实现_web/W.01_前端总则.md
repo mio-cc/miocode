@@ -24,7 +24,7 @@
 | W.01-R1 | Vite + React 19 + TypeScript（`G.06-R1` 的 strict 选项）+ zustand + react-router；包管理用 pnpm，锁文件提交（`G.10-R6`） |
 | W.01-R2 | 纯客户端：没有 SSR、没有 BFF、没有 `'use client'`；构建产物是 `web/dist/` 静态文件（ADR-003） |
 | W.01-R3 | 开发时 `harnessd --dev` 把 `/api` 和 SSE 之外的请求代理到 Vite dev server；前端代码里不出现后端地址常量，一律用相对路径 `/api/v1/…` |
-| W.01-R4 | 样式是普通 CSS + BEM 类名，和组件放在一起（`G.06.03-R3`）；全局只有 `styles/tokens.css`（生成器从 `design/tokens.css` 复制，`G.03`）和 `styles/base.css` |
+| W.01-R4 | 样式是普通 CSS + BEM 类名，和组件放在一起（`G.06.03-R3`）；全局样式只有生成的 `styles/tokens.css`、`styles/themes.css`（`G.16`）和手写的 `styles/base.css` |
 
 ### 3.2 目录与归属
 `web/src/` 下每个目录都属于 W 树的一个节点（`G.03-R9`）。实施时文件放在下表对应位置，跨节点的文件只能 import 对方的导出接口。
@@ -50,8 +50,8 @@ web/src/
 │  │  ├─ client.ts ulid.ts                W.04.01
 │  │  ├─ events.ts sse.ts                 W.04.02
 │  │  ├─ offline.ts                       W.04.05
-│  ├─ i18n/                               W.10
-│  └─ perf/                               W.11
+│  ├─ i18n/                               W.10     index / t / zh（唯一文案表）/ format / clock / RelTime / errors；generated/messages.ts 为生成物
+│  └─ perf/                               W.11     index / PerfRegion / recorder / hud（只在性能构建与开发模式里起作用）
 ├─ canvas/                                W.06（文件分工见 W.06 §4.1）
 │  ├─ Canvas.tsx  CanvasOverlays.tsx  adapters.ts   W.06.01  React 外壳：只渲染一个根 div，挂载引擎；两种浮层；适配器
 │  └─ core/                               不 import React（W-R1）
@@ -73,7 +73,7 @@ web/src/
 │  ├─ home/  center/  welcome/  history/
 └─ styles/  tokens.css  themes.css  themes.ts  icons.ts（四者为生成物）  base.css
 web/public/  boot.js（首屏主题，W.02.03）  fonts/
-web/tests/  e2e/  visual/  bench/         W.12、W.11
+web/tests/  kit/  lint/  e2e/  visual/  bench/   W.12（kit、lint、e2e、visual）、W.11（bench）；web/vitest.config.ts、web/playwright.config.ts 归 W.12
 ```
 
 | 编号 | 规则 |
@@ -119,7 +119,7 @@ web/tests/  e2e/  visual/  bench/         W.12、W.11
 | 编号 | 规则 |
 |---|---|
 | W.01-R15 | 每个打开过的会话对应一个 `SessionWorkspace`：持有它自己的 graph / view / run / model store 和对话数据（`W.03` 定义）；ui store 和主题、侧栏开合等全局界面状态不属于任何会话 |
-| W.01-R16 | 内存里最多保留最近 5 个会话的工作区，超过时释放最久没用的（关闭它的 SSE 流、清空 DOM 池引用）；再切回来时从服务端重新加载，并按 `last_location` 和 localStorage 的视图记录恢复现场 |
+| W.01-R16 | 内存里最多保留最近 5 个会话的工作区，超过时释放最久没用的（清空它的 store 和 DOM 池引用；它的 SSE 流在切走时已经关闭，R17）；再切回来时从服务端重新加载，并按 `last_location` 和 localStorage 的视图记录恢复现场 |
 | W.01-R17 | 后台会话的运行不中断（`U.09.04-R1`）。只有当前会话的工作区连 SSE：会话流、当前图的图协同流、当前运行的运行流，合计最多 3 条（`B.05.04`：同源 HTTP/1.1 最多 6 条连接，要给 REST 请求留位置）；切走时三条全部关闭并记下各自的续传位置，切回时续传。会话列表上的"● 运行中"、待审批角标和急停状态不靠后台会话流（会话流里也没有这些事件，`C.06.04`），由 session store 定时刷新 `/runs`、`/approvals`、`/estop` 得到（`W.03.05`，`P.09` K73） |
 
 ### 3.6 demo 迁移对照
@@ -149,6 +149,10 @@ demo v0.5.11 是界面参考实现（`sj/demo_v0.5/画布_demo_v0.5.html`，模�
 | `40_tidy.js`、`41_fix.js`、`42_hier.js`、`13_polish.css`–`23_tab.css` | 已回写进 `U.23`、`U.24`；按规范在各组件里实现，不保留"补丁层" |
 | `43_float.js` | `W.07.08`（浮动回复的线条收拢 / 展开）、`W.08`（流动高亮） |
 | `44_drag.js` | `W.07.06`（可拖动的浮动面板） |
+| `20_icons.js`（v0.3） | `W.08.01` 的 `Icon`；图标形状迁成 `design/icons/*.svg`，由 `tools/gen icons` 生成 `styles/icons.ts`（`G.16`、`U.08`） |
+| `21_defs.js`（v0.3） | 不迁到前端：节点类型定义在 `schema/builtin/nodedefs/`（`C.13`），前端从目录 store 取（`W.03` §4.5）；里面的示例参数、示例图只作 `schema/examples/` 的参考 |
+| `30_embed.js`（v0.3：压力测试、FPS） | 不进产品；200 节点 · 300 连线成为 `W.11` 的基准夹具 `bench-200`，FPS 浮层成为开发用性能浮层（`P.09` K170） |
+| `02_base.css`–`07_extra.css`（v0.3）、`08_layout.css`（v0.4）、`11_sessions.css`、`12_center.css` | 按 `U` 和令牌在各组件旁重写（`W.01-R4`、`R18`）：节点与连线 → `W.06.03`、`W.06.04`；控件 → `W.08`；外壳 → `W.02.02`；会话列表 → `W.07.02`；中心窗口 → `W.09.02` |
 
 | 编号 | 规则 |
 |---|---|
@@ -157,6 +161,7 @@ demo v0.5.11 是界面参考实现（`sj/demo_v0.5/画布_demo_v0.5.html`，模�
 
 ## 4. 检查方式
 - ESLint `no-restricted-imports`：`canvas/core/**` 禁止 `react`、`react-dom`、`zustand/react`、`**/panels/**`、`**/components/**`；`components/ui/**` 禁止 `**/state/**`、`**/ops/**`、`**/lib/protocol/**`、`**/shell/**`、`**/panels/**`、`**/pages/**`、`**/canvas/**`、`**/routes/**`；`components/ui` 以外禁止 `@/components/ui/*`（只能 `@/components/ui`）；`lib/protocol/` 以外禁止 import `lib/protocol/generated/**`（W.01-R5–R7、`W.04.04-R1`）。规则写在 `web/eslint.config.js`，由 `G.06.04` 统一维护。
+- 自定义规则 `hx/no-react-in-canvas-core`（`G.06.04` §1，实现见 `W.12` §6.4）补上 import 限制管不到的：`canvas/core/**` 里调用 `use` 开头的函数、出现 JSX（W-R1）；import 限制仍以上一条为准（`P.09` K179）。
 - CI 检查 `web/src/` 的一级目录与 §3.2 一致（`G.03-R9`）。
 - 性能基准（`W.11`、`Q.08`）：平移、拖动、运行状态更新期间 React Profiler 提交次数为 0（W.01-R9、`U.17-R10`）。
 - 评审时看：新文件是否放在 §3.2 对应目录；是否有直接改图数据、直接发请求的组件；是否有 `event.target` 判断画布命中。
@@ -171,3 +176,8 @@ demo v0.5.11 是界面参考实现（`sj/demo_v0.5/画布_demo_v0.5.html`，模�
 | 2026-11-23 | §3.2 目录树补 `lib/protocol/`、`ops/` 的文件；R6 与 §4 改为只从 `@/lib/protocol` 导入 | `P.09` K85、K88（写 `W.04`、`W.05` 时定稿） |
 | 2026-11-23 | §3.2 `canvas/` 按 `W.06` §4.1 细化文件；R6 改为只 import `@/ops/types` 的类型、其余经 `EngineDeps` 注入；R10 补引擎命令与 `mountSlot` 例外 | `P.09` K98（写 `W.06` 时定稿） |
 | 2026-11-23 | §3.2 `styles/` 补图标表 `icons.ts`；R7 写明 `components/ui` 能 import 什么、外壳能力经 `UiEnv` 注入；§4 ESLint 补对应限制 | 第 9 棒写 `W.08`；`P.09` K121、K122 |
+| 2026-11-23 | §3.2 `lib/i18n/` 写明文件与生成物 | 第 10 棒写 `W.10`；`P.09` K158 |
+| 2026-11-23 | §3.2 `lib/perf/` 写明文件 | 第 10 棒写 `W.11`；`P.09` K167 |
+| 2026-11-23 | §3.2 `web/tests/` 补 `kit/`、`lint/` 与两个测试配置文件的归属 | 第 10 棒写 `W.12`；`P.09` K172 |
+| 2026-11-23 | R4 全局样式补 `themes.css`；R16 与 R17 对齐（后台工作区本来就不连 SSE） | W 全枝复查；`P.09` K185 |
+| 2026-11-23 | §3.6 补 demo 实际打包、但对照表里漏掉的模块：`20_icons.js`、`21_defs.js`、`30_embed.js` 与早期样式文件 | W 全枝复查；`P.09` K182 |

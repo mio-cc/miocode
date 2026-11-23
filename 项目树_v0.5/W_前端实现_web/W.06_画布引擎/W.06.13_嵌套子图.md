@@ -171,7 +171,7 @@ div.hx-peek[role=dialog][aria-label="{名称} 的预览"]    style: transform: t
 |---|---|
 | `peek` 的节点不是容器 / 不存在 | 忽略 |
 | 预览中的层被删除 | 关闭预览 |
-| `locate` 的层不存在 | 提示"那一层已经不存在了"（与 `W.02.01` §4.1 同一文案键） |
+| `locate` 的层不存在 | 提示"那一层已经不存在了"（与 `W.02.01` §4.1 同一文案键 `common.scopeGone`，`P.09` K159） |
 | `locate` 的节点都不在了 | 只停在那一层，不提示（`U.13.03-R5` 的失败提示由 `W.05` 负责） |
 | `element.animate` 不可用或抛错 | 不播转场，直接显示新层，`console.warn` 一次 |
 | 父图位置卡 canvas 绘制失败 | `W.06.12` §6.1 第 9 步 |
@@ -214,3 +214,8 @@ div.hx-peek[role=dialog][aria-label="{名称} 的预览"]    style: transform: t
 - 允许使用的依赖：无运行时依赖（Web Animations API 为浏览器内置）；测试用 `vitest`、`jsdom`、`@playwright/test`。
 - 禁止事项：`G.02.05` 全部（特别是 R23、R24、R25）；另：不直接改 URL 或调用路由；不为预览浮层创建 `CanvasEngine` 或 view store；转场不写 `transform`、不逐个节点动画（`U.07.02-R1`）；预览里不提供任何编辑入口。
 - 完成标志：`G.14` 全部条件；§10 七条验收通过。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | §8 写明共用文案键 `common.scopeGone` | 第 10 棒写 `W.10`；`P.09` K159 |

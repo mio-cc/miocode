@@ -20,16 +20,17 @@
 | 依赖方向 | `go run ./tools/depcheck` | INV-19、`G.03` |
 | Go lint | `golangci-lint run ./...` | `G.05.05` |
 | Go 测试 | `go test ./... -count=1`（Linux 加 `-race`），Windows / macOS / Linux 三平台 | `Q.01` |
-| 覆盖率 | `engine/op`、`engine/schema`、`engine/sched`、`engine/authz`、`engine/run` ≥ 80%；其他 engine 包 ≥ 60% | `Q.01` |
+| 覆盖率 | `engine/op`、`engine/schema`、`engine/sched`、`engine/authz`、`engine/run` ≥ 80%；其他 engine 包 ≥ 60%（统计方式见 `Q.01-R5`，`go run ./tools/ci/cover`） | `Q.01` |
 | 前端 lint | `pnpm -C web lint` | `G.06.04` |
 | 前端测试 | `pnpm -C web test` | `W.12` |
 | 前端构建 | `pnpm -C web build` | — |
 | 端到端 | Playwright（fake 模型） | `Q.05` |
-| 画布性能基准 | 200 节点拖动、缩放帧率不低于上次基线的 95% | `Q.08` |
-| 依赖清单 | `go.mod`、`package.json` 的新增依赖都在 `G.10` 清单里 | `G.10` |
+| 前端性能基准 | `pnpm -C web bench`、`pnpm -C web perf`：绝对预算全部满足；帧耗时等数值不比 `web/tests/bench/baseline.json` 差 5% 以上（帧率类不低于基线的 95%） | `W.11`、`Q.08` |
+| 依赖清单 | `go run ./tools/ci/deps`：`go.mod`、`package.json` 的直接依赖都在 `tools/deps/allow.txt`（`G.10` 清单在代码仓库里的副本）里 | `G.10` |
+| 漏洞扫描 | `govulncheck ./...`、`pnpm -C web audit --audit-level high --prod` | `S.12-R2` |
 | 密钥扫描 | `gitleaks detect` | `S.12` |
-| 文件白名单 | 改动的文件都在任务包白名单里（实施任务的 PR） | `G.02-R3` |
-| 提交信息 | `commitlint` | `G.07` |
+| 文件白名单 | `go run ./tools/ci/allowlist`：改动的文件都在 PR 说明的"文件白名单"一节里（实施任务的 PR）；这一节和任务包是否一致由人工评审核对 | `G.02-R3` |
+| 提交信息 | `go run ./tools/ci/commitcheck` | `G.07` |
 
 ## 3. 人工评审清单
 | 看什么 | 怎么看 |
@@ -46,3 +47,9 @@
 - **G.08-R1** 自动门禁不通过的 PR 不进入人工评审。
 - **G.08-R2** 评审意见引用规则编号（`G-R2`），例如"违反 G.05.02-R1"。
 - **G.08-R3** 由模型实施的 PR 必须经过人工评审才能合并，不允许模型自己合并。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | §2 "画布性能基准"改为前端性能基准的两层判定 | 第 10 棒写 `W.11`；`P.09` K169 |
+| 2026-11-23 | §2：依赖清单、文件白名单、提交信息改为 `tools/ci/*` 的具体命令；补"漏洞扫描"一行（`S.12-R2` 原来没有对应的门禁）；覆盖率写明统计方式 | 第 10 棒写 `O.02`、`Q.01`；`P.09` K189、K192 |
