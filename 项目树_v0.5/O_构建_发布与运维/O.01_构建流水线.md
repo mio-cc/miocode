@@ -6,7 +6,7 @@
 | 类型 | 实施 |
 | 上级 | O 构建、发布与运维 |
 | 下级 | 无 |
-| 状态 | 草稿 |
+| 状态 | 已审 |
 | 素材 | 引01 §4（Makefile）；`G.15`；`G.16`；`B.02` §4–§5；`P.09` K186–K188 |
 | 最后修改 | 2026-11-23 |
 
@@ -75,7 +75,7 @@ go run ./tools/relay stale                  冻结后依据文档又被改过的
 - **`status`**：列出 ① 已领取未合并的叶子：分支、领取人、最后一次提交、工作区有没有未提交的改动；② 每个已领取叶子的测试用例编号覆盖（实施卡里的编号 ÷ 已出现在测试名开头的编号）；③ 全部桩（扫描 `// STUB(` 开头的文件）；④ `docs/relay/` 里有"有疑问"或"不符合"未处理的评审记录。
 - **`next`**：按树的顺序列出状态为"已审"、还没有被领取的实施叶子。
 - **`start`**：按 `G.02.06-R4`–`R7` 检查，然后：建分支；写 `docs/relay/<叶子>.json`（§5）；在 `RELAY.md` 最上面插入一条领取记录（模板见 `RELAY.md` 顶部）；按 `G.02.01` §3、`G.02.02`（必读集合、一层引用、按任务类型的附加集合、不附的东西）拼出任务包 `.relay/tasks/<叶子>.md`，文档按原文附上（`G.02.01-R4`）。`--resume`：只重新生成任务包，不建分支、不改领取记录。
-- **`check`**：按 `G.02.06-R14` 的七项逐项输出"通过 / 不通过 + 原因"；比较的起点是分支和 `main` 的分叉点；④ 在 Go 里看 `func Test…`、`t.Run(` 的删除和 `t.Skip(` 的新增，在前端看 `test(`、`it(` 的删除和 `.skip(`、`.only(`、`test.fixme(` 的新增；⑤ 测试用例编号的格式取实施卡里的写法（`W0601-T3`、`O01-T2`、`B0407-T5`）。第 ⑦ 项可以用 `--no-build` 跳过（只在本地快速自查时用；交付和 CI 不允许跳过）。
+- **`check`**：第 ③ 项的依赖清单读 `tools/deps/allow.txt`；它还不存在（`O.02` 之前）时直接读设计文档 `G.10` §3 各表里的包名（`P.09` K196）。按 `G.02.06-R14` 的七项逐项输出"通过 / 不通过 + 原因"；比较的起点是分支和 `main` 的分叉点；④ 在 Go 里看 `func Test…`、`t.Run(` 的删除和 `t.Skip(` 的新增，在前端看 `test(`、`it(` 的删除和 `.skip(`、`.only(`、`test.fixme(` 的新增；⑤ 测试用例编号的格式取实施卡里的写法（`W0601-T3`、`O01-T2`、`B0407-T5`）。第 ⑦ 项可以用 `--no-build` 跳过（只在本地快速自查时用；交付和 CI 不允许跳过）。
 - **`diff`**：对 `docs/relay/<叶子>.json` 里哈希变了的文档，列出 `git -C <文档目录> diff <依据提交号> -- <文件>` 涉及的小节标题。
 - **`stale`**：对状态为"冻结"的叶子，比较冻结时的依据与当前文档。
 - 只用 Go 标准库和 `os/exec` 调 `git`（`G.10-R3`）；输出中文；退出码 0 通过、1 不通过、2 用法错误。
@@ -122,7 +122,7 @@ go run ./tools/relay stale                  冻结后依据文档又被改过的
 6. `dev` 下按 Ctrl+C，后端和 Vite 两个进程都退出，没有残留进程（三个平台）。
 
 ### 实施卡
-- 要建 / 要改的文件：`Makefile`、`Taskfile.yaml`、`tools/build/main.go`、`tools/build/version.go`、`tools/build/build_test.go`、`tools/dev/main.go`、`tools/dev/proc_windows.go`、`tools/dev/proc_other.go`、`tools/dev/dev_test.go`、`tools/relay/main.go`、`tools/relay/docs.go`（读设计文档与实施卡）、`tools/relay/pack.go`（拼任务包）、`tools/relay/check.go`、`tools/relay/status.go`、`tools/relay/relay_test.go`、`tools/relay/testdata/tree/**`（样例设计树）、`docs/relay/.gitkeep`、`tools/versions.txt`、`cmd/anydoor/dist/.gitkeep`、`.gitignore`（加 `bin/`、`dist/`、`.anydoor-dev/`、`cmd/anydoor/dist/*`、`!cmd/anydoor/dist/.gitkeep`）。
+- 要建 / 要改的文件：`go.mod`（仓库的 Go 模块文件，没有别的叶子拥有它，`P.09` K196）、`Makefile`、`Taskfile.yaml`、`tools/build/main.go`、`tools/build/version.go`、`tools/build/build_test.go`、`tools/build/build_slow_test.go`（`O01-T5`，构建标签 `slow`）、`tools/dev/main.go`、`tools/dev/proc_windows.go`、`tools/dev/proc_other.go`、`tools/dev/dev_test.go`、`tools/relay/main.go`、`tools/relay/docs.go`（读设计文档与实施卡）、`tools/relay/pack.go`（拼任务包）、`tools/relay/check.go`、`tools/relay/status.go`、`tools/relay/relay_test.go`、`tools/relay/testdata/tree/**`（样例设计树）、`docs/relay/.gitkeep`、`tools/versions.txt`、`cmd/anydoor/dist/.gitkeep`、`.gitignore`（加 `bin/`、`dist/`、`.anydoor-dev/`、`cmd/anydoor/dist/*`、`!cmd/anydoor/dist/.gitkeep`）。
 - 不许碰的文件：`tools/gen/`（`G.16`）、`cmd/anydoor/*.go`（`B.02`；"前端还没有构建"页面由 `B.02` 的实施任务做）、`web/`（只调用其脚本）、`.github/`（`O.02`）、`tools/release/`（`O.03`）。
 - 函数签名：命令行见 §4.2、§4.3；`tools/build/version.go`：`func Version(repoDir string, preview bool) (version, commit, date string, err error)`。
 - 测试用例：
@@ -130,7 +130,7 @@ go run ./tools/relay stale                  冻结后依据文档又被改过的
   - `O01-T2 目标一致`：解析 `Makefile` 与 `Taskfile.yaml`，目标名集合都等于 §4.1 的八个
   - `O01-T3 复制`：`web/dist` 样例复制进临时的 `cmd/anydoor/dist` 后文件逐个相同，旧文件被清掉，`.gitkeep` 保留
   - `O01-T4 缺前端`：`web/dist/index.html` 不存在 → 退出 1
-  - `O01-T5 可复现`：§10 验收 3（CI 上每晚跑，`O.02`）
+  - `O01-T5 可复现`：§10 验收 3；要完整构建两次、耗时长，放在带构建标签 `slow` 的测试文件里（`go test -tags slow ./tools/build/`），不进平时的 `go test ./...`；CI 每晚跑（`O.02` §6.3，`P.09` K196）
   - `O01-T6 dev 退出`：§10 验收 6（用两个假子进程代替 `anydoor` 与 Vite）
   - `O01-T7 relay 解析`：用测试目录里的一小棵样例设计树，读出叶子状态、实施卡的白名单与测试用例编号，结果与样例一致
   - `O01-T8 relay start`：叶子是"草稿" → 拒绝；已被领取 → 拒绝；白名单与另一个已领取的叶子重叠 → 拒绝；正常 → 建分支、写 `docs/relay/<叶子>.json`、插入领取记录、任务包里有 `G.02.02` 规定的全部文档且不含同级叶子的正文
@@ -138,6 +138,7 @@ go run ./tools/relay stale                  冻结后依据文档又被改过的
   - `O01-T10 relay diff / stale`：领取后改动样例树里的一份文档 → `diff` 列出它和改动的小节；冻结的叶子依据变化 → `stale` 列出它
   - `O01-T11 relay status`：两个已领取的叶子、一个桩、一份有"不符合"的评审记录都出现在输出里；测试用例覆盖数正确
 - 允许使用的依赖：Go 标准库。
+- 第 1 片的桩（`G.02.06-R10`，`P.09` K196）：`O.01` 的 `check`、`lint`、`build` 要调用还没实现的工具和程序，按它们将来的位置各写一个最小桩，第一行写 `STUB(<叶子>)`：`cmd/anydoor/main.go`、`cmd/anydoor/embed.go`（`B.02`：只做 `--version`、`/api/v1/health`、嵌入前端与"前端还没有构建"页、`--dev` 代理、优雅关闭）；`cmd/anydoorctl/main.go`（`B.08`：只做 `version`）；`tools/gen/main.go`（`G.16`）、`tools/depcheck/main.go`（`G.03`）、`tools/lint/quirkscheck/main.go`、`tools/lint/typenamecheck/main.go`（`G.05.05`）：只打印"还没有实现"并以 0 退出；`web/package.json`、`web/index.html`、`web/tsconfig.json`、`web/src/main.ts`、`web/scripts/stub.mjs`（`W.01`、`W.02`、`W.12`：一个不用 React 的空白页，`lint` = `tsc --noEmit`，`test`、`test:e2e`、`test:visual` 只打印还没有测试）。
 - 禁止事项：`G.02.05` 全部；另：不写 shell 脚本；构建时间不取当前时间；不把 `web/dist-perf/` 或测试页面复制进 `cmd/anydoor/dist/`。
 - 完成标志：`G.14` 全部条件；§10 六条验收通过；`tools/relay` 合并后，下一个叶子按 `G.02.06` 正常领取（不再走 §5 例外）。
 
@@ -146,3 +147,5 @@ go run ./tools/relay stale                  冻结后依据文档又被改过的
 |---|---|---|
 | 2026-11-23 | 首版 | 第 10 棒；`P.09` K186–K188 |
 | 2026-11-23 | 加 `tools/relay`（§4.5、§5、实施卡、`O01-T7`–`T11`）；名字随产品改名 | 第 10 棒；`P.09` K194、K195 |
+| 2026-11-23 | 状态改为"已审"（用户同意开始第 1 片，2026-11-23 10:51） | `G.02.01-R2` |
+| 2026-11-23 | 实施卡补 `go.mod`、第 1 片的桩清单；`check` ③ 在 `allow.txt` 之前读 `G.10`；`O01-T5` 用构建标签 `slow` | 第 1 片开工前；`P.09` K196 |

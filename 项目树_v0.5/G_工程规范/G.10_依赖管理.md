@@ -74,10 +74,11 @@
 `vite`、`typescript`、`eslint`、`typescript-eslint`、`eslint-plugin-react-hooks`、`eslint-plugin-react-refresh`、`stylelint`、`prettier`、`vitest`、`jsdom`、`@playwright/test`、`json-schema-to-typescript`、`ajv`。
 
 ## 4. 检查方式
-CI 脚本比对 `go.mod`（直接依赖）和 `web/package.json` 与本清单（清单的机器可读版：`tools/deps/allowlist.yaml`）。
+CI 脚本比对 `go.mod`（直接依赖）和 `web/package.json` 与本清单（清单的机器可读版：`tools/deps/allow.txt`，`O.02`；在它建立之前，`tools/relay check` 直接读本节，`O.01` §4.5）。
 
 ## 变更记录
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | §3.3 注明 `@assistant-ui/react` v1 不使用 | W 全枝复查；`P.09` K184 |
 | 2026-11-23 | §3 写明代码仓库里的副本 `tools/deps/allow.txt` | 第 10 棒写 `O.02`；`P.09` K189 |
+| 2026-11-23 | §4 机器可读清单的文件名与 `O.02` 一致（`allow.txt`） | `P.09` K196 |
