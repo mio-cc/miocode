@@ -260,6 +260,7 @@
 | K229 | 第 4 片实施 `C.10` 时发现：§4 卡片块 `approval` 的字段写成 `approval_id, summary, kind`，R8 写"`approval.kind` 同 `approval.requested.kind`"；但卡片块按 `kind` 判别，`kind` 已经是 `const: approval`，一个对象里不能再有第二个 `kind` | 设计方自主裁决（用户授权 2026-11-23）：审批类型的字段改名为 `approval_kind`，取值同 `approval.requested.kind`（`tool`、`run`、`elevation`、`taint`、`budget`、`human_node`）；`approval.requested` 事件本身不变（它的 `kind` 在 `data` 里，不和事件的 `kind` 冲突）。`W.07` 里没有引用这个字段，不用改 | `C.10` §4、R8 |
 | K230 | 第 4 片实施 `C.09` 时发现：§3 `Expiry` 的时间字段叫 `until`，违反已冻结的 `C.01-R7`（时间字段名以 `_at` 结尾），`tools/schemacheck` 的命名检查会报错；R4"其余两种不能写这两个字段"没说 `until` 能不能带 `run_id` | 设计方自主裁决（用户授权 2026-11-23）：字段改名 `until_at`（`kind` 的取值 `until` 不变，`E.06.01` 写的是取值，不用改）；每种有效期只写自己的那个字段：`until` 不写 `run_id`，`run` 不写 `until_at`，`session`、`forever` 两个都不写 | `C.09` §3、R4、实施卡 |
 | K231 | 第 4 片实施 `C.06` 前发现：① `C.06.01-R7` 的类型规则没覆盖 `graph_version`、`from_version`、`at_round`、`ref`、`actor`、`presence.scope`、`estop.released.scope`、`node.state` 的 `error` 和按 `to` 变化的 `cause`，也没说哪些字段是布尔；② §2 写着"运行流必填""节点级事件必填"，R6 的写法里没有落实；③ `C0602-T1` 等要求"级别与表一致"，但 schema 里只能表达占不占序号（P、S 都 ≥ 1），区分不了 P 和 S；④ `C.06.02` §10 验收 2 还写着示例放在 `schema/examples/events/run/`，K227 已改为向量文件 | 设计方自主裁决（用户授权 2026-11-23）：① 补进 R7（版本号、轮次为整数，`ref` 为 `WsRef`，`actor` 引用 `Actor`，两个 `scope` 写明取值，列出布尔字段，`NodeError` 定义在 `run-event.schema.json`，`message.failed.error` 引用 `Message.error`，`cause` 在 `queued`、`cancelled`、`skipped` 时为表里的枚举，`approval.resolved.outcome` 不写枚举）；② 补进 R6；③ 写进 R8：测试按 `seq` 约束比对，P 和 S 的区别由 `E.07` 实现；④ 改正 | `C.06.01` R6–R8、`C.06.02` §10 |
+| K232 | 第 4 片之后：第 5 片（代码生成）起是 Go 代码，`G.02.06-R23` 只允许 schema 和数据文件片内连续领取；逐个叶子领取、验证、评审、合并，速度约为片内连续的一半。另外 K225 的"合并时把领取记录标为 `merged`"当时为了不让依据失效没写进 `G.02.06`，一直靠交接说明 §7.1 | 用户决定（2026-11-23）：R23 放宽到 Go 和前端代码。代价用规则补上：①（`relay start --slice` 领下一个时只跑 ①–⑥、不编译）验证者在每个代码叶子提交前跑 `go vet`、`golangci-lint`、它改到的包的 `go test`，不通过就停；② 被 R19 指定为"测试先行"的叶子不进片；③ 合并提交里标 `merged` 写进 R23（K225 的现行做法）。`G.02.06` 附在每个任务包里，改后全部冻结叶子会列入 `relay stale`，只改了 R23、§4 和变更记录，代码都不用改，逐个 `--accept` | `G.02.06` R23、§4；交接说明 §5.3、§7.4 |
 
 ## 变更记录
 | 日期 | 变更 | 原因 |
@@ -285,3 +286,4 @@
 | 2026-11-23 | §2 新增 K209（合并不再逐次请用户批准） | 第 10 棒 |
 | 2026-11-23 | §2 新增 K210–K228（第 3 片开工前复查 `C.03`、`C.13`：第 3 片拆成两片、参数由背后的对象决定、参数界面合成一套、提示词节点、配方的来源与变量） | 第 11 棒 |
 | 2026-11-23 | §2 新增 K229–K231（第 4 片实施：审批卡片块的字段名与判别字段重名；`Expiry.until` 违反 `C.01-R7`；事件 `data` 的类型规则补全） | 第 12 棒 |
+| 2026-11-23 | §2 新增 K232（`G.02.06-R23` 放宽到 Go 和前端代码） | 第 12 棒 |
