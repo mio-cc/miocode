@@ -6,7 +6,7 @@
 | 类型 | 实施 |
 | 上级 | E.07 store 持久化 |
 | 下级 | 无 |
-| 状态 | 已审 |
+| 状态 | 冻结 |
 | 素材 | 引04 |
 | 最后修改 | 2026-11-24 |
 
@@ -110,3 +110,4 @@ func Open(ctx context.Context, path string, opt Options) (store.Store, error)
 | 2026-11-23 | `hx_sessions` 补 `orchestrator_effort` 列 | `P.09` K74 |
 | 2026-11-24 | 第 6 片（`m0-store`）开工前复查：本片的 15 张表写全（列、类型、约束、索引），改为"JSON 全文 + 索引列"；图协同事件不建表；其余表移到 §4.2 作为草案，`hx_sessions` 补 `entry_graph_id`；不用 `sqlc`，手写 SQL；不用 `WITHOUT ROWID`；`Load` 的重放移到 `E.05`；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K236、K237 |
 | 2026-11-24 | 实施卡加 `writer_test.go`（K238 修复的归属） | `P.09` K238 |
+| 2026-11-24 | 状态改为"冻结"：第 6 片（`m0-store`）squash 合并进代码仓库 `main`，提交 `89998584f1faadbb8d014b636230faea4bdd0c30`（`G.02.06-R21`） | `relay slice` 通过；评审 8 条全部符合；按 `G.08-R3` 由验证者合并 |
