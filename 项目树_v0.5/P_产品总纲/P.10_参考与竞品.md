@@ -17,9 +17,9 @@
 | Rivet | 图处理器的执行方式；只有循环控制节点能成环；内核可被嵌入 | 它的提示词编辑界面 | `E.15`、`E.14.09`、INV-06 |
 | ComfyUI | 节点用 schema 声明（V3 define_schema）；扩展包机制；运行时展开（Node Expansion）；执行缓存 | Python 运行时、图像领域的节点设计 | `C.03`、`E.04`、`E.17.04` |
 | Microsoft Agent Framework Workflows | 超步检查点；入口和响应入口的检查点处理 | 以 .NET / Python 为中心的 API 形状 | `E.16.03` |
-| LangGraph | Pregel 式超步调度；中断与恢复 | 用代码定义图的方式（Harness 以图文档为准） | `E.15`、`E.16` |
+| LangGraph | Pregel 式超步调度；中断与恢复 | 用代码定义图的方式（Anywhere Door 以图文档为准） | `E.15`、`E.16` |
 | OpenHands | 事件即状态；上下文压缩本身也记成事件 | 它的单 Agent 架构 | `E.09.01`、`E.13.04` |
-| Eino（字节） | Go 语言的组件接口设计、流式处理 | 编排 API（Harness 的编排在图里） | `E.10.01` |
+| Eino（字节） | Go 语言的组件接口设计、流式处理 | 编排 API（Anywhere Door 的编排在图里） | `E.10.01` |
 | n8n | 声明式节点和编程式节点两档 | 以 SaaS 集成为中心的节点库 | `X.03`、`X.04` |
 | Dify | 逐节点生成、并行生成大图 | 应用发布与多租户 | `E.17.02` |
 | Burr | 从任意步骤 fork 并回放 | — | `E.16.05` |

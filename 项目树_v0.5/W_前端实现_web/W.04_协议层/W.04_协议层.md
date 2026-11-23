@@ -11,7 +11,7 @@
 | 最后修改 | 2026-11-23 |
 
 ## 1. 职责
-`web/src/lib/protocol/`：前端和本机 `harnessd` 之间的全部通信——REST 客户端、三条 SSE 流的订阅与续传、snake_case ↔ camelCase 字段映射、生成类型的导出与使用规则、连接状态检测。对上只提供 `W.03` §4.3 规定的形状（`RestClient`、`ApiError`、`NetError`、`StreamClient`）和 `@/lib/protocol` 导出的 camelCase 类型与常量。
+`web/src/lib/protocol/`：前端和本机 `anydoor` 之间的全部通信——REST 客户端、三条 SSE 流的订阅与续传、snake_case ↔ camelCase 字段映射、生成类型的导出与使用规则、连接状态检测。对上只提供 `W.03` §4.3 规定的形状（`RestClient`、`ApiError`、`NetError`、`StreamClient`）和 `@/lib/protocol` 导出的 camelCase 类型与常量。
 
 ## 2. 不做什么
 | 不做 | 归谁 |
@@ -126,5 +126,5 @@ fetch(text/event-stream) ──► sse.ts 按帧解析 ──► 控制帧 resyn
 1. 五个叶子的验收全部通过（`W.04.04` 为规范，按它的 §4 检查）。
 2. `W.03` 全部叶子的测试用本层的真实实现（假 `fetch`）跑一遍通过，形状不需要适配层。
 3. 浏览器开发者工具里：任意请求都在 `/api/v1/` 下；POST 都带 `Idempotency-Key`；任何时候 SSE 连接 ≤ 3 条。
-4. 关掉 `harnessd` 再启动：3 秒内不提示，之后出现横幅，恢复后横幅消失、三条流续传、未提交的修改重新提交（`U.14.05`，端到端由 `W0405-T8` 覆盖）。
+4. 关掉 `anydoor` 再启动：3 秒内不提示，之后出现横幅，恢复后横幅消失、三条流续传、未提交的修改重新提交（`U.14.05`，端到端由 `W0405-T8` 覆盖）。
 5. 全局搜索 `web/src`：`lib/protocol/` 以外没有 `fetch(`、`EventSource`、`lib/protocol/generated` 的 import。

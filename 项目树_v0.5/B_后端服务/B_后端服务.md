@@ -5,15 +5,15 @@
 | 编号 | B |
 | 类型 | 总则 |
 | 上级 | 无（一级分支） |
-| 下级 | B.01 后端总则、B.02 harnessd 启动与组装、B.03 HTTP API 总则、B.04 API 资源、B.05 SSE 事件流、B.06 app 产品层、B.07 platform 平台层、B.08 harnessctl 命令行、B.09 后台维护任务 |
+| 下级 | B.01 后端总则、B.02 anydoor 启动与组装、B.03 HTTP API 总则、B.04 API 资源、B.05 SSE 事件流、B.06 app 产品层、B.07 platform 平台层、B.08 anydoorctl 命令行、B.09 后台维护任务 |
 | 状态 | 草稿 |
 | 素材 | 引09, 引15 |
 | 最后修改 | 2026-11-22 |
 
 ## 1. 这一枝管什么
-把内核包装成一个本机服务 `harnessd`：启动与组装、HTTP 接口、实时事件流（SSE）、产品层（会话、对话 Agent、设置、首次引导、模板）、平台层（本机鉴权、密钥、配置、单实例、数据目录）、命令行工具 `harnessctl`、后台维护任务。
+把内核包装成一个本机服务 `anydoor`：启动与组装、HTTP 接口、实时事件流（SSE）、产品层（会话、对话 Agent、设置、首次引导、模板）、平台层（本机鉴权、密钥、配置、单实例、数据目录）、命令行工具 `anydoorctl`、后台维护任务。
 
-代码位置：`cmd/harnessd/`、`cmd/harnessctl/`、`internal/api/`、`internal/sse/`、`internal/app/`、`internal/platform/`。
+代码位置：`cmd/anydoor/`、`cmd/anydoorctl/`、`internal/api/`、`internal/sse/`、`internal/app/`、`internal/platform/`。
 
 ## 2. 明确不管什么
 | 不管 | 归谁 |
@@ -27,18 +27,18 @@
 | 编号 | 名称 |
 |---|---|
 | B.01 | 后端总则 |
-| B.02 | harnessd 启动与组装 |
+| B.02 | anydoor 启动与组装 |
 | B.03 | HTTP API 总则（6 份） |
 | B.04 | API 资源（14 份） |
 | B.05 | SSE 事件流（4 份） |
 | B.06 | app 产品层（8 份） |
 | B.07 | platform 平台层（5 份） |
-| B.08 | harnessctl 命令行 |
+| B.08 | anydoorctl 命令行 |
 | B.09 | 后台维护任务 |
 
 ## 4. 整枝共同约束
 - **B-R1** HTTP 层只做：鉴权、解析与校验、调用内核或产品层、映射错误、序列化。不写业务逻辑。
-- **B-R2** 所有经过 HTTP 的请求，操作者只能是 `user`（浏览器）或 `external`（`harnessctl`）。模型的操作由产品层在进程内直接调用内核发起，**不经过 HTTP**，所以 API 不接受、也不信任任何"我是模型"的声明（`P.09` K28）。
+- **B-R2** 所有经过 HTTP 的请求，操作者只能是 `user`（浏览器）或 `external`（`anydoorctl`）。模型的操作由产品层在进程内直接调用内核发起，**不经过 HTTP**，所以 API 不接受、也不信任任何"我是模型"的声明（`P.09` K28）。
 - **B-R3** 只监听 127.0.0.1（INV-21），所有接口都要鉴权（`/api/v1/health` 的最小形态除外，见 `B.04.14`）。
 - **B-R4** 请求体、响应体、事件的结构都来自生成的类型（INV-17），处理函数里不手写 JSON 结构。
 

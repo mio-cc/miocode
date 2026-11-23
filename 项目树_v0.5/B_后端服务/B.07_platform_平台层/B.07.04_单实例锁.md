@@ -11,7 +11,7 @@
 | 最后修改 | 2026-11-22 |
 
 ## 1. 职责
-保证同一个数据目录只有一个 `harnessd` 在运行；第二次启动时把用户带到已运行的实例。
+保证同一个数据目录只有一个 `anydoor` 在运行；第二次启动时把用户带到已运行的实例。
 
 ## 2. 不做什么
 - 不处理不同数据目录的多个实例（允许同时运行）
@@ -26,9 +26,9 @@ type Instance struct { PID int; Port int }
 ```
 
 ## 5. 行为
-- 锁文件 `<DataDir>/harnessd.lock`：Unix 用 `flock`，Windows 用 `LockFileEx`（`golang.org/x/sys`）；进程退出（包括崩溃）时操作系统自动释放。
+- 锁文件 `<DataDir>/anydoor.lock`：Unix 用 `flock`，Windows 用 `LockFileEx`（`golang.org/x/sys`）；进程退出（包括崩溃）时操作系统自动释放。
 - 拿到锁后写入 PID；端口在 HTTP 启动后写进 `<DataDir>/port`。
-- 拿不到锁：读 `port` 文件，请求 `/api/v1/health` 确认存活 → 打开浏览器到 `http://127.0.0.1:<端口>/?t=<token>` → 打印"Harness 已在运行"并退出码 0。health 无响应：等待 3 秒重试一次，仍无响应则提示"另一个 Harness 进程没有响应，请结束它后重试"。
+- 拿不到锁：读 `port` 文件，请求 `/api/v1/health` 确认存活 → 打开浏览器到 `http://127.0.0.1:<端口>/?t=<token>` → 打印"Anywhere Door 已在运行"并退出码 0。health 无响应：等待 3 秒重试一次，仍无响应则提示"另一个 Anywhere Door 进程没有响应，请结束它后重试"。
 
 ## 6. 不变量
 - 同一数据目录不可能同时有两个实例写数据库

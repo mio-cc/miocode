@@ -16,7 +16,7 @@
 ## 2. 定义
 ```json
 {
-  "$id": "https://harness.local/schema/typedef.schema.json",
+  "$id": "https://anydoor.local/schema/typedef.schema.json",
   "x-version": "1.0",
   "type": "object",
   "required": ["name", "major", "minor", "fields"],

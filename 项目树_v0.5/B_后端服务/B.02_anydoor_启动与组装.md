@@ -1,4 +1,4 @@
-# B.02 harnessd 启动与组装
+# B.02 anydoor 启动与组装
 
 | 项 | 内容 |
 |---|---|
@@ -11,7 +11,7 @@
 | 最后修改 | 2026-11-22 |
 
 ## 1. 职责
-`harnessd` 的入口：解析参数、组装平台层、内核、产品层、HTTP 服务，提供开发模式（代理到 Vite）和生产模式（嵌入前端产物），启动后打开浏览器。
+`anydoor` 的入口：解析参数、组装平台层、内核、产品层、HTTP 服务，提供开发模式（代理到 Vite）和生产模式（嵌入前端产物），启动后打开浏览器。
 
 ## 2. 不做什么
 - 不实现任何业务逻辑
@@ -23,16 +23,16 @@
 ## 4. 接口
 命令行参数（与 `G.11` §3 一致）：
 ```
-harnessd [--data-dir DIR] [--port N] [--no-browser] [--dev] [--fake-llm] [--log-level debug|info|warn|error] [--version]
+anydoor [--data-dir DIR] [--port N] [--no-browser] [--dev] [--fake-llm] [--log-level debug|info|warn|error] [--version]
 ```
 ```go
-// cmd/harnessd/main.go
+// cmd/anydoor/main.go
 func main() { os.Exit(run(context.Background(), os.Args[1:], os.Stdout, os.Stderr)) }
 func run(ctx context.Context, args []string, stdout, stderr io.Writer) int   // 可测试
 
-// cmd/harnessd/embed.go
+// cmd/anydoor/embed.go
 //go:embed all:dist
-var webDist embed.FS              // 构建时由 make build 把 web/dist 复制到 cmd/harnessd/dist
+var webDist embed.FS              // 构建时由 make build 把 web/dist 复制到 cmd/anydoor/dist
 ```
 
 ## 5. 行为
@@ -59,7 +59,7 @@ var webDist embed.FS              // 构建时由 make build 把 web/dist 复制
 4. 第二个实例启动时打开已有实例并退出
 
 ### 实施卡
-- 要建 / 要改的文件：`cmd/harnessd/main.go`、`cmd/harnessd/run.go`、`cmd/harnessd/embed.go`、`cmd/harnessd/static.go`、`cmd/harnessd/devproxy.go`、`cmd/harnessd/run_test.go`
+- 要建 / 要改的文件：`cmd/anydoor/main.go`、`cmd/anydoor/run.go`、`cmd/anydoor/embed.go`、`cmd/anydoor/static.go`、`cmd/anydoor/devproxy.go`、`cmd/anydoor/run_test.go`
 - 不许碰的文件：`schema/`、`gen/`、其他包的实现文件（只能 import 它们的导出接口）
 - 测试用例：
   - `B02-T1 启动与关闭`

@@ -125,7 +125,7 @@ export function anchorRect(a: TourAnchor, env: { canvasRect: DOMRect | null; fit
 | `PATCH onboarding.step` 失败 | 不提示 |
 | `completeOnboarding` 失败 | 错误提示，停在最后一步，可重试（会话不重复创建） |
 | 模板缺依赖（422） | 第 3 步卡片下方列出缺失项；可以选别的模板或空白 |
-| 连不上 harnessd | `W.02` §6.1 的横幅与重试；本页置灰 |
+| 连不上 anydoor | `W.02` §6.1 的横幅与重试；本页置灰 |
 
 ## 9. 性能与资源
 - 引导页 chunk ≤ 20KB gzip（不含 `ConnectionForm`、`TemplateCards` 已有的部分）；`Tour` 单独 chunk ≤ 6KB gzip。

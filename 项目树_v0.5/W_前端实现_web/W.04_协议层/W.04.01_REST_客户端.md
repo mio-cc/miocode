@@ -85,7 +85,7 @@ export function isUlid(s: string): s is Ulid;        // ^[0-9A-HJKMNP-TV-Z]{26}$
 | 结果 | 处理 |
 |---|---|
 | 收到任何响应（含 4xx、5xx） | `net.reportOk()`（服务还在） |
-| 首次收到 `X-Harness-Version` | 与 `buildVersion` 不同 → `onVersionMismatch` 只调一次；`X-Schema-Version` 的主版本与生成常量里的图文档格式主版本不同时同样处理（`B.03.01` §5、`C.01-R21`） |
+| 首次收到 `X-Anydoor-Version` | 与 `buildVersion` 不同 → `onVersionMismatch` 只调一次；`X-Schema-Version` 的主版本与生成常量里的图文档格式主版本不同时同样处理（`B.03.01` §5、`C.01-R21`） |
 | 200、201、202 有响应体 | `fromWire(JSON)` 返回。202 的结构由调用方按字段区分（例：`POST /graphs/{id}/ops` 的 202 带 `proposalId`，`C.05.01` §4） |
 | 204 或空响应体 | 返回 `undefined` |
 | 304（ETag 命中） | 返回缓存里的值（同一个对象引用；调用方不得修改它） |
@@ -144,7 +144,7 @@ export function isUlid(s: string): s is Ulid;        // ^[0-9A-HJKMNP-TV-Z]{26}$
 5. 前端代码里没有 `/api/v1` 以外的地址常量（`W.01-R3`）。
 
 ### 实施卡
-- 要建 / 要改的文件：`web/src/lib/protocol/client.ts`、`web/src/lib/protocol/client.test.ts`、`web/src/lib/protocol/ulid.ts`、`web/src/lib/protocol/ulid.test.ts`；`web/vite.config.ts` 只加一处 `define: { __HX_VERSION__ }`（取 `package.json` 的 `version`，与 `harnessd` 同版本发布，`O`）。
+- 要建 / 要改的文件：`web/src/lib/protocol/client.ts`、`web/src/lib/protocol/client.test.ts`、`web/src/lib/protocol/ulid.ts`、`web/src/lib/protocol/ulid.test.ts`；`web/vite.config.ts` 只加一处 `define: { __HX_VERSION__ }`（取 `package.json` 的 `version`，与 `anydoor` 同版本发布，`O`）。
 - 不许碰的文件：`web/src/lib/protocol/generated/`、`web/src/lib/protocol/mapping.ts`、`events.ts`、`offline.ts`（只用它们的导出）、`web/src/state/`（只 import `deps.ts` 的类型）、`schema/`、`internal/`。
 - 函数签名：见 §4。
 - 测试用例（假 `fetch`、假 `Connectivity`、假时钟）：
@@ -158,7 +158,7 @@ export function isUlid(s: string): s is Ulid;        // ^[0-9A-HJKMNP-TV-Z]{26}$
   - `W0401-T8 超时`：假时钟推进 35 秒 → `NetError('timeout')`
   - `W0401-T9 ETag`：第一次 200 带 `ETag: "r1"` → 第二次请求带 `If-None-Match: "r1"`，返回 304 → 与第一次同一个对象；之后 200 不带 ETag → 缓存项删除；第 51 个 URL 挤掉最久没用的
   - `W0401-T10 204`：`del` 收到 204 → `undefined`
-  - `W0401-T11 版本不一致`：两次响应都带不同的 `X-Harness-Version` → `onVersionMismatch` 只调用一次
+  - `W0401-T11 版本不一致`：两次响应都带不同的 `X-Anydoor-Version` → `onVersionMismatch` 只调用一次
   - `W0401-T12 原文与下载`：`getText` 不做映射；`download` 返回 `Blob`；错误时同样抛 `ApiError`
   - `W0401-T13 ULID`：同一毫秒生成 1000 个严格递增、格式合法；`isUlid('01J…小写')` 为 false
   - `W0401-T14 apiPath`：`` apiPath`/blobs/${'ws://sha256:ab'}` `` → `/blobs/ws%3A%2F%2Fsha256%3Aab`

@@ -210,7 +210,7 @@ div.hx-peek[role=dialog][aria-label="{名称} 的预览"]    style: transform: t
   - `W0613-T13 看这里`：`highlight([a],'look')` → 其余节点 `dim`、a 闪 2 次；2 秒后 `dim` 全部去掉
   - `W0613-T14 父图位置卡`：第 2 层时 `paint` 收到 `scope=root`、`mark=闭环迭代`；根图时清空；点 canvas → `nav.leave{to:'root'}`；解除挂载后 `ResizeObserver` 断开
   - `W0613-T15 会话切换`：`docSwitched()` → 以画布中心为原点、时长 `--hx-t-3`；第一次绑定不播
-  - `W0613-T16 端到端`：§10 验收 1、4、5、6（Playwright，`harnessd --fake-llm`，示例图含三层）
+  - `W0613-T16 端到端`：§10 验收 1、4、5、6（Playwright，`anydoor --fake-llm`，示例图含三层）
 - 允许使用的依赖：无运行时依赖（Web Animations API 为浏览器内置）；测试用 `vitest`、`jsdom`、`@playwright/test`。
 - 禁止事项：`G.02.05` 全部（特别是 R23、R24、R25）；另：不直接改 URL 或调用路由；不为预览浮层创建 `CanvasEngine` 或 view store；转场不写 `transform`、不逐个节点动画（`U.07.02-R1`）；预览里不提供任何编辑入口。
 - 完成标志：`G.14` 全部条件；§10 七条验收通过。

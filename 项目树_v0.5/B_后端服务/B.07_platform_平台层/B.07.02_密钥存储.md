@@ -33,12 +33,12 @@ type Secrets interface {
 ```
 
 ## 5. 行为
-- **系统密钥库**（`zalando/go-keyring`）：服务名 `Harness`，账户名 = 密钥名。Windows 凭据管理器、macOS 钥匙串、Linux Secret Service。
+- **系统密钥库**（`zalando/go-keyring`）：服务名 `AnywhereDoor`，账户名 = 密钥名。Windows 凭据管理器、macOS 钥匙串、Linux Secret Service。
 - 启动时探测：写入并读回一个测试条目；失败（例如无桌面会话的 Linux）→ 切换到文件后端。
 - **加密文件** `<DataDir>/secrets.enc`：主密码 → Argon2id（m=64MB, t=3, p=1）派生 32 字节密钥 → XChaCha20-Poly1305 加密整个 JSON；每次写入使用新的随机 nonce；先写临时文件再原子改名。
 - 文件后端每次启动需要解锁：前端出现解锁提示（`POST /settings/secrets/unlock`）；未解锁时 `Resolve` 返回 `ErrLocked`，模型调用失败为 `provider_unavailable`"密钥库已锁定，请先解锁"。
 - 主密码在首次引导或设置里设置；忘记主密码只能删除 `secrets.enc` 重新填写密钥。
-- 开发模式：`HARNESS_DEV_SECRET_<名>` 优先（`S.03-R8`）。
+- 开发模式：`ANYDOOR_DEV_SECRET_<名>` 优先（`S.03-R8`）。
 
 ## 6. 不变量
 - 密钥明文只存在于系统密钥库或加密文件里

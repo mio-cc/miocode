@@ -120,8 +120,8 @@ SessionActions.loadInbox(): Promise<void>;   // GET /runs?status=done,failed,can
 |---|---|
 | `online`（之前不是 `online`） | `ok` 弱色"已重新连接"，`RECONNECTED_MS`（2 秒）后消失 |
 | `online` | 不显示 |
-| `reconnecting`（中断 ≥ 3 秒） | `wait` 弱色"与 Harness 的连接已断开，正在重连…"；画布与编辑控件变只读由各处按 `canvasReadonly` 处理 |
-| `down`（≥ 30 秒） | `danger` 弱色"Harness 已关闭。请重新启动 Harness，然后刷新这个页面"· [刷新]（`location.reload()`） |
+| `reconnecting`（中断 ≥ 3 秒） | `wait` 弱色"与 Anywhere Door 的连接已断开，正在重连…"；画布与编辑控件变只读由各处按 `canvasReadonly` 处理 |
+| `down`（≥ 30 秒） | `danger` 弱色"Anywhere Door 已关闭。请重新启动 Anywhere Door，然后刷新这个页面"· [刷新]（`location.reload()`） |
 | `closed`（401） | 不显示（`W.02` §6.1 的整页说明接管） |
 - 中断 < 3 秒不显示任何东西（`W.04.05` 已经把它当作 `online`）。
 
@@ -172,7 +172,7 @@ SessionActions.loadInbox(): Promise<void>;   // GET /runs?status=done,failed,can
 
 ## 10. 验收标准
 1. 按急停：横幅立即出现并被读屏播报；点"解除急停"弹确认框，确认后横幅消失、档位仍是 0；全局搜索代码，只有 `ReleaseEstopDialog.tsx` 里有 `releaseEstop`（`U.19.04`、INV-10）。
-2. 断开服务：3 秒内没有横幅；3 秒后黄色"正在重连…"；30 秒后变为"Harness 已关闭"+"刷新"；恢复后变绿"已重新连接"，2 秒后消失（`U.14.05`）。
+2. 断开服务：3 秒内没有横幅；3 秒后黄色"正在重连…"；30 秒后变为"Anywhere Door 已关闭"+"刷新"；恢复后变绿"已重新连接"，2 秒后消失（`U.14.05`）。
 3. 档位 3 下 AI 一次改了 5 处：只出现一条"AI 修改了 5 处 · 查看 · 全部撤销"；"全部撤销"后 5 处都恢复（`U.12` §4）。
 4. 两个标签页改同一参数：后提交的一方弹冲突框，`Esc` 关不掉；"保留我的"后两边一致（`W.05` §10 验收 2）。
 5. 会话 A 运行请求审批时在会话 B：铃铛出现黄色圆点（不显示数字）；通知中心"待我处理"里能直接批准，批准后条目消失、圆点熄灭（`U.09.05`）。

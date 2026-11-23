@@ -143,7 +143,7 @@ div.hx-gbar[data-gbar][role=group][aria-label="模型提议：{理由}"]     放
   - `W0614-T9 换层`：`sync()` 在换层后调用 → 上一层的幽灵元素全部移除，只画新一层的
   - `W0614-T10 AI 光标`：`activity.target.node=a`（当前层）→ 光标 `transform` 指向 a 的右上角；`activity=null` → 1.5 秒后加淡出类；目标在别的层 → 同样淡出
   - `W0614-T11 不用 innerHTML`：理由里写 `<img onerror>` → 按文本显示
-  - `W0614-T12 端到端`：§10 验收 1、2、4、5（Playwright，`harnessd --fake-llm` 的录放编排者）
+  - `W0614-T12 端到端`：§10 验收 1、2、4、5（Playwright，`anydoor --fake-llm` 的录放编排者）
 - 允许使用的依赖：无运行时依赖；测试用 `vitest`、`jsdom`、`@playwright/test`。
 - 禁止事项：`G.02.05` 全部（特别是 R6、R23、R25）；另：不在本地推算提议的依赖联动；采纳后不在本地删幽灵或改图；不给幽灵元素绑定单独的事件监听；不把理由、参数值拼进 `innerHTML`；高亮只用 `--hx-model`（`U.10.05-R1`）。
 - 完成标志：`G.14` 全部条件；§10 六条验收通过。

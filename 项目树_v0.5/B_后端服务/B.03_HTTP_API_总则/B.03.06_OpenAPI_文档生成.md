@@ -11,7 +11,7 @@
 | 最后修改 | 2026-11-22 |
 
 ## 1. 职责
-从路由表和 schema 自动生成 OpenAPI 3.1 文档，供前端协议层核对、`harnessctl` 和扩展作者参考。
+从路由表和 schema 自动生成 OpenAPI 3.1 文档，供前端协议层核对、`anydoorctl` 和扩展作者参考。
 
 ## 2. 不做什么
 - 不手写 OpenAPI 文件

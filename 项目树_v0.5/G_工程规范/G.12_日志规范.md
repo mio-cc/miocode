@@ -16,7 +16,7 @@
 ## 2. 规则
 | 编号 | 规则 |
 |---|---|
-| G.12-R1 | 只用 `log/slog`；输出 JSON 到 `<DataDir>/logs/harnessd-YYYYMMDD.log`，按天滚动，保留 14 天；`--dev` 模式同时输出彩色文本到终端 |
+| G.12-R1 | 只用 `log/slog`；输出 JSON 到 `<DataDir>/logs/anydoor-YYYYMMDD.log`，按天滚动，保留 14 天；`--dev` 模式同时输出彩色文本到终端 |
 | G.12-R2 | logger 通过依赖注入传入（`slog.Logger`），不用全局默认 logger |
 | G.12-R3 | msg 用英文、小写、`对象.动作` 风格（`op.applied`、`llm.retry`）；信息放在键值对里，不拼进 msg |
 | G.12-R4 | 公共字段：`component`（包名）、`run_id`、`graph_id`、`session_id`、`node_id`、`path`、`request_id`（有就带，用 `logger.With` 预置） |

@@ -32,7 +32,7 @@
 | POST | `/settings/data/purge` | 彻底删除所有数据（`S.11-R6`）：请求体必须含 `{"confirm": "删除"}`；完成后进程退出 | → 202 |
 
 ## 5. 行为
-- 写配置文件 `harness.yaml` 时先写临时文件再原子改名；保留未知字段（`G.11-R5`）。
+- 写配置文件 `anydoor.yaml` 时先写临时文件再原子改名；保留未知字段（`G.11-R5`）。
 - `PATCH /settings` 的键是 `G.11` 登记的配置路径（`general.send_key` 等，完整清单见 `G.11` §3 与 `W.09.02` §5.2）；包的设置用 `packages.<包 id>.<key>`，按该包 `SettingDef` 校验；`onboarding.step` 也经这里更新（`B.06.04`）。锁定项（`security.taint_guard`、`server.local_only`）只读，PATCH 返回 400（`P.09` K142）。
 - 仅用户。
 

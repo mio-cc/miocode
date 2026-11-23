@@ -16,29 +16,29 @@
 ## 2. 需要的工具
 | 工具 | 版本 | 用途 |
 |---|---|---|
-| Go | 1.23 或更高 | 后端 |
-| Node.js | 22 LTS | 前端构建 |
-| pnpm | 9.x（通过 `corepack enable` 安装） | 前端包管理 |
+| Go | 当前稳定版，最低 1.23；具体版本以代码仓库 `go.mod` 的 `toolchain` 行为准（`O-R2`） | 后端 |
+| Node.js | 24（以 `web/package.json` 的 `engines` 为准，`O-R2`） | 前端构建 |
+| pnpm | 11.x（`web/package.json` 的 `packageManager` 字段固定具体版本，通过 `corepack enable` 安装） | 前端包管理 |
 | golangci-lint | 与 `.golangci.yml` 匹配的版本，写在 `tools/versions.txt` | lint |
 | Git | 2.40 或更高 | — |
 | make（可选） | — | Windows 上可以不装，直接用 Taskfile 或底层命令 |
 
 ## 3. 步骤
 ```bash
-git clone <仓库> harness && cd harness
+git clone <仓库> anywhere-door && cd anywhere-door
 corepack enable
 pnpm -C web install --frozen-lockfile
 go run ./tools/gen                 # 生成代码
-go run ./cmd/harnessd --dev        # 终端 1：后端（开发模式，代理到 Vite）
+go run ./cmd/anydoor --dev        # 终端 1：后端（开发模式，代理到 Vite）
 pnpm -C web dev                    # 终端 2：前端
 # 浏览器打开终端 1 打印的地址
 ```
 等价命令：`make dev`（macOS / Linux）或 `task dev`（Windows），二者都执行 `go run ./tools/dev`：在一个终端里同时启动后端和前端，按 Ctrl+C 两个一起退出（`O.01` §4.3）。
 
 ## 4. 开发模式的约定
-- `--dev`：不嵌入前端产物，非 `/api` 请求代理到 Vite（`http://127.0.0.1:5173`）；日志同时输出到终端；允许 `HARNESS_DEV_SECRET_*` 环境变量（`G.11-R3`）。
+- `--dev`：不嵌入前端产物，非 `/api` 请求代理到 Vite（`http://127.0.0.1:5173`）；日志同时输出到终端；允许 `ANYDOOR_DEV_SECRET_*` 环境变量（`G.11-R3`）。
 - `--fake-llm`：所有模型调用使用 `llm/fake`，不需要任何密钥就能跑通模板（演示和端到端测试用）。
-- 开发数据目录默认 `./.harness-dev/`，不污染正式数据目录。
+- 开发数据目录默认 `./.anydoor-dev/`，不污染正式数据目录。
 
 ## 5. 常见问题
 | 现象 | 处理 |
@@ -55,3 +55,4 @@ CI 的三平台任务就是按本文 §3 执行的；本文改动时同步改 CI
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | §3 写明 `make dev` / `task dev` 执行 `tools/dev` | 第 10 棒写 `O.01`；`P.09` K188 |
+| 2026-11-23 | §2 工具版本改为跟随开发机已装的版本：Node 24、pnpm 11；Go 以 `go.mod` 的 `toolchain` 为准 | 用户决定"改文档跟着环境走"；`P.09` K193 |

@@ -15,11 +15,12 @@
 
 ## 2. 完整目录树
 ```
-harness/
-├─ go.mod  go.sum  Makefile  Taskfile.yaml  .golangci.yml  LICENSE  NOTICE  CHANGELOG.md  README.md
+anywhere-door/
+├─ go.mod  go.sum  Makefile  Taskfile.yaml  .golangci.yml  .gitattributes  LICENSE  NOTICE  CHANGELOG.md  README.md
+│                          AGENTS.md（接手入口）  CLAUDE.md（一行：见 AGENTS.md）  RELAY.md（代码接力日志，G.02.06）
 ├─ cmd/
-│  ├─ harnessd/            # 服务入口：main.go、embed.go（go:embed dist；构建时把 web/dist 复制到这里，B.02）
-│  └─ harnessctl/          # 命令行工具
+│  ├─ anydoor/            # 服务入口：main.go、embed.go（go:embed dist；构建时把 web/dist 复制到这里，B.02）
+│  └─ anydoorctl/          # 命令行工具
 ├─ schema/                 # ★ 契约层唯一事实来源（C）
 │  ├─ *.schema.json
 │  ├─ builtin/             # 内置数据：nodedefs/ types/ recipes/ rolecards/ messages/ 以及各种 *.yaml 数据表
@@ -49,10 +50,10 @@ harness/
 ├─ templates/              # 内置模板包（T）
 ├─ evals/                  # 评测集（Q.07）
 ├─ testdata/               # 跨模块共用的测试数据（cassette、夹具）
-├─ docs/                   # 只放面向开发者的简短说明；设计文档在 sj/项目树_v0.5，不复制进仓库
-└─ tools/                  # 开发工具：gen/ build/ dev/ release/ ci/ deps/ depcheck/ lint/（O.01–O.03）
+├─ docs/                   # 只放面向开发者的简短说明；设计文档在 sj/项目树_v0.5，不复制进仓库；docs/relay/ 放每个叶子的领取依据与评审记录（G.02.06-R6、R18）
+└─ tools/                  # 开发工具：gen/ build/ dev/ relay/ release/ ci/ deps/ depcheck/ lint/（O.01–O.03）
 
-不提交、由构建产生的输出目录（`.gitignore`）：`bin/`（本机构建）、`dist/`（发布归档）、`.harness-dev/`（开发数据目录），以及 `web/` 下的 `dist/`、`dist-perf/`、`.perf/`、`.test/`（`O.01` §6，`P.09` K188）。
+不提交、由构建产生的输出目录（`.gitignore`）：`bin/`（本机构建）、`dist/`（发布归档）、`.anydoor-dev/`（开发数据目录）、`.relay/`（本地任务包，G.02.06-R5），以及 `web/` 下的 `dist/`、`dist-perf/`、`.perf/`、`.test/`（`O.01` §6，`P.09` K188）。
 ```
 
 ## 3. 规则
@@ -78,3 +79,4 @@ harness/
 | 2026-11-23 | §2 目录树补 `lib/perf/`；R6 补 `web/dist-perf/`、`web/.perf/` | 第 10 棒写 `W.11` |
 | 2026-11-23 | §2 `embed.go` 注释与 `B.02` 一致；R6 改为以 `G.16` 清单为准并补 `web/.test/` | W 全枝复查；`P.09` K185 |
 | 2026-11-23 | §2 `tools/` 子目录补全；列出不提交的输出目录；R1 相应修改 | 第 10 棒写 `O.01`；`P.09` K188 |
+| 2026-11-23 | §2 根目录补 `AGENTS.md`、`CLAUDE.md`、`RELAY.md`、`.gitattributes`；`docs/relay/`、`tools/relay/`、`.relay/` | 第 10 棒；`P.09` K195 |

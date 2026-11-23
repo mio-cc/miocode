@@ -168,7 +168,7 @@ export function createScene(root: HTMLDivElement, kind: CanvasKind, t: EngineDep
   - `W0601-T10 错误隔离`：某阶段任务抛错 → 同帧其他任务照常执行、`console.error` 1 次、下一帧 `full` 同步；连续 3 帧抛错 → `is-broken`
   - `W0601-T11 事件转发`：引擎发 `nav.enter` → `enterLayer` 被调用一次；`node.action{approve}` → `resolveApproval` 收到 `live` 里的 `approvalId`
   - `W0601-T12 只读`：`kind='library'`、`ops=null`、`ui.net='reconnecting'` 三种情况 `ctx.readonly()` 为 true
-  - `W0601-T13 端到端`：§10 验收 4、5、6（Playwright，`harnessd --fake-llm`，示例图 `graph_loop.json`）
+  - `W0601-T13 端到端`：§10 验收 4、5、6（Playwright，`anydoor --fake-llm`，示例图 `graph_loop.json`）
 - 允许使用的依赖：`react`、`react-dom`（只在 `Canvas.tsx`、`CanvasOverlays.tsx`）；`canvas/core/` 无运行时依赖；测试用 `vitest`、`jsdom`、`@playwright/test`。
 - 禁止事项：`G.02.05` 全部（特别是 R6、R24、R25）；另：`Canvas.tsx` 不用 `useGraphStore` / `useRunStore` 之类会随图变化重渲染的 hook；不把引擎实例或 DOM 放进 React state；`CanvasProvider` 的 Context 值只包含命令对象和订阅函数；不在构造函数里同步做 200 节点的渲染（交给第一帧）。
 - 完成标志：`G.14` 全部条件；§10 六条验收通过；`W.06-R1` 的 ESLint 规则在 `web/eslint.config.js` 里生效（由 `G.06.04` 维护，本叶子只验证）。

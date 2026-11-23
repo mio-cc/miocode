@@ -26,7 +26,7 @@
 | GET | `/api/v1/diagnostics` | 需要鉴权：版本、启动时长、数据库状态、迁移版本、注册表哈希、扩展包、MCP 状态、最近错误（不含密钥和正文） | → `Diagnostics` |
 | GET | `/api/v1/openapi.json` | OpenAPI 文档（`B.03.06`） | → JSON |
 | GET | `/metrics` | Prometheus 指标（需要鉴权，`S.02-R11`） | → 文本 |
-| POST | `/api/v1/admin/shutdown` | 优雅关闭（仅用户或 harnessctl） | → 202 |
+| POST | `/api/v1/admin/shutdown` | 优雅关闭（仅用户或 anydoorctl） | → 202 |
 | POST | `/api/v1/admin/diagnostics-bundle` | 打包诊断信息：最近日志（已脱敏）、诊断 JSON、配置（不含密钥），供用户反馈问题（`O.08`） | → zip |
 
 ## 5. 行为

@@ -65,8 +65,8 @@ export function bindNet(c: Connectivity, ui: { setNet(n: NetState): void }): () 
 | `NetState` | 含义 | 界面（`U.14.05` §2） |
 |---|---|---|
 | `online` | 服务可达（含失败后 < 3 秒的观察期） | 正常 |
-| `reconnecting` | 失败持续 ≥ 3 秒 | 黄色横幅"与 Harness 的连接已断开，正在重连…"；画布只读 |
-| `down` | 失败持续 ≥ 30 秒 | 横幅"Harness 已关闭。请重新启动 Harness，然后刷新这个页面" + "刷新"；画布只读 |
+| `reconnecting` | 失败持续 ≥ 3 秒 | 黄色横幅"与 Anywhere Door 的连接已断开，正在重连…"；画布只读 |
+| `down` | 失败持续 ≥ 30 秒 | 横幅"Anywhere Door 已关闭。请重新启动 Anywhere Door，然后刷新这个页面" + "刷新"；画布只读 |
 | `closed` | 收到 401：服务重启后 token 变了，或 token 被重新生成（`B.03.05` 第 6 步） | 整页说明（`W.02` §6.1）；不再重连 |
 
 ### 6.2 状态转换
@@ -124,7 +124,7 @@ export function bindNet(c: Connectivity, ui: { setNet(n: NetState): void }): () 
 - 要建 / 要改的文件：`web/src/lib/protocol/offline.ts`、`web/src/lib/protocol/offline.test.ts`、`web/tests/e2e/reconnect.spec.ts`。
 - 不许碰的文件：`web/src/lib/protocol/generated/`、`client.ts`、`events.ts`、`mapping.ts`、`web/src/state/`（只 import `uiStore.ts` 的 `NetState` 类型）、`web/src/panels/`、`schema/`、`internal/`。
 - 函数签名：见 §4。
-- 测试用例（假 `fetch`、假时钟；e2e 用真实 `harnessd --fake-llm`）：
+- 测试用例（假 `fetch`、假时钟；e2e 用真实 `anydoor --fake-llm`）：
   - `W0405-T1 短暂中断`：`reportFailure` 后 2 秒内探测成功 → 状态始终 `online`，`onOnline` 一次，订阅者 0 次
   - `W0405-T2 进入重连`：一直失败 → 第 3000ms 变 `reconnecting`；第 30000ms 变 `down`；`down` 后探测间隔 5000ms
   - `W0405-T3 恢复`：`reconnecting` 时 `reportOk` → 立即 `online`、停止探测、`whenOnline` 的 Promise 完成
@@ -133,7 +133,7 @@ export function bindNet(c: Connectivity, ui: { setNet(n: NetState): void }): () 
   - `W0405-T6 可见性`：隐藏期间探测间隔为 5000ms；变为可见立即探测一次
   - `W0405-T7 bindNet`：绑定时同步一次；状态变化时 `setNet` 被调用；解绑后不再调用
   - `W0405-T8 端到端断线`：Playwright 拦截 `/api/v1/**` 6 秒 → 出现横幅、画布不能拖动；拦截开始后 1 秒内（还没进入只读）在属性页改一个参数，它进入 Op 队列等待；放开后横幅变绿消失，参数修改已提交（`GET /graphs/{id}` 里能看到）
-  - `W0405-T9 端到端补齐版本`：拦截图协同流期间用 `harnessctl` 提交 5 批 Op → 放开后前端 `toDoc(graph store)` 的规范化哈希（`W.05` 的 `graphHash`）等于服务器 `GET /graphs/{id}` 的哈希（`C0603-T2`）
+  - `W0405-T9 端到端补齐版本`：拦截图协同流期间用 `anydoorctl` 提交 5 批 Op → 放开后前端 `toDoc(graph store)` 的规范化哈希（`W.05` 的 `graphHash`）等于服务器 `GET /graphs/{id}` 的哈希（`C0603-T2`）
   - `W0405-T10 token 轮换`：`POST /settings/token/rotate` 后（旧 cookie 失效）→ 页面显示整页说明，控制台无未处理异常
 - 允许使用的依赖：无第三方运行时依赖；测试用 `vitest`、`jsdom`、`@playwright/test`。
 - 禁止事项：`G.02.05` 全部（特别是 R14、R21）；另：不在本节点显示任何界面或文案；不调用 `/health` 以外的接口；恢复时不调用解除急停或任何改变授权状态的接口；不把连接状态存进 localStorage。

@@ -31,7 +31,7 @@
 | POST | `/sessions/{sid}/level` | 快速设置会话档位（档位胶囊，`U.12` §6）：内部创建或更新挂在会话上的授权书 | `{level}` → `Effective` |
 | GET | `/estop` | 急停状态 | → `{global, runs[]}` |
 | POST | `/estop` | 全局急停（用户或命令行） | → 204 |
-| DELETE | `/estop` | 解除全局急停（**仅用户或 harnessctl**，`B.03.05` 第 5 步） | → 204 |
+| DELETE | `/estop` | 解除全局急停（**仅用户或 anydoorctl**，`B.03.05` 第 5 步） | → 204 |
 
 ## 5. 行为
 - 模型的提权申请不走 HTTP：编排者调用内部工具 `request_elevation`，产品层创建审批（`E.17.02`）。

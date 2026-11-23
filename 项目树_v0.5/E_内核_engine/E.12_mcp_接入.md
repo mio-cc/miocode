@@ -11,7 +11,7 @@
 | 最后修改 | 2026-11-23 |
 
 ## 1. 职责
-MCP 客户端：用官方 go-sdk 连接 stdio 和 Streamable HTTP 两种 MCP 服务，把服务的工具桥接成 Harness 工具。
+MCP 客户端：用官方 go-sdk 连接 stdio 和 Streamable HTTP 两种 MCP 服务，把服务的工具桥接成 Anywhere Door 工具。
 
 ## 2. 不做什么
 - 不实现 MCP 服务端
@@ -31,14 +31,14 @@ func (m *Manager) Status() []ServerStatus                                  // �
 
 ## 5. 行为
 - 懒连接：首次使用时 `initialize` → `tools/list`，缓存工具列表；收到 `tools/list_changed` 时刷新，**新出现的工具默认禁用**（`S.08-R12`）。
-- stdio 子进程：不继承 `harnessd` 的环境变量，只注入配置里声明的变量（`secret=[REDACTED_PASSWORD] 在启动时解析）；工作目录为 `<DataDir>/mcp/<名>/`；崩溃自动重启，指数退避，最多 5 次。
+- stdio 子进程：不继承 `anydoor` 的环境变量，只注入配置里声明的变量（`secret=[REDACTED_PASSWORD] 在启动时解析）；工作目录为 `<DataDir>/mcp/<名>/`；崩溃自动重启，指数退避，最多 5 次。
 - HTTP：只允许 https（本机地址需高级设置允许，`S.08-R9`）。
 - 工具映射：每个工具注册为 `mcp:<服务>/<工具>`；风险 = max(`RiskOverrides` → `RiskDefault` → L2，`annotations` 推出的下限)：`readOnlyHint` 可以降到 L0（仅当用户未覆盖），`destructiveHint` 至少 L2。
 - 结果：text 合并进 Summary / Snippets；image、resource 存工作区返回引用；**一律污染**（`S.08-R10`）。
 
 ## 6. 不变量
 - MCP 工具与内置工具走完全相同的授权和审批路径
-- stdio 子进程看不到 harnessd 的环境变量
+- stdio 子进程看不到 anydoor 的环境变量
 
 ## 7. 错误处理
 连接失败：服务状态为 error，工具调用返回 transient"MCP 服务「x」不可用"；协议错误：user_input。

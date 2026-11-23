@@ -16,7 +16,7 @@
 ## 2. GraphPatch（`graph_patch.schema.json`）
 ```json
 {
-  "$id": "https://harness.local/schema/graph_patch.schema.json",
+  "$id": "https://anydoor.local/schema/graph_patch.schema.json",
   "x-version": "1.0",
   "title": "GraphPatch",
   "type": "object",

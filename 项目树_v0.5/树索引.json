@@ -286,6 +286,16 @@
       "lvl": 3,
       "children": [],
       "path": "G_工程规范/G.02_AI_实施者守则/G.02.05_禁止事项总表.md"
+     },
+     {
+      "id": "G.02.06",
+      "name": "代码接力",
+      "desc": "代码由多个模型轮流接手：入口 AGENTS.md、一次领一个叶子、分步提交、接手先检查、机器拦截跑偏、另一方验证与交叉评审、冻结与依据文档",
+      "type": "规",
+      "src": "新",
+      "lvl": 3,
+      "children": [],
+      "path": "G_工程规范/G.02_AI_实施者守则/G.02.06_代码接力.md"
      }
     ],
     "path": "G_工程规范/G.02_AI_实施者守则/G.02_AI_实施者守则.md"
@@ -526,7 +536,7 @@
    {
     "id": "G.11",
     "name": "配置与环境变量",
-    "desc": "配置文件格式、优先级（命令行 > 环境变量 > 文件 > 默认）、HARNESS_* 命名",
+    "desc": "配置文件格式、优先级（命令行 > 环境变量 > 文件 > 默认）、ANYDOOR_* 命名",
     "type": "规",
     "src": "新",
     "lvl": 2,
@@ -2100,13 +2110,13 @@
    },
    {
     "id": "B.02",
-    "name": "harnessd 启动与组装",
+    "name": "anydoor 启动与组装",
     "desc": "配置加载、依赖组装、开发模式代理、前端 embed、打开浏览器",
     "type": "实",
     "src": "引15",
     "lvl": 2,
     "children": [],
-    "path": "B_后端服务/B.02_harnessd_启动与组装.md"
+    "path": "B_后端服务/B.02_anydoor_启动与组装.md"
    },
    {
     "id": "B.03",
@@ -2536,13 +2546,13 @@
    },
    {
     "id": "B.08",
-    "name": "harnessctl 命令行",
+    "name": "anydoorctl 命令行",
     "desc": "audit verify / estop / eval / export / import / doctor",
     "type": "实",
     "src": "引01",
     "lvl": 2,
     "children": [],
-    "path": "B_后端服务/B.08_harnessctl_命令行.md"
+    "path": "B_后端服务/B.08_anydoorctl_命令行.md"
    },
    {
     "id": "B.09",

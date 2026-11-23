@@ -34,10 +34,10 @@ var NopTracer Tracer
 ## 5. 行为
 | 本系统 | OTel span | 主要属性 |
 |---|---|---|
-| 运行 | `harness.run` | `harness.run_id`、`harness.graph_id` |
-| 节点执行 | `harness.node` | `harness.node_id`、`harness.path`、`harness.node_type`、`harness.status` |
+| 运行 | `anydoor.run` | `anydoor.run_id`、`anydoor.graph_id` |
+| 节点执行 | `anydoor.node` | `anydoor.node_id`、`anydoor.path`、`anydoor.node_type`、`anydoor.status` |
 | 模型调用 | `gen_ai.chat`（GenAI 语义约定） | `gen_ai.system`、`gen_ai.request.model`、`gen_ai.usage.input_tokens`、`gen_ai.usage.output_tokens` |
-| 工具调用 | `harness.tool` | `tool.name`、`tool.risk`、`tool.idem_key` |
+| 工具调用 | `anydoor.tool` | `tool.name`、`tool.risk`、`tool.idem_key` |
 | 等待 | span event `wait.start` / `wait.end` | `wait.kind`：queue / throttle / approval |
 - GenAI 语义约定的版本锁定（`go.opentelemetry.io/otel/semconv` 的具体版本写进 `G.10`）。
 - 属性里不放提示词和输出正文（`E.09-R2`）。

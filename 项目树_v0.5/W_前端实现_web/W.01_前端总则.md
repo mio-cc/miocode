@@ -23,7 +23,7 @@
 |---|---|
 | W.01-R1 | Vite + React 19 + TypeScript（`G.06-R1` 的 strict 选项）+ zustand + react-router；包管理用 pnpm，锁文件提交（`G.10-R6`） |
 | W.01-R2 | 纯客户端：没有 SSR、没有 BFF、没有 `'use client'`；构建产物是 `web/dist/` 静态文件（ADR-003） |
-| W.01-R3 | 开发时 `harnessd --dev` 把 `/api` 和 SSE 之外的请求代理到 Vite dev server；前端代码里不出现后端地址常量，一律用相对路径 `/api/v1/…` |
+| W.01-R3 | 开发时 `anydoor --dev` 把 `/api` 和 SSE 之外的请求代理到 Vite dev server；前端代码里不出现后端地址常量，一律用相对路径 `/api/v1/…` |
 | W.01-R4 | 样式是普通 CSS + BEM 类名，和组件放在一起（`G.06.03-R3`）；全局样式只有生成的 `styles/tokens.css`、`styles/themes.css`（`G.16`）和手写的 `styles/base.css` |
 
 ### 3.2 目录与归属

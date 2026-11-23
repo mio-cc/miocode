@@ -327,7 +327,7 @@ type QueueState = {
 - 要建 / 要改的文件：`web/src/ops/index.ts`、`web/src/ops/types.ts`、`web/src/ops/queue.ts`、`web/src/ops/queue.test.ts`、`web/src/ops/apply.ts`、`web/src/ops/apply.test.ts`、`web/src/ops/validate.ts`、`web/src/ops/validate.test.ts`、`web/src/ops/typecheck.ts`、`web/src/ops/typecheck.test.ts`、`web/src/ops/merge.ts`、`web/src/ops/merge.test.ts`、`web/src/ops/gesture.ts`、`web/src/ops/gesture.test.ts`、`web/src/ops/history.ts`、`web/src/ops/history.test.ts`、`web/src/ops/presence.ts`、`web/src/ops/registry.ts`（图 → `OpsApi`、后台队列）、`web/src/ops/useOps.ts`、`web/src/ops/hash.ts`、`web/src/ops/hash.test.ts`、`web/tests/e2e/ops.spec.ts`。
 - 不许碰的文件：`web/src/state/`（只用导出的类型、`GraphWriter`、`fromDoc` / `toDoc`、选择器）、`web/src/lib/protocol/`（含 `generated/`）、`web/src/canvas/`、`web/src/panels/`、`schema/`（测试只读 `schema/examples/`）、`engine/`、`internal/`。
 - 函数签名：见 §4。
-- 测试用例（假 `RestClient`、假时钟、内存 graph store；e2e 用 `harnessd --fake-llm`）：
+- 测试用例（假 `RestClient`、假时钟、内存 graph store；e2e 用 `anydoor --fake-llm`）：
   - `W05-T1 乐观与回声`：`dispatch(set_param)` → graph store 立即变化、`sync.pending=1`；200 后 `sync` 仍为 `saving`；收到同 id 的 `op.applied` → 条目移出、`pending=0`、`idle`、结果 `applied`
   - `W05-T2 回声先到`：`op.applied` 先于 POST 响应到达 → 只应用一次，结果正确
   - `W05-T3 串行与 base_version`：连续 3 次 `dispatch`：同一时刻只有 1 个请求在途；第 2 个请求的 `base_version` 等于第 1 个响应的 `version`
@@ -343,7 +343,7 @@ type QueueState = {
   - `W05-T13 coalesced`：远端 `op.coalesced{opId: 已知, to:{moves}}` → 节点到新位置、版本不变；`opId` 未知 → `reload()`
   - `W05-T14 手势节流`：假时钟 3 秒内 `update` 180 次 → `dispatch` ≤ 13 次、全部带同一 `coalesceKey` 和 `groupId`；`end` 立即提交最后一条；`cancel`（已提交过）→ 提交 `revert`；`cancel`（没提交过）→ 不发请求
   - `W05-T15 预检`：P1–P11 每条一个正例一个反例；`assign_vectors.json` 全集结果与文件一致（`C0402-T1` 前端一侧）；资源 `ref` → Agent `context` 被拒、规则 C2（`C0402-T2`）；类型未加载时 `uncertain:true`；急停中用户的 `set_param` 预检通过（K82）
-  - `W05-T16 本地应用一致`（端到端，`harnessd --fake-llm`）：`schema/examples/ops/` 里每个"乐观"类合法示例，先在前端对示例图 `applyOp` 算 `graphHash`，再提交给服务端、`GET /graphs/{id}` 后算哈希，两者相同
+  - `W05-T16 本地应用一致`（端到端，`anydoor --fake-llm`）：`schema/examples/ops/` 里每个"乐观"类合法示例，先在前端对示例图 `applyOp` 算 `graphHash`，再提交给服务端、`GET /graphs/{id}` 后算哈希，两者相同
   - `W05-T17 哈希向量`：`schema/examples/hash_vectors.json` 每条 `graphHash` 与期望值相同（`E0203-T3`）
   - `W05-T18 撤销`：有排队修改时 `undo` 先等它们提交；`applied=[]` → `nothing`；正常 → `done` 且 `touched` 含改动所在的层；409 → `failed`、提示原因；有冲突时 `undo` 直接 `failed`
   - `W05-T19 不乐观的 Op`：`group` 不改本地图，`op.applied` 到达后图里出现子图引用节点和服务端生成的端口

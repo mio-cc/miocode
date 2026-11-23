@@ -140,7 +140,7 @@ export type FieldIssue = { field: string; textKey: string; at?: { start: number;
 | settings | 系统 | `data` · `access` · `about`（锚点 `help`） | 数据与存储 · 本机访问与命令行 · 关于与诊断 | 本文 |
 | settings | 包的设置 | `pkg:<包 id>`（每个启用且声明了 `settings` 的包一项，按包名排序） | 包名 | 本文 |
 | library | 资源库 | `rolecards` · `recipes` · `types` · `subgraphs` · `templates` | 角色卡 · 上下文配方 · 数据类型 · 子图库 · 模板 | 本文 |
-| packages | — | `core` · `mcp` · `extensions` · `skills` | Harness 核心 · MCP 服务 · 扩展包 · 技能 | `W.09.04` |
+| packages | — | `core` · `mcp` · `extensions` · `skills` | Anywhere Door 核心 · MCP 服务 · 扩展包 · 技能 | `W.09.04` |
 | connections | — | `all` · `group:<分组>` | 全部连接 · 各分组（模型、代码托管、办公协作、数据库、邮件、搜索，按连接类型的 `group` 生成） | `W.09.04` |
 - `SETTING_ITEMS`（命令面板的"设置项"组）= 上表 settings、library 分区的固定页（不含 `pkg:`）加锚点 `notify`、`pricing`、`help`；`W0902-T3` 比对。
 - 打开时没有 `item` → 该分区第一页；`ui.center` 关闭后再打开同一分区 → 回到上次的页（只在本次打开页面期间记住，存在 `CenterHost` 的组件状态里，不持久化，`W.03.03` §5.1）。
@@ -220,8 +220,8 @@ export type FieldIssue = { field: string; textKey: string; at?: { start: number;
 | 授权与安全 | ① 各档位能做什么：`AUTHZ_MATRIX` 渲染成表（行：动作分组，列：0–4 档；格内 允许 / 提议 / 需审核 / 拒绝 的弱色徽标，`Badge`），只读，表下脚注照 `C.09` §5 的 4 条；② 默认档位；③ 外部内容与审批；④ 代码执行沙箱；⑤ 网络与文件；⑥ 密钥存储位置（§6.6）；⑦ 急停：当前状态（"没有急停" / "已急停 · {时间}"），说明"按 Ctrl+. 或顶部的急停按钮立即停止所有运行；解除只能在顶部横幅里由你确认"——本页没有解除按钮（`W.09-R12`）；⑧ 有 `arg`（`authz:<scope>`）时最上方加 `LayerMandate`（§6.7） | 列表项：`TextInput` + 回车添加，每项右侧删除按钮；主机名格式不合法（`S.07-R2`）→ 行内红字，不提交 |
 | 预算与用量 | ① 本月：费用 / 预算进度（`ProgressBar`，没设预算时只显示费用）、今天、tokens、运行次数；② 最近 14 天柱状图（14 根 `transform: scaleY` 的条，悬停 `Tooltip` 显示日期和金额）；③ 按模型占比（横条 + 金额 + 百分比，前 6 个，其余合为"其他"）；④ 预算：两项金额设置 + 说明"提醒阈值 50% / 80% / 100%（`E.09.03`）"；⑤ 价格表：版本号、更新时间、"编辑价格表"→ `PricingSheet`；⑥ 最近运行（5 条：会话名 · #编号 · 费用 · 多久前，点击 → `switchSession` + `run.focus` + `setRs(true,'mon')`，关闭窗口） | 数据：`hub.usage({days: 14})`（`GET /usage`，K152）；"未计价"的模型在占比里标"未计价"（`E.09.03` §5） |
 | 并发与限流 | 全局并发上限；说明"触发限流时节点排队，不会失败；修改在下一次运行生效" | — |
-| 数据与存储 | ① 存储位置：数据目录、各部分占用（`hub.dataUsage()`，`fmtBytes`）、"复制路径"；② 保留期；③ 日志级别；④ 导出：开关"包含工作区原文"+"导出全部数据"→ `hub.exportData({includeBlobs})` 得到 `Blob` → `URL.createObjectURL` 下载 `harness-export-{日期}.zip`，说明"导出文件不包含密钥"（`S.11-R4`）；⑤ 彻底删除（§6.8） | 导出进行中按钮 `loading`，不可重复点 |
-| 本机访问与命令行 | ① 本机地址（`location.origin`，复制按钮）、只允许本机访问（锁定）、端口；② 本机令牌："重新生成"→ 确认框（"之前打开的标签页和命令行会话都要重新登录"）→ `hub.rotateToken()` → 显示新地址（复制按钮）并提示本页将在 3 秒后用新地址重新打开；③ 命令行 `harnessctl`：几条常用命令（文案表里的静态文本，等宽字体）；④ 接口文档：链接 `/api/v1/openapi.json`（新标签页打开） | — |
+| 数据与存储 | ① 存储位置：数据目录、各部分占用（`hub.dataUsage()`，`fmtBytes`）、"复制路径"；② 保留期；③ 日志级别；④ 导出：开关"包含工作区原文"+"导出全部数据"→ `hub.exportData({includeBlobs})` 得到 `Blob` → `URL.createObjectURL` 下载 `anydoor-export-{日期}.zip`，说明"导出文件不包含密钥"（`S.11-R4`）；⑤ 彻底删除（§6.8） | 导出进行中按钮 `loading`，不可重复点 |
+| 本机访问与命令行 | ① 本机地址（`location.origin`，复制按钮）、只允许本机访问（锁定）、端口；② 本机令牌："重新生成"→ 确认框（"之前打开的标签页和命令行会话都要重新登录"）→ `hub.rotateToken()` → 显示新地址（复制按钮）并提示本页将在 3 秒后用新地址重新打开；③ 命令行 `anydoorctl`：几条常用命令（文案表里的静态文本，等宽字体）；④ 接口文档：链接 `/api/v1/openapi.json`（新标签页打开） | — |
 | 关于与诊断 | ① 版本：`hub.diagnostics()` 的版本、启动时长、数据库状态、迁移版本、注册表哈希、扩展包与 MCP 状态、最近错误（不含密钥和正文，`B.04.14`）；② 诊断包："生成诊断包"→ 下载 zip（说明"已脱敏，不含密钥和对话正文"）；③ 审计："校验审计日志"→ `hub.verifyAudit()` → "已校验 N 条，完整" / "第 N 条之后不完整"（`danger`）；④ 帮助（锚点 `help`）："重新查看导览"→ `ui.setTour(true)`、关闭窗口（`U.18-R1`、`W.09.03`） | — |
 | 包的设置 › 某包 | 包名、类型徽标、"打开包详情"→ `openCenter('packages', id)`；该包 `contributes.settings` 每项一行，控件由 `fromSettingDef` 生成，路径 `packages.<id>.<key>`，即时保存（同 §6.3） | 包停用时整页置灰并说明"包已停用，设置保留" |
 
@@ -242,7 +242,7 @@ export type FieldIssue = { field: string; textKey: string; at?: { start: number;
 5. 只能由用户修改：请求本来就以 `user` 发出（`W-R5`）；本组件不提供任何把档位升到超过"当前档位"的快捷方式之外的入口。
 
 ### 6.8 彻底删除（`S.11-R6`）
-`PurgeDialog`（`Dialog width=400`，危险按钮在右）：说明删除范围（整个数据目录、系统密钥库里的 Harness 条目）、不可恢复、之后程序退出；输入框要求输入"删除"（`TextInput`，完全相等才启用"彻底删除"按钮）→ `hub.purgeData('删除')`（`POST /settings/data/purge {"confirm":"删除"}`）→ 202 后整个应用替换为一页静态说明"所有数据已删除，Harness 已退出。可以关闭这个页面。"（不再发任何请求）。
+`PurgeDialog`（`Dialog width=400`，危险按钮在右）：说明删除范围（整个数据目录、系统密钥库里的 Anywhere Door 条目）、不可恢复、之后程序退出；输入框要求输入"删除"（`TextInput`，完全相等才启用"彻底删除"按钮）→ `hub.purgeData('删除')`（`POST /settings/data/purge {"confirm":"删除"}`）→ 202 后整个应用替换为一页静态说明"所有数据已删除，Anywhere Door 已退出。可以关闭这个页面。"（不再发任何请求）。
 
 ### 6.9 资源库分区
 | 页 | 内容 | 动作 |

@@ -90,7 +90,7 @@ export function validate(type: ConnectionType, s: ConnFormState, edit?: Connecti
 
 ## 6. 行为
 ### 6.1 包分区的导航与列表
-- 导航四项：Harness 核心 · MCP 服务 · 扩展包 · 技能（`U.21` §1）；底部三个入口："接入 MCP 服务"（`AddMcpSheet`）、"安装扩展包"（`InstallSheet kind=extension`）、"导入技能"（`InstallSheet kind=skill`）。
+- 导航四项：Anywhere Door 核心 · MCP 服务 · 扩展包 · 技能（`U.21` §1）；底部三个入口："接入 MCP 服务"（`AddMcpSheet`）、"安装扩展包"（`InstallSheet kind=extension`）、"导入技能"（`InstallSheet kind=skill`）。
 - 导航标记（`packageMarks`，`U.21-R4`）：组里有 MCP 服务 `state=error` → `error`；有待确认（MCP `pending`、扩展包 `pending_confirm`）→ `pending`；只有停用的包时不标（停用是用户自己的选择）。
 - 列表每行：名称、类型徽标（`Badge neutral`：核心 / MCP / 扩展包 / 技能）、版本、"N 个节点 · M 个工具"、状态（只在异常时：出错 `danger`、待确认 `wait`、已停用 `text-3` 字）；点击 → `ui.openCenter('packages', id)`。核心组只有一项，直接显示它的详情。
 - 列表为空：`EmptyState`："还没有接入 MCP 服务"+"接入 MCP 服务"（扩展包、技能同理）。

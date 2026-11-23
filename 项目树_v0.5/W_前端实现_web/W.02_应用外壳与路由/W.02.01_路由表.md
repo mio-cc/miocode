@@ -79,7 +79,7 @@ export function useNav(): {
 1. `parseUrl` → 和当前会话工作区比较：会话不同 → 切换工作区（`W.03.05`）；图不同 → 加载新图；只有 `scope` 不同 → 通知画布引擎切换层（`W.06.13`）。
 2. 调 `W.03.05` 的 `saveLastLocation(sid, {graphId, scope})`：它在 1 秒内没有再变时 `PATCH /sessions/{sid}` 写 `last_location`（节流 1 秒，`C.10-R3`）；路由代码不直接发请求（`W.01-R13`）。
 3. 写 localStorage `hx:last-session = sessionId`。
-4. 页面标题：`{会话名} · Harness`；有待审批时前面加"（待审批）"（`U.14.04` §2）。
+4. 页面标题：`{会话名} · Anywhere Door`；有待审批时前面加"（待审批）"（`U.14.04` §2）。
 
 ## 7. 不变量
 - 任何时候，地址栏里的 `sessionId / graphId / scope` 与画布正在显示的会话、图、层一致。

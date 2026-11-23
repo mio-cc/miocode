@@ -15,7 +15,7 @@
 
 ## 2. 文件与格式
 - **C.01-R1** 所有 schema 使用 JSON Schema **2020-12**，放在仓库 `schema/` 目录，文件名 `<名称>.schema.json`，小写，多个单词用连字符或下划线（沿用下表的写法，不再改）。
-- **C.01-R2** `$id` 统一为 `https://harness.local/schema/<文件名>`。跨文件引用写相对路径，如 `"$ref": "common.schema.json#/$defs/Ulid"`。
+- **C.01-R2** `$id` 统一为 `https://anydoor.local/schema/<文件名>`。跨文件引用写相对路径，如 `"$ref": "common.schema.json#/$defs/Ulid"`。
 - **C.01-R3** 公共定义只放在 `common.schema.json`，其他文件不得重复定义。
 
 | 文件 | 内容 | 定义在 |
@@ -58,7 +58,7 @@
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://harness.local/schema/common.schema.json",
+  "$id": "https://anydoor.local/schema/common.schema.json",
   "$defs": {
     "Ulid":      { "type": "string", "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$" },
     "Timestamp": { "type": "string", "format": "date-time", "pattern": "Z$" },
@@ -85,7 +85,7 @@
 | `user` | 本机用户 | v1 固定为 `local` | `{"kind":"user","id":"local"}` |
 | `model` | 某个模型实例：Agent 节点的一次执行，或对话 Agent | 模型引用；`instance_id` 必填 | `{"kind":"model","id":"large-model","instance_id":"chat:01JD…"}` |
 | `runtime` | 内核自己：调度器、迁移器、非模型节点的直接工具调用 | 组件名，可带节点路径 | `{"kind":"runtime","id":"sched"}`、`{"kind":"runtime","id":"node:01JX…"}` |
-| `external` | 外部系统：命令行、回调 | 来源名 | `{"kind":"external","id":"harnessctl"}` |
+| `external` | 外部系统：命令行、回调 | 来源名 | `{"kind":"external","id":"anydoorctl"}` |
 
 - **C.01-R15** 不允许出现第五种 kind。旧文档里的 `system` 一律写作 `runtime`（`P.09` K3）。
 - **C.01-R16** 模型实例的标签（`tags`，如 `编排者`、`主脑`）来自节点实例的 `tags`，用于授权书的授予对象匹配（`C.09`）。
@@ -95,7 +95,7 @@
 - **C.01-R17** 同一个主版本内**只增不改**：只能新增可选字段、新增枚举值、放宽限制；不能删字段、改字段含义、改类型、收紧限制。
 - **C.01-R18** 新增枚举值时，所有读取方必须能处理未知枚举值（前端显示为"未知"，后端记警告，不崩溃）。
 - **C.01-R19** `params`、`meta`、`ui` 这三类开放对象里的未知字段，读写时必须原样保留。其他对象默认 `additionalProperties: false`。
-- **C.01-R20** 新版本程序必须能读所有旧版本数据（通过迁移，`C.12`）；旧版本程序读到新版本数据时，必须明确报"需要升级 Harness"，不能静默丢字段。
+- **C.01-R20** 新版本程序必须能读所有旧版本数据（通过迁移，`C.12`）；旧版本程序读到新版本数据时，必须明确报"需要升级 Anywhere Door"，不能静默丢字段。
 
 ### 5.2 修改流程
 | 修改类型 | 流程 |

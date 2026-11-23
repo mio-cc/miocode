@@ -70,6 +70,11 @@
   {
    "pattern": "运行页",
    "use": "监控页"
+  },
+  {
+   "pattern": "harnessd|harnessctl|(?<!DeepSeek )Harness(?!Client)",
+   "show": "Harness / harnessd / harnessctl",
+   "use": "Anywhere Door / anydoor / anydoorctl（P.09 K194）"
   }
  ],
  "skip_files": [

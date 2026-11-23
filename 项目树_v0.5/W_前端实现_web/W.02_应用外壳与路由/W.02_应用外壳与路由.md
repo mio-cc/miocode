@@ -44,7 +44,7 @@ export type BootState =
   | { kind: 'loading' }
   | { kind: 'ready'; onboardingDone: boolean; settings: Settings; sessions: Page<Session> }
   | { kind: 'unauthorized' }                       // 401：token 失效或服务重启后变了（U.14.05）
-  | { kind: 'offline' };                           // 连不上 harnessd
+  | { kind: 'offline' };                           // 连不上 anydoor
 export function bootstrap(client: RestClient): Promise<BootState>;
 ```
 ### 4.2 依赖
@@ -75,8 +75,8 @@ export function bootstrap(client: RestClient): Promise<BootState>;
 ### 6.1 失败分支
 | 情况 | 界面 |
 |---|---|
-| 任意请求 401（启动时由 `bootstrap` 返回 `unauthorized`；启动后由 `ui.net === 'closed'` 触发，`W.04.05`） | 整页说明"Harness 已重新启动或访问凭证已更换。请回到启动 Harness 时打开的地址，或在命令行运行 `harnessctl open`。"；不显示外壳（`U.14.05`） |
-| 连不上 harnessd | 外壳保留，顶部条下方黄色横幅（`U.14.05`），每 2 秒重试 `GET /settings/onboarding`，成功后从第 4 步继续 |
+| 任意请求 401（启动时由 `bootstrap` 返回 `unauthorized`；启动后由 `ui.net === 'closed'` 触发，`W.04.05`） | 整页说明"Anywhere Door 已重新启动或访问凭证已更换。请回到启动 Anywhere Door 时打开的地址，或在命令行运行 `anydoorctl open`。"；不显示外壳（`U.14.05`） |
+| 连不上 anydoor | 外壳保留，顶部条下方黄色横幅（`U.14.05`），每 2 秒重试 `GET /settings/onboarding`，成功后从第 4 步继续 |
 | 其他错误 | 外壳保留，对应区域显示错误和"重试"（`U.14.03`） |
 
 ## 7. 不变量

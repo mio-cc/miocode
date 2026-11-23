@@ -1,4 +1,4 @@
-# B.08 harnessctl 命令行
+# B.08 anydoorctl 命令行
 
 | 项 | 内容 |
 |---|---|
@@ -11,7 +11,7 @@
 | 最后修改 | 2026-11-22 |
 
 ## 1. 职责
-命令行工具 `harnessctl`：在终端里操作本机正在运行的 Harness，或直接处理数据目录。
+命令行工具 `anydoorctl`：在终端里操作本机正在运行的 Anywhere Door，或直接处理数据目录。
 
 ## 2. 不做什么
 - 不提供图编辑命令（编辑在界面里做）
@@ -21,9 +21,9 @@
 
 ## 4. 接口
 ```
-harnessctl [--data-dir DIR] <命令>
+anydoorctl [--data-dir DIR] <命令>
   status                       运行状态：版本、端口、活动运行、急停
-  open                         在浏览器打开 Harness
+  open                         在浏览器打开 Anywhere Door
   estop [--run ID]             急停（全局或单个运行）
   estop release                解除全局急停（命令行代表用户本人）
   audit verify                 校验审计哈希链
@@ -36,15 +36,15 @@ harnessctl [--data-dir DIR] <命令>
 ```
 
 ## 5. 行为
-- 连接方式：读 `<DataDir>/port` 和 `token`，用 `Authorization: Bearer` 访问本机 API；`harnessd` 没有运行时，`audit verify`、`doctor`、`export` 直接以只读方式打开数据库（不能和运行中的实例同时写）。
+- 连接方式：读 `<DataDir>/port` 和 `token`，用 `Authorization: Bearer` 访问本机 API；`anydoor` 没有运行时，`audit verify`、`doctor`、`export` 直接以只读方式打开数据库（不能和运行中的实例同时写）。
 - 输出：默认人能读的中文；`--json` 输出 JSON（便于脚本）。
-- 退出码：0 成功；1 失败；2 用法错误；3 Harness 未运行（需要运行中实例的命令）。
+- 退出码：0 成功；1 失败；2 用法错误；3 Anywhere Door 未运行（需要运行中实例的命令）。
 
 ## 6. 不变量
-- 只读命令在 harnessd 未运行时不修改数据库
+- 只读命令在 anydoor 未运行时不修改数据库
 
 ## 7. 错误处理
-连接失败：提示"Harness 没有运行，可以用 harnessd 启动"。
+连接失败：提示"Anywhere Door 没有运行，可以用 anydoor 启动"。
 
 ## 8. 验收标准
 1. 每个命令一个用例（启动测试实例）
@@ -52,7 +52,7 @@ harnessctl [--data-dir DIR] <命令>
 3. 未运行时只读命令可用
 
 ### 实施卡
-- 要建 / 要改的文件：`cmd/harnessctl/*.go`、`cmd/harnessctl/cli_test.go`
+- 要建 / 要改的文件：`cmd/anydoorctl/*.go`、`cmd/anydoorctl/cli_test.go`
 - 不许碰的文件：`schema/`、`gen/`、其他包的实现文件（只能 import 它们的导出接口）
 - 测试用例：
   - `B08-T1 各命令`

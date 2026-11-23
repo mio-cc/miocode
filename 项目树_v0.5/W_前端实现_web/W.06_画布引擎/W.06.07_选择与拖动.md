@@ -212,7 +212,7 @@ type Active =                                            // 同一时刻只有�
   - `W0607-T17 放下`：`drop` 带 `{type:'Agent'}` → 一次 `dispatch`，含 `add_node`（ID 来自 `deps.newId`、位置吸附）；放在兼容连线上 → `add_node`、`disconnect`、两条 `connect` 在同一批
   - `W0607-T18 addNode connectFrom`：从 `result` 端口快速添加 → 批里有 `connect` 到新节点第一个兼容输入
   - `W0607-T19 不能选中的画布`：`selectionKey=null` → 空白和节点上拖动都是平移，不调 `select`
-  - `W0607-T20 端到端`：§10 验收 1–5、7（Playwright，`harnessd --fake-llm`）
+  - `W0607-T20 端到端`：§10 验收 1–5、7（Playwright，`anydoor --fake-llm`）
 - 允许使用的依赖：无运行时依赖；测试用 `vitest`、`jsdom`、`@playwright/test`。
 - 禁止事项：`G.02.05` 全部（特别是 R6、R25）；另：拖动中不调 `dispatch`（只用手势的 `update`）；不给节点、连线元素单独绑定监听；不用 `event.target` 判断单击、双击、右键的目标；拖动中不写 ui store；不在框选过程中写选中。
 - 完成标志：`G.14` 全部条件；§10 七条验收通过。

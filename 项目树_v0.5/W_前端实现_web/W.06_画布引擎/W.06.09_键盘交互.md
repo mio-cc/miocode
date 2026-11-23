@@ -54,7 +54,7 @@ export function createFocus(ctx: EngineCtx): {
 };
 
 // web/src/canvas/core/interact/clipboard.ts
-export const CLIP_MARK = 'harness_clip';
+export const CLIP_MARK = 'anydoor_clip';
 export const CLIP_VERSION = 1;
 export const CLIP_MAX_NODES = 500;     // 含子图里的节点
 export const CLIP_MAX_BYTES = 2_000_000;
@@ -79,7 +79,7 @@ export function toOps(d: ClipData, scope: Scope, at: Pt, known: (type: string) =
 ### 5.1 剪贴板格式（`P.09` K105）
 系统剪贴板里放 `text/plain` 的 JSON：
 ```json
-{ "harness_clip": 1, "graphId": "01JG…", "scope": "root",
+{ "anydoor_clip": 1, "graphId": "01JG…", "scope": "root",
   "box": { "x": 120, "y": 80, "w": 520, "h": 240 },
   "nodes": [ { "node": { "id": "01JN…", "type": "Agent", "pos": { "x": 120, "y": 80 }, "label": "执行者", "params": {} },
                "children": { "nodes": [], "edges": [], "notes": [] } } ],
@@ -224,7 +224,7 @@ export function toOps(d: ClipData, scope: Scope, at: Pt, known: (type: string) =
   - `W0609-T16 只读`：`readonly()=true` 时 `Delete`、`Mod+V`、方向键、`C`、`Mod+Z` 不 `dispatch`、不调 `undo`，返回 true 并显示提示；`Tab`、`1`、`Mod+C` 照常
   - `W0609-T17 exec`：`cmd.exec('clip.paste', {at})` → 先 `navigator.clipboard.readText`，拒绝时用 `memo`；`cmd.exec('layout.tidy')` → `cmd.tidy` 1 次
   - `W0609-T18 打包`：选中 1 个按 `Mod+G` → 提示、不 `dispatch`；选中 3 个 → `group` 的 `new_id` 来自 `deps.newId`
-  - `W0609-T19 端到端`：§10 验收 1–8（Playwright，`harnessd --fake-llm`）
+  - `W0609-T19 端到端`：§10 验收 1–8（Playwright，`anydoor --fake-llm`）
 - 允许使用的依赖：无运行时依赖（`navigator.clipboard` 为浏览器 API）；测试用 `vitest`、`jsdom`、`@playwright/test`。
 - 禁止事项：`G.02.05` 全部（特别是 R6、R24、R25、R26）；另：不在 `shell/keys/` 以外 `addEventListener('keydown')`；不在页面加载时读取剪贴板；剪贴板里的内容不经预检不提交；不把剪贴板数据放进 `innerHTML`；不提供解除急停的快捷键。
 - 完成标志：`G.14` 全部条件；§10 八条验收通过。

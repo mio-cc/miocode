@@ -23,7 +23,7 @@ INV-01、INV-02、`C.03-R1`–`R3`。
 ## 4. 定义
 ```json
 {
-  "$id": "https://harness.local/schema/nodedef.schema.json",
+  "$id": "https://anydoor.local/schema/nodedef.schema.json",
   "x-version": "1.0",
   "type": "object",
   "required": ["name", "version", "kind", "category", "impl", "ports", "params"],

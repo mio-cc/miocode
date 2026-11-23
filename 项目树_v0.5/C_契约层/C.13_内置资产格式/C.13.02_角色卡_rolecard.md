@@ -16,7 +16,7 @@
 ## 2. 定义
 ```json
 {
-  "$id": "https://harness.local/schema/rolecard.schema.json",
+  "$id": "https://anydoor.local/schema/rolecard.schema.json",
   "x-version": "1.0",
   "type": "object",
   "required": ["name", "version", "identity", "mission"],

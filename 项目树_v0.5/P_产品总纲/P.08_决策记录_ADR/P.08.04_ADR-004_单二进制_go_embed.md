@@ -26,7 +26,7 @@
 | 桌面应用（Wails / Tauri / Electron） | 原生窗口、托盘 | 包体更大；WebView 渲染差异；Tauri 需要 Rust |
 
 ## 决定
-v1 发布单个可执行文件 `harnessd`：前端构建产物通过 `go:embed` 打进去；启动后自动在浏览器打开 `http://127.0.0.1:<端口>`。`CGO_ENABLED=0`，交叉编译 6 个平台。Wails 桌面壳放到 M5 可选。
+v1 发布单个可执行文件 `anydoor`：前端构建产物通过 `go:embed` 打进去；启动后自动在浏览器打开 `http://127.0.0.1:<端口>`。`CGO_ENABLED=0`，交叉编译 6 个平台。Wails 桌面壳放到 M5 可选。
 
 ## 理由
 最简单的分发形态；同一份 Go 代码和前端产物以后可以直接套 Wails。

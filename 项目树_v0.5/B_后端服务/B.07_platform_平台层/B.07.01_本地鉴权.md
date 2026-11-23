@@ -33,7 +33,7 @@ type Auth interface {
 ## 5. 行为
 - token：32 字节 `crypto/rand`，base64url；文件权限仅当前用户（Unix 0600；Windows 数据目录位于用户配置目录下，默认只有当前用户能访问，另外通过 ACL 去掉继承权限）。
 - 会话 cookie：32 字节随机值，服务端只保存其 sha256（`hx_settings` 下 `auth.sessions`，带过期时间）；"保持登录"30 天，否则浏览器关闭即失效。
-- `harnessctl` 读取 token 文件，以 Bearer 方式访问（`B.08`）。
+- `anydoorctl` 读取 token 文件，以 Bearer 方式访问（`B.08`）。
 
 ## 6. 不变量
 - token 和 cookie 原值不写进日志

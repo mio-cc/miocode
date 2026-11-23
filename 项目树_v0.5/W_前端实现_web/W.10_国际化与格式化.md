@@ -134,7 +134,7 @@ export const zh = {
 | `common.openSettings` | 打开设置 | `G.13-R8` |
 | `common.unknown` | 未知 | 不认识的枚举值（`W.04.04-R8`、`C.01-R18`） |
 | `common.loadingWhat` | 正在加载{what}… | 加载超过 2 秒（`U.14.01`）；`what` 由调用方传入另一条文案 |
-| `common.net.network` | 与 Harness 的连接已断开。连接恢复后再试 | `NetError.kind = 'network'`（与 `W.07.10` 离线横幅同一说法） |
+| `common.net.network` | 与 Anywhere Door 的连接已断开。连接恢复后再试 | `NetError.kind = 'network'`（与 `W.07.10` 离线横幅同一说法） |
 | `common.net.timeout` | 服务没有及时响应。稍后重试 | `NetError.kind = 'timeout'` |
 | `common.net.aborted` | 已取消 | `NetError.kind = 'aborted'`（一般不显示） |
 | `common.scopeGone` | 那一层已经不存在了 | `W.02.01` §4.1 与 `W.06.13` §8 共用（`P.09` K159） |

@@ -20,22 +20,22 @@
 `S.11` §1、`S.11-R8`、`G.11` §3（`data.dir`）。
 
 ## 4. 接口
-默认位置：Windows `%APPDATA%\Harness`；macOS `~/Library/Application Support/Harness`；Linux `$XDG_DATA_HOME/harness`（缺省 `~/.local/share/harness`）。`--data-dir` 覆盖；开发模式 `./.harness-dev/`。
+默认位置：Windows `%APPDATA%\AnywhereDoor`；macOS `~/Library/Application Support/AnywhereDoor`；Linux `$XDG_DATA_HOME/anydoor`（缺省 `~/.local/share/anydoor`）。`--data-dir` 覆盖；开发模式 `./.anydoor-dev/`。
 ```
 <DataDir>/
-├── harness.db            # SQLite（WAL：另有 -wal、-shm 文件）
-├── harness.db.bak-*      # 迁移前备份，保留 3 份
-├── harness.yaml          # 配置
+├── anydoor.db            # SQLite（WAL：另有 -wal、-shm 文件）
+├── anydoor.db.bak-*      # 迁移前备份，保留 3 份
+├── anydoor.yaml          # 配置
 ├── token                 # 本机 token
 ├── port                  # 当前端口（运行时）
-├── harnessd.lock         # 单实例锁
+├── anydoor.lock         # 单实例锁
 ├── secrets.enc           # 仅在文件后端时存在
 ├── blobs/ab/cd/<hash>    # 内容寻址存储
 ├── workspaces/<run_id>/  # 运行工作区（文件工具、代码沙箱）
 ├── extensions/<名>/      # 已安装扩展包；extensions/.pending/ 待确认
 ├── mcp/<名>/             # MCP stdio 服务的工作目录
 ├── skills/<名>/          # 用户安装的技能
-├── logs/                 # harnessd-YYYYMMDD.log
+├── logs/                 # anydoor-YYYYMMDD.log
 └── tmp/                  # 临时文件，启动时清空
 ```
 

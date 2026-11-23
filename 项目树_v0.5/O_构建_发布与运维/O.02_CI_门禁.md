@@ -82,13 +82,13 @@
 - 第三方 Actions 只用 `actions/*` 官方的几个，引用到具体提交哈希（不用 `@v4` 这种会变的标签，`S.12-R6`）。
 
 ### 6.2 产物
-每个任务失败时上传：Go 测试输出、`cover.out`、前端测试报告、Playwright 追踪与截图差异、`harnessd` 日志、`web/.perf/report.md`。保留 14 天。
+每个任务失败时上传：Go 测试输出、`cover.out`、前端测试报告、Playwright 追踪与截图差异、`anydoor` 日志、`web/.perf/report.md`。保留 14 天。
 
 ### 6.3 每晚任务 `nightly.yml`
 | 任务 | 内容 | 失败时 |
 |---|---|---|
 | 漏洞扫描 | 在 `main` 上重跑 `security` 任务（`S.12-R2`：每天一次） | 开一个 Issue，标签 `security` |
-| 可复现构建 | 同一提交在两个干净的运行器上各 `build` 一次，比较 `harnessd` 的 SHA-256（`S.12-R6`、`O01-T5`） | 开 Issue |
+| 可复现构建 | 同一提交在两个干净的运行器上各 `build` 一次，比较 `anydoor` 的 SHA-256（`S.12-R6`、`O01-T5`） | 开 Issue |
 | 全量故障注入 | `Q.09` 写成后加入 | 开 Issue |
 
 每晚任务失败不阻断合并，但要在 2 个工作日内处理（作为缺陷，`Q.12`）。

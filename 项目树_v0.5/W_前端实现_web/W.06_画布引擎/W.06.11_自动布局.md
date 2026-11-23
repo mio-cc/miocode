@@ -122,7 +122,7 @@ export function createTidy(ctx: EngineCtx): { tidy: EngineCommands['tidy']; busy
   - `W0611-T10 打断`：动画进行到一半调 `finish()` → 立即 `dispatch`，`ctx.live` 中的坐标是终点
   - `W0611-T11 减少动效`：`reducedMotion()=true` → 不申请动画帧，直接 `dispatch`
   - `W0611-T12 只读`：`readonly()=true` → `blocked`，不 `dispatch`
-  - `W0611-T13 端到端`：§10 验收 1、2、6（Playwright，`harnessd --fake-llm`）
+  - `W0611-T13 端到端`：§10 验收 1、2、6（Playwright，`anydoor --fake-llm`）
 - 允许使用的依赖：无运行时依赖；测试用 `vitest`、`jsdom`、`@playwright/test`。
 - 禁止事项：`G.02.05` 全部（特别是 R6、R9、R25）；另：不移动便签；不在动画中 `dispatch` 或建手势；不按节点类型名决定位置；不在整理后自动改视图。
 - 完成标志：`G.14` 全部条件；§10 六条验收通过。

@@ -22,7 +22,7 @@
 | 后端性能：调度吞吐、事件写入速度、图校验（增量 ≤ 5ms、全量 500 节点 ≤ 20ms，`U.17` §1） | `Q.08`、`E.03`、`E.15`、`E.07` |
 | 性能基准的通用方法（各枝共用的报告格式、CI 怎么接入） | `Q.08`；本节点写前端一侧的具体做法，`Q.08` 写成时引用本文 |
 | CI 流水线本身（何时跑、跑在哪类机器上） | `O.02`；本节点只规定命令、产物和判定 |
-| 功能正确性的端到端测试、视觉回归 | `W.12`、`Q.05`、`Q.10`（它们用真实 `harnessd --fake-llm`） |
+| 功能正确性的端到端测试、视觉回归 | `W.12`、`Q.05`、`Q.10`（它们用真实 `anydoor --fake-llm`） |
 | 通用测试夹具 | `Q.11`、`W.12`；本节点的基准夹具只服务于性能测量，`W.12` 可以复用 |
 | 产品界面上的性能显示 | 没有：`U` 里没有性能面板，demo 的压力测试与 FPS 浮层不进产品（`P.09` K170） |
 
@@ -58,7 +58,7 @@ export function PerfHud(): JSX.Element | null;               // 地址带 ?perf=
 
 ### 4.2 性能构建
 ```
-pnpm -C web build --mode perf      # 产物 web/dist-perf/，不嵌入 harnessd（O.03 只嵌入 web/dist/）
+pnpm -C web build --mode perf      # 产物 web/dist-perf/，不嵌入 anydoor（O.03 只嵌入 web/dist/）
 ```
 与生产构建只有四处不同（`web/vite.config.ts` 的 `mode === 'perf'` 分支）：`define.__HX_PERF__ = true`；`resolve.alias` 把 `react-dom/client` 换成 `react-dom/profiling`（React 只有它支持生产模式下的 `Profiler`）；`esbuild.keepNames = true`（追踪里看得懂函数名）；`build.outDir = 'dist-perf'`。压缩、分块、动态加载都与生产构建相同，所以测出来的体积和分块就是生产的。开发模式（`vite dev`）下 `__HX_PERF__` 也为 `true`，便于本地用 `?perf=1` 看浮层。
 
@@ -69,7 +69,7 @@ web/tests/bench/
 ├─ fixtures/
 │  ├─ make.ts           生成基准图（固定随机种子）
 │  ├─ graphs/*.json     生成结果（提交到仓库）
-│  ├─ recorded/**       从真实 harnessd 录下的 GET 响应（提交到仓库）
+│  ├─ recorded/**       从真实 anydoor 录下的 GET 响应（提交到仓库）
 │  ├─ scripts/*.ts      事件脚本：run-30、idle
 │  └─ record.ts         录制脚本（§6.3 第 3 步）
 ├─ scenarios/s01-boot.spec.ts … s11-leak.spec.ts   端到端基准场景（Playwright，§6.4）
@@ -88,10 +88,10 @@ web/tests/bench/
 | `pnpm -C web perf --only s04` | 只跑某个场景（本地调试用） |
 | `pnpm -C web perf --reference` | 参考机测量（§6.6）：多跑 2 轮，报告里写机器信息，不比较基线 |
 | `pnpm -C web perf:update` | 用本次结果重写 `baseline.json`（§6.6） |
-| `pnpm -C web perf:record` | 重新录制 `fixtures/recorded/`（需要先 `go build ./cmd/harnessd`） |
+| `pnpm -C web perf:record` | 重新录制 `fixtures/recorded/`（需要先 `go build ./cmd/anydoor`） |
 
 ### 4.4 依赖
-运行时只有 `react`、`react-dom/profiling`（`react-dom` 包自带的入口，不是新依赖）。测量与工具：`@playwright/test`（含它的 CDP 会话）、`vitest`、`ajv`（校验夹具）——都在 `G.10` §3.4；Node 标准库 `http`、`zlib`、`fs`、`child_process`（`record.ts` 启动 harnessd）。不引入 `size-limit`、`lighthouse`、`web-vitals` 等（`G.10-R1`、`R3`）。被依赖：`O.02`（CI 跑 `bench`、`perf`）、`Q.08`（引用本文的场景与报告格式）、各 W 叶子（验收里写"`W.11` 基准"的条目）。
+运行时只有 `react`、`react-dom/profiling`（`react-dom` 包自带的入口，不是新依赖）。测量与工具：`@playwright/test`（含它的 CDP 会话）、`vitest`、`ajv`（校验夹具）——都在 `G.10` §3.4；Node 标准库 `http`、`zlib`、`fs`、`child_process`（`record.ts` 启动 anydoor）。不引入 `size-limit`、`lighthouse`、`web-vitals` 等（`G.10-R1`、`R3`）。被依赖：`O.02`（CI 跑 `bench`、`perf`）、`Q.08`（引用本文的场景与报告格式）、各 W 叶子（验收里写"`W.11` 基准"的条目）。
 
 ## 5. 数据结构
 本节点私有：
@@ -135,7 +135,7 @@ export type PerfReport = {
    | `sessions-6` | 6 个会话，图依次为 200、120、60、20、10、0 节点 | S2、S10 |
    生成后用 `ajv` 按 `schema/graph.schema.json` 校验，不通过就失败。
 2. **事件脚本**（`scripts/*.ts`）：`run-30` 在 `bench-200` 上让 30 个节点同时处于运行中，持续 5 秒：每个节点每 100ms 一条 `node.progress`，2–4 秒后一条 `node.state`（`to` 为完成）并由下一个节点接上（节点状态只有 `node.state` 一种事件，`C.06.02`），连线有数据通过；其中 1 个节点进入等待审批、1 个循环节点推进到第 2 轮；合计约每秒 400 条事件。事件名只用 `@/lib/protocol` 导出的生成常量（`G.02.05-R3`），每条事件按 `schema/` 里的事件结构用 `ajv` 校验。`idle`：三条流只发保活。
-3. **录制**（`perf:record`，夹具或 `api.schema.json` 变化后重跑）：`record.ts` 用临时数据目录启动 `harnessd --fake-llm --no-browser`，经 `POST /graphs/import` 导入夹具图、经 `POST /sessions` 建会话，再用 Playwright 打开应用走一遍 S1–S11 的界面路径，把所有 `GET /api/v1/**` 的响应（状态码、头里的 `ETag`、正文）按"方法 + 路径 + 查询参数"存进 `recorded/`。录下的是真实服务端响应（含 `diags`、`registry_hash`），不手写。
+3. **录制**（`perf:record`，夹具或 `api.schema.json` 变化后重跑）：`record.ts` 用临时数据目录启动 `anydoor --fake-llm --no-browser`，经 `POST /graphs/import` 导入夹具图、经 `POST /sessions` 建会话，再用 Playwright 打开应用走一遍 S1–S11 的界面路径，把所有 `GET /api/v1/**` 的响应（状态码、头里的 `ETag`、正文）按"方法 + 路径 + 查询参数"存进 `recorded/`。录下的是真实服务端响应（含 `diags`、`registry_hash`），不手写。
 4. **回放**（`server.ts`）：提供 `web/dist-perf/` 静态文件和 `/api/v1/**`：`GET` 按录制回放；`POST` / `PATCH` / `PUT` / `DELETE` 返回录制时同一请求的响应，录制里没有的返回 `200 {}` 并在报告里记一条警告；三条 SSE 流按事件脚本推送。每个响应都加 `Cross-Origin-Opener-Policy: same-origin`、`Cross-Origin-Embedder-Policy: require-corp`，让 `performance.measureUserAgentSpecificMemory()` 可用（S9，K169）；这两个头只在基准台上加，不改产品的响应头（`S.02-R8`）。只监听 `127.0.0.1`（INV-21）。
 5. 回放里遇到没有录过的 `GET`：返回 404 并让该场景失败，提示重新录制，不猜测响应。
 
@@ -267,7 +267,7 @@ export type PerfReport = {
   - `W11-T13 可重复`：§10 验收 4
   - `W11-T14 浮层`：§10 验收 6
 - 允许使用的依赖：运行时 `react`（含 `react-dom/profiling` 入口）；工具与测试 `@playwright/test`、`vitest`、`jsdom`、`ajv` 与 Node 标准库（`G.10` §3.4）。
-- 禁止事项：`G.02.05` 全部（特别是 R25、R28、R30、R34）；另：不在产品界面加性能显示；不把性能构建产物嵌入 `harnessd`；`lib/perf` 不发网络请求；`canvas/core` 不 import `lib/perf`；不手写或修改录制的响应；不为了通过门禁放宽 `budgets.ts`（改预算先改出处文档，`G.02.03`）或更新基线。
+- 禁止事项：`G.02.05` 全部（特别是 R25、R28、R30、R34）；另：不在产品界面加性能显示；不把性能构建产物嵌入 `anydoor`；`lib/perf` 不发网络请求；`canvas/core` 不 import `lib/perf`；不手写或修改录制的响应；不为了通过门禁放宽 `budgets.ts`（改预算先改出处文档，`G.02.03`）或更新基线。
 - 完成标志：`G.14` 全部条件；§10 七条验收通过；第一份参考机报告已提交。
 
 ## 变更记录

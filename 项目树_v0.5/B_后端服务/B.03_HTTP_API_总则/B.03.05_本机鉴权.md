@@ -30,10 +30,10 @@ func CallerFrom(ctx context.Context) Caller
 
 ## 5. 行为
 1. **引导**：浏览器打开 `/?t=<token>`：常量时间比较 token → 设置 cookie `hx_session`（随机 32 字节，服务端内存 + `hx_settings` 记录，HttpOnly、SameSite=Strict、Path=/、无 Expires 即会话 cookie；"保持登录"另设 30 天）→ 302 到 `/`（去掉 URL 里的 token）。
-2. **API 请求**：cookie 有效 → `Caller{Actor: user:local, Via: cookie}`；或 `Authorization: Bearer <token>` 有效 → `Caller{Actor: external:harnessctl, Via: bearer}`；否则 401。
+2. **API 请求**：cookie 有效 → `Caller{Actor: user:local, Via: cookie}`；或 `Authorization: Bearer <token>` 有效 → `Caller{Actor: external:anydoorctl, Via: bearer}`；否则 401。
 3. **Host 校验**（`S.02-R5`）：只接受 `127.0.0.1:<端口>`、`localhost:<端口>`、`[::1]:<端口>`。
 4. **Origin 校验**（`S.02-R6`）：非 GET 请求和 SSE 请求的 Origin 必须是上面三个之一；Origin 缺失只允许 Bearer 方式。
-5. **只有用户能做的接口**（解除急停、设置锁、改授权书等）再检查 `Caller.Actor.Kind == user`；`harnessctl estop release` 例外：命令行代表用户本人，`Via: bearer` 的 `external:harnessctl` 对这几个接口视同用户（`S.09-R2`），其他 external 调用方没有这个权利。
+5. **只有用户能做的接口**（解除急停、设置锁、改授权书等）再检查 `Caller.Actor.Kind == user`；`anydoorctl estop release` 例外：命令行代表用户本人，`Via: bearer` 的 `external:anydoorctl` 对这几个接口视同用户（`S.09-R2`），其他 external 调用方没有这个权利。
 6. token 重新生成后，所有旧 cookie 失效（`S.02-R2`）。
 
 ## 6. 不变量

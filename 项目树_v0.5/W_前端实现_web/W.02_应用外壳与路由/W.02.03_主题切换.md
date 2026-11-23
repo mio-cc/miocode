@@ -90,7 +90,7 @@ export const DEFAULT_PALETTE = 'paper';
 5. 通知订阅者：`changed` 里带 `palette` 或 `theme` 时，画布引擎重新从 CSS 变量读取颜色并重画缩略图、小地图、预览浮层（`U.03.04-R6`）。
 
 ### 6.3 和服务端配置对齐
-启动时 `boot.js` 先用本地值渲染（快），`GET /settings` 返回后调用 `syncFromServer`：服务端值和本地值不同 → **以服务端为准**（可能在别的浏览器、或用 `harnessctl` 改过），按 §6.2 切换并写回 localStorage。
+启动时 `boot.js` 先用本地值渲染（快），`GET /settings` 返回后调用 `syncFromServer`：服务端值和本地值不同 → **以服务端为准**（可能在别的浏览器、或用 `anydoorctl` 改过），按 §6.2 切换并写回 localStorage。
 
 ### 6.4 多个标签页
 监听 `storage` 事件：另一个标签页改了这三个键 → 本页按 §6.2 应用，但不再 `PATCH`（发起改动的那个页面已经保存）。
@@ -117,13 +117,13 @@ export const DEFAULT_PALETTE = 'paper';
 3. 选"跟随系统"后切换系统明暗，界面同步切换（`U.03.05` §6 验收 4）。
 4. 切换主题后小地图、预览浮层、父图位置卡的颜色同步变化（`U.03.04` §3 验收 2）。
 5. 在 A 标签页切换，B 标签页同步；只有 A 发出 `PATCH`。
-6. 用 `harnessctl` 或另一个浏览器改了配置后刷新，以服务端为准。
+6. 用 `anydoorctl` 或另一个浏览器改了配置后刷新，以服务端为准。
 7. 打开"减少动效"后，`<html data-motion="reduce">`，`U.07.04` §2 的替代全部生效。
 8. 页面 CSP 不放宽，控制台没有"违反 CSP"报错。
 
 ### 实施卡
 - 要建 / 要改的文件：`web/public/boot.js`、`web/index.html`（只加 §4.1 那一行）、`web/src/shell/theme/themeController.ts`、`web/src/shell/theme/useTheme.ts`、`web/src/shell/theme/themeController.test.ts`、`web/src/styles/base.css`（只加 §6.2 第 2 步那条规则）、`web/tests/e2e/theme.spec.ts`、`web/tests/visual/themes.spec.ts`。
-- 不许碰的文件：`web/src/styles/themes.css`、`web/src/styles/themes.ts`、`web/src/styles/tokens.css`（生成物）、`design/`、`cmd/harnessd/`（CSP 在 `B.03.05` 里，不改）。
+- 不许碰的文件：`web/src/styles/themes.css`、`web/src/styles/themes.ts`、`web/src/styles/tokens.css`（生成物）、`design/`、`cmd/anydoor/`（CSP 在 `B.03.05` 里，不改）。
 - 函数签名：见 §4.2。
 - 测试用例：
   - `W0203-T1 解析`：mode=system × 系统明 / 暗；motion=auto × 系统减少动效开 / 关

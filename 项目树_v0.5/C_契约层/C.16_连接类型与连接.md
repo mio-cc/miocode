@@ -50,7 +50,7 @@
 - **C.16-R6** 请求与响应里的密钥（`P.09` K144）：`POST /connections` 的请求体 `{type, name, values, secrets}`、`PUT /connections/{id}` 的请求体 `{name?, values?, secrets?}`；`secrets` 是"字段 key → 明文"，只在这一次请求里出现，后端写入密钥库（密钥名 `conn:<连接 id>:<字段 key>`）后把 `values[key]` 记为密钥名，请求体立即丢弃、不进日志（同 `B.04.07` §5）；`secrets[key] = null` 表示删除这个密钥（"断开"），缺省表示不改。响应的 `Connection` 不含任何明文，另带 `secret_tails`（字段 key → 末 4 位，INV-22、`S.03-R5`）。
 - **C.16-R7** 模型连接（`llm.*`）的 `Connection` 带 `models[]`（最近一次测试读到的模型：`ref`、`window`、`caps`、`effort`、`priced`）；`POST /connections/{id}/test` 返回 `ConnectionTest {ok, state, error?, models?}`；`GET /connections/{id}/usages` 返回 `ConnectionUsages {graphs[{graph_id, title, session_id?, nodes[{id, label, scope}]}], packages[{id, name}]}`。
 - **C.16-R8** 连接字段可以声明 `suggestions: [{label, value}]`（例如 OpenAI 兼容的常见厂商地址），前端在输入框下方列出可点的预设（`U.19.07` 第 2 步）。
-- **C.16-R9** 前端只通过 `/connections` 管理模型提供方；`B.04.07` 的 `/providers` 保留给 `harnessctl` 和旧路径别名，二者是同一份数据。
+- **C.16-R9** 前端只通过 `/connections` 管理模型提供方；`B.04.07` 的 `/providers` 保留给 `anydoorctl` 和旧路径别名，二者是同一份数据。
 - 接口：`GET/POST /api/v1/connections`、`GET/PUT/DELETE /connections/{id}`、`POST /connections/{id}/test`、`GET /connection-types`。
 
 ## 6. 不变量

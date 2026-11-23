@@ -152,7 +152,7 @@ type LinkDrag = {
   - `W0608-T12 firstFit`：`fits` 假实现下，`方案@1` 对 Agent 的输入 → 第一个能接的端口名；`上下文包@1` → `context`；没有能接的 → null
   - `W0608-T13 中点按钮`：悬停连线 → 两个按钮出现在中点；离开 260ms 后消失；"×" → `dispatch(disconnect)`；"+" → `quickAdd.open{insert}`；只读 → 不出现按钮
   - `W0608-T14 源节点被删`：拖线中 `change` 删除源节点 → 下一帧取消
-  - `W0608-T15 端到端`：§10 验收 1–6（Playwright，`harnessd --fake-llm`，用 `assign_vectors.json` 里的类型构造测试图）
+  - `W0608-T15 端到端`：§10 验收 1–6（Playwright，`anydoor --fake-llm`，用 `assign_vectors.json` 里的类型构造测试图）
 - 允许使用的依赖：无运行时依赖；测试用 `vitest`、`jsdom`、`@playwright/test`。
 - 禁止事项：`G.02.05` 全部（特别是 R3、R6）；另：不在前端自己写类型兼容规则（只用 `canConnect`、`fits`）；拖线中不 dispatch；不跨层连线；不用 `event.target` 判断松开在哪个端口（用几何吸附）。
 - 完成标志：`G.14` 全部条件；§10 七条验收通过。

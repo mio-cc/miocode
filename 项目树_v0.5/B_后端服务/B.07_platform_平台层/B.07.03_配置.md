@@ -29,7 +29,7 @@ func Watch(ctx context.Context, dataDir string, onChange func(*Config))   // 每
 ```
 
 ## 5. 行为
-- 配置文件 `<DataDir>/harness.yaml`；不存在时不报错（全部用默认值）。
+- 配置文件 `<DataDir>/anydoor.yaml`；不存在时不报错（全部用默认值）。
 - 写入时保留未知字段（`G.11-R5`）和用户手写的注释（`goccy/go-yaml` 的 AST 方式修改）。
 - 用户手动编辑配置文件也会被 `Watch` 发现并热更新。
 - 路径展开 `~` 和环境变量（`G.11-R6`）。

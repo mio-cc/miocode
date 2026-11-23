@@ -11,13 +11,13 @@
 | 最后修改 | 2026-11-22 |
 
 ## 1. 进程模型
-- 一个进程 `harnessd`：HTTP 服务、内核、产品层、后台维护都在同一个进程里。
+- 一个进程 `anydoor`：HTTP 服务、内核、产品层、后台维护都在同一个进程里。
 - 同一个数据目录只能运行一个实例（`B.07.04`）。
 - 默认只有一个用户 `user:local`（`P.02`）。
 
 ## 2. 包依赖
 ```
-cmd/harnessd ──► internal/api ──► internal/app ──► engine
+cmd/anydoor ──► internal/api ──► internal/app ──► engine
      │                │   └────► internal/sse ──► engine/obs（订阅广播）
      │                └────────► internal/platform
      └──────────────────────────► internal/platform
@@ -28,7 +28,7 @@ cmd/harnessd ──► internal/api ──► internal/app ──► engine
 | `internal/app/*` | `engine/**`、`internal/platform` 的接口、`gen` | `internal/api`、`internal/sse` |
 | `internal/sse` | `engine/obs`、`engine/store`、`gen` | `internal/app`、`internal/api` |
 | `internal/api` | `internal/app` 暴露的接口、`internal/sse`、`internal/platform/auth`、`engine` 的公开方法、`gen` | `internal/app` 的实现细节 |
-| `cmd/harnessd` | 全部 | — |
+| `cmd/anydoor` | 全部 | — |
 
 ## 3. 启动顺序
 1. 解析命令行、加载配置（`B.07.03`）。
@@ -43,7 +43,7 @@ cmd/harnessd ──► internal/api ──► internal/app ──► engine
 10. 启动 HTTP 服务，选端口，写 `<DataDir>/port`。
 11. 打开浏览器（`server.open_browser`）。
 
-任何一步失败：按相反顺序清理已初始化的部分，打印一句人能看懂的错误（"端口 7300 被占用"、"数据库需要更新版本的 Harness"），退出码非 0。
+任何一步失败：按相反顺序清理已初始化的部分，打印一句人能看懂的错误（"端口 7300 被占用"、"数据库需要更新版本的 Anywhere Door"），退出码非 0。
 
 ## 4. 优雅关闭
 收到 SIGINT / SIGTERM（Windows：Ctrl+C、控制台关闭事件）或 `POST /api/v1/admin/shutdown`：

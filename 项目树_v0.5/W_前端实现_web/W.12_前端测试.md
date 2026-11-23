@@ -11,7 +11,7 @@
 | 最后修改 | 2026-11-23 |
 
 ## 1. 职责
-前端测试怎么落地：`web/tests/` 的目录与命令；Vitest 的配置（环境分配、两个时区、测试启动文件）；共用测试工具 `web/tests/kit/`（各叶子共用的假对象、组件渲染、共用测试向量的读取）；自定义 lint 规则的测试；端到端测试的运行方式（启动真实 `harnessd --fake-llm`、准备数据、网络隔离、浏览器矩阵）；视觉回归（截图矩阵、基础组件陈列页、截图基线和更新规则）；测试编号的写法与核对；CI 用到的命令和产物。
+前端测试怎么落地：`web/tests/` 的目录与命令；Vitest 的配置（环境分配、两个时区、测试启动文件）；共用测试工具 `web/tests/kit/`（各叶子共用的假对象、组件渲染、共用测试向量的读取）；自定义 lint 规则的测试；端到端测试的运行方式（启动真实 `anydoor --fake-llm`、准备数据、网络隔离、浏览器矩阵）；视觉回归（截图矩阵、基础组件陈列页、截图基线和更新规则）；测试编号的写法与核对；CI 用到的命令和产物。
 
 各叶子**自己的测试用例**写在各叶子的实施卡里，由各叶子的实施任务完成；本节点提供它们共用的环境和工具，并规定所有前端测试都要遵守的写法。
 
@@ -20,7 +20,7 @@
 |---|---|
 | 测试分层的总体策略、覆盖率门槛、哪些必须测 | `Q.01`（本节点不设前端覆盖率门槛，见 §6.9） |
 | 端到端测试要覆盖哪些用户流程 | `Q.05`；本节点只写前端一侧的运行方式，具体流程在各叶子实施卡和 `U.19` |
-| 模型调用测试的原则（CI 不调真模型、录放） | `Q.06`、`E.10.08`；前端一侧只用 `harnessd --fake-llm` |
+| 模型调用测试的原则（CI 不调真模型、录放） | `Q.06`、`E.10.08`；前端一侧只用 `anydoor --fake-llm` |
 | 视觉回归的通用规则 | `Q.10`；本节点写前端的截图矩阵、陈列页和基线 |
 | 跨模块共用的测试数据 | `Q.11`、仓库根 `testdata/`（`G.03-R5`）；本节点只读它们 |
 | 性能测量与基准夹具 | `W.11`（基准台、`bench-*` 夹具、`*.bench.ts` 汇总）；本节点可以复用夹具，不另定义 |
@@ -115,7 +115,7 @@ export type Hx = {
   };
   open(path?: string): Promise<void>;            // 用 /?t= 换 cookie 后打开 path
 };
-export const test: typeof base & { hx: Hx };    // 每个 worker 一个 harnessd；每个测试新建自己的会话，不复用别的测试的数据
+export const test: typeof base & { hx: Hx };    // 每个 worker 一个 anydoor；每个测试新建自己的会话，不复用别的测试的数据
 export { expect };
 export const tag: { chromiumOnly(reason: string): string };   // 只在 Chromium 上跑的测试，必须写原因（§6.5）
 ```
@@ -131,7 +131,7 @@ export const tag: { chromiumOnly(reason: string): string };   // 只在 Chromium
 | `pnpm -C web test:ids` | 列出测试名里的全部测试编号（§6.8） | — |
 
 ### 4.5 依赖
-只用 `G.10` §3.4 已登记的：`vitest`、`jsdom`、`@playwright/test`、`eslint`（含它自带的 `RuleTester`）、`ajv`、`typescript`；Node 标准库（`child_process` 启动 harnessd、`fs`、`path`）；`react`、`react-dom`（渲染用产品自己的依赖）。**不引入** `@testing-library/*`、`msw`、`happy-dom`、`axe-core`、`@playwright/experimental-ct-*`：§4.2 的 `render`、`user`、角色查询各自不到 50 行就能写好（`G.10-R3`）。
+只用 `G.10` §3.4 已登记的：`vitest`、`jsdom`、`@playwright/test`、`eslint`（含它自带的 `RuleTester`）、`ajv`、`typescript`；Node 标准库（`child_process` 启动 anydoor、`fs`、`path`）；`react`、`react-dom`（渲染用产品自己的依赖）。**不引入** `@testing-library/*`、`msw`、`happy-dom`、`axe-core`、`@playwright/experimental-ct-*`：§4.2 的 `render`、`user`、角色查询各自不到 50 行就能写好（`G.10-R3`）。
 
 ## 5. 数据结构
 本节点私有：`RouteTable`（`'GET /graphs/:id' → 响应或函数`）、`RestCall`、`PointerStep`、`OverlayEntry`。不定义任何协议结构：假对象返回的数据用生成类型（`W-R7`）或 `schema/examples/` 的文件。
@@ -143,7 +143,7 @@ export const tag: { chromiumOnly(reason: string): string };   // 只在 Chromium
 |---|---|---|---|---|
 | 单元 | Vitest | `src/**/*.test.ts(x)` | 纯函数、store、Op 层、协议层、画布引擎（假几何、假帧）、组件的结构与键盘行为 | 布局、像素、真实滚动与指针捕获、帧率 |
 | lint 规则 | Vitest + ESLint `RuleTester` | `tools/lint/eslint/*.test.ts`、`web/tests/lint/` | 自定义规则与依赖方向限制是否真的生效 | — |
-| 端到端 | Playwright | `web/tests/e2e/` | 真实浏览器 + 真实 `harnessd --fake-llm`：用户流程、几何与命中、跨模块联动、刷新与重连 | 像素对比 |
+| 端到端 | Playwright | `web/tests/e2e/` | 真实浏览器 + 真实 `anydoor --fake-llm`：用户流程、几何与命中、跨模块联动、刷新与重连 | 像素对比 |
 | 视觉 | Playwright | `web/tests/visual/` | 截图对比：布局、令牌、主题、状态外观 | 交互逻辑 |
 | 性能 | `W.11` | `web/tests/bench/` | 帧、提交次数、体积、内存 | — |
 
@@ -182,15 +182,15 @@ export const tag: { chromiumOnly(reason: string): string };   // 只在 Chromium
 - 这些样例目录不在 `pnpm -C web lint` 的检查范围内（`eslint.config.js` 忽略 `tests/lint/**`），只被测试读取。
 
 ### 6.5 端到端
-1. **被测程序**：`make build`（`O.01`）产出的嵌入了生产前端的 `harnessd`；`HX_E2E_BIN` 指向它。本地调试可设 `HX_E2E_DEV=1`，改为 `harnessd --dev` 加 Vite 开发服务（`B.02`），不用于 CI。
-2. **启动**：Playwright 每个 worker 在全局夹具里启动一个 `harnessd --fake-llm --no-browser --data-dir <临时目录> --port <7400 + worker 序号>`，从标准输出读出带 token 的地址（`B.02` §5），等 `/api/v1/health` 正常后开始；worker 结束时发关闭信号并删除临时目录。单实例锁按数据目录区分（`B.07.05`），多个 worker 互不影响。
+1. **被测程序**：`make build`（`O.01`）产出的嵌入了生产前端的 `anydoor`；`HX_E2E_BIN` 指向它。本地调试可设 `HX_E2E_DEV=1`，改为 `anydoor --dev` 加 Vite 开发服务（`B.02`），不用于 CI。
+2. **启动**：Playwright 每个 worker 在全局夹具里启动一个 `anydoor --fake-llm --no-browser --data-dir <临时目录> --port <7400 + worker 序号>`，从标准输出读出带 token 的地址（`B.02` §5），等 `/api/v1/health` 正常后开始；worker 结束时发关闭信号并删除临时目录。单实例锁按数据目录区分（`B.07.05`），多个 worker 互不影响。
 3. **数据**：每个测试用 `hx.api` 新建自己的会话和图，不清库、不依赖别的测试的数据。图来自 `schema/examples/`（`graph_loop.json` 三层示例、`graph_minimal.json`、按 `assign_vectors.json` 的类型构造的图）和仓库根 `testdata/`（`testdata/mcp/echo-server`、`testdata/ext/*` 测试包，`W.09.04`）；`W.11` 的 `bench-*` 夹具可以直接导入。需要特定状态（运行中、待审批、急停）时，通过真实接口和 `--fake-llm` 的模板 fixtures 制造（`E.10.08`），不改数据库文件。
 4. **网络隔离**：每个页面 `context.route('**/*')`：目标不是 `127.0.0.1:<本 worker 端口>` 的请求一律中止，并让测试失败（INV-21、`Q.06`：CI 不调真模型，也不连任何外部地址）。
 5. **控制台**：页面出现 `console.error`、未捕获异常或 `pageerror` → 测试失败；预期的错误用 `hx.expectConsole(…)` 声明（与 §6.2 同一思路，落实 `U.20` 补充第 1 条）。
 6. **浏览器矩阵**（`G.06.04` §1）：`chromium`、`firefox`、`webkit` 三个项目都跑全部端到端用例。只能在 Chromium 上验证的用例（例如依赖 Chromium 剪贴板权限的用例）用 `tag.chromiumOnly('原因')` 标记，原因写进测试名；不写原因的标记 `test:e2e` 直接报错。
 7. **环境**：`locale: 'zh-CN'`、`timezoneId: 'Asia/Shanghai'`；窗口缺省 1440 × 900；减少动效用 `page.emulateMedia({ reducedMotion: 'reduce' })`，明暗用 `colorScheme`；键盘流程只用 `page.keyboard`（`U.16-R3`、`W.07` §10 验收 4）。
 8. **稳定性**：等待一律等条件（元素出现、`aria-busy` 消失、事件到达），不写固定的 `waitForTimeout`；时间相关的用例用 Playwright 的时钟控制。CI 上失败重试 1 次，重试后才通过的用例在报告里标为不稳定，同样让任务失败——不稳定的测试要修，不能靠重试放过（`G.02.05-R30`）。
-9. **产物**：失败时保留追踪（trace）、截图、`harnessd` 日志；报告写到 `web/.test/e2e/`。
+9. **产物**：失败时保留追踪（trace）、截图、`anydoor` 日志；报告写到 `web/.test/e2e/`。
 
 ### 6.6 视觉回归（K175）
 - **只在 Chromium、只在 Linux 上比对**：截图基线由 CI 使用的 Linux 镜像生成，存在 `web/tests/visual/__screenshots__/linux/`；字体用 `web/public/fonts/` 的自托管字体（`U.04`），不依赖系统字体。Windows、macOS 本地运行 `test:visual` 只生成截图供人工查看，不做比对。
@@ -202,7 +202,7 @@ export const tag: { chromiumOnly(reason: string): string };   // 只在 Chromium
   | 主题 `themes.spec.ts`（`W.02.03`） | 1440 | 4 套配色 × 浅色 / 深色 |
   | 基础组件陈列页（下一条） | 固定 960 | 4 套配色 × 浅色 / 深色（`W.08` §10 验收 5） |
   | 画布、浮动回复、中心窗口等其余叶子的视觉用例 | 1440（叶子另有要求的按叶子） | 宣纸浅色、宣纸深色 |
-- **基础组件陈列页** `web/tests/visual/gallery/`：一个只给测试用的页面，直接渲染 `components/ui` 的每个组件的每种变体和状态（默认、悬停、按下、键盘焦点、禁用、加载），以及 13 个原子节点图标和界面图标的 16、14 两个尺寸（`W.08.01` §10 验收 6）、`StatusDot` 五种状态的灰度版本（`W.08.05` §10 验收 3）。由 `vite build --mode gallery` 单独构建到 `web/.test/gallery/`，测试时用 Node 静态服务打开；不进 `web/dist/`，不经过 `harnessd`。陈列页里的悬停、按下状态用 Playwright 真实悬停 / 按下后截图，不用 CSS 伪造。
+- **基础组件陈列页** `web/tests/visual/gallery/`：一个只给测试用的页面，直接渲染 `components/ui` 的每个组件的每种变体和状态（默认、悬停、按下、键盘焦点、禁用、加载），以及 13 个原子节点图标和界面图标的 16、14 两个尺寸（`W.08.01` §10 验收 6）、`StatusDot` 五种状态的灰度版本（`W.08.05` §10 验收 3）。由 `vite build --mode gallery` 单独构建到 `web/.test/gallery/`，测试时用 Node 静态服务打开；不进 `web/dist/`，不经过 `anydoor`。陈列页里的悬停、按下状态用 Playwright 真实悬停 / 按下后截图，不用 CSS 伪造。
 - **颜色检查**：`W.08.05` §10 验收 2 的 `Badge` 文字对比度等"渲染出来的颜色"类验收，在陈列页上用 `getComputedStyle` 取前景、背景色计算对比度，和 `U.03.05-R3` 的阈值比较；令牌本身的对比度仍由 `tools/contrast` 检查。
 - **比对阈值**：单像素色差阈值 0.1，允许不超过 0.1% 的像素不同；超过即失败，报告里给出期望、实际、差异三张图。
 - **更新基线**：只能用 `pnpm -C web test:visual --update` 在 CI 同款 Linux 镜像里生成；更新基线的提交单独成一个合并请求，附报告里的前后对比图，说明为什么变，经人工评审（`G.08-R3`）；不允许为了让测试通过顺手更新（`G.02.05-R30`）。每张 PNG ≤ 300KB（`G.07-R7`）。
@@ -233,7 +233,7 @@ export const tag: { chromiumOnly(reason: string): string };   // 只在 Chromium
 |---|---|
 | 测试里出现未声明的 `console.error` / `warn` 或未处理拒绝 | 该测试失败，输出原始信息 |
 | 测试发出真实网络请求 | 单元：替身抛错，测试失败；端到端：请求被中止，测试失败并写出地址 |
-| `harnessd` 启动失败或 30 秒内健康检查不通过 | 该 worker 的全部用例失败，附 `harnessd` 的标准输出与日志 |
+| `anydoor` 启动失败或 30 秒内健康检查不通过 | 该 worker 的全部用例失败，附 `anydoor` 的标准输出与日志 |
 | 截图与基线不一致 | 失败，报告给出三张图；基线文件不存在时失败并提示用 `--update` 生成 |
 | `chromiumOnly` 标记没有原因、`test:ids` 发现重复编号 | 命令报错退出 |
 | 重试后才通过 | 标为不稳定，任务失败 |

@@ -23,7 +23,7 @@
 ## 4. 定义
 ```json
 {
-  "$id": "https://harness.local/schema/graph.schema.json",
+  "$id": "https://anydoor.local/schema/graph.schema.json",
   "x-version": "1.0",
   "title": "Graph",
   "type": "object",

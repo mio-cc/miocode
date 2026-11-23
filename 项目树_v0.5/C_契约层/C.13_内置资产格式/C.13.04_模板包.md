@@ -26,7 +26,7 @@ templates/闭环迭代/
 ## 3. 清单（`template.schema.json`）
 ```json
 {
-  "$id": "https://harness.local/schema/template.schema.json",
+  "$id": "https://anydoor.local/schema/template.schema.json",
   "x-version": "1.0",
   "type": "object",
   "required": ["name", "version", "title", "summary", "graph"],
