@@ -51,6 +51,10 @@ func (d Dir) Tmp() string           // tmp/
 func Restrict(path string) error
 // WritePrivate 原子写：同目录临时文件 → 写入 → Restrict → 改名覆盖。
 func WritePrivate(path string, data []byte) error
+// IsPrivate 判断 path 是否只有当前用户能访问（Unix：同组和其他用户没有权限；Windows：DACL 里只有当前用户的允许项）。
+func IsPrivate(path string) (bool, error)
+// ExpandPath 展开 ~、$VAR、${VAR}（Windows 另认 %VAR%），相对路径按 base 转绝对路径（base 为空时按当前目录，G.11-R6）。
+func ExpandPath(p, base string) (string, error)
 ```
 默认位置：
 | 系统 | 位置 |

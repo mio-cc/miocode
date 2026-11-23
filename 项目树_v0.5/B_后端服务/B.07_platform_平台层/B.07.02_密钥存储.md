@@ -30,6 +30,7 @@ var (
     ErrBadName         = errors.New("secret: 密钥名只能用小写字母、数字、下划线，以字母开头，最长 64")
     ErrBadPassword     = errors.New("secret: 主密码不对")
     ErrTooManyAttempts = errors.New("secret: 主密码连续错误 5 次，请 30 秒后再试")
+    ErrCorrupt         = errors.New("secret: 加密文件已损坏")
 )
 type Info struct{ Name, Last4 string; UpdatedAt time.Time }
 
@@ -65,10 +66,10 @@ const Service = "AnywhereDoor"
 - **选后端**：`ForceFile` 时直接用文件；否则探测：`Set(Service, "__anydoor_probe__", 随机值)` → `Get` 读回相同 → `Delete`；任何一步失败（例如没有桌面会话的 Linux）记 info 并改用文件后端。
 - **系统密钥库**：服务名 `AnywhereDoor`，账户名 = 密钥名。Windows 凭据管理器、macOS 钥匙串、Linux Secret Service。
 - **索引** `<DataDir>/secrets.index.json`：`{"<名>": {"last4": "…", "updated_at": "…"}}`，两种后端都维护，`List` 只读它（系统密钥库不能列出条目，`P.09` K240）；值不足 8 个字符时 `last4` 为空串。`Put` 先写密钥再写索引，`Delete` 先删密钥再删索引。
-- **加密文件** `<DataDir>/secrets.enc`：JSON `{"v": 1, "kdf": {"alg": "argon2id", "m": 65536, "t": 3, "p": 1, "salt": "<base64>"}, "nonce": "<base64>", "data": "<base64>"}`；主密码 → Argon2id（参数照文件头，新建时 m=64MB、t=3、p=1、16 字节随机盐）→ 32 字节密钥 → XChaCha20-Poly1305 加密整个 `{"<名>": "<值>"}`，附加数据是 `anydoor-secrets-v1`；每次写入用新的随机 nonce；用 `datadir.WritePrivate` 原子写。
+- **加密文件** `<DataDir>/secrets.enc`：JSON `{"v": 1, "kdf": {"alg": "argon2id", "m": 65536, "t": 3, "p": 1, "salt": "<base64>"}, "check": "<base64>", "nonce": "<base64>", "data": "<base64>"}`；`check` 是 `sha256(派生密钥 ‖ "anydoor-secrets-check")`，用来区分"密码不对"和"文件损坏"；主密码 → Argon2id（参数照文件头，新建时 m=64MB、t=3、p=1、16 字节随机盐）→ 32 字节密钥 → XChaCha20-Poly1305 加密整个 `{"<名>": "<值>"}`，附加数据是 `anydoor-secrets-v1`；每次写入用新的随机 nonce；用 `datadir.WritePrivate` 原子写。
 - **解锁**：文件后端启动时是锁定的；未解锁时 `Resolve`、`Put`、`Delete` 返回 `ErrLocked`（模型调用失败为 `provider_unavailable`"密钥库已锁定，请先解锁"，由 `E.10` 把这个错误映射过去）。`Unlock`：
-  - 文件不存在：用这个密码新建一个空的加密文件（首次设置主密码，前端在首次引导或设置里调用）。
-  - 文件存在：派生密钥、试解密；失败返回 `ErrBadPassword`。连续失败 5 次后 30 秒内（按 `Now`）直接返回 `ErrTooManyAttempts`，不再试；成功后计数清零。
+  - 文件不存在：用这个密码新建一个空的加密文件（首次设置主密码，前端在首次引导或设置里调用）；密码为空返回错误。
+  - 文件存在：派生密钥、比对 `check`；不同返回 `ErrBadPassword`；相同但解密失败返回 `ErrCorrupt`。连续失败 5 次后 30 秒内（按 `Now`）直接返回 `ErrTooManyAttempts`，不再试；成功后计数清零。
   - 解锁后只在内存里保留派生出的密钥，每次 `Resolve` 读文件、解密、取一个值；解密出的整张表用完即丢。
 - 忘记主密码只能删除 `secrets.enc`（和索引）重新填写密钥。
 - **开发模式**：`Dev` 时 `Resolve` 先看 `ANYDOOR_DEV_SECRET_<名字大写>`，有就用（`S.03-R8`）；非开发模式下设置了这个变量：第一次遇到时记 warn，照常走后端。
@@ -92,11 +93,11 @@ const Service = "AnywhereDoor"
 - 要建 / 要改的文件：`internal/platform/secret/secret.go`、`internal/platform/secret/file.go`、`internal/platform/secret/keyring.go`、`internal/platform/secret/secret_test.go`、`go.mod`、`go.sum`
 - `go.mod` 加 `github.com/zalando/go-keyring`、`golang.org/x/crypto`（`G.10` 已登记）：验证者 `go get` 两个 `@latest` 后 `go mod tidy`；实施者不手改。
 - 不许碰的文件：`schema/`、`gen/`、`engine/`、`internal/platform/datadir/`、`internal/platform/auth/`、`internal/platform/config/`、`internal/platform/lock/`
-- 测试默认注入假的 `Keyring`（测试文件里用 map 实现），不碰真实系统密钥库；环境变量 `ANYDOOR_KEYRING_TEST=1` 时 `B0702-T1` 另外对真实系统密钥库跑一遍（用 `__anydoor_test_` 开头的名字，跑完删掉）。
+- 测试默认注入假的 `Keyring`（测试文件里用 map 实现），不碰真实系统密钥库；环境变量 `ANYDOOR_KEYRING_TEST=1` 时 `B0702-T1` 另外对真实系统密钥库跑一遍（用 `anydoor_test_` 开头的名字，跑完删掉）。
 - 测试用例：
   - `B0702-T1 keyring`：假密钥库上 `Put` / `Resolve` / `List` / `Delete` 往返；`Backend()` 为 `keyring`；名字不合法返回 `ErrBadName`；`Resolve` 不存在的名字返回 `ErrNotFound`；`List` 的 `last4` 正确，短值为空串
   - `B0702-T2 回退`：假密钥库的 `Set` 或 `Get` 返回错误、或读回的值不同，`Backend()` 都是 `file`，且探测条目不留在假密钥库里
-  - `B0702-T3 加密文件`：`ForceFile` 下：未解锁时 `Resolve`、`Put` 返回 `ErrLocked`、`Locked()` 为 true、`List` 照样能列；`Unlock` 设置主密码后往返；重新 `Open` 后锁定，正确密码解锁能读到，错误密码返回 `ErrBadPassword`；文件头的 kdf 参数是 m=65536、t=3、p=1；两次写入的 nonce 不同；改坏 `data` 一个字节后解锁报损坏
+  - `B0702-T3 加密文件`：`ForceFile` 下：未解锁时 `Resolve`、`Put` 返回 `ErrLocked`、`Locked()` 为 true、`List` 照样能列；`Unlock` 设置主密码后往返；重新 `Open` 后锁定，正确密码解锁能读到，错误密码返回 `ErrBadPassword`；文件头的 kdf 参数是 m=65536、t=3、p=1；两次写入的 nonce 不同；改坏 `data` 一个字节后正确密码解锁返回 `ErrCorrupt`
   - `B0702-T4 暴力尝试限制`：假时钟下连续 5 次错误密码，第 6 次即使密码正确也返回 `ErrTooManyAttempts`；30 秒后正确密码能解锁，计数清零
   - `B0702-T5 无明文残留`：两种后端各 `Put` 一个 40 字符的随机值，遍历数据目录全部文件，找不到这个值的原文（也找不到它的 base64）
   - `B0702-T6 开发模式`：`Dev` 且设置了 `ANYDOOR_DEV_SECRET_OPENAI_MAIN` 时 `Resolve("openai_main")` 返回环境变量的值；非开发模式时忽略、返回后端的值

@@ -61,7 +61,7 @@ func (c *Config) Strings(path string) []string
 func (c *Config) Source(path string) Source
 func (c *Config) Warnings() []string        // 未知项、被忽略的只读项、被忽略的 data.dir 等
 func (c *Config) Pending() []string         // 文件里改了、要重启才生效的路径（G.11-R4）
-func (c *Config) Watch(ctx context.Context, onChange func(*Config))   // 每 WatchInterval 查一次修改时间和大小
+func (c *Config) Watch(ctx context.Context, onChange func(*Config))   // 阻塞到 ctx 结束（调用方 go 它）；每 WatchInterval 查一次修改时间和大小
 
 // internal/platform/config/write.go
 func Write(d datadir.Dir, changes map[string]any) error   // 原子写，保留未知字段与注释
@@ -74,7 +74,7 @@ func Write(d datadir.Dir, changes map[string]any) error   // 原子写，保留�
 - **校验**：类型、枚举、范围不对：来自命令行或环境变量的直接报错；来自文件的启动时报错（写明路径和行号），运行中热更新时见 §7。
 - **只读项**（`security.taint_guard`、`server.local_only`）永远是默认值；任何来源设了都忽略，并记一条警告。`data.dir` 写在配置文件里也忽略并警告（数据目录在读配置文件之前就定了）。
 - **未知项**（文件里不是登记项、也不在 `packages` 下的键）：记警告，原样保留（`G.11-R5`）。
-- **路径项**（`data.dir`、`tools.file_roots`）展开 `~`、`$VAR` / `${VAR}`（Windows 另外认 `%VAR%`），转绝对路径（相对的按数据目录）。
+- **路径项**（`data.dir`、`tools.file_roots`）用 `datadir.ExpandPath` 展开 `~`、`$VAR` / `${VAR}`（Windows 另外认 `%VAR%`），转绝对路径（相对的按数据目录）；`Write` 写进文件的是用户给的原样，不展开。
 - **热更新**：`Watch` 发现文件的修改时间或大小变了就重新读文件层（命令行、环境变量那两层不变）：`Live`、`NextRun` 的项换成新值；`Restart` 的项保持旧值，路径加进 `Pending()`；有变化时回调 `onChange`（参数是新的 `*Config`，旧的不变）。
 - **写入** `Write`：先按登记表校验每个改动（不是登记项、只读项、`data.dir`、类型不对：返回错误、什么也不写；`packages.<id>.<key>` 允许）；读出原文件按语法树修改（`goccy/go-yaml` 的 `parser.ParseBytes(…, parser.ParseComments)` 和 `yaml.PathString` 的替换 / 合并），已有的键替换值，没有的键在最近的上级下面补上；没改的行、注释、未知项原样保留；`datadir.WritePrivate` 原子写。文件不存在时新建。
 
