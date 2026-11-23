@@ -25,7 +25,7 @@
 | `web/src/lib/protocol/generated/types.ts` | 全部 schema 类型、`withDefaults…`；与类型同名的常量对象（`RunStatus.Done`） |
 | `web/src/lib/protocol/generated/consts.ts` | 与类型不同名的常量对象：`Ev`、`ErrCode`、`DiagCode`、`Act`、`SseControl`、`NodeType` |
 | `web/src/lib/protocol/generated/tables.ts` | 数据表（`AUTHZ_MATRIX` 等）与转换函数 |
-| `web/src/lib/protocol/generated/wire.ts` | 前端字段映射表（§5.1） |
+| `web/src/lib/protocol/generated/wire.ts` | 前端字段映射表 `WIRE_TYPES`（§5.1，按类型） |
 | `web/src/lib/i18n/generated/messages.ts` | `ERRORS`、`ASSIGN`（`W.10` §4.5） |
 
 Go 包名 `gen`（`github.com/mio-cc/anywhere-door/gen`）。Go 输出经 `go/format` 格式化；每个文件第一行是生成标记（`G.04.03`）。
@@ -78,7 +78,7 @@ Op 的 `payload`、事件的 `data`、`MessageBlock`、`MessageRef`、`NodeDef.i
 
 ### 5.1 前端字段映射表（`P.09` K84）
 前端在 `lib/protocol/mapping.ts` 把 snake_case 字段名转成 camelCase（`W.04.03`）。哪些位置的值不能转换，由生成器从 schema 算出，前端不手写名单：
-- **C.14-R8** `tools/gen` 输出 `generated/wire.ts`：`OPAQUE_KEYS`（字段的 schema 是开放对象或没有类型约束：值整体原样）、`MAP_KEYS`（只有 `additionalProperties`、没有 `properties` 的对象：键是数据，值继续转换），以及对应的字面量联合类型 `OpaqueKey`、`MapKey`。判别联合的联合字段名（`payload`、`data`）在所有位置都按结构处理：它们的值是 schema 定义的结构，开放只是为了让信封和模型的 GraphPatch 能先收下（`Event.data`、`PatchOp.payload`，`P.09` K234）。同一个字段名在不同位置分类不同时，取"不透明 > 映射 > 结构"中最保守的一种，并在文件注释里列出这些字段名。
+- **C.14-R8** `tools/gen` 输出 `generated/wire.ts`：**按类型**列出每个结构类型和判别联合的每个字段的值怎么转换（`WIRE_TYPES`、`WireTypeName`、`WireNode`），不按字段名汇总——同一个字段名在不同类型里含义不同（`Node.params` 是开放对象、`NodeDef.params` 是参数定义表；`Mandate.overrides` 是结构、`SubgraphRef.overrides` 是映射），按名字取最保守的一种会让结构里的 snake_case 字段不转换（`P.09` K235，取代 K84 的按名字汇总）。字段的写法：`"raw"`（值整体原样：标量、开放对象、没有类型约束、值都不用转换的数组或映射）、`{t: 类型名}`、`{list: …}`、`{map: …}`（键是数据、原样，值按 …）；判别联合另写 `union: {disc, field?, branches}`，有 `field` 的是字段联合（`payload`、`data` 的值按 `disc` 的取值查分支类型），没有的是整体联合。
 - **C.14-R9** 生成器检查每个字段名都能无损往返 `snake_case → camelCase → snake_case`：`C.01-R4` 之外，再拒绝"下划线后面紧跟数字"（`x_2`）和连续下划线（`a__b`）。不满足时生成失败。
 
 ### 5.2 常量
@@ -116,7 +116,7 @@ Go 侧按固定结构读这些 YAML，不认识的键报错；`authz_matrix.yaml
   - `C14-T3 黄金文件`：`tools/gen/testdata/` 下一组固定的 schema（覆盖 §3 的每一行、两种联合、内联类型、`$ref` 到属性和 `#`），生成结果与黄金文件相同（`G.16-R5`；`-update` 重写黄金文件）
   - `C14-T4 命名与拒绝`：字段名、常量名的换算（含缩写、`tool.L0`、`V09`）；`x_2`、`a__b`、类型重名、常量重名、根类型名没登记都生成失败
   - `C14-T5 状态机`：生成的 `RunCanTransition` 6×6、`NodeCanTransition` 9×9 逐格与 `C.07` §2、§3.1 一致（期望表写在测试里），终态函数与 `terminal` 一致（`C.07` §7 验收 1）
-  - `C14-T6 字段映射表`：`OPAQUE_KEYS` 含 `params`、`meta`、`ui`、`kv`、`details`、`value`、`to`；`MAP_KEYS` 含 `orchestrator_effort`、`decisions`、`id_map`；`payload`、`data` 两个都不在；一组固定 schema 上冲突取最保守的一种
+  - `C14-T6 字段映射表`：同名字段在不同类型里分别正确：`Node.params` 为 `"raw"`、`NodeDef.params` 为 `{map: {t: ParamDef}}`、`Mandate.overrides` 为 `{t: Overrides}`、`SubgraphRef.overrides` 为 `"raw"`、`Overrides.budget` 为结构而 `run.created` 的 `budget` 为 `"raw"`、`Message.usage` 为结构；映射的值不用转换时为 `"raw"`（`orchestrator_effort`、`decisions`、`id_map`）；`Op`、三条事件流是字段联合、`MessageBlock`、`MessageRef`、`Impl` 是整体联合，分支数与 schema 一致；testdata 的 schema 上 `$ref` 到属性、`$ref: "#"`、数组、映射各一例
   - `C14-T7 数据表与文案`：`tables.go` 的数据与 YAML 一致；`authz_matrix.yaml` 里写一个不存在的动作时生成失败；`ERRORS` 少一个错误码、`ASSIGN` 多一条时生成失败
 - 在其他叶子跑的测试用例（不算本叶子的完成条件）：
   - TS 侧往返（R4）：`W.04.03`（复查 `W.04.03` 时写进它的实施卡）
@@ -131,3 +131,4 @@ Go 侧按固定结构读这些 YAML，不认识的键报错；`authz_matrix.yaml
 | 2026-11-23 | §2 数据表补布局常数 `layout.yaml` | `P.09` K102（第 7 棒） |
 | 2026-11-23 | §3 开放对象按 `x-open` 标记识别 | `P.09` K202 |
 | 2026-11-23 | 第 5 片开工前复查：生成器改为自研（不用 `go-jsonschema`、`json-schema-to-typescript`）；§3 写全映射规则（可选字段一律指针、`Timestamp` 包装类型、内联类型命名、`$ref` 到属性）；§4 按实际 schema 的 `if/then` 写法写两种联合；§5.2 常量来源（新增 `sse_control.yaml`）、§5.3 数据表；R8 联合字段名按结构处理；Go 侧往返在本叶子，TS 侧在 `W.04.03`；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K234 |
+| 2026-11-23 | R8 改为按类型生成字段映射表（`WIRE_TYPES`），不按字段名汇总；`C14-T6` 相应改 | 第 5 片实施中检查生成结果：按名字汇总让 `budget`、`usage`、`params`、`ui`、`overrides`、`note` 里的结构字段不转换；`P.09` K235 |
