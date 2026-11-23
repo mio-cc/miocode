@@ -6,7 +6,7 @@
 | 类型 | 实施 |
 | 上级 | C 契约层 |
 | 下级 | 无 |
-| 状态 | 已审 |
+| 状态 | 冻结 |
 | 素材 | 引07 |
 | 最后修改 | 2026-11-23 |
 
@@ -234,3 +234,4 @@ op_actions:                               # Op 的 kind → 判定用的动作�
 | 2026-11-23 | `MandateMount` 移到 `common.schema.json`（`C.01` §4） | `P.09` K203 |
 | 2026-11-23 | 第 4 片（`m0-contract-3`）开工前复查：动作补 `op.restore_nodes`、`op.delete_branch`；`op.migrate` 只有内核；新增 §4.3 Op 对应的动作、§5.1 `authz_matrix.yaml` 全文、R4；档位 2 结构修改在 scope 外为 propose；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K227 |
 | 2026-11-23 | `Expiry.until` 改名 `until_at`；R4 写明每种有效期只写自己的字段 | `P.09` K230 |
+| 2026-11-23 | 状态改为"冻结"：第 4 片（`m0-contract-3`）squash 合并进代码仓库 `main`，提交 `08f30f9eb52fa2a1b3d494eab0381c4b72313848`（`G.02.06-R21`、`R23`） | 整片验证通过；整片评审 9 条，`C.10` 一条不符合（会话挂载点没有约束 `anchor` 为 `session`）已返工并复核；按 `G.08-R3` 由验证者合并 |
