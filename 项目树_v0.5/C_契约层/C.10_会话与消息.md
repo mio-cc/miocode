@@ -74,7 +74,7 @@
 | `graph` | `graph_id, version` | "已创建 / 已打开图"卡片，点击切换画布 |
 | `proposal` | `proposal_id, summary, counts: {add, modify, remove}` | 提议卡片：采纳全部 / 拒绝全部 / 在画布上查看 |
 | `applied` | `graph_id, version, op_ids, summary` | "已修改"卡片：撤销 / 在画布上定位 |
-| `approval` | `approval_id, summary, kind` | 审批卡片：批准 / 驳回 |
+| `approval` | `approval_id, summary, approval_kind` | 审批卡片：批准 / 驳回 |
 | `run` | `run_id, status` | 运行卡片：状态、用时、费用，点击打开监控页 |
 | `focus` | `graph_id, scope, node_ids` | "看这里"：点击后画布进入对应层并高亮节点 |
 | `error` | `code, message` | 错误提示 |
@@ -88,7 +88,7 @@
   "allOf": [ { "if": { "required": ["kind"], "properties": { "kind": { "const": "graph" } } }, "then": { "$ref": "#/$defs/BlockGraph" } }, "…其余 6 种同样写" ]
 }
 ```
-- **C.10-R8** 写法同 `C.05.01` 的 Op：每种 kind 一个封闭的 `Block…` 定义（`BlockGraph`、`BlockProposal`、`BlockApplied`、`BlockApproval`、`BlockRun`、`BlockFocus`、`BlockError`），含 `kind` 的 `const` 和上表的字段，字段都必填。类型：`*_id` 为 `Ulid`，`op_ids`、`node_ids` 为 `Ulid` 数组（`node_ids` 最多 50 个），`version` 为 ≥ 0 的整数，`summary` 最多 200 字，`counts` 为封闭对象 `{add, modify, remove}`（≥ 0 的整数，都必填），`approval.kind` 同 `approval.requested.kind`（`tool`、`run`、`elevation`、`taint`、`budget`、`human_node`），`run.status` 为 `RunStatus`，`focus.scope` 为 `^(root|<ULID>)$`，`code`、`message` 为字符串（`P.09` K227）。
+- **C.10-R8** 写法同 `C.05.01` 的 Op：每种 kind 一个封闭的 `Block…` 定义（`BlockGraph`、`BlockProposal`、`BlockApplied`、`BlockApproval`、`BlockRun`、`BlockFocus`、`BlockError`），含 `kind` 的 `const` 和上表的字段，字段都必填。类型：`*_id` 为 `Ulid`，`op_ids`、`node_ids` 为 `Ulid` 数组（`node_ids` 最多 50 个），`version` 为 ≥ 0 的整数，`summary` 最多 200 字，`counts` 为封闭对象 `{add, modify, remove}`（≥ 0 的整数，都必填），`approval.approval_kind` 同 `approval.requested.kind`（字段不叫 `kind`：`kind` 是卡片块的判别字段，`P.09` K229）（`tool`、`run`、`elevation`、`taint`、`budget`、`human_node`），`run.status` 为 `RunStatus`，`focus.scope` 为 `^(root|<ULID>)$`，`code`、`message` 为字符串（`P.09` K227）。
 
 ## 5. 选中附带 Selection
 用户发消息时，对话框会附带当前的画布选中（界面上显示为"将附带选中"，`U.09`）。
@@ -147,3 +147,4 @@
 | 2026-11-23 | Message 新增 `refs`；新增 §5.1 `MessageRef` 与 R7 | 第 8 棒写 `W.07.07`：对话框的 `@` 引用、附件没有契约；`P.09` K113 |
 | 2026-11-23 | `mandates` 改为引用 `common.schema.json#/$defs/MandateMount` | `P.09` K203 |
 | 2026-11-23 | 第 4 片（`m0-contract-3`）开工前复查：`MessageBlock`、`MessageRef` 写成按 kind 判别的封闭定义（R8）；`Message.error`、`usage` 封闭；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K227 |
+| 2026-11-23 | 审批卡片块的审批类型字段改名 `approval_kind`（§4、R8） | `P.09` K229 |

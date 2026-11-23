@@ -75,7 +75,7 @@
   "additionalProperties": false,
   "properties": {
     "kind":   { "enum": ["run", "session", "forever", "until"] },
-    "until":  { "$ref": "common.schema.json#/$defs/Timestamp" },
+    "until_at": { "$ref": "common.schema.json#/$defs/Timestamp" },
     "run_id": { "$ref": "common.schema.json#/$defs/Ulid" }
   }
 }
@@ -200,7 +200,7 @@ op_actions:                               # Op 的 kind → 判定用的动作�
   apply_patch: per_sub_op
   import_apply: per_sub_op
 ```
-- **C.09-R4** `Expiry.kind` 为 `until` 时必须有 `until`、为 `run` 时必须有 `run_id`，其余两种不能写这两个字段；`created_by.kind` 必须是 `user`；`overrides.scope` 的每一项是 `root` 或容器节点 ID。这几条都写进 schema（`if/then`、`const`、`pattern`）。
+- **C.09-R4** `Expiry.kind` 为 `until` 时必须有 `until_at`、为 `run` 时必须有 `run_id`，每种只写自己的那个字段（`until` 不写 `run_id`，`run` 不写 `until_at`），其余两种两个都不写（时间字段以 `_at` 结尾，`C.01-R7`，`P.09` K230）；`created_by.kind` 必须是 `user`；`overrides.scope` 的每一项是 `root` 或容器节点 ID。这几条都写进 schema（`if/then`、`const`、`pattern`）。
 
 ## 6. 挂载与继承
 - 挂载点从具体到宽泛：`node:<节点>` → 它所在的各层容器节点（由内到外）→ `graph` → `session`。
@@ -218,7 +218,7 @@ op_actions:                               # Op 的 kind → 判定用的动作�
 - `Action` 枚举写在 `mandate.schema.json#/$defs/Action`；`mandate.json` 登记进 `manifest.yaml`（schema 为 `mandate.schema.json#/$defs/Mandate`）。
 - 不许碰的文件：`gen/`、`engine/`、`internal/`、`web/`、`cmd/`、`tools/relay/`、`tools/build/`
 - 测试用例：
-  - `C09-T4 授权书 schema`：`mandate.json`（档位 2，带 `overrides`、`except`、`deny`、`expires: until`）通过；反例：`level` 为 5、`grantee` 为 `user:x`、`expires.kind` 为 `until` 而缺 `until`、`expires.kind` 为 `forever` 而带 `run_id`、`created_by.kind` 为 `model`、`deny` 里写不存在的动作、`overrides.ops` 的键不是动作、`overrides.ops` 的值为 `ask`、`branch` 为 `feature`、多出字段
+  - `C09-T4 授权书 schema`：`mandate.json`（档位 2，带 `overrides`、`except`、`deny`、`expires: until`）通过；反例：`level` 为 5、`grantee` 为 `user:x`、`expires.kind` 为 `until` 而缺 `until_at`、`expires.kind` 为 `forever` 而带 `run_id`、`created_by.kind` 为 `model`、`deny` 里写不存在的动作、`overrides.ops` 的键不是动作、`overrides.ops` 的值为 `ask`、`branch` 为 `feature`、多出字段
   - `C09-T5 判定表数据`：`authz_matrix.yaml` 与 §5 的表一致（表在测试里）；`Action` 的每个值恰好出现在 `rows` 或 `fixed` 的一处；`op_actions` 加上"其余是 `op.<kind>`"覆盖 `op.schema.json` 的每个 `OpKind`，映射到的都是 `Action` 里的值或 `per_sub_op`；条件只用 §5.1 的 4 种，每行 5 格
 - 在其他叶子跑的测试用例（不算本叶子的完成条件）：
   - 判定表每一格的行为（§7 验收 1，`C09-T1`）、模型请求 `estop.release` 一律 deny（验收 2，`C09-T2`）：`E0602-T1`（`E.06.02`）
@@ -233,3 +233,4 @@ op_actions:                               # Op 的 kind → 判定用的动作�
 | 2026-11-23 | §4.1 `user` 行改正急停期间能做什么 | `P.09` K82 |
 | 2026-11-23 | `MandateMount` 移到 `common.schema.json`（`C.01` §4） | `P.09` K203 |
 | 2026-11-23 | 第 4 片（`m0-contract-3`）开工前复查：动作补 `op.restore_nodes`、`op.delete_branch`；`op.migrate` 只有内核；新增 §4.3 Op 对应的动作、§5.1 `authz_matrix.yaml` 全文、R4；档位 2 结构修改在 scope 外为 propose；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K227 |
+| 2026-11-23 | `Expiry.until` 改名 `until_at`；R4 写明每种有效期只写自己的字段 | `P.09` K230 |
