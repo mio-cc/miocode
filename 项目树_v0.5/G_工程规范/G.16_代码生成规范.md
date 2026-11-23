@@ -27,10 +27,9 @@
 | `web/src/styles/icons.ts`（图标表 `ICONS`、`IconName`，`U.08-R2`） | `design/icons/*.svg`、`design/icons/node/*.svg`（文件名用 `schema/builtin/aliases.yaml` 的英文别名，生成时换回 `U.08` 表里的名字）；检查 `U.08-R1`、`R4`，不通过则生成失败 | `go run ./tools/gen icons` | 是 |
 | `web/src/lib/i18n/generated/messages.ts`（`ERRORS`：错误码 → 文案；`ASSIGN`：兼容规则号 → 提示，`W.10` §4.5） | `schema/builtin/messages/errors.zh.yaml`、`assign.zh.yaml`；检查每个 `C.11` 错误码都有文案、`assign.zh.yaml` 恰好覆盖 C1、C2、C4、C6、C8、C10 | `go run ./tools/gen` | 是 |
 | `web/public/fonts/*` | `design/fonts/` 原始字体 | `go run ./tools/gen fonts`（子集化） | 是 |
-| `engine/store/sqlite/queries.go` | `engine/store/sqlite/queries.sql` | `sqlc generate` | 是 |
 | `web/dist/` | 前端源码 | `pnpm -C web build` | **否** |
 
-`C.14` 现在实施的是 `go run ./tools/gen` 一次生成的部分：`gen/types.go`、`union.go`、`consts.go`、`tables.go`，`generated/types.ts`、`consts.ts`、`tables.ts`（含 `AUTHZ_MATRIX`）、`wire.ts`，`i18n/generated/messages.ts`（`C.14` §2）。令牌、主题、图标、字体、布局常数、快捷键的源文件（`design/`、`layout.yaml`、`shortcuts.yaml`）还不存在，出现后由 `C.14` 改回"已审"补上（`P.09` K234）。`queries.go` 由 `E.07` 用 `sqlc` 生成，不归 `tools/gen`。
+`C.14` 现在实施的是 `go run ./tools/gen` 一次生成的部分：`gen/types.go`、`union.go`、`consts.go`、`tables.go`，`generated/types.ts`、`consts.ts`、`tables.ts`（含 `AUTHZ_MATRIX`）、`wire.ts`，`i18n/generated/messages.ts`（`C.14` §2）。令牌、主题、图标、字体、布局常数、快捷键的源文件（`design/`、`layout.yaml`、`shortcuts.yaml`）还不存在，出现后由 `C.14` 改回"已审"补上（`P.09` K234）。存储手写 SQL，不生成 `queries.go`（`P.09` K236）。
 
 ## 3. 规则
 - **G.16-R1** 生成物禁止手改（`G.02.05-R1`）；文件头必须带生成标记（`G.04.03`）。
@@ -52,3 +51,4 @@
 | 2026-11-23 | 生成物清单补 `AUTHZ_MATRIX` | 第 9 棒写 `W.09.02`；`P.09` K153 |
 | 2026-11-23 | 生成物清单补前端文案生成物 `web/src/lib/i18n/generated/messages.ts` | 第 10 棒写 `W.10`；`P.09` K158 |
 | 2026-11-23 | 写明 `C.14` 现在生成哪些、其余由谁什么时候补 | `P.09` K234 |
+| 2026-11-24 | 去掉 `queries.go`：存储手写 SQL，不用 `sqlc`（`E.07.02`） | `P.09` K236 |

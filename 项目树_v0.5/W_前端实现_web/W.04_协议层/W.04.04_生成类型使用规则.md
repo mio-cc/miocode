@@ -63,7 +63,7 @@
 | `ProposalAccepted` | `POST /graphs/{id}/ops` 的 202 | `proposal_id`、`status` | `W.05` |
 | `GraphConflictDetails` | 409 `graph_conflict` 的 `details` | `head`、`missed_ops[]`（每项是带 `version` 的 `OpRecord`）、`conflicts[] {op_id, object}` | `W.05` §6.6 |
 | `OpRecord` | `GET /graphs/{id}/ops` | `version`、`op`（完整 `Op`，含服务器填写的 `actor`、`target`、`group_id`）、`undone` | `W.03.01`、`W.05` |
-| `Branch` | `GET /graphs/{id}/branches` | `name`、`head`、`behind`、`ahead` | `W.03.01` |
+| `BranchMeta` | `GET /graphs/{id}/branches` | `name`、`head`、`behind`、`ahead`（`op.schema.json` 已有字符串类型 `Branch`，这个结构叫 `BranchMeta`，`P.09` K236） | `W.03.01` |
 | `RunMeta` | `GET /runs`、控制类 POST 的响应 | `id`、`session_id`、`kind`、`status`、`graph_id`、`graph_version`、`branch`、`created_at`、`ended_at`、`no`、`headline`、`steps {done, total}`、`cost_micros` | `W.03.04`、`W.03.05` §6.3、`W.07.05` |
 | `RunStarted` | `POST /runs` | `run_id`、`graph_version`、`status` | `W.03.04` |
 | `RunView` | `GET /runs/{id}`、`/view?at_seq=` | `meta`（`RunMeta`）、`usage {in, out, cached}`、`cost_micros`、`current_path`、`pending_approvals`、`pending_patches[]` | `W.03.04`、`W.07.05` |
@@ -119,3 +119,4 @@
 |---|---|---|
 | 2026-11-23 | §3.5 补 `W.07` 用到的字段与结构：`RunMeta`、`RunView`、`Approval`、`Model` 加字段；新增 `Bar`、`NodePresetItem`、`MergePreview`、`Resolution`、`PromptPreview`、`ContextUsage`、`Upload`、`SessionFile`、`LibraryItem` | 第 8 棒；`P.09` K113、K116、K117 |
 | 2026-11-23 | §3.5 补 `W.09` 用到的结构：`LibraryItem.ports`、`Package`、`ConnectionType` / `Connection`、`ConnectionTest`、`ConnectionUsages`、MCP 与扩展包、`Usage`、运行历史字段、模板、设置页的诊断类响应 | 第 9 棒（B）；`P.09` K144–K146、K150、K152 |
+| 2026-11-24 | §3.5 分支结构改名 `BranchMeta`；`GraphMeta`、`OpRecord`、`BranchMeta`、`RunMeta`、`NodeStateRow` 已由 `E.07.01` 写进 `api.schema.json` | `P.09` K236 |
