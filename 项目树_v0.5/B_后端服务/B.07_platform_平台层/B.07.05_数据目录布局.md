@@ -6,7 +6,7 @@
 | 类型 | 实施 |
 | 上级 | B.07 platform 平台层 |
 | 下级 | 无 |
-| 状态 | 已审 |
+| 状态 | 冻结 |
 | 素材 | 新 |
 | 最后修改 | 2026-11-24 |
 
@@ -122,3 +122,4 @@ func ExpandPath(p, base string) (string, error)
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-24 | 第 ⑦ 片（`m0-platform`）开工前复查：接口写全（`Resolve`、`DefaultDir`、各路径方法、`Restrict`、`WritePrivate`）；Linux 默认位置的规则；布局加 `secrets.index.json`；本叶子把 `golang.org/x/sys` 加进 `go.mod`；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K239、K240 |
+| 2026-11-24 | 状态改为"冻结"：第 ⑦ 片（`m0-platform`）squash 合并进代码仓库 `main`，提交 `4585c9e928fed58c90b0a70cb8e4b08a5248533a`（`G.02.06-R21`） | `relay slice` 通过；评审 9 条全部符合；按 `G.08-R3` 由验证者合并 |
