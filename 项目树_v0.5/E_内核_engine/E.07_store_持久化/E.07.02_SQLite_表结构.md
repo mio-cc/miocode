@@ -92,7 +92,7 @@ func Open(ctx context.Context, path string, opt Options) (store.Store, error)
 2. 契约测试在 SQLite 上全部通过。
 
 ### 实施卡
-- 要建 / 要改的文件：`engine/store/sqlite/store.go`（`Open`、`Tx`、公共的读写和编码函数）、`engine/store/sqlite/graphs.go`（图和 Op）、`engine/store/sqlite/runs.go`（运行和事件）、`engine/store/sqlite/misc.go`（检查点、工具调用、设置）、`engine/store/sqlite/sqlite_test.go`
+- 要建 / 要改的文件：`engine/store/sqlite/store.go`（`Open`、`Tx`、公共的读写和编码函数）、`engine/store/sqlite/graphs.go`（图和 Op）、`engine/store/sqlite/runs.go`（运行和事件）、`engine/store/sqlite/misc.go`（检查点、工具调用、设置）、`engine/store/sqlite/sqlite_test.go`、`engine/store/sqlite/writer_test.go`（只限 `P.09` K238 的耗时判据修复：片内已完成的 `E.07.04` 不能再提交，修复记在本片最后一个叶子的范围里）
 - 不许碰的文件：`schema/`、`gen/`、`engine/store/store.go`、`engine/store/storetest/`、`engine/store/memstore/`、`engine/store/sqlite/writer.go`、`engine/store/sqlite/migrate.go`、`engine/store/sqlite/migrations/`
 - 测试用例：
   - `E0702-T1 表结构比对`：`Open` 一个临时文件后，`sqlite_master` 和 `PRAGMA table_info` / `index_list` 读出的表、列、主键、索引与 §4.1 逐项相同（期望表写在测试里）
@@ -109,3 +109,4 @@ func Open(ctx context.Context, path string, opt Options) (store.Store, error)
 | 2026-11-23 | `hx_sessions` 补 `last_location` 列（`C.10` 在树索引.6 已加该字段，本表漏改） | `P.09` K68 | |
 | 2026-11-23 | `hx_sessions` 补 `orchestrator_effort` 列 | `P.09` K74 |
 | 2026-11-24 | 第 6 片（`m0-store`）开工前复查：本片的 15 张表写全（列、类型、约束、索引），改为"JSON 全文 + 索引列"；图协同事件不建表；其余表移到 §4.2 作为草案，`hx_sessions` 补 `entry_graph_id`；不用 `sqlc`，手写 SQL；不用 `WITHOUT ROWID`；`Load` 的重放移到 `E.05`；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K236、K237 |
+| 2026-11-24 | 实施卡加 `writer_test.go`（K238 修复的归属） | `P.09` K238 |
