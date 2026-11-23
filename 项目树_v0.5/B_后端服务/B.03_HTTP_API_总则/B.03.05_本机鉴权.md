@@ -29,7 +29,7 @@ func CallerFrom(ctx context.Context) Caller
 ```
 
 ## 5. 行为
-1. **引导**：浏览器打开 `/?t=<token>`：常量时间比较 token → 设置 cookie `hx_session`（随机 32 字节，服务端内存 + `hx_settings` 记录，HttpOnly、SameSite=Strict、Path=/、无 Expires 即会话 cookie；"保持登录"另设 30 天）→ 302 到 `/`（去掉 URL 里的 token）。
+1. **引导**：浏览器打开 `/?t=<token>`：常量时间比较 token → 设置 cookie `hx_session`（随机 32 字节，HttpOnly、SameSite=Strict、Path=/、`Max-Age` 30 天，值由 `B.07.01` 的 `NewSession` 发、只存哈希，`P.09` K239）→ 302 到 `/`（去掉 URL 里的 token）。
 2. **API 请求**：cookie 有效 → `Caller{Actor: user:local, Via: cookie}`；或 `Authorization: Bearer <token>` 有效 → `Caller{Actor: external:anydoorctl, Via: bearer}`；否则 401。
 3. **Host 校验**（`S.02-R5`）：只接受 `127.0.0.1:<端口>`、`localhost:<端口>`、`[::1]:<端口>`。
 4. **Origin 校验**（`S.02-R6`）：非 GET 请求和 SSE 请求的 Origin 必须是上面三个之一；Origin 缺失只允许 Bearer 方式。
@@ -61,3 +61,8 @@ func CallerFrom(ctx context.Context) Caller
 - 允许使用的依赖：标准库 + `G.10` 已登记依赖
 - 禁止事项：`G.02.05` 全部
 - 完成标志：`G.14` 全部条件
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-24 | §5 第 1 条：会话 cookie 一律 30 天（不再区分"保持登录"），值由 `B.07.01` 发 | `P.09` K239 |
