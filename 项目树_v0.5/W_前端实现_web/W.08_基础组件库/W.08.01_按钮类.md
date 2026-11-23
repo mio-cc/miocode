@@ -210,7 +210,7 @@ export const ICON_FALLBACK: IconName;   // '扩展'
 
 ### 实施卡
 - 要建 / 要改的文件：`web/src/components/ui/index.ts`、`types.ts`、`base.css`；`button/Button.tsx`、`Button.css`、`Button.test.tsx`、`IconButton.tsx`、`IconButton.css`、`IconButton.test.tsx`、`Kbd.tsx`、`Kbd.css`、`Kbd.test.tsx`；`icon/Icon.tsx`、`Icon.css`、`Icon.test.tsx`、`iconSvg.ts`、`iconSvg.test.ts`；`glide/GlideGroup.tsx`、`GlideGroup.css`、`GlideGroup.test.tsx`、`glide.ts`、`glide.test.ts`；`web/eslint.config.js` 只加 `W.08-R1`、`R2` 两条 `no-restricted-imports`（`G.06.04` 统一维护的文件里追加）。
-- 不许碰的文件：`web/src/styles/icons.ts`、`tokens.css`（生成物，`G.02.05-R1`；缺图标或令牌时上报）、`design/`、`tools/gen/`（图标生成器另由 `G.16` 的任务实施）、`web/src/shell/`、`state/`、`ops/`、`lib/protocol/`、`panels/`、`pages/`、`canvas/`、其他 `components/ui/` 子目录（`index.ts` 除外）。
+- 不许碰的文件：`web/src/styles/icons.ts`、`tokens.css`（生成物，`G.02.05-R1`；缺图标或令牌时上报）、`design/`、`tools/gen/`（图标生成器另由 `C.14` 实施，`P.09` K234）、`web/src/shell/`、`state/`、`ops/`、`lib/protocol/`、`panels/`、`pages/`、`canvas/`、其他 `components/ui/` 子目录（`index.ts` 除外）。
 - 函数签名：见 §4。
 - 测试用例：
   - `W0801-T1 props 对照`：`ButtonProps`、`IconButtonProps`、`KbdProps`、`IconProps`、`GlideGroupProps` 含 `W.07` §4.3 对应行的全部 props，类型一致（类型测试 `expectTypeOf`）
@@ -234,3 +234,4 @@ export const ICON_FALLBACK: IconName;   // '扩展'
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | 首版 | 第 9 棒；`P.09` K118、K122、K123、K125–K128 |
+| 2026-11-23 | 图标生成器的负责叶子改为 `C.14` | `P.09` K234 |

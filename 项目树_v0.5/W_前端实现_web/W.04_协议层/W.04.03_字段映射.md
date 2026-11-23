@@ -79,7 +79,7 @@ export { fromWire, toWire } from './mapping';
 | 映射 `MAP_KEYS` | 只有 `additionalProperties: <schema>`、没有 `properties` 的对象：键是数据（ID、模型名、`tmp:N`） | 字段名照常转换；**值里的键原样**，每个值按其 schema 继续转换 | `orchestrator_effort`、`decisions`、`op_reasons`、`id_map` |
 | 结构 | 其他对象 | 键转换，值递归 | `graph`、`root`、`children`、`payload`、事件的 `data` |
 - 同一个字段名在不同对象里分类不同时，按"不透明 > 映射 > 结构"取最保守的一种，全前端一致；生成器把这类字段名列在 `wire.ts` 的注释里（`C.14-R8`）。例：`to` 在 `set_param` 里是参数值（无类型），在 `set_node_ui` 里是 `NodeUi`，统一按不透明处理——后者的键本来就没有下划线，结果相同。
-- 判别联合里按 `if/then` 收窄的字段（Op 的 `payload`、事件的 `data`）属于结构，不因外层信封里写的是 `{type: object}` 就算不透明（`C.14-R1`）。
+- 判别联合里按 `if/then` 收窄的字段（Op 的 `payload`、事件的 `data`）属于结构，不因外层信封里写的是 `{type: object}` 就算不透明（`C.14-R1`）；这两个字段名在所有位置都按结构处理，包括 `Event.data` 和模型 GraphPatch 的 `PatchOp.payload`（`C.14-R8`、`P.09` K234）。
 
 ### 5.2 别名清单（`types.ts`）
 - 每个 schema 里的 `$defs` 和顶层 `title` 都有一个同名别名：`Graph`、`Subgraph`、`Node`、`Edge`、`Note`、`NodeUi`、`PortRef`、`Op`、`OpTarget`、`OpKind`（类型）、`Diag`、`GraphPatch`、`Proposal`、`ProposalPreview`、`Mandate`、`Session`、`Message`、`MessageBlock`、`Selection`、`RunEvent`、`GraphEvent`、`SessionEvent`、`RunStatus`、`NodeState`、`Loc`、`Iter`、`Actor`、`ActorKind`、`Ulid`、`Timestamp`、`NodeDef`、`NodeDefSummary`、`TypeDef`、`Assign`、`Settings`、`Model`、`ErrorResponse`、`ApiErrorCode`，以及 `api.schema.json` 的全部结构（`W.04.04` §3.5）。
@@ -92,7 +92,7 @@ export { fromWire, toWire } from './mapping';
 2. 数组：逐项 `fromWire`。
 3. 对象：对每个键 `k`，输出键一律是 `camelKey(k)`（`k` 是 schema 字段名）；值按 `k` 的类别（`wire.ts` 里存的是 snake_case 名）：
    - `k ∈ OPAQUE_KEYS` → 值原样（同一个引用，不复制）。
-   - `k ∈ MAP_KEYS` → 值是一个新对象：键原样，每个值 `fromWire`。
+   - `k ∈ MAP_KEYS` → 值是对象时是一个新对象：键原样，每个值 `fromWire`；值是数组时逐项 `fromWire`（同名字段在别处是数组，如 `OpsRequest.ops` 和 `Overrides.ops`，`P.09` K234）。
    - 否则 → 值 `fromWire`。
 4. 只处理普通对象（原型是 `Object.prototype` 或 `null`）；其他对象（`Blob`、`Date`…）原样返回。
 
@@ -150,3 +150,4 @@ export { fromWire, toWire } from './mapping';
 - 允许使用的依赖：无第三方运行时依赖；测试用 `vitest`、`ajv`（`G.10` §3.4）。
 - 禁止事项：`G.02.05` 全部（特别是 R1、R2）；另：不手写不透明 / 映射字段名单（只读 `wire.ts`）；不转换任何值；不在 `lib/protocol/` 以外提供转换函数。
 - 完成标志：`G.14` 全部条件；§10 五条验收通过。
+| 2026-11-23 | §6.1 映射类的值是数组时逐项转换；§5.1 `payload`、`data` 在所有位置按结构 | `P.09` K234 |

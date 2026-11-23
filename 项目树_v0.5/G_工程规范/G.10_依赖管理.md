@@ -58,7 +58,6 @@
 | 断言 | `github.com/stretchr/testify` |
 | 属性测试 | `pgregory.net/rapid` |
 | goroutine 泄漏检查 | `go.uber.org/goleak` |
-| 代码生成 | `github.com/omissis/go-jsonschema`，只在 `tools/gen` 用 |
 
 ### 3.3 前端（运行时）
 | 用途 | 依赖 |
@@ -71,7 +70,7 @@
 | 浮层行为 | `@floating-ui/dom`（定位） |
 
 ### 3.4 前端（开发）
-`vite`、`typescript`、`eslint`、`typescript-eslint`、`eslint-plugin-react-hooks`、`eslint-plugin-react-refresh`、`stylelint`、`prettier`、`vitest`、`jsdom`、`@playwright/test`、`json-schema-to-typescript`、`ajv`。
+`vite`、`typescript`、`eslint`、`typescript-eslint`、`eslint-plugin-react-hooks`、`eslint-plugin-react-refresh`、`stylelint`、`prettier`、`vitest`、`jsdom`、`@playwright/test`、`ajv`。
 
 ## 4. 检查方式
 CI 脚本比对 `go.mod`（直接依赖）和 `web/package.json` 与本清单（清单的机器可读版：`tools/deps/allow.txt`，`O.02`；在它建立之前，`tools/relay check` 直接读本节，`O.01` §4.5）。
@@ -82,3 +81,4 @@ CI 脚本比对 `go.mod`（直接依赖）和 `web/package.json` 与本清单（
 | 2026-11-23 | §3.3 注明 `@assistant-ui/react` v1 不使用 | W 全枝复查；`P.09` K184 |
 | 2026-11-23 | §3 写明代码仓库里的副本 `tools/deps/allow.txt` | 第 10 棒写 `O.02`；`P.09` K189 |
 | 2026-11-23 | §4 机器可读清单的文件名与 `O.02` 一致（`allow.txt`） | `P.09` K196 |
+| 2026-11-23 | 去掉 `go-jsonschema`、`json-schema-to-typescript`：生成器自研（`C.14` §2） | `P.09` K234 |

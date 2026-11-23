@@ -6,60 +6,96 @@
 | 类型 | 实施 |
 | 上级 | C 契约层 |
 | 下级 | 无 |
-| 状态 | 草稿 |
+| 状态 | 已审 |
 | 素材 | 引01§4 |
 | 最后修改 | 2026-11-23 |
 
 ## 1. 职责
-定义 `schema/` 到 Go 代码和 TypeScript 代码的生成规则，特别是生成器处理不好的情况（判别联合、可空、开放对象）怎么办。生成流程和命令见 `G.16`。
+定义 `schema/` 到 Go 代码和 TypeScript 代码的生成规则，特别是生成器处理不好的情况（判别联合、可空、开放对象）怎么办；实现生成器 `tools/gen`。生成流程和生成物清单见 `G.16`。本叶子是 `tools/gen` 唯一的负责叶子：`G.16` 清单里以后要补的生成物（令牌、主题、图标、字体、布局常数、快捷键），源文件出现后由本叶子改回"已审"再实施（`P.09` K234）。
 
-## 2. 工具
-| 目标 | 工具 | 输出位置 |
-|---|---|---|
-| Go 类型 | `omissis/go-jsonschema` | `gen/*.go` |
-| TS 类型 | `json-schema-to-typescript` | `web/src/lib/protocol/generated/*.ts` |
-| 常量（事件名、Op 种类、错误码、诊断码、动作名） | 自研小工具 `tools/gen/consts`，读 schema 里的枚举 | `gen/consts.go`、`generated/consts.ts` |
-| 数据表（容器规则、控件映射、判定表、状态机、类别映射、布局常数 `layout.yaml`） | `tools/gen/tables`，读 `schema/builtin/*.yaml` | `gen/tables.go`、`generated/tables.ts`（布局常数为 `Layout` / `LAYOUT`，`W.06.10` §5.1） |
-| 前端字段映射表（不透明字段、映射字段，§5.1） | `tools/gen/wire`，读全部 `schema/*.schema.json` | `generated/wire.ts`（只有前端用） |
+## 2. 工具与输出
+生成器是自研的 Go 程序 `tools/gen`（一个 `package main`），读 `schema/*.schema.json` 和 `schema/builtin/`，同时输出 Go 和 TS；不用第三方生成工具，不依赖 Node（`P.09` K234）。`go run ./tools/gen` 一次生成下表全部文件；`tokens`、`icons`、`fonts` 子命令在源文件出现前报"还没有源文件"并以 1 退出。
+
+| 输出 | 内容 |
+|---|---|
+| `gen/types.go` | 全部 schema 类型（§3）、`ApplyDefaults` |
+| `gen/union.go` | 判别联合的解码、`DecodeAs`（§4） |
+| `gen/consts.go` | 常量（§5.2） |
+| `gen/tables.go` | 数据表与状态机转换函数（§5.3） |
+| `web/src/lib/protocol/generated/types.ts` | 全部 schema 类型、`withDefaults…`；与类型同名的常量对象（`RunStatus.Done`） |
+| `web/src/lib/protocol/generated/consts.ts` | 与类型不同名的常量对象：`Ev`、`ErrCode`、`DiagCode`、`Act`、`SseControl`、`NodeType` |
+| `web/src/lib/protocol/generated/tables.ts` | 数据表（`AUTHZ_MATRIX` 等）与转换函数 |
+| `web/src/lib/protocol/generated/wire.ts` | 前端字段映射表（§5.1） |
+| `web/src/lib/i18n/generated/messages.ts` | `ERRORS`、`ASSIGN`（`W.10` §4.5） |
+
+Go 包名 `gen`（`github.com/mio-cc/anywhere-door/gen`）。Go 输出经 `go/format` 格式化；每个文件第一行是生成标记（`G.04.03`）。
 
 ## 3. 映射规则
 | JSON Schema | Go | TS |
 |---|---|---|
-| `object` + `additionalProperties: false` | `struct` | `interface` |
-| 开放对象（标了 `"x-open": true`，`C.01-R19`） | `map[string]json.RawMessage`（保留未知字段，`C.01-R19`） | `Record<string, unknown>` |
-| `$ref: Ulid` | `type Ulid string` | `type Ulid = string & { __brand: 'Ulid' }` |
-| `Timestamp` | `time.Time`（序列化强制 UTC 毫秒） | `string` |
-| `enum` | `type X string` + 常量 | 字符串字面量联合 |
-| 可选字段 | 指针或带 `omitempty` 的零值（按字段是否需要区分"没填"和"零值"：需要区分用指针） | `?:` |
-| 带 `default` 的字段 | 生成 `ApplyDefaults()` 方法 | 生成 `withDefaults()` 函数 |
-| `integer` | `int64` | `number` |
-| `oneOf` + `kind` 判别 | **见 §4** | 判别联合类型 |
+| `object` + `properties`（`additionalProperties: false`） | `struct`，字段按名字排序 | `interface` |
+| 开放对象（`"x-open": true`，`C.01-R19`） | `map[string]json.RawMessage` | `{ [key: string]: unknown }` |
+| 只有 `additionalProperties: <schema>`、没有 `properties` 的对象 | `map[string]T` | `{ [key: string]: T }` |
+| `array` | `[]T` | `T[]` |
+| `$ref: Ulid` | `type Ulid string` | `type Ulid = string & { readonly __brand: "Ulid" }` |
+| `$ref: Timestamp` | `type Timestamp struct{ time.Time }`，`MarshalJSON` 输出 UTC 毫秒 `2006-01-02T15:04:05.000Z`，`UnmarshalJSON` 接受 RFC 3339 并转成 UTC | `string` |
+| 其他字符串 `$defs`（带 `pattern`） | `type X string` | `type X = string` |
+| 具名枚举（`$defs` 里的 `enum`） | `type X string` + 常量（§5.2） | 字符串字面量联合 + 同名常量对象 |
+| 属性里的内联枚举、`const` | `string` | 字面量联合 / 字面量 |
+| `integer` / `number` / `boolean` / `string` | `int64` / `float64` / `bool` / `string` | `number` / `number` / `boolean` / `string` |
+| `type: [string, number]` | `json.RawMessage` | `string \| number` |
+| 没有类型约束（`{}`、只有 `description`） | `json.RawMessage` | `unknown` |
+| `anyOf: [X, {type: null}]` | `*X`，必填时不加 `omitempty` | `X \| null` |
+| 可选字段 | 一律指针（`*T`）+ `omitempty`；`json.RawMessage` 不加指针 | `?:` |
+| 带 `default` 的可选标量字段 | `ApplyDefaults()` 把空指针设为默认值 | `withDefaults<类型>(v)`：`{ 字段: 默认值, ...v }` |
+| 内联的对象 | 具名类型：所在类型名 + 字段名（`Note.size` → `NoteSize`），数组元素再加 `Item`，映射的值加 `Value` | 同名 `interface` |
+| `$ref` 指到 `properties` 里（`graph.schema.json#/$defs/Note/properties/size`） | 那个位置的类型（`NoteSize`） | 同左 |
+| `$ref: "#"` | 本文件的根类型 | 同左 |
+| `allOf` 里只有 `$ref` 的项 | 把被引用对象的字段合并进来，本对象写的同名字段优先 | 同左 |
+| 判别联合 | §4 | §4 |
+| 其他 `allOf` / `if` / `then`、`oneOf`、`not`、`propertyNames` 等 | 只用于校验，不影响类型 | 同左 |
+
+`$defs` 的名字全部 schema 文件里唯一；有根结构的文件，根类型名写在 `schema/builtin/aliases.yaml` 的 `roots`（`graph.schema.json` → `Graph` 等）。生成器发现重名（含内联类型名）、根类型名没登记、遇到表里没有的写法时，报出位置并失败，不猜。
 
 ## 4. 判别联合
-Op 的 `payload`、事件的 `data`、`MessageBlock`、`NodeDef.impl` 都是"按某个字段取值决定结构"。Go 生成器对这种结构支持不好，所以：
-- **C.14-R1** schema 里统一写成：外层对象有判别字段（`kind` 或 `type`），每个分支用 `if: {properties: {kind: {const: "x"}}}` + `then: {properties: {payload: {$ref: "#/$defs/XPayload"}}}`。每个分支的载荷单独定义成 `$defs/XPayload`。
-- **C.14-R2** Go：生成器只生成各个 `XPayload` 结构体；外层由 `tools/gen/union` 生成：
-```go
-type Op struct {
-    Kind    OpKind          `json:"kind"`
-    Payload json.RawMessage `json:"payload"`
-    // …其他公共字段
-}
-func (o *Op) Decode() (any, error)            // 按 Kind 解出对应 *XPayload
-func DecodeAs[T any](o *Op) (*T, error)
-```
-- **C.14-R3** TS：生成真正的判别联合，`switch (op.kind)` 时各分支自动收窄类型。
-- **C.14-R4** 每种判别联合都有"Go 编码 → TS 解码 → TS 编码 → Go 解码"的往返测试，所有分支都覆盖。
+Op 的 `payload`、事件的 `data`、`MessageBlock`、`MessageRef`、`NodeDef.impl` 都是"按某个字段取值决定结构"。
+- **C.14-R1** schema 里统一写成：外层对象有判别字段（`kind` 或 `type`），`allOf` 里每个取值一条 `if: {required: [kind], properties: {kind: {const: "x"}}}`，`then` 是以下两种之一（同一个联合只用一种）：
+  - **字段联合**：`then: {properties: {payload: {$ref: "#/$defs/PayloadX"}}}`（`then` 里可以还有别的约束，如事件的 `seq`、`required: [loc]`）：判别字段在外层，只有一个字段（`payload`、`data`）随取值变；
+  - **整体联合**：`then: {$ref: "#/$defs/BlockX"}`：整个对象随取值变。
+  分支定义的名字照各 C 文档（`PayloadAddNode`、`DataNodeState`、`BlockGraph`、`RefNode`、`ImplBuiltin`）。不满足这个形状的 `if/then` 只用于校验（如 `Expiry`、`DataNodeState` 里按 `to` 约束 `cause`）。
+- **C.14-R2** Go：
+  - 判别字段是内联枚举时生成具名类型：所在类型名 + 字段名（`RunEventKind`、`MessageBlockKind`、`ImplType`）；已经是具名枚举的（`OpKind`）照用。
+  - 字段联合：外层是普通 `struct`，联合字段是 `json.RawMessage`；生成 `func (v *Op) DecodePayload() (any, error)`（按判别值解出 `*PayloadX`；事件为 `DecodeData`）。
+  - 整体联合：`type MessageBlock struct { Kind MessageBlockKind; Raw json.RawMessage }`，`MarshalJSON` 原样输出 `Raw`，`UnmarshalJSON` 保存原文并读出判别值；生成 `Decode() (any, error)`。
+  - 通用函数 `func DecodeAs[T any](raw json.RawMessage) (*T, error)`：严格解码（不认识的字段报错）。不认识的判别值返回错误，不崩溃（`C.01-R18`）。
+- **C.14-R3** TS：生成真正的判别联合，`switch (op.kind)` 时各分支自动收窄：字段联合是 `OpCommon & ({ kind: "add_node"; payload: PayloadAddNode } | …)`（`OpCommon` 是去掉判别字段和联合字段的外层），整体联合是 `BlockGraph | BlockProposal | …`；事件流同理（`RunEventCommon` 含合并进来的 `Event` 字段，本流必填的 ID 为必填）。
+- **C.14-R4** 往返测试：Go 侧在本叶子做——第 4 片全部合法向量和合法示例、内置资产，逐条"解码 → 联合解码 → 编码"与原文语义相同，所有联合的所有分支都覆盖；TS 侧（Go 编码 → TS 解码 → TS 编码）等前端测试框架就绪后在 `W.04.03` 做（`P.09` K234）。
 
 ## 5. 命名
-- **C.14-R5** Go 类型名 = schema 的 `title` 或 `$defs` 名，PascalCase；字段名由生成器从 snake_case 转 PascalCase，缩写按 Go 习惯（`ID`、`URL`、`HTTP`）。
-- **C.14-R6** 常量命名：事件 `EvNodeState`（`node.state`）、Op `OpAddNode`、错误码 `ErrCodeGraphConflict`、诊断码 `DiagV09`、动作 `ActOpAddNode`。TS 里同名常量对象：`Ev.NodeState`、`OpKind.AddNode`、`ErrCode.GraphConflict`、`DiagCode.V09`、`Act.OpAddNode`、SSE 控制帧 `SseControl.Resync`（`C.06.01` §4）；其他枚举的常量对象与类型同名，如 `RunStatus.Done`（`W.04.04-R7`，`P.09` K85）。
-- **C.14-R7** 中文枚举值（节点类型名）生成常量时用拼音或英文别名，表定义在 `schema/builtin/aliases.yaml`：`资源 → Resource`、`上下文装配 → ContextAssembly`、`扇出 → Fanout`、`汇合 → Join`、`聚合 → Aggregate`、`分支 → Branch`、`循环 → Loop`、`账本 → Ledger`、`人工 → Human`、`子图端口 → SubPort`、`子图引用 → SubRef`、`工具 → Tool`、`Agent → Agent`。
+- **C.14-R5** Go 类型名 = `$defs` 名或 `aliases.yaml` 登记的根类型名；字段名由 snake_case 转 PascalCase，缩写按 Go 习惯：`id`→`ID`、`ids`→`IDs`、`url`→`URL`、`http`→`HTTP`、`json`→`JSON`、`mcp`→`MCP`、`llm`→`LLM`、`api`→`API`、`ui`→`UI`、`sse`→`SSE`。TS 类型名同 Go，字段名保持 snake_case（`W.04.03` 转换）。
+- **C.14-R6** 常量命名：事件 `EvNodeState`（`node.state`）、Op `OpAddNode`、错误码 `ErrCodeGraphConflict`、诊断码 `DiagV09`、动作 `ActOpAddNode`（`tool.L0` → `ActToolL0`）、SSE 控制帧 `SseResync`、`SseShutdown`、节点类型 `NodeTypeResource`；其他具名枚举为类型名加取值（`RunStatusDone`）。名字由取值按 `.`、`_`、`-`、`:` 切开后各段首字母大写拼成，Go 套用 R5 的缩写，TS 不套（`Ev.LlmCall`）。TS 里同名常量对象：`Ev.NodeState`、`OpKind.AddNode`、`ErrCode.GraphConflict`、`DiagCode.V09`、`Act.OpAddNode`、`SseControl.Resync`、`NodeType.Resource`；其他枚举的常量对象与类型同名，如 `RunStatus.Done`（`W.04.04-R7`，`P.09` K85）。Go 的事件常量按流取类型（`EvNodeState RunEventKind`），三条流的事件名不能重名。
+- **C.14-R7** 中文枚举值（节点类型名）生成常量时用拼音或英文别名，表定义在 `schema/builtin/aliases.yaml` 的 `nodes`：`资源 → Resource`、`上下文装配 → ContextAssembly`、`扇出 → Fanout`、`汇合 → Join`、`聚合 → Aggregate`、`分支 → Branch`、`循环 → Loop`、`账本 → Ledger`、`人工 → Human`、`子图端口 → SubPort`、`子图引用 → SubRef`、`工具 → Tool`、`Agent → Agent`。属性里的其他中文内联枚举（`category`、`group`）不生成常量。
 
 ### 5.1 前端字段映射表（`P.09` K84）
 前端在 `lib/protocol/mapping.ts` 把 snake_case 字段名转成 camelCase（`W.04.03`）。哪些位置的值不能转换，由生成器从 schema 算出，前端不手写名单：
-- **C.14-R8** `tools/gen/wire` 输出 `generated/wire.ts`：`OPAQUE_KEYS`（字段的 schema 是开放对象或没有类型约束：值整体原样）、`MAP_KEYS`（只有 `additionalProperties`、没有 `properties` 的对象：键是数据，值继续转换），以及对应的字面量联合类型 `OpaqueKey`、`MapKey`。判别联合里按 `if/then` 收窄的字段（`payload`、`data`）不算不透明。同一个字段名在不同位置分类不同时，取"不透明 > 映射 > 结构"中最保守的一种，并在文件注释里列出这些字段名。
+- **C.14-R8** `tools/gen` 输出 `generated/wire.ts`：`OPAQUE_KEYS`（字段的 schema 是开放对象或没有类型约束：值整体原样）、`MAP_KEYS`（只有 `additionalProperties`、没有 `properties` 的对象：键是数据，值继续转换），以及对应的字面量联合类型 `OpaqueKey`、`MapKey`。判别联合的联合字段名（`payload`、`data`）在所有位置都按结构处理：它们的值是 schema 定义的结构，开放只是为了让信封和模型的 GraphPatch 能先收下（`Event.data`、`PatchOp.payload`，`P.09` K234）。同一个字段名在不同位置分类不同时，取"不透明 > 映射 > 结构"中最保守的一种，并在文件注释里列出这些字段名。
 - **C.14-R9** 生成器检查每个字段名都能无损往返 `snake_case → camelCase → snake_case`：`C.01-R4` 之外，再拒绝"下划线后面紧跟数字"（`x_2`）和连续下划线（`a__b`）。不满足时生成失败。
+
+### 5.2 常量
+来源：每个具名枚举（`$defs` 里的 `enum`）；三条事件流根上的 `kind` 枚举（`Ev`）；`schema/builtin/aliases.yaml` 的 `nodes`（`NodeType`）；`schema/builtin/sse_control.yaml`（`C.06.01` §4 的两种控制帧，`SseControl`）。生成的常量名之间、和类型名之间重名时生成失败。
+
+### 5.3 数据表
+| 来源 | Go | TS |
+|---|---|---|
+| `container_rules.yaml` | `ContainerRules []ContainerRule` | `CONTAINER_RULES` |
+| `widget_map.yaml` | `WidgetRules []WidgetRule` | `WIDGET_MAP` |
+| `category_map.yaml` | `Categories`、`CategoryRules []CategoryRule` | `CATEGORY_MAP` |
+| `aggregate_ops.yaml` | `AggregateOps map[string]string` | `AGGREGATE_OPS` |
+| `authz_matrix.yaml` | `AuthzRows []AuthzRow`（每行 `Actions []Action`、`Levels [5]AuthzCell`，格是判定或 `{If, Then, Else}`）、`AuthzFixed map[Action]ActorKind`、`AuthzOpActions map[OpKind]string` | `AUTHZ_MATRIX` |
+| `state_machine.yaml` | `RunCanTransition(from, to RunStatus) bool`、`RunIsTerminal`、`NodeCanTransition`、`NodeIsTerminal` | `STATE_MACHINE`、`runCanTransition`、`runIsTerminal`、`nodeCanTransition`、`nodeIsTerminal` |
+
+Go 侧按固定结构读这些 YAML，不认识的键报错；`authz_matrix.yaml` 里的动作、Op 种类、actor 必须是枚举里的值，状态机里的状态必须是 `RunStatus` / `NodeState` 的值，否则生成失败。TS 侧照 YAML 原样输出（`as const`，键不转换，只有 `lib/protocol` 读它们，`W.04.04-R1`）。
+`messages.ts`：`ERRORS` 的键恰好是 `ApiErrorCode` 的全部取值，`ASSIGN` 的键恰好是 C1、C2、C4、C6、C8、C10（`G.16`），否则生成失败。
 
 ## 6. 不允许
 - 手改任何生成文件（`G.02.05-R1`）。生成结果不满意时，改 schema 或改生成工具。
@@ -67,13 +103,26 @@ func DecodeAs[T any](o *Op) (*T, error)
 
 ## 7. 验收标准
 1. `make gen` 两次结果完全相同（确定性）。
-2. 所有判别联合的往返测试通过。
+2. 所有判别联合的往返测试通过（Go 侧，R4）。
 3. CI 里 `make gen && git diff --exit-code` 通过。
 
 ### 实施卡
-- 要建的文件：`tools/gen/main.go`、`tools/gen/consts/`、`tools/gen/tables/`、`tools/gen/union/`、`schema/builtin/aliases.yaml`。
-- 测试用例：`C14-T1`（确定性）、`C14-T2`（往返）。
-- 允许使用的依赖：`omissis/go-jsonschema`（作为生成工具，不进运行时）、`json-schema-to-typescript`（开发依赖）。
+- 要建 / 要改的文件：`tools/gen/main.go`、`tools/gen/`（生成器的其他源文件、测试、testdata 目录）、`schema/builtin/aliases.yaml`、`schema/builtin/sse_control.yaml`、`gen/types.go`、`gen/union.go`、`gen/consts.go`、`gen/tables.go`、`web/src/lib/protocol/generated/types.ts`、`web/src/lib/protocol/generated/consts.ts`、`web/src/lib/protocol/generated/tables.ts`、`web/src/lib/protocol/generated/wire.ts`、`web/src/lib/i18n/generated/messages.ts`
+- `tools/gen/main.go` 现在是 `O.01` 留下的桩（`STUB(G.16)`），整体替换（`G.02.06-R10`）。生成物由验证者运行 `go run ./tools/gen` 产出并提交，实施者不手写（`G.02.05-R1`）。
+- 不许碰的文件：`engine/`、`internal/`、`cmd/`、`schema/`、`tools/relay/`、`tools/build/`、`tools/schemacheck/`、`web/src/`
+- 测试用例：
+  - `C14-T1 确定性`：对仓库的 schema 生成两次到两个临时目录，逐字节相同；也和仓库里提交的生成物相同
+  - `C14-T2 往返`：`op_vectors.json`、`run_event_vectors.json`、`graph_event_vectors.json`、`session_event_vectors.json` 里全部合法的项，示例清单里全部合法的示例，`schema/builtin/` 的内置节点定义、类型、配方、角色卡：严格解码成生成的类型 → 联合解码（分支再编码也与原文相同）→ 编码，与原文语义相同；每个联合的每个分支至少覆盖一次（按 schema 里的分支名单逐个检查）
+  - `C14-T3 黄金文件`：`tools/gen/testdata/` 下一组固定的 schema（覆盖 §3 的每一行、两种联合、内联类型、`$ref` 到属性和 `#`），生成结果与黄金文件相同（`G.16-R5`；`-update` 重写黄金文件）
+  - `C14-T4 命名与拒绝`：字段名、常量名的换算（含缩写、`tool.L0`、`V09`）；`x_2`、`a__b`、类型重名、常量重名、根类型名没登记都生成失败
+  - `C14-T5 状态机`：生成的 `RunCanTransition` 6×6、`NodeCanTransition` 9×9 逐格与 `C.07` §2、§3.1 一致（期望表写在测试里），终态函数与 `terminal` 一致（`C.07` §7 验收 1）
+  - `C14-T6 字段映射表`：`OPAQUE_KEYS` 含 `params`、`meta`、`ui`、`kv`、`details`、`value`、`to`；`MAP_KEYS` 含 `orchestrator_effort`、`decisions`、`id_map`；`payload`、`data` 两个都不在；一组固定 schema 上冲突取最保守的一种
+  - `C14-T7 数据表与文案`：`tables.go` 的数据与 YAML 一致；`authz_matrix.yaml` 里写一个不存在的动作时生成失败；`ERRORS` 少一个错误码、`ASSIGN` 多一条时生成失败
+- 在其他叶子跑的测试用例（不算本叶子的完成条件）：
+  - TS 侧往返（R4）：`W.04.03`（复查 `W.04.03` 时写进它的实施卡）
+- 允许使用的依赖：标准库、`github.com/goccy/go-yaml`（`G.10` 已登记）
+- 禁止事项：`G.02.05` 全部
+- 完成标志：`relay check C.14` 七项通过；评审通过
 
 ## 变更记录
 | 日期 | 变更 | 原因 |
@@ -81,3 +130,4 @@ func DecodeAs[T any](o *Op) (*T, error)
 | 2026-11-23 | §2 加前端字段映射表；R6 补 TS 常量对象名；新增 §5.1（R8、R9） | `P.09` K84、K85（写 `W.04.03`、`W.04.04` 时发现映射规则和 TS 常量名没有定义） |
 | 2026-11-23 | §2 数据表补布局常数 `layout.yaml` | `P.09` K102（第 7 棒） |
 | 2026-11-23 | §3 开放对象按 `x-open` 标记识别 | `P.09` K202 |
+| 2026-11-23 | 第 5 片开工前复查：生成器改为自研（不用 `go-jsonschema`、`json-schema-to-typescript`）；§3 写全映射规则（可选字段一律指针、`Timestamp` 包装类型、内联类型命名、`$ref` 到属性）；§4 按实际 schema 的 `if/then` 写法写两种联合；§5.2 常量来源（新增 `sse_control.yaml`）、§5.3 数据表；R8 联合字段名按结构处理；Go 侧往返在本叶子，TS 侧在 `W.04.03`；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K234 |

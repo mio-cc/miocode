@@ -30,6 +30,8 @@
 | `engine/store/sqlite/queries.go` | `engine/store/sqlite/queries.sql` | `sqlc generate` | 是 |
 | `web/dist/` | 前端源码 | `pnpm -C web build` | **否** |
 
+`C.14` 现在实施的是 `go run ./tools/gen` 一次生成的部分：`gen/types.go`、`union.go`、`consts.go`、`tables.go`，`generated/types.ts`、`consts.ts`、`tables.ts`（含 `AUTHZ_MATRIX`）、`wire.ts`，`i18n/generated/messages.ts`（`C.14` §2）。令牌、主题、图标、字体、布局常数、快捷键的源文件（`design/`、`layout.yaml`、`shortcuts.yaml`）还不存在，出现后由 `C.14` 改回"已审"补上（`P.09` K234）。`queries.go` 由 `E.07` 用 `sqlc` 生成，不归 `tools/gen`。
+
 ## 3. 规则
 - **G.16-R1** 生成物禁止手改（`G.02.05-R1`）；文件头必须带生成标记（`G.04.03`）。
 - **G.16-R2** 生成必须确定：同样的输入两次生成结果逐字节相同（排序、不写时间戳、不写绝对路径）。
@@ -49,3 +51,4 @@
 | 2026-11-23 | 生成物清单补图标表 `web/src/styles/icons.ts` | 第 9 棒写 `W.08`；`P.09` K122 |
 | 2026-11-23 | 生成物清单补 `AUTHZ_MATRIX` | 第 9 棒写 `W.09.02`；`P.09` K153 |
 | 2026-11-23 | 生成物清单补前端文案生成物 `web/src/lib/i18n/generated/messages.ts` | 第 10 棒写 `W.10`；`P.09` K158 |
+| 2026-11-23 | 写明 `C.14` 现在生成哪些、其余由谁什么时候补 | `P.09` K234 |
