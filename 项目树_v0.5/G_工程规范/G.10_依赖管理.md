@@ -30,7 +30,6 @@
 | 用途 | 依赖 | 许可证 |
 |---|---|---|
 | SQLite | `modernc.org/sqlite` | BSD-3 |
-| 数据库迁移 | `github.com/pressly/goose/v3` | MIT |
 | ULID | `github.com/oklog/ulid/v2` | Apache-2.0 |
 | 表达式 | `github.com/expr-lang/expr` | MIT |
 | JSON Schema 校验 | `github.com/santhosh-tekuri/jsonschema/v6` | Apache-2.0 |
@@ -82,3 +81,4 @@ CI 脚本比对 `go.mod`（直接依赖）和 `web/package.json` 与本清单（
 | 2026-11-23 | §3 写明代码仓库里的副本 `tools/deps/allow.txt` | 第 10 棒写 `O.02`；`P.09` K189 |
 | 2026-11-23 | §4 机器可读清单的文件名与 `O.02` 一致（`allow.txt`） | `P.09` K196 |
 | 2026-11-23 | 去掉 `go-jsonschema`、`json-schema-to-typescript`：生成器自研（`C.14` §2） | `P.09` K234 |
+| 2026-11-24 | 去掉 `pressly/goose`：迁移执行器自写（全局注册违反 `E-R3`，`E.07.03`） | `P.09` K237 |

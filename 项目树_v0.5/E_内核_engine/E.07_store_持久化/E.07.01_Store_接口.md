@@ -129,6 +129,15 @@ type SettingsRepo interface {
 
 type Page[T any] struct{ Items []T; NextCursor string }   // NextCursor 为空表示没有下一页；游标对调用方不透明
 
+const ToolStarted, ToolSucceeded, ToolFailed = "started", "succeeded", "failed"
+const DefaultLimit, MaxLimit, DefaultEventLimit = 50, 200, 1000
+func ClampLimit(n int) int                                     // 列表的 Limit 规整到 1–200（≤ 0 时 50）
+
+func IsDraftBranch(name string) bool                         // draft/…，与 op.schema.json 的 Branch 一致
+func EncodeCursor(at time.Time, id string) string             // 键集游标：上一页最后一项的 (时间, id)，两种实现共用
+func DecodeCursor(c string) (time.Time, string, error)        // 解不开：ErrBadCursor
+var ErrBadCursor = errors.New("store: 游标无效")
+
 // engine/store/errors.go
 var (
     ErrNotFound  = errors.New("store: not found")
@@ -513,12 +522,13 @@ var (
 ## 5. 行为
 - 所有方法第一个参数是 `ctx`；时间都由调用方给（`E.07-R5`），存储按 UTC 毫秒保存（INV-23）。
 - **图**：
-  - `Create`：写 `GraphMeta`（`version` 为 `doc.version`），建 `main` 分支（`base_version` 0、`head` 为 `doc.version`、`created_by` 为 `by`），存 `doc.version` 的全文。ID 已存在：`ErrConflict`。
-  - `Commit`：同一个事务里：分支必须存在且没删除；`c.Ops` 不能为空，版本号必须从分支 head+1 起连续，否则 `ErrConflict`（`engine/op` 据此知道要 rebase，`C.05.04`）；Op 的 `id` 重复：`ErrConflict`；追加 Op 记录；存最后一个版本的哈希（`Doc` 非空时连全文）；分支 head 推进；`main` 分支时 `GraphMeta` 的 `version`、`title`、`stats`、`updated_at` 一起更新，其他分支只更新 `updated_at`。
+  - `Create`：写 `GraphMeta`（`version` 为 `doc.version`），建 `main` 分支（`base_version` 0、`head` 为 `doc.version`、`created_by` 为 `by`、`created_at` 为 `meta.created_at`），存 `doc.version` 的全文。ID 已存在：`ErrConflict`。
+  - `Commit`：同一个事务里：图或分支不存在、分支已删除：`ErrNotFound`；`c.Ops` 为空、版本号不是从分支 head+1 起连续：`ErrConflict`（`engine/op` 据此知道要 rebase，`C.05.04`）；Op 的 `id` 重复：`ErrConflict`；出错时什么都不写；追加 Op 记录；存最后一个版本的哈希（`Doc` 非空时连全文）；分支 head 推进；`main` 分支时 `GraphMeta` 的 `version`、`title`、`stats`、`updated_at` 一起更新，其他分支只更新 `updated_at`。
   - `Base(v)`：取这个分支版本 ≤ v 的最近一份全文；草稿分支自己没有全文时取 main 在 `base_version` 及以前的最近全文，再接上 main 到 `base_version` 的 Op 和本分支的 Op。`v` 大于 head：`ErrNotFound`。
   - `List` 不含已删除；`Meta` 已删除的仍能读到（`deleted_at` 有值）。
-  - `Branches`：按名字排序，不含已删除；`behind`、`ahead` 读出时算（`api.schema.json` 的说明）。`CreateBranch`：名字必须是 `draft/…`，`base_version` ≤ main 的 head，已存在（含已删除）：`ErrConflict`；`head` 取 `base_version`。`DeleteBranch` 不能删 `main`（`ErrConflict`）。
+  - `Branches`：按名字排序，不含已删除；`behind`、`ahead` 读出时算（`api.schema.json` 的说明）。`CreateBranch`：名字必须是 `draft/…`（否则 `ErrConflict`），`base_version` ≤ main 的 head，已存在（含已删除）：`ErrConflict`；`head` 取 `base_version`。`DeleteBranch` 不能删 `main`（`ErrConflict`），分支不存在或已删除：`ErrNotFound`；名字不是 `main` / `draft/…`：`ErrConflict`。
 - **Op**：`Coalesce` 只替换原 Op 的 `payload`，版本号、`inverse` 以外的字段不变（`C.05.04` §4、`C.06.03-R4`）；`UndoPush` 的 `Seq` 由调用方给，同一 (图, 分支, actor) 递增；`UndoTop(undone=false)` 取 seq 最大且没撤销的一条，`undone=true` 取 seq 最大且已撤销的一条；`UndoMark` 同时把这个 `GroupID` 的全部 Op 记录的 `undone` 改成同样的值。
+- **不存在的对象**：对不存在的图、运行调用写方法（`Commit`、`SoftDelete`、`CreateBranch`、`SetStatus`、`AddUsage`、`SetProgress`、`AcquireLease`、`RenewLease`、`PutNodeStates`、`PutView`、`AppendRun`）返回 `ErrNotFound`；`Checkpoints().Put`、`ToolCalls().Begin`、`AppendSession` 不检查运行或会话是否存在；读方法对不存在的运行返回空结果。
 - **运行**：`Create` 的 `no` = 这张图已有运行的最大 `no` + 1，`last_seq` 为 0；`List` 按 `created_at` 倒序、同时间按 id 倒序（Limit 同 `GraphQuery`），四个过滤条件都是"等于"，空值表示不过滤；`Unfinished` 是 `pending`、`running`、`paused` 的，按 `created_at` 升序；`AcquireLease`：没有持有者、持有者就是 owner、或 `lease_until` ≤ now 时成功；`RenewLease` 不是持有者：`ErrLeaseHeld`；`PutNodeStates` 按 `exec_key` 覆盖写，`NodeStates` 按 `exec_key` 排序；`ViewBefore` 取 seq ≤ 给定值的最近一份。
 - **事件**：
   - `AppendRun`：同一个事务里给每条事件填 `seq`（从这次运行的 `last_seq` + 1 起连续，`C.06.01-R1`），同时更新 `RunMeta.last_seq`；调用方只传 P、S 级（E 级不落库），`evs` 的元素被原地填写 `seq`；运行不存在：`ErrNotFound`。`AppendSession` 同理，从这个会话已有的最大 seq + 1 起。
@@ -527,8 +537,8 @@ var (
 - **检查点**：`Put` 覆盖 (运行, exec_key) 的当前检查点；`keepHistory` 时另存一份历史；`At` 取历史里 seq ≤ 给定值的最近一份。
 - **工具调用**：`Begin` 幂等键已存在时不写，返回已有记录（INV-14）；`Finish` 只能从 `started` 改成 `succeeded` / `failed`，其余 `ErrConflict`。
 - **设置**：键值，`value` 是任意 JSON；`All` 返回全部键。
-- **分页游标**：按排序键做键集游标（记下一页从哪个 (时间, id) 之后开始），对调用方不透明；翻页期间没有写入时不重复、不遗漏。
-- **Tx**：`fn` 里拿到的 `Store` 的所有读写都在同一个事务里；`fn` 返回错误或 panic 时回滚、错误原样返回；嵌套调用复用外层事务。
+- **分页游标**：按排序键做键集游标（`EncodeCursor`：上一页最后一项的 (时间, id)，下一页取排在它之后的），对调用方不透明；翻页期间没有写入时不重复、不遗漏；解不开时返回 `ErrBadCursor`。
+- **Tx**：`fn` 里拿到的 `Store` 的所有读写都在同一个事务里，能读到自己的写入；`fn` 返回错误时回滚并原样返回；`fn` panic 时回滚并返回错误（`store: Tx 里 panic：…`，不再向上 panic）；嵌套调用复用外层事务，内层的错误由外层决定是否回滚。
 
 ## 6. 不变量
 - 接口里没有"直接改图内容"的方法（`E.07-R4`）。

@@ -35,11 +35,11 @@ var errWriterClosed = errors.New("sqlite: 写队列已关闭")
 |---|---|
 | 单写者 | 一个写连接，所有写事务经队列由一个 goroutine 串行执行；读用另一个连接池（`E.07.02`），WAL 下读不阻塞写 |
 | 事务 | `Do`：`BeginTx` → `fn` → 提交；`fn` 返回错误或 panic 时回滚，panic 转成错误返回，写队列继续工作 |
-| 取消 | 请求还在排队时 `ctx` 取消：不执行，返回 `ctx.Err()`；已开始执行的事务用 `ctx` 执行 |
+| 取消 | `ctx` 取消时 `Do` 立刻返回 `ctx.Err()`；还在排队的请求不再执行，已开始执行的事务随 `ctx` 取消回滚 |
 | 事务边界 | 由调用方决定：Op 批次一个事务（`E.05-R2`）；事件批一个事务，同时更新 `hx_runs.last_seq`（`E.07.01` §5）；检查点与 `checkpoint.saved` 事件同一事务（`引04` §5，调用方用 `Tx`） |
 | 超时 | 单个写事务超过 1s 记 warn；超过 5s 时它的 context 被取消、事务回滚，记 error 并返回 `context.DeadlineExceeded` |
 | SQLITE_BUSY | 写队列模型下不应出现；出现时（错误信息含 `SQLITE_BUSY` 或 `database is locked`）间隔 50ms 重试整个事务，最多 3 次，仍失败记 error 返回 |
-| 关闭 | `Close`：不再接收新请求（之后的 `Do` 返回 `errWriterClosed`），把已排队的执行完；超过 `timeout` 时返回错误，没执行的请求返回 `errWriterClosed` |
+| 关闭 | `Close`：不再接收新请求（之后的 `Do` 返回 `errWriterClosed`），把已排队的执行完再返回；超过 `timeout` 时返回错误（队列里剩下的仍在后台执行完） |
 
 ## 6. 不变量
 - 同一运行的事件 seq 连续且与写入顺序一致（由串行执行保证）。
@@ -53,7 +53,7 @@ var errWriterClosed = errors.New("sqlite: 写队列已关闭")
 2. 关闭时队列清空。
 
 ### 实施卡
-- 要建 / 要改的文件：`engine/store/sqlite/writer.go`、`engine/store/sqlite/writer_test.go`、`go.mod`、`go.sum`
+- 要建 / 要改的文件：`engine/store/sqlite/writer.go`、`engine/store/sqlite/dsn.go`、`engine/store/sqlite/writer_test.go`、`go.mod`、`go.sum`
 - `go.mod` 加 `modernc.org/sqlite`（`G.10` 已登记）：验证者 `go get modernc.org/sqlite@latest` 后 `go mod tidy`；实施者不手改 `go.mod`、`go.sum`。
 - 不许碰的文件：`schema/`、`gen/`、`engine/store/store.go`、`engine/store/storetest/`、`engine/store/memstore/`
 - 测试用例（测试里自己建一张两列的表 `t(grp, seq)`，不依赖迁移）：

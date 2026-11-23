@@ -26,7 +26,7 @@
 type Options struct{ Logger *slog.Logger; BackupKeep int }   // BackupKeep ≤ 0 时为 3
 func Open(ctx context.Context, path string, opt Options) (store.Store, error)
 ```
-`Open`：打开（没有就新建）`path`；查当前 schema 版本，有要执行的迁移且版本 > 0 时先 `Backup`（`E.07.03`），再 `Migrate`；然后建写连接（`MaxOpenConns` 1，交给写队列，`E.07.04`）和读连接池（`MaxOpenConns` 8）。DSN 为 `file:<path>?_pragma=journal_mode(WAL)&_pragma=synchronous(NORMAL)&_pragma=busy_timeout(5000)&_pragma=foreign_keys(ON)`，驱动名 `sqlite`（`modernc.org/sqlite`）。时间列 TEXT（RFC 3339 UTC 毫秒，`2006-01-02T15:04:05.000Z`），JSON 列 TEXT（`encoding/json` 编码的原文）。
+`Open`：打开（没有就新建）`path`；查当前 schema 版本，有要执行的迁移且版本 > 0 时先 `Backup`（`E.07.03`），再 `Migrate`；然后建写连接（`MaxOpenConns` 1，交给写队列，`E.07.04`）和读连接池（`MaxOpenConns` 8）。DSN 为 `<path>?_pragma=journal_mode(WAL)&_pragma=synchronous(NORMAL)&_pragma=busy_timeout(5000)&_pragma=foreign_keys(ON)`（路径用正斜杠，不用 `file:` URI；`dsnFor`，在 `E.07.04` 的 `dsn.go`），驱动名 `sqlite`（`modernc.org/sqlite`）。时间列 TEXT（RFC 3339 UTC 毫秒，`2006-01-02T15:04:05.000Z`），JSON 列 TEXT（`encoding/json` 编码的原文）。
 
 ### 4.1 本片的表（`migrations/0001_init.sql`，`E.07.03` 建这个文件）
 "全文"列是这一行对应的 `gen` 类型或存储结构的 JSON，读出时解码它；其余列是为了查询、排序、约束而冗余出来的，写入时和全文一起更新。
@@ -74,7 +74,7 @@ func Open(ctx context.Context, path string, opt Options) (store.Store, error)
 - `hx_audit` 只追加；加它的迁移文件里为它建 `BEFORE UPDATE` / `BEFORE DELETE` 触发器直接 `RAISE(ABORT)`。
 
 ## 5. 行为
-- 每个仓库方法：在 `Tx` 里时用那个事务；否则写方法经写队列（`E.07.04`）各开一个事务，读方法用读连接池。
+- 每个仓库方法：在 `Tx` 里时用那个事务（写方法外面包一个保存点，出错时只撤销这个方法的写入，和 memstore 一致）；否则写方法经写队列（`E.07.04`）各开一个事务，读方法用读连接池。`Tx` 的 `fn` 在写队列的 goroutine 上执行。
 - 全文快照：每 50 个版本存一次全文（由 `engine/op` 在 `Commit.Doc` 里给出，`E.05`），其余版本只存哈希；`Base` 找 ≤ v 的最近全文再取之后的 Op（重放在 `E.05`）。
 - 事件批量写入：由 `E.09.01` 的写入器攒批（最多 64 条或 20ms）一次 `AppendRun`；存储不再合并。
 - 约束冲突（唯一键、主键）映射为 `ErrConflict`；查不到映射为 `ErrNotFound`。
@@ -92,7 +92,7 @@ func Open(ctx context.Context, path string, opt Options) (store.Store, error)
 2. 契约测试在 SQLite 上全部通过。
 
 ### 实施卡
-- 要建 / 要改的文件：`engine/store/sqlite/store.go`、`engine/store/sqlite/graphs.go`、`engine/store/sqlite/ops.go`、`engine/store/sqlite/runs.go`、`engine/store/sqlite/events.go`、`engine/store/sqlite/misc.go`、`engine/store/sqlite/sqlite_test.go`
+- 要建 / 要改的文件：`engine/store/sqlite/store.go`（`Open`、`Tx`、公共的读写和编码函数）、`engine/store/sqlite/graphs.go`（图和 Op）、`engine/store/sqlite/runs.go`（运行和事件）、`engine/store/sqlite/misc.go`（检查点、工具调用、设置）、`engine/store/sqlite/sqlite_test.go`
 - 不许碰的文件：`schema/`、`gen/`、`engine/store/store.go`、`engine/store/storetest/`、`engine/store/memstore/`、`engine/store/sqlite/writer.go`、`engine/store/sqlite/migrate.go`、`engine/store/sqlite/migrations/`
 - 测试用例：
   - `E0702-T1 表结构比对`：`Open` 一个临时文件后，`sqlite_master` 和 `PRAGMA table_info` / `index_list` 读出的表、列、主键、索引与 §4.1 逐项相同（期望表写在测试里）
