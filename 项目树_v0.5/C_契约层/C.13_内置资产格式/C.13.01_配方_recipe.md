@@ -32,7 +32,7 @@
     "exclude":  { "type": "array", "items": { "type": "string", "pattern": "^(type|path):.+$" },
                   "description": "排除的内容：type:方案（按类型）、path:*.reasoning（按字段路径）" },
     "budget":   { "type": "object", "required": ["ratio"], "additionalProperties": false,
-                  "properties": { "ratio": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 }, "max_ratio": { "type": "number", "maximum": 1 } } },
+                  "properties": { "ratio": { "type": "number", "minimum": 0, "exclusiveMinimum": 0, "maximum": 1 }, "max_ratio": { "type": "number", "minimum": 0, "maximum": 1 } } },
     "on_overflow": { "enum": ["pointer", "summarize", "truncate", "reject"] }
   },
   "$defs": {
@@ -229,3 +229,4 @@ on_overflow: pointer
 | 2026-11-23 | 新增 §5 内置配方：6 个配方的完整内容和来源表；验收标准移到 §6；实施卡按 `G.02.06-R24` 重写 | `P.09` K218 |
 | 2026-11-23 | 新增 `inputs`（来源按类型分配，R4）、保留来源 `exp`（R5）、段的 `var`（R6）；6 个内置配方补 `inputs` | `P.09` K221、K222 |
 | 2026-11-23 | 状态改为"已审"：第 3 片（`m0-contract-2`）开工前复查完成（用户授权设计方自主裁决，2026-11-23 15:00） | `G.02.01-R2`；`P.09` K210 |
+| 2026-11-23 | `budget.ratio`、`max_ratio` 补 `minimum: 0`（`C.01-R11`：名字以 ratio 结尾的字段写 0–1；`ratio` 仍要求大于 0） | 第 3 片实施；`P.09` K226 |

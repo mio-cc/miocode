@@ -77,9 +77,11 @@
 | `type: integer` | `integer` | `min` ← `minimum`，`max` ← `maximum`，`step` ← `multipleOf`（缺省 1） |
 | `type: number` | `number` | `min` ← `minimum`，`max` ← `maximum`，`step` ← `multipleOf` |
 | `type: boolean` | `boolean` | — |
-| `type: object` 或 `array`；`oneOf`、`anyOf`、`allOf`；没写 `type` | `object` | 不再往下展开，用 `code`（JSON）编辑 |
+| `type: object` 或 `array`；`oneOf`、`anyOf`、`allOf`（可空写法除外）；没写 `type` | `object` | 不再往下展开，用 `code`（JSON）编辑 |
 
-  每一行都按：`label` ← `title`（缺省用属性名，超过 20 字截断）；`help` ← `description`（超过 200 字截断）；`default` ← `default`。
+  每一行都按：`label` ← `title`（缺省用属性名，超过 20 字截断）；`help` ← `description`（超过 200 字截断）；`default` ← `default`（值为 `null` 时不写）。
+
+  可空写法先去掉 null 再查表：`type` 是数组、去掉 `"null"` 后只剩一种类型时按那一种；`anyOf` 或 `oneOf` 恰好两项、其中一项是 `{"type": "null"}` 时按另一项（字段取自那一项，`title`、`description`、`default` 外层写了就用外层的）。Python（Pydantic）生成的 MCP 工具，可选参数 `Optional[str]` 就是这种写法（`P.09` K226）。
 - **C.03.02-R8** 子参数的分组：`required` 里的属性按声明顺序取前 4 个为"常用"，其余为"高级"（与 `C.03.05-R1` 同一个上限）。每个子参数都能接线：节点按 `dynamic_ports`（`C.03.01`）给每个子参数生成一个输入端口。端口名由属性名换算成 `^[a-z_][a-z0-9_]*$`：大写字母前加 `_` 再全部转小写，其余不合法的字符换成 `_`，数字开头加 `p_`，与已有端口或参数重名时依次加 `_2`、`_3`。端口类型一律 `任意`（v1 没有标量数据类型），值在运行时按子参数的类型校验，不符合时 `user_input`。
 - **C.03.02-R9** 所选对象变了（换了工具，或工具的 schema 更新）：同名属性的值保留，不存在的属性去掉；连到消失端口的连线随这次 `set_param` 一并删除，撤销时恢复（`C.05.02`、`C.05.03`）。
 - **C.03.02-R10** 无法展开：schema 不是对象、顶层没有 `properties`、属性超过 32 个时，不生成子参数和端口，整个对象参数用 `code`（JSON）编辑，校验记 warn。`C.15` §7 说的"无法展开"就是这种情况。
@@ -136,3 +138,4 @@ params:
 |---|---|---|
 | 2026-11-23 | 界面字段移到 `ParamDef.ui`（`C.03.05`），去掉 `widget`、`inline`、`advanced`；§4 控件名统一并写明 `widget_map.yaml` 前后端共用；新增 §5 `schema_from`（R6–R10）；R1 改为引用 K95；实施卡按 `G.02.06-R24` 重写 | `P.09` K211、K212 |
 | 2026-11-23 | 状态改为"已审"：第 3 片（`m0-contract-2`）开工前复查完成（用户授权设计方自主裁决，2026-11-23 15:00） | `G.02.01-R2`；`P.09` K210 |
+| 2026-11-23 | R7 加可空写法：去掉 null 后只剩一种类型就按那一种查表；`default: null` 不写 | 第 3 片整片评审；`P.09` K226 |

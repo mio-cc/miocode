@@ -23,7 +23,8 @@
 | 参数 | 类型 | 默认 | 说明 |
 |---|---|---|---|
 | `kind` | enum：模型 / 提示词 / 列表 / 常量 | 模型 | 内联 |
-| `value` | 按 kind：模型引用 `{provider, model, sampling?, fallback?}`；提示词：模板文本，`{{变量}}` 由同名动态输入端口提供（`dynamic_ports: {from_param: value}`，`C.03.05`）；列表（JSON 数组或工作区引用）；常量（任意 JSON） | — | 内联 |
+| `value` | 按 kind：模型引用 `{provider, model, sampling?, fallback?}`；列表（JSON 数组或工作区引用）；常量（任意 JSON）；`kind=提示词` 时不用 | — | 内联 |
+| `template` | text：提示词模板，`{{变量}}` 由同名动态输入端口提供（`dynamic_ports: {from_param: template}`，`C.03.05`）；只在 `kind=提示词` 时用 | — | 内联 |
 | `pin` | enum：snapshot / link | snapshot | 引用的版本钉住方式 |
 
 输入：`kind=提示词` 时模板里每个变量一个动态输入端口（任意），其余 kind 没有输入。输出：`ref: 资源引用@1` = `{kind, ref, version}`；提示词的 `ref` 是渲染后的文本。
@@ -59,3 +60,4 @@
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | `kind=提示词` 改为模板文本（提示词节点），由动态输入端口提供变量；角色卡改由 Agent 的 `rolecard` 参数选 | `P.09` K213 |
+| 2026-11-23 | 提示词模板从 `value` 拆成单独的 `template` 参数（文本框编辑） | `P.09` K226 |

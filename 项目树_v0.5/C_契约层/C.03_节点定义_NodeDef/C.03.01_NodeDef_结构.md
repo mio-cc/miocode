@@ -131,7 +131,8 @@ INV-01、INV-02、`C.03-R1`–`R3`。
 - 汇合的 `in` 只写 `dynamic: true`：`multi` 和 `dynamic` 不能同时为 true（`C.04.04-R4`），每条连线本来就是一个插口。
 - 子图引用的 `ports` 写成两个空对象：它的端口由子图的端口节点决定（`C.02.04-R3`）。
 - 值是列表的参数（循环的 `carry_fields`、人工的 `options`、子图引用的 `writeback`、聚合的 `levels`）：`type: object`，`schema` 写数组的 JSON Schema，`ui.widget: code`。`ParamDef` 没有列表类型。
-- 资源节点的 `value`：`type: object`（任意 JSON，按 `kind` 不同）；`kind=提示词` 时它是一个字符串，`dynamic_ports` 从这个字符串里抽取 `{{变量}}`（`C.03.05-R4`）。
+- 资源节点的 `value`：`type: object`（任意 JSON，按 `kind` 不同），`ui.show_if: kind != '提示词'`；提示词模板单独一个 `text` 参数 `template`，`ui.show_if: kind == '提示词'`，`dynamic_ports` 从它里面抽取 `{{变量}}`（`from_param: template`，`C.03.05-R4`）。这样写提示词用的是多行文本框，不是 JSON 编辑框（`P.09` K226）。
+- 参数表"说明"里写着"某种方式下才用"的参数（如扇出 `k` 只在 `collect` 为 `k_of_n` 时用），写 `ui.show_if`，条件照说明写；表里没有这一列，以说明为准（`P.09` K226）。
 - 参数表里默认值随别的东西变化的（工具的 `risk`"取工具声明"、Agent 的 `max_output_tokens`"模型默认"、子图端口的 `port_name`"in / out"）不写 `default`；人工的 `on_timeout` 可以是 `rejected`、`fail` 或某个选项，写成 `string`，缺省 `rejected`。
 - 表里写"内联"的参数为 `ui.group: 常用`，按表中顺序；"kernel 锁"的参数写 `lock: kernel` 和 `C.03.03` §5 的默认值；Agent 的 `context` 端口写 `lock: kernel`（INV-07）。
 
@@ -142,7 +143,7 @@ INV-01、INV-02、`C.03-R1`–`R3`。
 
 ### 实施卡
 - 要建 / 要改的文件：`schema/nodedef.schema.json`、`schema/builtin/nodedefs/资源.yaml`、`schema/builtin/nodedefs/Agent.yaml`、`schema/builtin/nodedefs/上下文装配.yaml`、`schema/builtin/nodedefs/工具.yaml`、`schema/builtin/nodedefs/扇出.yaml`、`schema/builtin/nodedefs/汇合.yaml`、`schema/builtin/nodedefs/聚合.yaml`、`schema/builtin/nodedefs/分支.yaml`、`schema/builtin/nodedefs/循环.yaml`、`schema/builtin/nodedefs/账本.yaml`、`schema/builtin/nodedefs/人工.yaml`、`schema/builtin/nodedefs/子图端口.yaml`、`schema/builtin/nodedefs/子图引用.yaml`、`tools/schemacheck/nodedef_test.go`
-- 定义文件的内容：端口按 §6；参数按对应执行器文档的参数表（`E.14.01`–`E.14.13`），表里写"内联"的参数为 `ui.group: 常用`（按表中顺序），"kernel 锁"的参数为 `lock: kernel`、默认值取 `C.03.03` §5；执行器文档没写全的参数，取 demo v0.5（`画布_demo_v0.5.html` 的 `HX.DEF`）里同名节点的参数，并在 `RELAY.md` 本条列出。资源节点声明 `dynamic_ports: {from_param: value}`，工具节点的 `args` 写 `schema_from: param:tool` 并声明 `dynamic_ports: {from_param: args}`。之后执行器叶子要改参数时只改自己那一份（`P.09` K215）
+- 定义文件的内容：端口按 §6；参数按对应执行器文档的参数表（`E.14.01`–`E.14.13`），表里写"内联"的参数为 `ui.group: 常用`（按表中顺序），"kernel 锁"的参数为 `lock: kernel`、默认值取 `C.03.03` §5；执行器文档没写全的参数，取 demo v0.5（`画布_demo_v0.5.html` 的 `HX.DEF`）里同名节点的参数，并在 `RELAY.md` 本条列出。资源节点声明 `dynamic_ports: {from_param: template}`，工具节点的 `args` 写 `schema_from: param:tool` 并声明 `dynamic_ports: {from_param: args}`。之后执行器叶子要改参数时只改自己那一份（`P.09` K215）
 - 不许碰的文件：`gen/`、`engine/`、`internal/`、`web/`、`cmd/`、`tools/relay/`、`tools/build/`
 - 测试用例：
   - `C0301-T1 定义文件校验`：13 个文件都通过 `nodedef.schema.json`；文件名与 `name` 相同；`kind` 都是 `atomic`
@@ -163,3 +164,4 @@ INV-01、INV-02、`C.03-R1`–`R3`。
 | 2026-11-23 | schema 加 `dynamic_ports`（`DynamicPorts`）；R4 措辞；§6 资源、工具补动态端口；实施卡按 `G.02.06-R24` 重写：逐个写出 13 个定义文件，检查放 `tools/schemacheck/`，参数来源改为 `E.14.*` + demo v0.5 | `P.09` K213、K214、K215 |
 | 2026-11-23 | 状态改为"已审"：第 3 片（`m0-contract-2`）开工前复查完成（用户授权设计方自主裁决，2026-11-23 15:00） | `G.02.01-R2`；`P.09` K210 |
 | 2026-11-23 | R3 允许输入、输出端口同名；§6 汇合只写动态、聚合补 `T`；新增 §6.1 定义文件的写法 | 第 3 片实施 `C.03.01` 时发现；`P.09` K224 |
+| 2026-11-23 | §6.1 资源节点的提示词模板改为单独的 `template` 参数（`dynamic_ports` 从它抽变量）；写明 `show_if` 的来源 | 第 3 片整片评审；`P.09` K226 |
