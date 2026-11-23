@@ -40,6 +40,7 @@ type PatchResult struct { Applied, RestartRequired, NextRun []string }
 | 主题 | 只存配置，前端读取 |
 | 资源池 | `sched.Pools.Reconfigure`（下次运行生效） |
 | 提供方、默认模型、能力覆盖 | `llm.Registry` 重建对应提供方 |
+| 对话入口图 `chat.entry_graph` | 校验（`B.06.02-R4`）后只存配置，下一条回复生效 |
 | 工具白名单、文件目录 | `tools.Registry` |
 | MCP 服务 | `mcp.Manager.Configure` |
 | 保留期 | 后台维护任务（`B.09`） |
@@ -65,3 +66,4 @@ type PatchResult struct { Applied, RestartRequired, NextRun []string }
 - 允许使用的依赖：标准库 + `G.10` 已登记依赖
 - 禁止事项：`G.02.05` 全部
 - 完成标志：`G.14` 全部条件
+| 2026-11-23 | 热更新表加 `chat.entry_graph` | `P.09` K233 |

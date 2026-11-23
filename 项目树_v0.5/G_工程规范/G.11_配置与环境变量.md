@@ -45,7 +45,8 @@
 | `general.send_key` | `enter`（可选 `mod`） | — | 是 |
 | `notify.approval` · `notify.run` · `notify.connection` · `notify.budget` | `true` | — | 是 |
 | `notify.desktop` | `false` | — | 是 |
-| `models.orchestrator` | 空（= 用 `models.default`） | — | 是 |
+| `models.orchestrator` | 空（= 用 `models.default`）；生成默认对话入口图时它的模型节点用这个，之后以入口图为准（`B.06.02-R3`） | — | 是 |
+| `chat.entry_graph` | 空（首次启动时用内置模板生成一张，填它的 ID） | — | 是 |
 | `models.default_effort` | `medium`（`off` / `minimal` / `low` / `medium` / `high` / `xhigh` / `max`） | — | 是 |
 | `models.demo_mode` | `false`（`--fake-llm` 时为 `true`） | `--fake-llm` | 是 |
 | `authz.default_level` | `1` | — | 是（只影响新会话） |
@@ -72,3 +73,4 @@
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | §3 补登设置页的全部配置路径（发送键、通知、默认模型与思考强度、演示模式、默认档位、审批、沙箱、文件目录、本机 HTTP MCP、预算、包的设置、引导进度、两个只读项） | 第 9 棒写 `W.09.02`；`P.09` K115 定稿为 K142 |
+| 2026-11-23 | 加 `chat.entry_graph`；`models.orchestrator` 写明只用于生成默认对话入口图 | `P.09` K233 |

@@ -6,7 +6,7 @@
 | 类型 | 实施 |
 | 上级 | C 契约层 |
 | 下级 | 无 |
-| 状态 | 冻结 |
+| 状态 | 已审 |
 | 素材 | 引15 |
 | 最后修改 | 2026-11-23 |
 
@@ -26,7 +26,8 @@
     "graph_ids":       { "type": "array", "items": { "$ref": "common.schema.json#/$defs/Ulid" }, "uniqueItems": true, "default": [] },
     "active_graph_id": { "$ref": "common.schema.json#/$defs/Ulid", "description": "画布当前显示的图" },
     "mandates":        { "type": "array", "items": { "$ref": "common.schema.json#/$defs/MandateMount" }, "default": [], "description": "anchor 只能是 session" },
-    "orchestrator_model": { "type": "string", "description": "对话 Agent 用的模型；缺省用设置里的默认（P.09 Q17）" },
+    "entry_graph_id":  { "$ref": "common.schema.json#/$defs/Ulid", "description": "这个会话用的对话入口图；不填用设置 chat.entry_graph（C.10-R9）" },
+    "orchestrator_model": { "type": "string", "description": "对话框上为这个会话临时选的模型：覆盖对话入口图里 Agent 连的模型；不填用入口图里的（C.10-R9）" },
     "orchestrator_effort": { "type": "object", "default": {}, "additionalProperties": { "enum": ["off", "minimal", "low", "medium", "high", "xhigh", "max"] },
                          "description": "按模型记住的思考强度：模型引用 → 强度（U.09.06-R7）；没有记录的模型用设置里的默认强度" },
     "last_location":   { "type": "object", "additionalProperties": false,
@@ -42,6 +43,7 @@
 - **C.10-R2** 画布居中的布局下（ADR-008），一个会话任何时候只有一张"当前图"（`active_graph_id`），显示在画布上。
 - **C.10-R3** `last_location` 由前端在进入、离开某一层时更新（`PATCH /sessions/{id}`，节流 1 秒）；它只是界面现场，不写会话事件以外的任何记录，不影响图文档和运行。视图位置不在这里（存浏览器，`U.09.04` §2）。
 - **C.10-R6** `orchestrator_effort` 由前端在用户选择思考强度时更新（`PATCH /sessions/{id}`）；对话 Agent 调用模型时取 `orchestrator_effort[orchestrator_model]`，没有记录时用设置里的默认强度（`U.09.06-R6`），模型不支持这一级时按 `E.10.05` 映射（`P.09` K74）。
+- **C.10-R9** 对话 Agent 每条回复运行这个会话的对话入口图（`P.06`"对话入口图"，`B.06.02`）：`entry_graph_id` 有值用它，没有用设置 `chat.entry_graph`。`orchestrator_model` 只是对话框上的临时覆盖：有值时替换入口图里对话 Agent 的 `model` 端口上游的模型，入口图本身不改；没有值时用入口图里连的模型。R6 的 `orchestrator_effort` 按实际使用的模型取（`P.09` K233）。
 
 ## 3. 消息 Message
 ```json
@@ -149,3 +151,4 @@
 | 2026-11-23 | 第 4 片（`m0-contract-3`）开工前复查：`MessageBlock`、`MessageRef` 写成按 kind 判别的封闭定义（R8）；`Message.error`、`usage` 封闭；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K227 |
 | 2026-11-23 | 审批卡片块的审批类型字段改名 `approval_kind`（§4、R8） | `P.09` K229 |
 | 2026-11-23 | 状态改为"冻结"：第 4 片（`m0-contract-3`）squash 合并进代码仓库 `main`，提交 `08f30f9eb52fa2a1b3d494eab0381c4b72313848`（`G.02.06-R21`、`R23`） | 整片验证通过；整片评审 9 条，`C.10` 一条不符合（会话挂载点没有约束 `anchor` 为 `session`）已返工并复核；按 `G.08-R3` 由验证者合并 |
+| 2026-11-23 | 冻结后修改，状态改回"已审"：`Session` 加 `entry_graph_id`；`orchestrator_model` 改为对话框上的临时覆盖；新增 R9 | 用户决定对话入口是一张可编辑的普通图（全局一份，会话可换）；`P.09` K233（`G.02.06-R21`） |
