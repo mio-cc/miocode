@@ -49,7 +49,7 @@ var errWriterClosed = errors.New("sqlite: 写队列已关闭")
 见 §5 表；`fn` 的错误原样返回（不包装），哨兵错误能用 `errors.Is` 判断。
 
 ## 8. 验收标准
-1. 10 个 goroutine 并发各写 1 万条：每组 seq 连续，总耗时 < 3s。
+1. 10 个 goroutine 并发各写 1 万条：每组 seq 连续；单独运行时总耗时 < 3s（`ANYDOOR_PERF=1` 时按这个判），整仓测试里只要求 < 10s（各包并行，机器忙，`P.09` K238）。
 2. 关闭时队列清空。
 
 ### 实施卡
@@ -57,7 +57,7 @@ var errWriterClosed = errors.New("sqlite: 写队列已关闭")
 - `go.mod` 加 `modernc.org/sqlite`（`G.10` 已登记）：验证者 `go get modernc.org/sqlite@latest` 后 `go mod tidy`；实施者不手改 `go.mod`、`go.sum`。
 - 不许碰的文件：`schema/`、`gen/`、`engine/store/store.go`、`engine/store/storetest/`、`engine/store/memstore/`
 - 测试用例（测试里自己建一张两列的表 `t(grp, seq)`，不依赖迁移）：
-  - `E0704-T1 并发写`：10 个 goroutine，每个用 `Do` 写 1 万条（每个事务 100 条，seq 取本组 `max(seq)+1`），结束后每组 seq 从 1 到 10000 连续；`-short` 时每组 1000 条
+  - `E0704-T1 并发写`：10 个 goroutine，每个用 `Do` 写 1 万条（每个事务 100 条，seq 取本组 `max(seq)+1`），结束后每组 seq 从 1 到 10000 连续；总耗时按 §8 第 1 条判；`-short` 时每组 1000 条
   - `E0704-T2 关闭清空`：排队 100 个请求后 `Close(10s)`：100 个都执行了；之后 `Do` 返回 `errWriterClosed`
   - `E0704-T3 回滚与 panic`：`fn` 返回错误、`fn` panic 时数据不留下，下一个 `Do` 正常
   - `E0704-T4 排队时取消`：一个长事务执行中，另一个请求的 `ctx` 取消后立刻返回 `context.Canceled`，它的 `fn` 没有执行
@@ -70,3 +70,4 @@ var errWriterClosed = errors.New("sqlite: 写队列已关闭")
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-24 | 第 6 片（`m0-store`）开工前复查：去掉 2ms 跨运行合并（攒批在 `E.09.01`）；写明取消、panic、超时、关闭的行为；本叶子把 `modernc.org/sqlite` 加进 `go.mod`；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K237 |
+| 2026-11-24 | §8 第 1 条：3s 只在单独运行（`ANYDOOR_PERF=1`）时判，整仓测试放宽到 10s | `P.09` K238（整片验证里 3.7s，单独 1.45s） |
