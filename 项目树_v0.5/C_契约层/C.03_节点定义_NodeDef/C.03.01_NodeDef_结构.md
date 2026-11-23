@@ -6,9 +6,9 @@
 | 类型 | 实施 |
 | 上级 | C.03 节点定义 NodeDef |
 | 下级 | 无 |
-| 状态 | 草稿 |
+| 状态 | 已审 |
 | 素材 | 引02 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-23 |
 
 ## 1. 职责
 定义 NodeDef 的结构，并列出 13 个原子节点的端口签名（这是前后端、画布、校验器都要用的数据）。
@@ -50,7 +50,8 @@ INV-01、INV-02、`C.03-R1`–`R3`。
                      "description": "类型变量的来源，如 {\"T\": \"param:output_schema\"}，见 C.04.03" },
     "container":   { "enum": ["none", "required", "one_of"], "default": "none", "description": "与 container_rules.yaml 一致，见 C.02.04" },
     "kernel_rules":{ "type": "array", "items": { "type": "string" }, "description": "内核强制规则的编号，只用于展示，如 INV-07" },
-    "examples":    { "type": "array", "items": { "type": "string" } }
+    "examples":    { "type": "array", "items": { "type": "string" } },
+    "dynamic_ports": { "$ref": "#/$defs/DynamicPorts" }
   },
   "$defs": {
     "PortDef": {
@@ -66,6 +67,17 @@ INV-01、INV-02、`C.03-R1`–`R3`。
         "dynamic":  { "type": "boolean", "default": false, "description": "动态插口 in[0]、in[1]…" },
         "stream":   { "type": "boolean", "default": false, "description": "支持流式片段，见 E.16" },
         "lock":     { "enum": ["none", "kernel"], "default": "none" }
+      }
+    },
+    "DynamicPorts": {
+      "type": "object",
+      "required": ["from_param"],
+      "additionalProperties": false,
+      "description": "从一个参数生成输入端口（C.03.05-R4）：文本参数按 {{变量}} 抽取；schema_from 对象参数按 C.03.02 §5 每个子参数一个",
+      "properties": {
+        "from_param": { "type": "string", "pattern": "^[a-z_][a-z0-9_]*$" },
+        "type":       { "$ref": "types.schema.json#/$defs/TypeRef", "default": "任意", "description": "只用于文本变量；schema_from 展开的端口一律 任意" },
+        "max":        { "type": "integer", "minimum": 1, "maximum": 32, "default": 8 }
       }
     },
     "Impl": {
@@ -85,7 +97,7 @@ INV-01、INV-02、`C.03-R1`–`R3`。
 - **C.03.01-R1** `kind=atomic` 只能用于 13 个原子节点，并且只能出现在 `schema/builtin/nodedefs/`；扩展包里出现 `atomic` 时拒绝安装。
 - **C.03.01-R2** 扩展节点的 `category` 只能是 `扩展`，或 13 个原子节点用过的分类之一（让扩展节点能放进节点库的同一分组）。
 - **C.03.01-R3** 同一个 NodeDef 里，输入端口名、输出端口名、参数名三者之间**不能重名**（端口提升后参数名会变成输入端口名，`C.02.03-R6`）。
-- **C.03.01-R4** 输入端口 `ctx`、`tool`、`ref` 类型必须严格匹配（`C.04.02`），NodeDef 不能放宽。
+- **C.03.01-R4** 显示类别为 `ctx`、`tool`、`ref` 的输入端口（上下文包、工具端点、资源引用）类型必须严格匹配（`C.04.02`），NodeDef 不能放宽。
 - **C.03.01-R5** 每个 NodeDef 最多 8 个输入端口、8 个输出端口（动态插口不计）。超过说明这个节点应该拆。
 
 ## 6. 13 个原子节点的端口签名
@@ -93,10 +105,10 @@ INV-01、INV-02、`C.03-R1`–`R3`。
 
 | 节点 | 分类 | 输入端口 | 输出端口 | 类型变量 | 容器 |
 |---|---|---|---|---|---|
-| 资源 | 资源 | — | `ref`: 资源引用@1 | — | 否 |
+| 资源 | 资源 | —；`kind=提示词` 时模板里每个 `{{变量}}` 一个动态端口（`C.03.05`） | `ref`: 资源引用@1 | — | 否 |
 | Agent | 智能体 | `context`: 上下文包@1（必）· `model`: 资源引用@1（必）· `prompt`: 资源引用@1 · `tools`: 工具端点@1（多） | `result`: $T | T ← `param:output_schema` | 否 |
 | 上下文装配 | 状态 | `in`: 任意（多）· `model`: 资源引用@1 | `context`: 上下文包@1 · `dropped`: 列表[任意] | — | 否 |
-| 工具 | 工具 | `request`: 任意 | `endpoint`: 工具端点@1 · `result`: $T | T ← `param:result_type`（缺省 任意） | 否 |
+| 工具 | 工具 | `request`: 任意 · 所选工具的每个入参一个动态端口（`C.03.02` §5） | `endpoint`: 工具端点@1 · `result`: $T | T ← `param:result_type`（缺省 任意） | 否 |
 | 扇出 | 拓扑 | `items`: 列表[$T] · `shared`: 任意（多） | `results`: 列表[$U] | T ← `input:items.elem`，U ← `body:exit` | **必须** |
 | 汇合 | 拓扑 | `in`: 任意（多、动态） | `collected`: 列表[任意] | — | 否 |
 | 聚合 | 聚合 | `items`: 列表[$T]（必） | `result`: $U | U ← `op:<算子>(T)` | 否 |
@@ -118,6 +130,24 @@ INV-01、INV-02、`C.03-R1`–`R3`。
 3. 参数名和端口名重复的 NodeDef 注册失败。
 
 ### 实施卡
-- 要建的文件：`schema/nodedef.schema.json`；`schema/builtin/nodedefs/{资源,Agent,上下文装配,工具,扇出,汇合,聚合,分支,循环,账本,人工,子图端口,子图引用}.yaml`（端口按 §6；参数按对应 `E.14.*` 文档，参数文档未写完前先放 demo v0.4 `21_defs.js` 里的参数，状态标"草稿"）；`tools/gen/check_nodedefs.go`（比对 §6 表格的检查脚本，表格以 `schema/builtin/atomic_ports.yaml` 的形式存一份机器可读版）。
-- 测试用例：`C0301-T1`（13 个文件校验）、`C0301-T2`（端口签名比对）、`C0301-T3`（atomic 拒绝）、`C0301-T4`（重名拒绝）。
-- 禁止事项：`G.02.05-R9`（不得在代码里按类型名写分支，用 NodeDef 数据驱动）。
+- 要建 / 要改的文件：`schema/nodedef.schema.json`、`schema/builtin/nodedefs/资源.yaml`、`schema/builtin/nodedefs/Agent.yaml`、`schema/builtin/nodedefs/上下文装配.yaml`、`schema/builtin/nodedefs/工具.yaml`、`schema/builtin/nodedefs/扇出.yaml`、`schema/builtin/nodedefs/汇合.yaml`、`schema/builtin/nodedefs/聚合.yaml`、`schema/builtin/nodedefs/分支.yaml`、`schema/builtin/nodedefs/循环.yaml`、`schema/builtin/nodedefs/账本.yaml`、`schema/builtin/nodedefs/人工.yaml`、`schema/builtin/nodedefs/子图端口.yaml`、`schema/builtin/nodedefs/子图引用.yaml`、`tools/schemacheck/nodedef_test.go`
+- 定义文件的内容：端口按 §6；参数按对应执行器文档的参数表（`E.14.01`–`E.14.13`），表里写"内联"的参数为 `ui.group: 常用`（按表中顺序），"kernel 锁"的参数为 `lock: kernel`、默认值取 `C.03.03` §5；执行器文档没写全的参数，取 demo v0.5（`画布_demo_v0.5.html` 的 `HX.DEF`）里同名节点的参数，并在 `RELAY.md` 本条列出。资源节点声明 `dynamic_ports: {from_param: value}`，工具节点的 `args` 写 `schema_from: param:tool` 并声明 `dynamic_ports: {from_param: args}`。之后执行器叶子要改参数时只改自己那一份（`P.09` K215）
+- 不许碰的文件：`gen/`、`engine/`、`internal/`、`web/`、`cmd/`、`tools/relay/`、`tools/build/`
+- 测试用例：
+  - `C0301-T1 定义文件校验`：13 个文件都通过 `nodedef.schema.json`；文件名与 `name` 相同；`kind` 都是 `atomic`
+  - `C0301-T2 端口签名`：端口名、类型、`required`、`multi`、`dynamic` 与 §6 一致（对照表写在测试里，不另存数据文件）
+  - `C0301-T3 定义内部一致`：输入端口、输出端口、参数三者不重名（R3）；输入、输出各不超过 8 个，动态端口不计（R5）；`container` 与 `container_rules.yaml` 一致；`type_vars` 与 §6 一致
+  - `C0301-T4 内核锁参数`：`C.03.03` §5 表里的 5 个参数都是 `lock: kernel`，默认值与表一致
+  - `C0301-T5 动态端口`：只有资源、工具声明 `dynamic_ports`，`from_param` 指向存在的参数
+- 在其他叶子跑的测试用例（不算本叶子的完成条件）：
+  - 扩展包里 `kind: atomic` 的 NodeDef 安装失败（§7 验收 2）：`E04-T6`（`E.04`）
+  - 参数名和端口名重复的扩展 NodeDef 注册失败（§7 验收 3）：`E0301-T7`（`E.03.01`）
+- 允许使用的依赖：标准库、`github.com/santhosh-tekuri/jsonschema/v6`、`github.com/goccy/go-yaml`（`G.10` 已登记，`C.01` 加进 `go.mod`）
+- 禁止事项：`G.02.05-R1`、`R2`
+- 完成标志：`relay check` ①–⑥ 通过；所在片整片验证通过（`G.02.06-R23`）
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | schema 加 `dynamic_ports`（`DynamicPorts`）；R4 措辞；§6 资源、工具补动态端口；实施卡按 `G.02.06-R24` 重写：逐个写出 13 个定义文件，检查放 `tools/schemacheck/`，参数来源改为 `E.14.*` + demo v0.5 | `P.09` K213、K214、K215 |
+| 2026-11-23 | 状态改为"已审"：第 3 片（`m0-contract-2`）开工前复查完成（用户授权设计方自主裁决，2026-11-23 15:00） | `G.02.01-R2`；`P.09` K210 |

@@ -31,7 +31,7 @@
     "enabled": { "type": "boolean" }, "locked": { "type": "boolean", "description": "core 为 true" },
     "contributes": {
       "node_presets":     { "type": "array", "items": { "$ref": "#/$defs/NodePreset" } },
-      "tools":            { "type": "array", "items": { "$ref": "tool.schema.json#/$defs/ToolDef" } },
+      "tools":            { "type": "array", "items": { "$ref": "api.schema.json#/$defs/ToolDef" } },
       "connection_types": { "type": "array", "items": { "$ref": "connection.schema.json#/$defs/ConnectionType" } },
       "types":            { "type": "array" }, "templates": { "type": "array" }, "skills": { "type": "array" },
       "settings":         { "type": "array", "items": { "$ref": "#/$defs/SettingDef" } }
@@ -53,10 +53,10 @@
 
 ## 5. 行为
 - **C.15-R1** 节点库里的每一项都是一个 NodePreset：基于某个原子节点，预填参数和标签。拖到画布上得到的就是那个原子节点，`meta.preset = <包 id>/<预设 id>`（只用于显示来源）。
-- **C.15-R2** MCP 服务连接成功后，后端为它生成 `mcp:<名>` 包：每个工具 → 一条 ToolDef + 一条 NodePreset（atom=工具，path=[工具, MCP · <名>]，参数从工具的 inputSchema 生成）。新工具默认停用（`S.08-R12`）。
+- **C.15-R2** MCP 服务连接成功后，后端为它生成 `mcp:<名>` 包：每个工具 → 一条 ToolDef + 一条 NodePreset（atom=工具，path=[工具, MCP · <名>]，`params` 只预填 `tool: mcp:<名>/<工具>`；节点上的参数由工具节点按这个工具的 inputSchema 展开，`C.03.02` §5）。新工具默认停用（`S.08-R12`）。
 - **C.15-R3** 停用的包：它的预设在节点库里灰显，不能拖入；画布上已有的节点显示"缺少：<包名>"，运行前校验报 V20。
 - **C.15-R4** 包的 `settings` 出现在两处且是同一份数据：包详情页、"设置 › 包的设置"分组（`U.21`）。
-- **C.15-R5** 核心包贡献：内置工具、模型提供方连接类型、SMTP / 搜索连接类型、9 个基础数据类型、内置模板、7 张角色卡。
+- **C.15-R5** 核心包贡献：内置工具、模型提供方连接类型、SMTP / 搜索连接类型、内置数据类型（`C.13.03-R4`）、内置模板、7 张角色卡。
 - 接口：`GET /api/v1/packages`、`GET /packages/{id}`、`POST /packages/{id}/enable|disable`（替代 `B.04.08`、`B.04.12` 的部分接口，旧路径保留为别名一个版本）。`enable|disable` 的响应为 `{package, registry_hash}`（前端据此刷新节点类型与节点库，`W.09.04` §6.3）；`GET /packages/{id}` 对技能包另带 `skill_md`（SKILL.md 原文，≤ 64KB）；MCP 包带 `mcp {state, last_error, new_tools}`（`P.09` K150）。
 
 ## 6. 不变量
@@ -64,11 +64,11 @@
 - 停用包不会删除任何图里的节点
 
 ## 7. 错误处理
-包清单校验失败：安装拒绝，`extension_invalid`；MCP 工具 inputSchema 无法转成参数：该工具只出现在包详情，不生成预设，记 warn。
+包清单校验失败：安装拒绝，`extension_invalid`；MCP 工具 inputSchema 无法展开：照常生成预设，`args` 用 JSON 编辑（`C.03.02-R10`），记 warn。
 
 ## 8. 验收标准
 1. 停用 MCP 包后它的节点灰显、画布上已有节点报 V20
-2. 一个 MCP 工具生成的预设参数与 inputSchema 一致
+2. 拖入一个 MCP 工具的预设，工具节点展开出的子参数与它的 inputSchema 一致
 3. 包设置在两处修改结果一致
 
 ### 实施卡
@@ -87,3 +87,4 @@
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | §5 接口补 `enable|disable` 的响应、技能包的 `skill_md`、MCP 包的状态字段 | 第 9 棒写 `W.09.04`；`P.09` K150 |
+| 2026-11-23 | `ToolDef` 引用改为 `api.schema.json`；R2 预设只预填 `tool`，参数由工具节点展开；R5、§7、§8 相应修改 | `P.09` K211、K219 |

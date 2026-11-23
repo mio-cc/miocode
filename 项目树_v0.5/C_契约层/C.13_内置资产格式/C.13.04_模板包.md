@@ -6,9 +6,9 @@
 | 类型 | 实施 |
 | 上级 | C.13 内置资产格式 |
 | 下级 | 无 |
-| 状态 | 草稿 |
+| 状态 | 已审 |
 | 素材 | 新 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-23 |
 
 ## 1. 职责
 定义模板包的格式。模板是预先搭好、可以一键实例化的图（`P.06`），也是端到端测试的标准用例（`T`）。
@@ -52,6 +52,7 @@ templates/闭环迭代/
       "items": {
         "type": "object",
         "required": ["key", "label", "target"],
+        "additionalProperties": false,
         "properties": {
           "key":    { "type": "string" },
           "label":  { "type": "string", "description": "如 你想调研什么？" },
@@ -77,5 +78,20 @@ templates/闭环迭代/
 2. 实例化两次得到两张 ID 完全不同、结构完全相同的图。
 
 ### 实施卡
-- 要建的文件：`schema/template.schema.json`。
-- 测试用例：`C1304-T1`、`C1304-T2`（实例化代码在 `B.06.05`）。
+- 要建 / 要改的文件：`schema/template.schema.json`、`schema/examples/template_minimal.json`、`schema/examples/manifest.yaml`、`tools/schemacheck/template_test.go`
+- 不许碰的文件：`gen/`、`engine/`、`internal/`、`web/`、`cmd/`、`tools/relay/`、`tools/build/`
+- 测试用例：
+  - `C1304-T1 清单 schema`：`template_minimal.json`（只有必填字段加一个 `inputs` 项）通过 `template.schema.json`，登记在 `manifest.yaml`
+  - `C1304-T2 清单反例`：`graph` 不是 `graph.json`、`version` 不是三段式、`inputs[]` 缺 `target` 或有未知字段时校验失败（测试里内联）
+- 在其他叶子跑的测试用例（不算本叶子的完成条件）：
+  - 内置模板的清单和图通过校验（§5 验收 1）：`T.02`–`T.05` 各自的测试
+  - 实例化两次得到 ID 不同、结构相同的图（§5 验收 2，R1）：`B.06.05`
+- 允许使用的依赖：标准库、`github.com/santhosh-tekuri/jsonschema/v6`、`github.com/goccy/go-yaml`（`G.10` 已登记，`C.01` 加进 `go.mod`）
+- 禁止事项：`G.02.05-R1`、`R2`
+- 完成标志：`relay check` ①–⑥ 通过；所在片整片验证通过（`G.02.06-R23`）
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | `inputs[]` 补 `additionalProperties: false`；实施卡按 `G.02.06-R24` 重写，内置模板的校验归 `T.02`–`T.05` | `P.09` K218 |
+| 2026-11-23 | 状态改为"已审"：第 3 片（`m0-contract-2`）开工前复查完成（用户授权设计方自主裁决，2026-11-23 15:00） | `G.02.01-R2`；`P.09` K210 |

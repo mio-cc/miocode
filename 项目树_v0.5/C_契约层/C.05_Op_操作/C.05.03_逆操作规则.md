@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 草稿 |
 | 素材 | 引08 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-23 |
 
 ## 1. 职责
 定义每种 Op 的逆操作，用于撤销、重做、撤回和回放。
@@ -21,7 +21,7 @@
 | `restore_nodes` | `remove_nodes{ids}` | — |
 | `connect` | `disconnect{ids:[edge.id]}`，有 `replaced` 时再加 `connect{replaced}` | 被替换的旧连线 |
 | `disconnect` | 逐条 `connect` | 被删连线 |
-| `set_param` | `set_param{to: 旧值}` | 应用前的值（不用客户端的 `from`） |
+| `set_param` | `set_param{to: 旧值}`，有 `removed` 时再逐条 `connect` | 应用前的值（不用客户端的 `from`）；被一并删除的连线 |
 | `promote_param` | `demote_param` | — |
 | `demote_param` | `promote_param` + 逐条 `connect` | 被删连线 |
 | `set_label` / `set_tags` / `set_lock` / `set_node_ui` / `set_graph_title` / `set_graph_meta` / `set_mandate` / `set_subgraph_ref` | 同 kind，`to` 换成旧值 | 旧值 |
@@ -51,3 +51,8 @@
 
 ### 实施卡
 - 测试用例：`C0503-T1`（属性测试）、`C0503-T2`。实现在 `E.05.02`。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | `set_param` 的逆操作恢复被一并删除的连线 | `P.09` K214 |

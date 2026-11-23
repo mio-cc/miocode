@@ -107,7 +107,7 @@ countTokens(text: string, model?: string): Promise<number>;   // POST /models/co
    - 节点 `lock`：`user` → "只有你能改"、`frozen` → "已冻结，谁都不能改"，旁边"解锁"（`dispatch(set_lock{none})`）。`frozen` 时下面所有控件只读。
    - 诊断：`diagsOf(graph, nodeId)` 逐条红字（`U.14.03` §1 节点级）。
 3. **参数表单**（`paramRows`）：
-   - 分组：常用（`ui.group='常用'`，与节点上相同的顺序）在前；其余按声明顺序；`advanced=true` 的折叠在"高级"里（`C.03.02` §3）。`show_if` 为假的不显示（`evalShowIf`）。
+   - 分组：常用（`ui.group='常用'`，与节点上相同的顺序）在前；其余按声明顺序；`ui.group` 不是"常用"的折叠在"高级"里（`C.03.05`）。`show_if` 为假的不显示（`evalShowIf`）。
    - 每行：参数名（`ParamDef.label`，悬停 `help`；内部名只在提示框里，`U.15-R3`）+ 控件（`resolveWidget`）。
    - 接线（`ui.bind` 端口上有连线，或参数被提升且有连线）：控件换成斜纹底只读块"由上游「X」提供"，点它 → `useLocate` 选中上游节点；断开后恢复原值（`U.10.07` §2、`U.11` §2）。
    - 模型改过的参数（这个参数最后一次 `set_param` 的操作者是模型：`origin.actor.kind='model'` 且 `origin.op_id` 对应的 Op 改了这个键；不能确定是哪个参数时只在头部显示角标）：行左侧 2px 模型色竖线，悬停同 AI 角标（`U.12` §2）。
@@ -120,7 +120,7 @@ countTokens(text: string, model?: string): Promise<number>;   // POST /models/co
    | 多行 | 失焦（Esc 也是失焦）；提示词节点的文本编辑中变量集合变了时下方显示"失焦后更新变量端口"（`U.10.07-R3`） | `set_param` |
    | 数字步进、滑块 | 拖动 / 连续步进用 `ops.gesture('step' / 'slide', revert)`：`onStart` 建手势、`onChange` → `update`、`onEnd` → `end`；单击步进一次直接 `dispatch` | `set_param` |
    | 开关、分段、下拉、选择器 | 选中即提交 | `set_param` |
-   | 对象（`object`） | 按 `schema` 生成子表单，任一子字段提交时整个对象一次 `set_param` | `set_param` |
+   | 对象（`object`） | 按 `schema` 生成子表单，`schema_from` 按所选对象展开（`C.03.02` §5）；任一子字段提交时整个对象一次 `set_param` | `set_param` |
    - 提交前 `ops.check(op, scope)`：不通过 → 行内红字 `t(textKey)`，不提交（`W.05` §4.1）。`dispatch` 结果 `rejected` 的提示由 `W.05` 负责；本文只恢复控件显示的值。
    - 聚焦任一参数控件 → `ops.setEditing(scope, [nodeId])`；失焦且焦点离开本节点的所有控件 → `setEditing(scope, [])`（`W.05` §6.10）。
 5. **本次运行**（当前运行里有这个节点的执行时显示，`run.live.execsOf(nodeId)`；订阅 `tick`）：最新一次的状态、用时、尝试次数；多次执行（循环、扇出）时一个下拉选第几次；下方 `NodeRunDetail`（折叠，点开才加载）。按钮："从这里重跑"（确认后 `run.fork({nodeId, scopes})`，`U.19.05` 第 4 步）、"在监控页查看"（`ui.setRs(true, 'mon')`，并把这次执行交给监控页定位）。
@@ -214,6 +214,7 @@ countTokens(text: string, model?: string): Promise<number>;   // POST /models/co
   - `W0703-T19 只读`：`net='down'` → 所有控件 `disabled` 且提示框有原因
   - `W0703-T20 选中不开右栏`：选中节点后 `rsOpen` 不变
   - `W0703-T21 端到端`：§10 验收 1、2、3、6（Playwright，`--fake-llm`）
+  - `W0703-T22 控件与展开`：同一参数在属性页与节点上推出的控件相同（都读 `WIDGET_MAP`）；`schema_from` 子参数表单与 `schema_expand_vectors.json` 一致（`C.03.02` §4、§5）
 - 允许使用的依赖：`react`；测试用 `vitest`、`jsdom`、`@playwright/test`。
 - 禁止事项：`G.02.05` 全部（特别是 R2、R6、R20）；另：不为某个节点类型手写表单；不在选中变化时打开右栏；不把密钥值放进任何状态；不一次性加载节点执行详情的全部大内容；不用 `dangerouslySetInnerHTML` 显示节点输出。
 - 完成标志：`G.14` 全部条件；§10 八条验收通过。
@@ -222,3 +223,4 @@ countTokens(text: string, model?: string): Promise<number>;   // POST /models/co
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | 首版 | 第 8 棒；`P.09` K113、K114、K119 |
+| 2026-11-23 | 高级分组改按 `ui.group`；对象参数支持 `schema_from`；补 `W0703-T22` | `P.09` K211、K212 |

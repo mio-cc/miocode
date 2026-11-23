@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 草稿 |
 | 素材 | 引02 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-23 |
 
 ## 1. 职责
 实现 `C.04` 的类型系统：解析 TypeRef、判断两个端口能否连接（C0–C10）、推断类型变量。
@@ -58,7 +58,7 @@ TypeRef 语法错误返回 `ErrBadTypeRef`；推断不出时生成 V16 诊断，
 3. 500 节点全量推断 < 10ms
 
 ### 实施卡
-- 要建 / 要改的文件：`engine/schema/types.go`、`engine/schema/assign.go`、`engine/schema/infer.go`、`engine/schema/types_test.go`
+- 要建 / 要改的文件：`engine/schema/types.go`、`engine/schema/assign.go`、`engine/schema/infer.go`、`engine/schema/types_test.go`、`engine/schema/ports.go`
 - 不许碰的文件：`schema/`、`gen/`、其他包的实现文件（只能 import 它们的导出接口）
 - 测试用例：
   - `E0302-T1 TypeRef 解析（合法与非法各 10 条）`
@@ -66,6 +66,12 @@ TypeRef 语法错误返回 `ErrBadTypeRef`；推断不出时生成 V16 诊断，
   - `E0302-T3 推断模板`
   - `E0302-T4 推断缓存失效正确`
   - `E0302-T5 BenchmarkInfer500`
+  - `E0302-T6 动态端口`：提示词变量去重后每个一个端口；`schema_from` 按 `schema_expand_vectors.json` 展开出的端口名、类型与期望一致（`C.03.02` §5、`C.03.05-R4`）
 - 允许使用的依赖：标准库 + `G.10` 已登记依赖
 - 禁止事项：`G.02.05` 全部
 - 完成标志：`G.14` 全部条件
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | 补动态端口 `engine/schema/ports.go` 与 `E0302-T6` | `P.09` K214 |

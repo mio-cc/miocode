@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 草稿 |
 | 素材 | 引03 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-23 |
 
 ## 1. 职责
 工具节点：两种用法——作为**端点**连到 Agent 的 `tools`，让 Agent 自己决定调用；或者**直接调用**一次，把结果输出给下游。
@@ -25,16 +25,17 @@
 | `tool` | tool_ref | builtin:search | 内联 |
 | `risk` | enum：L0–L3 | 取工具声明 | 只能调高（内联显示） |
 | `rate` | integer 1–120 | 10 | 每分钟上限，只能比全局配置更小 |
-| `args` | object | {} | 直接调用时的参数；可以用 `{{inputs.request.字段}}` 引用输入 |
+| `args` | object，`schema_from: param:tool` | {} | 直接调用时的参数。结构取自所选工具的入参 schema，按 `C.03.02` §5 展开成子参数，每个子参数都能接线；值里也可以用 `{{inputs.request.字段}}` 引用输入 |
 | `result_type` | type_ref | 任意 | 直接调用时结果的类型 |
 | `trim` | enum：relevant / head / none | relevant | — |
 | `keep_pointer` | — | true | kernel 锁 |
 
-输入：`request`（任意）。输出：`endpoint`（工具端点@1）、`result`（$T）。
+输入：`request`（任意）；`args` 每个子参数一个动态输入端口（`dynamic_ports: {from_param: args}`）。输出：`endpoint`（工具端点@1）、`result`（$T）。
 
 ## 5. 行为
 - 判断模式：`endpoint` 输出有连线 → 端点模式（本节点执行时只输出端点描述 `{tool, risk, schema_ref, rate}`，不调用工具）；`result` 有连线 → 直接调用；两者都有 → 两种都做。
 - 直接调用：`rc.Tool(tool).Call(args, taint=输入污染)`；actor 为 `runtime/node:<id>`，授权按所在位置对模型的授权判定（`C.09` §4.1）。
+- 直接调用时的 `args` = 子参数的值，接了线的子参数用上游的值（`C.03.05-R2`）。
 - 缓存：只对 L0 工具，`CacheKey = sha256(tool ‖ 规范化 args)`，默认 1 小时（可配置）。
 
 ## 6. 不变量
@@ -48,6 +49,7 @@
 2. 直接调用模式
 3. L0 缓存命中
 4. L2 直接调用触发审批
+5. 选一个 MCP 工具：子参数按它的 inputSchema 展开，接了线的子参数取上游的值
 
 ### 实施卡
 - 要建 / 要改的文件：`engine/exec/tool/*.go`、`schema/builtin/nodedefs/工具.yaml`
@@ -57,6 +59,12 @@
   - `E1404-T2 直接调用`
   - `E1404-T3 缓存`
   - `E1404-T4 审批`
+  - `E1404-T5 参数展开与接线`
 - 允许使用的依赖：标准库 + `G.10` 已登记依赖
 - 禁止事项：`G.02.05` 全部
 - 完成标志：`G.14` 全部条件
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | `args` 的结构取自所选工具（`schema_from`），子参数能接线 | `P.09` K211 |

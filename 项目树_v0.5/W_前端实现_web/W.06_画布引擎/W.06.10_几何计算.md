@@ -127,7 +127,7 @@ place: { gap_x: 72, gap_y: 36, scan_max: 50 }                          # U.05-R6
    - 只有 `ref`、没有 `children` 的子图引用：端口签名取 `deps.catalog.getState().libSigs.get(ref + '@' + version)`（`in` → 输入、`out` → 输出，按数组顺序；`role` 为 `summary` / `escalation` 的放在输出最后，`W.03` §4.5、`W.09.02` §6.10，`P.09` K145）；还没有时调 `catalog.actions.ensureLibSig(ref, version)` 并暂时按连到它的连线推出端口名（输入 = 连线的 `to.port`，输出 = `from.port`），没有连线时只画头部；签名到达后 `libSigs` 变化 → 这些节点重算 `shape`（`sig` 变了就重建，`W.06` §6.3）。
    - 数据类型：`types.get(`${id}.${port}`)`（`OpsApi.portTypes(scope)` 的推断结果，K99），没有就用声明类型；显示类别 `cat` = `PortDef.category ?? displayCategory(type, defs.types)`（`C.04.01-R4`；`W.06.04` 的 `edgeCategory` 直接读 `PortSlot.cat`）。
    - `label`：`PortDef.label`，缺省为端口名；`required`、`multi` 取 `PortDef`（`C.04.04`）。
-4. **节点上的参数**（`widgets`，`C.03.05`）：`ParamDef.ui.group = 常用` 的参数，去掉被提升的，按 `ui.order`、再按声明顺序排；`show_if` 为假的去掉（`evalShowIf`）；取前 `LAYOUT.max_widgets` 个（K95）。每项：`widget` = `ui.widget`；`tall` = widget 为 `area` 或 `code`；`boundFrom` = `ui.bind` 端口上有连线时连线的源节点 ID（否则 null）；`locked` = `ParamDef.lock` 为 `def` / `kernel`。
+4. **节点上的参数**（`widgets`，`C.03.05`）：`ParamDef.ui.group = 常用` 的参数，去掉被提升的，按 `ui.order`、再按声明顺序排；`show_if` 为假的去掉（`evalShowIf`）；取前 `LAYOUT.max_widgets` 个（K95）。每项：`widget` = `resolveWidget(def, ui)`（`ui.widget` 为 `auto` 时查 `WIDGET_MAP`，K212）；`tall` = widget 为 `textarea` 或 `code`；`boundFrom` = `ui.bind` 端口上有连线时连线的源节点 ID（否则 null）；`locked` = `ParamDef.lock` 为 `def` / `kernel`。
 5. **缩略图**：`rec.isContainer` 且有 `children` → `thumb=true`。
 6. **折叠**：`rec.ui.collapsed` → `collapsed=true`；端口列表照常算（连线端点要用），但高度只有头部。
 7. **`sig`**：`known`、`w`、`collapsed`、`thumb`、每个端口的 `dir·name·cat·variable·promoted`、每个控件的 `key·widget·tall·boundFrom≠null·locked` 拼成的字符串。状态脚不进 `sig`（只改高度，不重建内部）。
@@ -223,6 +223,7 @@ collapsed：h = head
   - `W0610-T14 nearestPort`：半径内两个候选取最近；都在半径外 → null
   - `W0610-T15 forModel`：`ghostGraph` 里的 `tmp:1` 节点 → 形状和端口位置正确；不读 `ctx.live`
   - `W0610-T16 不读 DOM`：`geom/` 源码里没有 `document`、`window`、`getBoundingClientRect`（lint 规则）
+  - `W0610-T17 参数展开`：`schema_expand_vectors.json` 每条的常用参数、动态端口与后端一致；提示词变量端口去重（`C.03.02` §5、`C.03.05` §8 验收 2、4）
 - 允许使用的依赖：无运行时依赖；测试用 `vitest`。
 - 禁止事项：`G.02.05` 全部（特别是 R1、R2、R9、R23）；另：不在代码里写布局常数的数值（只从 `LAYOUT` 取）；不按节点类型名写分支（紧凑宽度、容器端口都按数据判断）；不在本模块里判断端口兼容。
 - 完成标志：`G.14` 全部条件；§10 六条验收通过；`layout_vectors.json` 被 Go 一侧的测试引用（由 `E.17.02` 的实施任务完成，本叶子只提供文件）。
@@ -232,3 +233,4 @@ collapsed：h = head
 |---|---|---|
 | 2026-11-23 | `W0610-T8` 改为读共用用例 `schema/examples/show_if_vectors.json`（属性页 `W.07.03` 另有一份 `evalShowIf` 实现，两边跑同一组用例） | 第 8 棒；`P.09` K119 |
 | 2026-11-23 | §6.2 第 3 步：只有 `ref` 的子图引用的端口签名改为读目录 store 的 `libSigs`（原临时做法保留为加载前的过渡） | 第 9 棒写 `W.09.02`；`P.09` K104 收尾、K145 |
+| 2026-11-23 | 控件名按 `C.03.02` §4 统一并查 `WIDGET_MAP`；补 `W0610-T17` | `P.09` K211、K212 |

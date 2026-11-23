@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 草稿 |
 | 素材 | 引06 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-23 |
 
 ## 1. 职责
 加载并校验配方，把 `from` 字段路径、`transform` 表达式编译成可执行的取值计划。
@@ -28,6 +28,7 @@ type Transform interface { Apply(v exec.Value, blobs blob.Reader) (text string, 
 ```
 
 ## 5. 行为
+- 来源：按 `C.13.01-R4` 把 `in` 上的每个值分给 `inputs` 里类型兼容的来源（`列表[X]` 来源合成列表）；不唯一时诊断 V03；`exp` 由装配节点从经验库取（`C.13.01-R5`）。
 - `from` 路径：`in`、`in[0]`、`in.task.instruction`；按上游数据类型的字段定义检查路径存在（不存在 → 诊断 V03 级别 warn，"配方读取的字段 task.foo 不存在"）。
 - `transform`：`as_is`（按 format 渲染）、`pointer`（只留标题 + 一句摘要 + 引用）、`summary`（标记为需要摘要，实际在溢出处理阶段执行）、`top_k(n)`、`fields(a,b)`、`template(...)`（只支持 `{{字段}}` 替换）。
 - 编译结果按（配方引用、输入类型）缓存。
@@ -49,6 +50,12 @@ type Transform interface { Apply(v exec.Value, blobs blob.Reader) (text string, 
   - `E1301-T1 内置配方`
   - `E1301-T2 路径检查`
   - `E1301-T3 各 transform`
+  - `E1301-T4 来源分配`：两条输入按类型分给 `goal`、`task`；三份方案合成 `plans`；两条 `目标@1` 输入对应一个 `goal` 时报 V03
 - 允许使用的依赖：标准库 + `G.10` 已登记依赖
 - 禁止事项：`G.02.05` 全部
 - 完成标志：`G.14` 全部条件
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | 按 `C.13.01-R4`、`R5` 分配来源；补 `E1301-T4` | `P.09` K221 |

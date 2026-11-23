@@ -6,7 +6,7 @@
 | 类型 | 实施 |
 | 上级 | C.03 节点定义 NodeDef |
 | 下级 | 无 |
-| 状态 | 草稿 |
+| 状态 | 已审 |
 | 素材 | demo v0.5.2 |
 | 最后修改 | 2026-11-23 |
 
@@ -27,24 +27,23 @@
   "properties": {
     "group":     { "enum": ["常用", "高级"], "default": "高级", "description": "常用：显示在节点上；高级：只在右栏属性里" },
     "order":     { "type": "integer", "description": "同组内排序，小的在前" },
-    "widget":    { "enum": ["auto", "text", "area", "number", "slider", "select", "segment", "switch", "connection", "model", "rolecard", "code"], "default": "auto" },
-    "rows":      { "type": "integer", "minimum": 2, "maximum": 12, "description": "area 的默认行数；节点上固定 3 行，右栏可拉高" },
+    "widget":    { "enum": ["auto", "input", "textarea", "stepper", "slider", "segmented", "select", "switch", "picker", "code", "model", "rolecard", "connection"], "default": "auto", "description": "auto 时按 C.03.02 §4 推出" },
+    "rows":      { "type": "integer", "minimum": 2, "maximum": 12, "description": "textarea 的默认行数；节点上固定 3 行，右栏可拉高" },
     "placeholder": { "type": "string", "maxLength": 80 },
     "bind":      { "type": "string", "description": "同名输入端口。端口有连线时，参数显示为『由上游「X」提供』，运行时用上游的值" },
     "show_if":   { "type": "string", "description": "条件表达式（与分支节点同一套），为假时隐藏，如 kind == '提示词'" },
-    "connection_type": { "type": "string", "description": "widget=connection 时可选的连接类型（C.16）" },
-    "help":      { "type": "string", "maxLength": 200, "description": "悬停提示，不常驻显示" }
+    "connection_type": { "type": "string", "description": "widget=connection 时可选的连接类型（C.16）" }
   }
 }
 ```
-NodeDef 新增（`C.03.01`）：`"dynamic_ports": {"from_param": "value", "pattern": "{{name}}", "type": "any", "max": 8}`——从参数文本里抽取 `{{变量}}` 生成输入端口（提示词节点用）。
+NodeDef 的 `dynamic_ports`（定义在 `C.03.01`）从 `from_param` 指定的参数生成输入端口，有两种来源：文本参数按 `{{变量}}` 抽取，每个变量一个端口，类型取 `type`（缺省 `任意`），提示词节点用（资源节点 `kind=提示词`，`from_param: value`）；`schema_from` 对象参数按 `C.03.02` §5 每个子参数一个端口，工具节点用（`from_param: args`）。`help`（悬停提示）用 `ParamDef.help`，不在这里重复。
 
 ## 5. 行为
 - **C.03.05-R1** 节点上最多显示 4 个"常用"参数；超出的自动降为"高级"并在校验里给提示（不报错）。
-- **C.03.05-R2** `bind` 的端口必须在 NodeDef 的 `in` 里声明，类型兼容参数类型；绑定后参数值保留，断开连线即恢复使用。
+- **C.03.05-R2** `bind` 的端口必须在 NodeDef 的 `ports.inputs` 里声明，类型兼容参数类型。例外：文本参数可以绑定类型为 `资源引用@1` 的端口，运行时取上游提示词节点渲染出的文本（Agent 的 `instruction` ← `prompt`，`P.09` K213）。绑定后参数值保留，断开连线即恢复使用。
 - **C.03.05-R3** 原来的"转为端口"（`promoted`，`C.02`）改名为"接线"，实现上等价于运行时给参数自动生成一个 `bind` 端口；两种写法并存，界面一致。
-- **C.03.05-R4** `dynamic_ports` 生成的端口名就是变量名；变量改名时，已有连线按旧名找不到则断开并提示（Op `rename_dynamic_port` 自动迁移同名连线）。
-- **C.03.05-R5** Agent 节点内置参数：`rolecard`（widget=rolecard，常用）、`instruction`（widget=area，常用，bind=prompt）、`output_schema`（常用）、其余高级。
+- **C.03.05-R4** `dynamic_ports` 生成的端口名：文本变量就是变量名；`schema_from` 子参数按 `C.03.02-R8` 换算。变量改名、删除，或所选对象变化导致端口消失时，连到这些端口的连线随这次 `set_param` 一并删除，撤销时恢复（`C.05.02`、`C.05.03`）；v1 不做改名后自动迁移连线。
+- **C.03.05-R5** Agent 节点参数的界面：`rolecard`（widget=rolecard，常用）、`instruction`（widget=textarea，常用，bind=prompt）、`output_schema`（常用）、`lifecycle`（常用），其余高级；参数本身见 `E.14.02`。
 - **C.03.05-R6** 所有界面提示只影响显示，不进入执行；内核忽略它们（`E.03`）。
 
 ## 6. 不变量
@@ -58,20 +57,25 @@ NodeDef 新增（`C.03.01`）：`"dynamic_ports": {"from_param": "value", "patte
 1. Agent、提示词、工具三个节点的参数界面全部由声明生成，无手写界面
 2. 提示词里写 `{{a}} {{b}} {{a}}` 生成 2 个端口
 3. 接线后参数格显示"由上游提供"，断开后恢复原值
+4. 工具节点选中一个工具后，参数按 `C.03.02` §5 展开，每个子参数都能接线
 
 ### 实施卡
-- 要建 / 要改的文件：`schema/nodedef.schema.json（ParamUI、dynamic_ports）`、`web/src/canvas/core/render/widgets.ts`（节点上的控件，原生 DOM，`W.06.03`）、`web/src/panels/inspector/`（右栏属性页，`W.07.03`）、`engine/node/ports_dynamic.go`
-- 不许碰的文件：`schema/`、`gen/`、其他包的实现文件（只能 import 它们的导出接口）
+- 要建 / 要改的文件：`schema/nodedef.schema.json`
+- 不许碰的文件：`gen/`、`engine/`、`internal/`、`web/`、`cmd/`、`tools/relay/`、`tools/build/`
 - 测试用例：
-  - `C0305-T1 生成界面`
-  - `C0305-T2 动态端口`
-  - `C0305-T3 bind 运行时取值`
-  - `C0305-T4 常用超 4 个降级`
-- 允许使用的依赖：标准库 + `G.10` 已登记依赖
-- 禁止事项：`G.02.05` 全部
-- 完成标志：`G.14` 全部条件
+  - `C0305-T1 ParamUI 定义`：字段与 §4 一致、`additionalProperties: false`；`widget` 的取值 = `widget_map.yaml` 用到的控件名 + `auto`、`connection`；`group` 只有 `常用`、`高级`
+  - `C0305-T2 ParamUI 反例`：未知字段、`rows` 超出 2–12、`group` 写别的值时校验失败（测试里内联）
+- 在其他叶子跑的测试用例（不算本叶子的完成条件）：
+  - 提示词变量 `{{a}} {{b}} {{a}}` 生成 2 个端口、`schema_from` 子参数的端口（§8 验收 2、4）：`E0302-T6`（`E.03.02`）
+  - 节点上的控件由声明生成、超过 4 个常用参数降为高级（§8 验收 1、R1）：`W0610-T17`（`W.06.10`）
+  - 属性页由声明生成、接线显示"由上游提供"（§8 验收 1、3）：`W0703-T22`（`W.07.03`）
+- 允许使用的依赖：标准库、`github.com/santhosh-tekuri/jsonschema/v6`、`github.com/goccy/go-yaml`（`G.10` 已登记，`C.01` 加进 `go.mod`）
+- 禁止事项：`G.02.05-R1`、`R2`
+- 完成标志：`relay check` ①–⑥ 通过；所在片整片验证通过（`G.02.06-R23`）
 
 ## 变更记录
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | 实施卡里前端文件路径改为 `canvas/core/render/widgets.ts` 与 `panels/inspector/` | `P.09` K95：节点上的控件由画布引擎直接写 DOM（`W.01` §3.3），`canvas/params/*.tsx` 不在目录表里 |
+| 2026-11-23 | `widget` 统一为 `C.03.02` §4 的控件名，去掉 `help`；`dynamic_ports` 改为两种来源、schema 移到 `C.03.01`；R2 加文本参数绑定提示词的例外；R4 去掉不存在的 Op `rename_dynamic_port`；R5 补 `lifecycle`；实施卡只留契约文件，前端归 `W.06.03`、`W.06.10`、`W.07.03`，后端动态端口归 `E.03.02` | `P.09` K212、K213、K214 |
+| 2026-11-23 | 状态改为"已审"：第 3 片（`m0-contract-2`）开工前复查完成（用户授权设计方自主裁决，2026-11-23 15:00） | `G.02.01-R2`；`P.09` K210 |

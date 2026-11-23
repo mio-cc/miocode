@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 草稿 |
 | 素材 | 引06 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-23 |
 
 ## 1. 职责
 执行装配：取值 → 变换 → 加入 inherit 段 → 预算分配与溢出处理 → 排序 → 产出上下文包。
@@ -27,7 +27,7 @@ type Packet struct {
     Tokens   int
     Budget   int
     Dropped  []Dropped           // {Section, Ref, Mode, Saved}
-    Vars     map[string]string   // 给角色卡模板变量用
+    Vars     map[string]string   // 配方段的 var（C.13.01-R6）渲染后的文字，给角色卡模板变量用
 }
 func Assemble(rc AssembleCtx, plan *Plan, in exec.Inputs) (Packet, error)
 ```
@@ -60,6 +60,12 @@ func Assemble(rc AssembleCtx, plan *Plan, in exec.Inputs) (Packet, error)
   - `E1302-T2 污染`
   - `E1302-T3 必需段`
   - `E1302-T4 确定性`
+  - `E1302-T5 变量`：写了 `var` 的段渲染后的文字出现在 `Vars` 里，被裁掉的段不出现
 - 允许使用的依赖：标准库 + `G.10` 已登记依赖
 - 禁止事项：`G.02.05` 全部
 - 完成标志：`G.14` 全部条件
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | `Vars` 来自配方段的 `var`；补 `E1302-T5` | `P.09` K222 |

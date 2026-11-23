@@ -18,12 +18,14 @@ Agent 节点：**唯一调用模型的节点**（INV-05）。拿上下文包、�
 |---|---|---|
 | `context` | 入（必） | 上下文包@1（INV-07） |
 | `model` | 入（必） | 资源引用@1（kind=模型） |
-| `prompt` | 入 | 资源引用@1（kind=提示词） |
+| `prompt` | 入 | 资源引用@1（kind=提示词，接提示词节点；有连线时代替 `instruction`） |
 | `tools` | 入（多） | 工具端点@1 |
 | `result` | 出 | $T（T ← output_schema） |
 
 | 参数 | 类型 | 默认 | 说明 |
 |---|---|---|---|
+| `rolecard` | rolecard_ref | — | 内联；`名称@版本` 或 `名称@latest`，冻结快照时解析成具体版本（`C.13.02-R4`） |
+| `instruction` | text | '' | 内联；这一次要做什么（`U.10.07` §3）。`prompt` 端口有连线时取上游提示词节点渲染出的文本，界面显示"由上游提供"（`C.03.05-R2`、`R5`） |
 | `output_schema` | type_ref | 方案@1 | 内联 |
 | `lifecycle` | enum：ephemeral / resident | ephemeral | 内联；见 `E.14.02.02` |
 | `temperature` | number 0–1 | 0.7 | — |
@@ -44,3 +46,8 @@ Agent 节点：**唯一调用模型的节点**（INV-05）。拿上下文包、�
 ## 4. 共同约束
 - **E.14.02-R1** `Caps{Model: true, Tools: true, Ask: true}`；注册表只允许这个执行器声明 `Model`（`E.03.01`）。
 - **E.14.02-R2** 摘要（上下文溢出、长驻压缩）也通过 Agent 执行器的内部执行完成（`P.09` K32），由 `exec.Summarizer` 封装。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | 参数补 `rolecard`、`instruction`；`prompt` 端口说明接提示词节点 | `P.09` K213 |

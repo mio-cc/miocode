@@ -717,7 +717,7 @@
       "id": "C.03.03",
       "name": "锁定字段",
       "desc": "kernel 锁、def 锁：哪些参数用户不能改",
-      "type": "实",
+      "type": "规",
       "src": "引02",
       "lvl": 3,
       "children": [],

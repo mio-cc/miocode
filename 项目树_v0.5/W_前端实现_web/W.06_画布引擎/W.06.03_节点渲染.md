@@ -38,7 +38,7 @@ export function typeLine(rec: NodeRec, def: NodeDef | null, m: GraphModel, run: 
 export function ariaLabel(rec: NodeRec, def: NodeDef | null, shape: NodeShape, run: NodeRunLook | null, t: EngineDeps['t']): string;
 
 // web/src/canvas/core/render/widgets.ts —— 节点上的参数控件
-export type WidgetKind = 'text' | 'area' | 'number' | 'slider' | 'select' | 'segment' | 'switch' | 'connection' | 'model' | 'rolecard' | 'code';
+export type WidgetKind = 'input' | 'textarea' | 'stepper' | 'slider' | 'segmented' | 'select' | 'switch' | 'picker' | 'code' | 'model' | 'rolecard' | 'connection';   // 与 W.07.03 同一套（C.03.05，P.09 K212）
 export function resolveWidget(p: ParamDef, ui: ParamUI | undefined): WidgetKind;   // widget=auto 时按 ParamDef 类型推出（§6.4）
 export function createWidgets(ctx: EngineCtx): {
   build(host: HTMLDivElement, rec: NodeRec, shape: NodeShape): void;  // 建凹槽和控件
@@ -135,14 +135,14 @@ div.hx-node[data-node-id][role=group][tabindex=-1][aria-label]
 ### 6.4 节点上的参数控件（`widgets.ts`）
 控件列表来自 `shape.widgets`（`W.06.10` 按 `C.03.05` 选出：`group=常用`，按 `order` 排，最多 4 个，`show_if` 为假的不显示）。
 
-| `widget`（`auto` 时的推断） | 控件 | 提交 |
+| `widget`（`auto` 时查 `WIDGET_MAP`，与右栏同一张表，`C.03.02` §4） | 控件 | 提交 |
 |---|---|---|
-| `text`（字符串） | `input` | `Enter` 或失焦时 `dispatch(set_param)`；值没变不提交；`Esc` 恢复原值并失焦 |
-| `area`、`code` | `textarea`，固定 3 行，超出滚动（`U.10.07-R1`）；`code` 用等宽字体 | 失焦时提交；`Esc` 失焦（即提交）；双击发 `param.editLarge` |
-| `number`（整数、有上下限的数） | − 值 + 步进 | 点 ± 立即提交（`Shift` 一次 5 步）；在值上横向拖动每 4px 一步，用 `ops.gesture('step', 原值)`；双击值改成输入框 |
-| `slider`（0–1 之间的数） | 滑轨 | 按下即定位，拖动用 `ops.gesture('slide', 原值)`，松手 `end()` |
-| `segment`（枚举 ≤ 3 项且每项 ≤ 8 字） | 分段 | 点击提交 |
-| `select`（其余枚举）、`connection`、`model`、`rolecard` | 按钮 | 点击时读一次按钮的 `getBoundingClientRect` 作为锚点，发 `popover.select`（后三种 `options` 为来源名，由 `CanvasOverlays` 取数据）；`pick(v)` → 提交 |
+| `input`（字符串） | `input` | `Enter` 或失焦时 `dispatch(set_param)`；值没变不提交；`Esc` 恢复原值并失焦 |
+| `textarea`、`code` | `textarea`，固定 3 行，超出滚动（`U.10.07-R1`）；`code` 用等宽字体 | 失焦时提交；`Esc` 失焦（即提交）；双击发 `param.editLarge` |
+| `stepper`（整数、数） | − 值 + 步进 | 点 ± 立即提交（`Shift` 一次 5 步）；在值上横向拖动每 4px 一步，用 `ops.gesture('step', 原值)`；双击值改成输入框 |
+| `slider`（同时有 `min`、`max` 且 `max - min ≤ 100 × step`） | 滑轨 | 按下即定位，拖动用 `ops.gesture('slide', 原值)`，松手 `end()` |
+| `segmented`（枚举 ≤ 4 项且每个显示名 ≤ 6 字） | 分段 | 点击提交 |
+| `select`（其余枚举）、`picker`、`connection`、`model`、`rolecard` | 按钮 | 点击时读一次按钮的 `getBoundingClientRect` 作为锚点，发 `popover.select`（后三种 `options` 为来源名，由 `CanvasOverlays` 取数据）；`pick(v)` → 提交 |
 | `switch`（布尔） | 开关 | 点击提交 |
 - 接线的参数（`boundFrom ≠ null`，`C.03.05` `bind`）：控件换成斜纹底 + "由上游「{上游显示名}」提供"，不可编辑；断开后显示原值（`U.10.07` §2）。
 - 禁用：画布只读（`W.06` §6.6）、`ParamDef.lock` 为 `def` / `kernel`（悬停说明原因）、节点 `frozen`。
@@ -227,3 +227,4 @@ div.hx-node[data-node-id][role=group][tabindex=-1][aria-label]
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | 运行中旋转弧的时长写成令牌 `--hx-t-spin` | 第 9 棒写 `W.08`；`P.09` K124 |
+| 2026-11-23 | 控件名与推断规则改为 `C.03.02` §4（查 `WIDGET_MAP`），与右栏一致 | `P.09` K212 |
