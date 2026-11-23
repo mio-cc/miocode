@@ -107,7 +107,7 @@
 
 ## 10. 验收标准
 1. `run-event.schema.json` 的 `kind` 枚举与本文 §2–§8 完全一致（脚本比对）。
-2. 每个事件至少一个示例，放在 `schema/examples/events/run/`。
+2. 每个事件至少一个示例，写成测试向量 `schema/examples/run_event_vectors.json`（见实施卡；`P.09` K227 改为向量时这里漏改，K231）。
 
 ### 实施卡
 - 要建 / 要改的文件：`schema/run-event.schema.json`、`schema/examples/run_event_vectors.json`、`tools/schemacheck/run_event_test.go`
@@ -125,3 +125,4 @@
 |---|---|---|
 | 2026-11-23 | 旧称"运行页"统一为"监控页"（右侧栏第三个标签，`U.09.07`） | `P.09` K77 |
 | 2026-11-23 | 第 4 片（`m0-contract-3`）开工前复查：`engine.illegal_transition` 是 P 级，移到 §2；`resync` 是控制帧，从 §8 去掉；写明 §8 都是 E 级；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K227 |
+| 2026-11-23 | §10 验收 2 的示例位置改为向量文件，与实施卡一致 | `P.09` K231 |
