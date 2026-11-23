@@ -6,7 +6,7 @@
 | 类型 | 实施 |
 | 上级 | O 构建、发布与运维 |
 | 下级 | 无 |
-| 状态 | 冻结 |
+| 状态 | 已审 |
 | 素材 | 引01 §4（Makefile）；`G.15`；`G.16`；`B.02` §4–§5；`P.09` K186–K188 |
 | 最后修改 | 2026-11-23 |
 
@@ -69,7 +69,7 @@ go run ./tools/relay next                   可以领取的叶子
 go run ./tools/relay start <叶子> [--resume] 领取（或接着做）一个叶子，生成任务包
 go run ./tools/relay check <叶子>           交付前、接手时的检查（G.02.06-R14）
 go run ./tools/relay diff <叶子>            依据文档在领取后改了哪些
-go run ./tools/relay stale                  冻结后依据文档又被改过的叶子
+go run ./tools/relay stale [--accept <叶子>] 冻结后依据文档又被改过的叶子；复查后确认代码不用改
 ```
 - **读设计文档**：位置按 `G.02.06-R1`（`ANYDOOR_DOCS`，缺省 `../sj/项目树_v0.5`）；读 `树索引.json`、各文档文件头（状态）、实施卡的"要建 / 要改的文件""不许碰的文件""测试用例"三行。设计仓库的提交号用 `git -C <文档目录> rev-parse HEAD` 取；文档目录有未提交的修改时 `start` 拒绝领取（依据必须是已提交的版本）。
 - **`status`**：列出 ① 已领取未合并的叶子：分支、领取人、最后一次提交、工作区有没有未提交的改动；② 每个已领取叶子的测试用例编号覆盖（实施卡里的编号 ÷ 已出现在测试名开头的编号）；③ 全部桩（扫描 `// STUB(` 开头的文件）；④ `docs/relay/*.review.md` 里没处理完的评审意见：评审记录是一张表头里有"结论"一列的表，结论一格以"不符合"或"有疑问"开头、而且这一行没有写"已处理"的才算；表头和说明文字不算（`G.02.06-R18`，`P.09` K199）。
@@ -78,7 +78,7 @@ go run ./tools/relay stale                  冻结后依据文档又被改过的
 - **`start`**：按 `G.02.06-R4`–`R7` 检查，然后：建分支；写 `docs/relay/<叶子>.json`（§5）；在 `RELAY.md` 最上面插入一条领取记录（模板见 `RELAY.md` 顶部）；按 `G.02.01` §3、`G.02.02`（必读集合、一层引用、按任务类型的附加集合、不附的东西）拼出任务包 `.relay/tasks/<叶子>.md`，文档按原文附上（`G.02.01-R4`）。`--resume`：只重新生成任务包，不建分支、不改领取记录。
 - **`check`**：第 ③ 项的依赖清单读 `tools/deps/allow.txt`；它还不存在（`O.02` 之前）时直接读设计文档 `G.10` §3 各表里的包名（`P.09` K196）。按 `G.02.06-R14` 的七项逐项输出"通过 / 不通过 + 原因"；比较的起点是分支和 `main` 的分叉点；④ 在 Go 里看 `func Test…`、`t.Run(` 的删除和 `t.Skip(` 的新增，在前端看 `test(`、`it(` 的删除和 `.skip(`、`.only(`、`test.fixme(` 的新增；⑤ 测试用例编号的格式取实施卡里的写法（`W0601-T3`、`O01-T2`、`B0407-T5`）。第 ⑦ 项可以用 `--no-build` 跳过（只在本地快速自查时用；交付和 CI 不允许跳过）。
 - **`diff`**：对 `docs/relay/<叶子>.json` 里哈希变了的文档，列出 `git -C <文档目录> diff <依据提交号> -- <文件>` 涉及的小节标题。
-- **`stale`**：对状态为"冻结"的叶子，比较冻结时的依据与当前文档。
+- **`stale`**：对状态为"冻结"的叶子，比较冻结时的依据与当前文档，列出改过的叶子和文档，并提示下一步（`G.02.06-R21`）。`stale --accept <叶子>`：复查后代码不用改时，把这个冻结叶子的依据更新为当前设计文档（规则同 `start --resume --accept-docs`：设计仓库必须已提交；只用于"冻结"的叶子；依据没变就什么也不做），提示在 `RELAY.md` 记复查结论、和领取记录一起按合并请求流程合并。`status` 里设计文档状态是"冻结"的叶子显示"已冻结"，不再列分支和测试覆盖；依据改过的加一行提示运行 `stale`（`P.09` K200）。
 - 只用 Go 标准库和 `os/exec` 调 `git`（`G.10-R3`）；输出中文；退出码 0 通过、1 不通过、2 用法错误。
 
 ## 5. 数据结构
@@ -137,7 +137,7 @@ go run ./tools/relay stale                  冻结后依据文档又被改过的
   - `O01-T7 relay 解析`：用测试目录里的一小棵样例设计树，读出叶子状态、实施卡的白名单与测试用例编号，结果与样例一致
   - `O01-T8 relay start`：叶子是"草稿" → 拒绝；已被领取 → 拒绝；白名单与另一个已领取的叶子重叠 → 拒绝；正常 → 建分支、写 `docs/relay/<叶子>.json`、插入领取记录、任务包里有 `G.02.02` 规定的全部文档且不含同级叶子的正文
   - `O01-T9 relay check`：在临时 git 仓库里分别制造 `G.02.06-R14` ①–⑥ 的违规，每种都被对应的一项拦下；全部合规时通过
-  - `O01-T10 relay diff / stale`：领取后改动样例树里的一份文档 → `diff` 列出它和改动的小节，`check` 第 ⑥ 项不通过，`start --resume --accept-docs` 之后通过；只改状态和变更记录不算改动；冻结的叶子正文变化 → `stale` 列出它
+  - `O01-T10 relay diff / stale`：领取后改动样例树里的一份文档 → `diff` 列出它和改动的小节，`check` 第 ⑥ 项不通过，`start --resume --accept-docs` 之后通过；只改状态和变更记录不算改动；冻结的叶子正文变化 → `stale` 列出它、`status` 显示"已冻结"并提示；`stale --accept` 对没冻结的叶子、设计仓库有未提交修改时报错，成功后 `docs_commit` 更新、`state` 不变，再跑 `stale` 不再列出，再 `--accept` 一次提示"不用更新"
   - `O01-T11 relay status`：两个已领取的叶子、一个桩、一份有"不符合"的评审记录都出现在输出里；测试用例覆盖数正确
 - 允许使用的依赖：Go 标准库。
 - 第 1 片的桩（`G.02.06-R10`，`P.09` K196）：`O.01` 的 `check`、`lint`、`build` 要调用还没实现的工具和程序，按它们将来的位置各写一个最小桩，第一行写 `STUB(<叶子>)`：`cmd/anydoor/main.go`、`cmd/anydoor/embed.go`、`cmd/anydoor/console_windows.go`、`cmd/anydoor/console_other.go`（`B.02`：只做 `--version`、`/api/v1/health`、嵌入前端与"前端还没有构建"页、`--dev` 代理、优雅关闭）；`cmd/anydoorctl/main.go`、`cmd/anydoorctl/console_windows.go`、`cmd/anydoorctl/console_other.go`（`B.08`：只做 `version`；两个程序的 `console_*.go` 是 Windows 控制台 UTF-8 编码，`P.09` K198）；`tools/gen/main.go`（`G.16`）、`tools/depcheck/main.go`（`G.03`）、`tools/lint/quirkscheck/main.go`、`tools/lint/typenamecheck/main.go`（`G.05.05`）：只打印"还没有实现"并以 0 退出；`web/package.json`、`web/index.html`、`web/tsconfig.json`、`web/src/main.ts`、`web/scripts/stub.mjs`（`W.01`、`W.02`、`W.12`：一个不用 React 的空白页，`lint` = `tsc --noEmit`，`test`、`test:e2e`、`test:visual` 只打印还没有测试）。
@@ -154,3 +154,4 @@ go run ./tools/relay stale                  冻结后依据文档又被改过的
 | 2026-11-23 | §4.5 加 `start --resume --accept-docs`；§5 写明文档指纹的算法；`O01-T10` 相应补充 | 第 1 片实施中定下的细节（`G.02` §4 自主决定，回写文档） |
 | 2026-11-23 | 实施卡桩清单补 `console_windows.go`、`console_other.go`；§4.5 `status` 的评审意见判断改为按表格"结论"列 | 第 1 片交叉评审第 12、14 条；`P.09` K199 |
 | 2026-11-23 | 状态改为"冻结"：第 1 片 squash 合并进代码仓库 `main`，提交 `30d74040f63be2dbf39a88b4695dd94b90b7b5a7`（`G.02.06-R21`） | 用户批准合并（`G.08-R3`）；三轮验证、交叉评审 14 条全部处理（代码仓库 `docs/relay/O.01.review.md`） |
+| 2026-11-23 | 状态从"冻结"改回"已审"：§4.5 加 `stale --accept`、`status` 显示冻结的叶子；`O01-T10` 补充 | 冻结后第一次跑 `stale` 就列出了 O.01（`G.02.06-R21` 的措辞改动），但工具没有"复查后代码不用改"的处理办法；`status` 仍显示"等设计方冻结"。`P.09` K200 |
