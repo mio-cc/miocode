@@ -6,7 +6,7 @@
 | 类型 | 实施 |
 | 上级 | C 契约层 |
 | 下级 | 无 |
-| 状态 | 草稿 |
+| 状态 | 已审 |
 | 素材 | 引15 |
 | 最后修改 | 2026-11-23 |
 
@@ -60,8 +60,8 @@
     "selection":  { "$ref": "#/$defs/Selection", "description": "只有 user 消息有：发送时附带的画布选中" },
     "refs":       { "type": "array", "items": { "$ref": "#/$defs/MessageRef" }, "maxItems": 20, "default": [], "description": "只有 user 消息有：对话框里 @ 引用和 + 附件（C.10-R7）" },
     "status":     { "enum": ["streaming", "done", "failed"] },
-    "error":      { "type": "object", "properties": { "code": { "type": "string" }, "message": { "type": "string" } } },
-    "usage":      { "type": "object", "properties": { "in": { "type": "integer" }, "out": { "type": "integer" }, "cost_micros": { "type": "integer" } } },
+    "error":      { "type": "object", "required": ["code", "message"], "additionalProperties": false, "properties": { "code": { "type": "string" }, "message": { "type": "string" } } },
+    "usage":      { "type": "object", "additionalProperties": false, "properties": { "in": { "type": "integer", "minimum": 0 }, "out": { "type": "integer", "minimum": 0 }, "cost_micros": { "type": "integer", "minimum": 0 } } },
     "created_at": { "$ref": "common.schema.json#/$defs/Timestamp" }
   }
 }
@@ -83,9 +83,12 @@
 "MessageBlock": {
   "type": "object",
   "required": ["kind"],
-  "oneOf": [ "…按上表每种 kind 一个子结构，用 kind 的 const 判别（C.14 §3）" ]
+  "additionalProperties": true,
+  "properties": { "kind": { "enum": ["graph", "proposal", "applied", "approval", "run", "focus", "error"] } },
+  "allOf": [ { "if": { "required": ["kind"], "properties": { "kind": { "const": "graph" } } }, "then": { "$ref": "#/$defs/BlockGraph" } }, "…其余 6 种同样写" ]
 }
 ```
+- **C.10-R8** 写法同 `C.05.01` 的 Op：每种 kind 一个封闭的 `Block…` 定义（`BlockGraph`、`BlockProposal`、`BlockApplied`、`BlockApproval`、`BlockRun`、`BlockFocus`、`BlockError`），含 `kind` 的 `const` 和上表的字段，字段都必填。类型：`*_id` 为 `Ulid`，`op_ids`、`node_ids` 为 `Ulid` 数组（`node_ids` 最多 50 个），`version` 为 ≥ 0 的整数，`summary` 最多 200 字，`counts` 为封闭对象 `{add, modify, remove}`（≥ 0 的整数，都必填），`approval.kind` 同 `approval.requested.kind`（`tool`、`run`、`elevation`、`taint`、`budget`、`human_node`），`run.status` 为 `RunStatus`，`focus.scope` 为 `^(root|<ULID>)$`，`code`、`message` 为字符串（`P.09` K227）。
 
 ## 5. 选中附带 Selection
 用户发消息时，对话框会附带当前的画布选中（界面上显示为"将附带选中"，`U.09`）。
@@ -110,15 +113,12 @@
 ## 5.1 引用 MessageRef（新增，`P.09` K113）
 ```json
 "MessageRef": {
-  "type": "object", "required": ["kind"],
-  "oneOf": [
-    { "properties": { "kind": { "const": "node" },    "graph_id": { "$ref": "common.schema.json#/$defs/Ulid" }, "scope": { "type": "string" }, "node_id": { "$ref": "common.schema.json#/$defs/Ulid" } }, "required": ["graph_id", "scope", "node_id"] },
-    { "properties": { "kind": { "const": "file" },    "ref": { "$ref": "common.schema.json#/$defs/WsRef", "description": "上传到会话工作区的文件" }, "path": { "type": "string", "description": "允许目录里的文件（S.06）" } } },
-    { "properties": { "kind": { "const": "session" }, "session_id": { "$ref": "common.schema.json#/$defs/Ulid" } }, "required": ["session_id"] },
-    { "properties": { "kind": { "const": "skill" },   "package_id": { "type": "string" } }, "required": ["package_id"] }
-  ]
+  "type": "object", "required": ["kind"], "additionalProperties": true,
+  "properties": { "kind": { "enum": ["node", "file", "session", "skill"] } },
+  "allOf": [ { "if": { "required": ["kind"], "properties": { "kind": { "const": "node" } } }, "then": { "$ref": "#/$defs/RefNode" } }, "…其余 3 种同样写" ]
 }
 ```
+`RefNode` `{kind, graph_id, scope, node_id}`（`scope` 为 `^(root|<ULID>)$`）；`RefFile` `{kind, ref?, path?}`，`ref` 为 `WsRef`（上传到会话工作区的文件），`path` 为允许目录里的文件（最多 1000 字，`S.06`），两者恰好一个（`oneOf` 两个 `required`）；`RefSession` `{kind, session_id}`；`RefSkill` `{kind, package_id}`。四个都是封闭对象，除 `RefFile` 外字段都必填（`P.09` K227）。
 - **C.10-R7** 用户消息可以带最多 20 个引用（对话框的 `@` 引用与 `+` 附件，`U.09.06` §2）。`file` 必须恰好有 `ref` 或 `path` 之一；`path` 只能在允许目录内（`S.06`），越界的引用被拒绝（400）。引用只是告诉对话 Agent "用户指的是这些"，进上下文时由对话 Agent 按预算取用（`B.06.02.01`）。
 
 ## 6. 验收标准
@@ -126,8 +126,17 @@
 2. 删除会话后，它挂的图仍可以通过 `GET /graphs/{id}` 读到。
 
 ### 实施卡
-- 要建的文件：`schema/session.schema.json`；`schema/examples/session/*.json`。
-- 测试用例：`C10-T1`、`C10-T2`。
+- 要建 / 要改的文件：`schema/session.schema.json`、`schema/examples/session/session.json`、`schema/examples/session/message_assistant.json`、`schema/examples/session/message_user.json`、`schema/examples/manifest.yaml`、`tools/schemacheck/session_test.go`
+- `Session`、`Message`、`MessageBlock`、`Block…`、`Selection`、`MessageRef`、`Ref…` 写在 `$defs` 里；三个示例登记进 `manifest.yaml`。
+- 不许碰的文件：`gen/`、`engine/`、`internal/`、`web/`、`cmd/`、`tools/relay/`、`tools/build/`
+- 测试用例：
+  - `C10-T1 示例`：3 个示例通过：会话（挂 2 张图，带 `last_location`、`orchestrator_effort`、一个 `session` 挂载点）；助手消息（7 种卡片块各一个，§6 验收 1）；用户消息（带 `selection` 和 4 种引用）
+  - `C10-T3 反例`：卡片块 `kind` 为 `chart`；`proposal` 块缺 `counts`；`file` 引用同时有 `ref` 和 `path`；`file` 引用两个都没有；`refs` 21 个；`selection.node_ids` 51 个；`Session` 多出字段；`orchestrator_effort` 的值为 `extreme`；`Message.error` 多出字段；`last_location.scope` 写成名称路径
+- 在其他叶子跑的测试用例（不算本叶子的完成条件）：
+  - 删除会话后它挂的图仍能读到（§6 验收 2，`C10-T2`）：`B.06` 的会话接口（复查 `B.06` 时写进它的实施卡）
+- 允许使用的依赖：标准库、`github.com/santhosh-tekuri/jsonschema/v6`、`github.com/goccy/go-yaml`（`G.10` 已登记，`C.01` 加进 `go.mod`）
+- 禁止事项：`G.02.05-R1`、`R2`
+- 完成标志：`relay check` ①–⑥ 通过；所在片整片验证通过（`G.02.06-R23`）
 
 ## 变更记录
 | 日期 | 变更 | 原因 |
@@ -137,3 +146,4 @@
 | 2026-11-23 | §5 的两条规则原编号与 §2 的 R3 重复，改为 R4、R5（这两条此前没有被引用） | `P.09` K78 |
 | 2026-11-23 | Message 新增 `refs`；新增 §5.1 `MessageRef` 与 R7 | 第 8 棒写 `W.07.07`：对话框的 `@` 引用、附件没有契约；`P.09` K113 |
 | 2026-11-23 | `mandates` 改为引用 `common.schema.json#/$defs/MandateMount` | `P.09` K203 |
+| 2026-11-23 | 第 4 片（`m0-contract-3`）开工前复查：`MessageBlock`、`MessageRef` 写成按 kind 判别的封闭定义（R8）；`Message.error`、`usage` 封闭；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K227 |

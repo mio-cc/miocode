@@ -52,10 +52,15 @@ func (p *Proposals) OnGraphChanged(graphID, branch string, version int64)       
 - 要建 / 要改的文件：`engine/orch/proposals.go`、`engine/orch/preview.go`、`engine/orch/proposals_test.go`
 - 不许碰的文件：`schema/`、`gen/`、其他包的实现文件（只能 import 它们的导出接口）
 - 测试用例：
-  - `E1703-T1 依赖联动`
-  - `E1703-T2 actor/approver`
-  - `E1703-T3 rebase 与 stale`
+  - `E1703-T1 依赖联动`：拒绝 `add_node tmp:1` 后连到它的连线一起拒绝（`C08-T2`）
+  - `E1703-T2 actor/approver`：采纳后 `op.applied` 里 `actor=model`、`approver=user`（`C08-T3`）
+  - `E1703-T3 rebase 与 stale`：提议打开期间用户删了它要连的节点 → `stale`（`C08-T4`）
   - `E1703-T4 预览`
 - 允许使用的依赖：标准库 + `G.10` 已登记依赖
 - 禁止事项：`G.02.05` 全部
 - 完成标志：`G.14` 全部条件
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | 测试用例写明在本叶子跑的 C 层用例 | 第 4 片复查；`P.09` K227 |

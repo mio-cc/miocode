@@ -51,9 +51,14 @@ func Fingerprint(p *gen.GraphPatch) string
 - 要建 / 要改的文件：`engine/orch/session.go`、`engine/orch/finalize.go`、`engine/orch/fingerprint.go`、`engine/orch/submit_test.go`
 - 不许碰的文件：`schema/`、`gen/`、其他包的实现文件（只能 import 它们的导出接口）
 - 测试用例：
-  - `E1701-T1 S2 两档`
+  - `E1701-T1 S2 两档`：含 GraphPatch 里一条 `propose`、其余 `allow` 时整个变成提议、图不变（`C08-T1`）
   - `E1701-T2 fingerprint 规范化`
   - `E1701-T3 校验反馈`
 - 允许使用的依赖：标准库 + `G.10` 已登记依赖
 - 禁止事项：`G.02.05` 全部
 - 完成标志：`G.14` 全部条件
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | 测试用例写明在本叶子跑的 C 层用例 | 第 4 片复查；`P.09` K227 |

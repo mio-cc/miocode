@@ -6,7 +6,7 @@
 | 类型 | 实施 |
 | 上级 | C 契约层 |
 | 下级 | 无 |
-| 状态 | 草稿 |
+| 状态 | 已审 |
 | 素材 | 引07 |
 | 最后修改 | 2026-11-23 |
 
@@ -97,9 +97,9 @@
 | 组 | 动作 |
 |---|---|
 | 读 | `graph.read`、`run.read`、`trace.read` |
-| 图结构（`op.` + Op 的 kind） | `op.add_node`、`op.remove_nodes`、`op.connect`、`op.disconnect`、`op.set_param`、`op.promote_param`、`op.demote_param`、`op.set_label`、`op.set_tags`、`op.group`、`op.ungroup`、`op.set_subgraph_ref`、`op.set_graph_title`、`op.set_graph_meta`、`op.create_branch`、`op.merge_branch`、`op.revert_op`、`op.revert_to` |
+| 图结构（`op.` + Op 的 kind） | `op.add_node`、`op.remove_nodes`、`op.restore_nodes`、`op.connect`、`op.disconnect`、`op.set_param`、`op.promote_param`、`op.demote_param`、`op.set_label`、`op.set_tags`、`op.group`、`op.ungroup`、`op.set_subgraph_ref`、`op.set_graph_title`、`op.set_graph_meta`、`op.create_branch`、`op.delete_branch`、`op.merge_branch`、`op.revert_op`、`op.revert_to` |
 | 视图 | `op.view`（覆盖 `move_nodes`、`set_node_ui`、三个便签 Op，`C.02.05-R4`） |
-| 只有用户能做 | `op.set_lock`、`op.migrate`（模型、外部一律拒绝，不走档位表） |
+| 不走档位表 | `op.set_lock`（只有用户）、`op.migrate`（只有内核，`C.12-R2`）；模型、外部一律拒绝 |
 | 资源 | `res.edit_rolecard`、`res.edit_recipe`、`res.switch_model`、`res.define_type` |
 | 授权 | `authz.set_mandate`、`authz.request_elevation` |
 | 运行 | `run.start`、`run.pause`、`run.cancel` |
@@ -107,7 +107,10 @@
 | 工具 | `tool.L0`、`tool.L1`、`tool.L2`、`tool.L3`（判定时 target 带具体工具名，便于"只允许检索"这样的规则） |
 | 急停 | `estop.trigger`、`estop.release` |
 
-`apply_patch` 和 `import_apply` 不是单独的动作：按子 Op 逐条判定（`C.08-R4`）。
+`apply_patch` 和 `import_apply` 不是单独的动作：按子 Op 逐条判定（`C.08-R4`）。`Action` 枚举就是上表的 43 个动作。
+
+### 4.3 Op 对应的动作（`P.09` K227）
+Op 判定用的动作是 `op.<kind>`，例外：`move_nodes`、`set_node_ui`、`add_note`、`update_note`、`remove_notes` → `op.view`；`set_mandate` → `authz.set_mandate`；`apply_patch`、`import_apply` → 按子 Op 逐条判定。写在 `authz_matrix.yaml` 的 `op_actions` 里（§5.1）。
 
 ## 5. 默认判定表
 判定结果只有四种：`allow` 允许 · `propose` 变成提议 · `ask` 需要审核（图结构动作 → 提议；运行时动作 → 审批）· `deny` 拒绝。
@@ -116,8 +119,8 @@
 |---|---|---|---|---|---|
 | `*.read` | allow | allow | allow | allow | allow |
 | `op.view` | deny | allow | allow | allow | allow |
-| `op.*`（结构修改，下面单列的除外） | deny | propose | 看 `overrides.ops`，缺省 allow（限 `overrides.scope` 内） | allow | allow |
-| `op.remove_nodes`、`op.ungroup`、`op.revert_to` | deny | propose | ask | allow | allow |
+| `op.*`（结构修改，下面单列的除外） | deny | propose | 看 `overrides.ops`，缺省 allow（限 `overrides.scope` 内；scope 外 propose） | allow | allow |
+| `op.remove_nodes`、`op.ungroup`、`op.revert_to`、`op.delete_branch` | deny | propose | ask | allow | allow |
 | `res.edit_rolecard`、`res.edit_recipe`、`res.define_type` | deny | propose | ask | allow | allow |
 | `res.switch_model` | deny | propose | 在 `overrides.models` 内 allow，否则 ask | allow | allow |
 | `authz.set_mandate` | deny | deny | deny | ask | allow¹ |
@@ -140,6 +143,65 @@
 
 **叠加规则**（判定顺序，实现在 `E.06.02`）：`deny` 列表 → 急停 → 档位表 → `overrides`（档位 2）/ `except`（档位 3、4）→ 污染标记（`taint=ask` 时把 allow 改为 ask）→ 预算。
 
+### 5.1 判定表的数据文件（`P.09` K227）
+`schema/builtin/authz_matrix.yaml` 的全部内容（前端"有效档位"面板和 `E.06.02` 读同一份）：
+```yaml
+# 授权默认判定表（C.09 §5 的机器可读版）。每行：actions 是一组动作，levels 是档位 0–4 的判定。
+# 判定写 allow / propose / ask / deny，或条件 {if: <条件>, then: <判定>, else: <判定>}。条件只有 4 种（E.06.02 实现）：
+#   overrides_ops          在 overrides.scope 内（scope 为空 = 挂载点以下全部）：取 overrides.ops[动作]，没写取 then；scope 外取 else
+#   in_overrides_models    要切换到的模型在 overrides.models 里（models 为空 = 不限）
+#   overrides_allow_spawn  overrides.allow_spawn 为 true
+#   within_tools_max_risk  工具风险等级 ≤ overrides.tools_max_risk
+rows:
+  - actions: [graph.read, run.read, trace.read]
+    levels: [allow, allow, allow, allow, allow]
+  - actions: [op.view]
+    levels: [deny, allow, allow, allow, allow]
+  - actions: [op.add_node, op.restore_nodes, op.connect, op.disconnect, op.set_param, op.promote_param, op.demote_param, op.set_label, op.set_tags, op.group, op.set_subgraph_ref, op.set_graph_title, op.set_graph_meta, op.create_branch, op.merge_branch, op.revert_op]
+    levels: [deny, propose, {if: overrides_ops, then: allow, else: propose}, allow, allow]
+  - actions: [op.remove_nodes, op.ungroup, op.revert_to, op.delete_branch]
+    levels: [deny, propose, ask, allow, allow]
+  - actions: [res.edit_rolecard, res.edit_recipe, res.define_type]
+    levels: [deny, propose, ask, allow, allow]
+  - actions: [res.switch_model]
+    levels: [deny, propose, {if: in_overrides_models, then: allow, else: ask}, allow, allow]
+  - actions: [authz.set_mandate]          # 档位 4 只能新建更窄的，不能改给自己授权的那一份（脚注 1，E.06.02）
+    levels: [deny, deny, deny, ask, allow]
+  - actions: [authz.request_elevation]
+    levels: [deny, allow, allow, allow, allow]
+  - actions: [run.start, run.pause]
+    levels: [deny, ask, allow, allow, allow]
+  - actions: [run.cancel]
+    levels: [deny, allow, allow, allow, allow]
+  - actions: [orch.spawn]
+    levels: [deny, deny, {if: overrides_allow_spawn, then: allow, else: deny}, allow, allow]
+  - actions: [orch.self_modify]
+    levels: [deny, deny, deny, ask, allow]
+  - actions: [tool.L0]
+    levels: [deny, allow, allow, allow, allow]
+  - actions: [tool.L1, tool.L2]
+    levels: [deny, ask, {if: within_tools_max_risk, then: allow, else: ask}, allow, allow]
+  - actions: [tool.L3]                    # 档位 4 仍要求上游有人工节点（V13），除非 l3_skip_human（脚注 3）
+    levels: [deny, ask, ask, ask, allow]
+  - actions: [estop.trigger]
+    levels: [allow, allow, allow, allow, allow]
+  - actions: [estop.release]              # 只有 user 能解除（INV-10）；user 不受本表约束（§4.1）
+    levels: [deny, deny, deny, deny, deny]
+fixed:                                    # 不走档位表的动作：只有这类 actor 能做（§4.2）
+  op.set_lock: user
+  op.migrate: runtime
+op_actions:                               # Op 的 kind → 判定用的动作（§4.3）；没列出的是 op.<kind>
+  move_nodes: op.view
+  set_node_ui: op.view
+  add_note: op.view
+  update_note: op.view
+  remove_notes: op.view
+  set_mandate: authz.set_mandate
+  apply_patch: per_sub_op
+  import_apply: per_sub_op
+```
+- **C.09-R4** `Expiry.kind` 为 `until` 时必须有 `until`、为 `run` 时必须有 `run_id`，其余两种不能写这两个字段；`created_by.kind` 必须是 `user`；`overrides.scope` 的每一项是 `root` 或容器节点 ID。这几条都写进 schema（`if/then`、`const`、`pattern`）。
+
 ## 6. 挂载与继承
 - 挂载点从具体到宽泛：`node:<节点>` → 它所在的各层容器节点（由内到外）→ `graph` → `session`。
 - **C.09-R1** **就近覆盖，不叠加**：从最具体的挂载点开始找，找到第一份授予对象匹配、没过期、没撤销的授权书就停。同一挂载点有多份时按 `priority` 从高到低。理由：用户在画布上看到"这个节点是几档"，必须只对应一份授权书。
@@ -152,11 +214,22 @@
 3. 档位 4 的模型尝试修改给自己授权的授权书：deny。
 
 ### 实施卡
-- 要建的文件：`schema/mandate.schema.json`；`schema/builtin/authz_matrix.yaml`（§5 表格）。
-- 测试用例：`C09-T1`（全表）、`C09-T2`、`C09-T3`（在 `E.06` 跑）。
+- 要建 / 要改的文件：`schema/mandate.schema.json`、`schema/builtin/authz_matrix.yaml`、`schema/examples/mandate/mandate.json`、`schema/examples/manifest.yaml`、`tools/schemacheck/mandate_test.go`
+- `Action` 枚举写在 `mandate.schema.json#/$defs/Action`；`mandate.json` 登记进 `manifest.yaml`（schema 为 `mandate.schema.json#/$defs/Mandate`）。
+- 不许碰的文件：`gen/`、`engine/`、`internal/`、`web/`、`cmd/`、`tools/relay/`、`tools/build/`
+- 测试用例：
+  - `C09-T4 授权书 schema`：`mandate.json`（档位 2，带 `overrides`、`except`、`deny`、`expires: until`）通过；反例：`level` 为 5、`grantee` 为 `user:x`、`expires.kind` 为 `until` 而缺 `until`、`expires.kind` 为 `forever` 而带 `run_id`、`created_by.kind` 为 `model`、`deny` 里写不存在的动作、`overrides.ops` 的键不是动作、`overrides.ops` 的值为 `ask`、`branch` 为 `feature`、多出字段
+  - `C09-T5 判定表数据`：`authz_matrix.yaml` 与 §5 的表一致（表在测试里）；`Action` 的每个值恰好出现在 `rows` 或 `fixed` 的一处；`op_actions` 加上"其余是 `op.<kind>`"覆盖 `op.schema.json` 的每个 `OpKind`，映射到的都是 `Action` 里的值或 `per_sub_op`；条件只用 §5.1 的 4 种，每行 5 格
+- 在其他叶子跑的测试用例（不算本叶子的完成条件）：
+  - 判定表每一格的行为（§7 验收 1，`C09-T1`）、模型请求 `estop.release` 一律 deny（验收 2，`C09-T2`）：`E0602-T1`（`E.06.02`）
+  - 档位 4 的模型改给自己授权的那份 → deny（验收 3，`C09-T3`）：`E0602-T2`（`E.06.02`）
+- 允许使用的依赖：标准库、`github.com/santhosh-tekuri/jsonschema/v6`、`github.com/goccy/go-yaml`（`G.10` 已登记，`C.01` 加进 `go.mod`）
+- 禁止事项：`G.02.05-R1`、`R2`
+- 完成标志：`relay check` ①–⑥ 通过；所在片整片验证通过（`G.02.06-R23`）
 
 ## 变更记录
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | §4.1 `user` 行改正急停期间能做什么 | `P.09` K82 |
 | 2026-11-23 | `MandateMount` 移到 `common.schema.json`（`C.01` §4） | `P.09` K203 |
+| 2026-11-23 | 第 4 片（`m0-contract-3`）开工前复查：动作补 `op.restore_nodes`、`op.delete_branch`；`op.migrate` 只有内核；新增 §4.3 Op 对应的动作、§5.1 `authz_matrix.yaml` 全文、R4；档位 2 结构修改在 scope 外为 propose；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K227 |

@@ -75,8 +75,8 @@ type Result struct {
 - 要建 / 要改的文件：`engine/authz/check.go`、`engine/authz/table.go`、`engine/authz/check_test.go`、`engine/authz/bench_test.go`
 - 不许碰的文件：`schema/`、`gen/`、其他包的实现文件（只能 import 它们的导出接口）
 - 测试用例：
-  - `E0602-T1 全表`
-  - `E0602-T2 档位 4 禁止`
+  - `E0602-T1 全表`：`authz_matrix.yaml` 每一格（`C09-T1`）；模型请求 `estop.release` 在任何授权书下都是 deny（`C09-T2`）
+  - `E0602-T2 档位 4 禁止`：档位 4 的模型改给自己授权的那份授权书 → deny（`C09-T3`）
   - `E0602-T3 污染`
   - `E0602-T4 预算`
   - `E0602-T5 故障默认拒绝`
@@ -84,3 +84,8 @@ type Result struct {
 - 允许使用的依赖：标准库 + `G.10` 已登记依赖
 - 禁止事项：`G.02.05` 全部
 - 完成标志：`G.14` 全部条件
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | 测试用例写明在本叶子跑的 C 层用例 | 第 4 片复查；`P.09` K227 |

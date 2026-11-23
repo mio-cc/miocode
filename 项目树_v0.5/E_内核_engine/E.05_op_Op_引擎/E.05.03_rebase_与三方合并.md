@@ -59,10 +59,15 @@ func Diff(a, b *graph.Graph) []DiffUnit   // 结构化比较单元（C.05.04 §3
 - 要建 / 要改的文件：`engine/op/commute.go`、`engine/op/rebase.go`、`engine/op/branch.go`、`engine/op/merge.go`、`engine/op/diff.go`、`engine/op/merge_test.go`
 - 不许碰的文件：`schema/`、`gen/`、其他包的实现文件（只能 import 它们的导出接口）
 - 测试用例：
-  - `E0503-T1 写集合表全格`
+  - `E0503-T1 写集合表全格`：含两条 `set_param` 改同一参数、base 相同时第二条 409 且 `conflicts` 指明 `(node, key)`（`C0504-T2`）
   - `E0503-T2 rebase 等价性（rapid）`
-  - `E0503-T3 三方合并`
+  - `E0503-T3 三方合并`：覆盖 `C.05.04` §3 第 3 步的每种情况（`C0504-T4`）
   - `E0503-T4 模型冲突转草稿`
 - 允许使用的依赖：标准库 + `G.10` 已登记依赖
 - 禁止事项：`G.02.05` 全部
 - 完成标志：`G.14` 全部条件
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | 测试用例写明在本叶子跑的 C 层用例 | 第 4 片复查；`P.09` K227 |

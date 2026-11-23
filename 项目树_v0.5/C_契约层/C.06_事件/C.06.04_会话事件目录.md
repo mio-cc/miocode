@@ -6,9 +6,9 @@
 | 类型 | 实施 |
 | 上级 | C.06 事件 |
 | 下级 | 无 |
-| 状态 | 草稿 |
+| 状态 | 已审 |
 | 素材 | 引14 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-23 |
 
 ## 1. 职责
 会话流的全部事件（旧文档只提到"新增 session.* 事件"但没有列出，本文首次定义）。
@@ -36,5 +36,19 @@
 2. 回复过程中断网再恢复，最终显示的消息内容完整。
 
 ### 实施卡
-- 要建的文件：`schema/session-event.schema.json`；`schema/examples/events/session/*.json`。
-- 测试用例：`C0604-T1`、`C0604-T2`。
+- 要建 / 要改的文件：`schema/session-event.schema.json`、`schema/examples/session_event_vectors.json`、`tools/schemacheck/session_event_test.go`
+- 向量格式：数组，每项 `{name, event, valid, error_at?}`，`error_at` 是 `valid` 为 false 时期望的报错位置；文件名以 `_vectors.json` 结尾，不登记示例清单（`C.01-R22`）。按 `session-event.schema.json` 校验；`message`、`block` 引用 `session.schema.json`（`C.10`，同片先做）。
+- 不许碰的文件：`gen/`、`engine/`、`internal/`、`web/`、`cmd/`、`tools/relay/`、`tools/build/`
+- 测试用例：
+  - `C0604-T1 事件名单`：`kind` 枚举恰好是 §2 的 9 个，级别与表一致
+  - `C0604-T3 事件向量`：每个 kind 至少一个合法事件；反例：`message.created.message` 不是合法 Message、`message.delta` 的 `seq` 不为 0、`chat.status.state` 不在枚举、`data` 多出字段
+- 在其他叶子跑的测试用例（不算本叶子的完成条件）：
+  - 回复过程中断网再恢复，消息内容完整（§4 验收 2，`C0604-T2`）：`B0502-T1`（`B.05.02`）
+- 允许使用的依赖：标准库、`github.com/santhosh-tekuri/jsonschema/v6`、`github.com/goccy/go-yaml`（`G.10` 已登记，`C.01` 加进 `go.mod`）
+- 禁止事项：`G.02.05-R1`、`R2`
+- 完成标志：`relay check` ①–⑥ 通过；所在片整片验证通过（`G.02.06-R23`）
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | 第 4 片（`m0-contract-3`）开工前复查：无内容改动；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K227 |

@@ -87,12 +87,17 @@ Submit(b):
 - 要建 / 要改的文件：`engine/op/pipeline.go`、`engine/op/apply_*.go（每种 Op 一个）`、`engine/op/target.go`、`engine/op/tmpid.go`、`engine/op/pipeline_test.go`、`engine/op/prop_test.go`
 - 不许碰的文件：`schema/`、`gen/`、其他包的实现文件（只能 import 它们的导出接口）
 - 测试用例：
-  - `E0501-T1 每种 Op 正反例`
+  - `E0501-T1 每种 Op 正反例`：每种 Op 违反前置条件时报错；模型提交 `set_lock` 返回 403；`connect` 到已有连线的非多连端口时替换旧连线、撤销后恢复（`C0502-T2`、`C0502-T3`）
   - `E0501-T2 逆操作属性测试（C0503-T1）`
   - `E0501-T3 并发 100（C0504-T1）`
   - `E0501-T4 批次原子性（C0501-T3）`
-  - `E0501-T5 actor 不可伪造（C0501-T2）`
+  - `E0501-T5 actor 不可伪造、模型不带 reason 返回 400（C0501-T1、C0501-T2）`
   - `E0501-T6 group/ungroup 改接正确`
 - 允许使用的依赖：标准库、`pgregory.net/rapid`（测试）
 - 禁止事项：`G.02.05` 全部
 - 完成标志：`G.14` 全部条件
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | 测试用例写明在本叶子跑的 C 层用例 | 第 4 片复查；`P.09` K227 |

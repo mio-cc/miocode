@@ -6,7 +6,7 @@
 | 类型 | 实施 |
 | 上级 | C.06 事件 |
 | 下级 | 无 |
-| 状态 | 草稿 |
+| 状态 | 已审 |
 | 素材 | 引14 |
 | 最后修改 | 2026-11-23 |
 
@@ -20,6 +20,7 @@
 | `run.status` | P | `from, to, cause, at_safepoint?, cost?` — `to` 取值见 `C.07` §2 | run |
 | `run.cancel_requested` | P | `by, reason: user\|estop\|budget\|timeout` | run（v0.5 新增：请求取消到全部节点停下之间，前端据此显示"正在取消"） |
 | `run.graph_swapped` | P | `from_version, to_version, op_ids, scope_path, at_round?, source: user\|model` | run（安全点） |
+| `engine.illegal_transition` | P | `from, to, cause, loc?` | 内核（状态机拒绝了一次转换，告警用，`C.07`） |
 
 ## 3. 节点级（都带 `loc`）
 | kind | 级别 | data | 说明 |
@@ -94,8 +95,8 @@
 |---|---|---|
 | `edge.flow` | 每次数据通过 | `edge_id` — 画布上的光点动画 |
 | `pool.usage` | 每秒 1 次 | `pools: [{name, used, cap, queued}]` |
-| `engine.illegal_transition` | 偶发，**P** | `from, to, cause` — 告警用 |
-| `resync` | 落后太多时 | `snapshot_url` — 前端改为拉快照（`B.05.02`） |
+
+本节的事件都是 E 级。`resync` 不是事件，是控制帧（`C.06.01` §4，`P.09` K86）；`engine.illegal_transition` 要落库，放在 §2（`P.09` K227）。
 
 ## 9. 前端去向（实现参考 `W.04.02`、`W.06.15`）
 | 事件 | 去向 |
@@ -109,10 +110,18 @@
 2. 每个事件至少一个示例，放在 `schema/examples/events/run/`。
 
 ### 实施卡
-- 要改的文件：`schema/run-event.schema.json`；`schema/examples/events/run/*.json`。
-- 测试用例：`C0602-T1`（枚举比对）、`C0602-T2`（示例校验）。
+- 要建 / 要改的文件：`schema/run-event.schema.json`、`schema/examples/run_event_vectors.json`、`tools/schemacheck/run_event_test.go`
+- 向量格式：数组，每项 `{name, event, valid, error_at?}`，`error_at` 是 `valid` 为 false 时期望的报错位置；文件名以 `_vectors.json` 结尾，不登记示例清单（`C.01-R22`）。`event` 是完整事件，按 `run-event.schema.json` 校验。
+- 不许碰的文件：`gen/`、`engine/`、`internal/`、`web/`、`cmd/`、`tools/relay/`、`tools/build/`
+- 测试用例：
+  - `C0602-T1 事件名单`：`kind` 枚举恰好是 §2–§8 的 39 个，每个的级别（P / S / E）与表一致（名单和级别写在测试里）
+  - `C0602-T2 事件向量`：每个 kind 至少一个合法事件；反例至少有：缺必填字段、`data` 多出字段、E 级 `seq` 不为 0、P 级 `seq` 为 0、`node.state` 的 `to` 不在 `NodeState`、`run.status` 的 `to` 不在 `RunStatus`、`*_ref` 不是 `ws://` 引用；合法的都通过，不合法的在 `error_at` 下报错
+- 允许使用的依赖：标准库、`github.com/santhosh-tekuri/jsonschema/v6`、`github.com/goccy/go-yaml`（`G.10` 已登记，`C.01` 加进 `go.mod`）
+- 禁止事项：`G.02.05-R1`、`R2`
+- 完成标志：`relay check` ①–⑥ 通过；所在片整片验证通过（`G.02.06-R23`）
 
 ## 变更记录
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | 旧称"运行页"统一为"监控页"（右侧栏第三个标签，`U.09.07`） | `P.09` K77 |
+| 2026-11-23 | 第 4 片（`m0-contract-3`）开工前复查：`engine.illegal_transition` 是 P 级，移到 §2；`resync` 是控制帧，从 §8 去掉；写明 §8 都是 E 级；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K227 |

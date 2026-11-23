@@ -45,7 +45,7 @@ func (p *Pipeline) tryCoalesce(tx store.Store, b Batch) (handled bool, res *Resu
 - 要建 / 要改的文件：`engine/op/coalesce.go`、`engine/op/coalesce_test.go`
 - 不许碰的文件：`schema/`、`gen/`、其他包的实现文件（只能 import 它们的导出接口）
 - 测试用例：
-  - `E0504-T1 60 次合并`
+  - `E0504-T1 60 次合并`：历史里 1 条，撤销后回到原位（`C0504-T3`）
   - `E0504-T2 超时不合并`
   - `E0504-T3 跨操作者不合并`
 - 允许使用的依赖：标准库 + `G.10` 已登记依赖
@@ -56,3 +56,4 @@ func (p *Pipeline) tryCoalesce(tx store.Store, b Batch) (handled bool, res *Resu
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | 广播内容写明 `to` 为完整 payload | `P.09` K87 |
+| 2026-11-23 | 测试用例写明在本叶子跑的 C 层用例 | 第 4 片复查；`P.09` K227 |
