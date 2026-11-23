@@ -51,7 +51,7 @@ anywhere-door/
 ├─ evals/                  # 评测集（Q.07）
 ├─ testdata/               # 跨模块共用的测试数据（cassette、夹具）
 ├─ docs/                   # 只放面向开发者的简短说明；设计文档在 sj/项目树_v0.5，不复制进仓库；docs/relay/ 放每个叶子的领取依据与评审记录（G.02.06-R6、R18）
-└─ tools/                  # 开发工具：gen/ build/ dev/ relay/ release/ ci/ deps/ depcheck/ lint/（O.01–O.03）
+└─ tools/                  # 开发工具：gen/ build/ dev/ relay/ release/ ci/ deps/ depcheck/ lint/（O.01–O.03）、schemacheck/（`C.01`）
 
 不提交、由构建产生的输出目录（`.gitignore`）：`bin/`（本机构建）、`dist/`（发布归档）、`.anydoor-dev/`（开发数据目录）、`.relay/`（本地任务包，G.02.06-R5），以及 `web/` 下的 `dist/`、`dist-perf/`、`.perf/`、`.test/`（`O.01` §6，`P.09` K188）。
 ```
@@ -80,3 +80,4 @@ anywhere-door/
 | 2026-11-23 | §2 `embed.go` 注释与 `B.02` 一致；R6 改为以 `G.16` 清单为准并补 `web/.test/` | W 全枝复查；`P.09` K185 |
 | 2026-11-23 | §2 `tools/` 子目录补全；列出不提交的输出目录；R1 相应修改 | 第 10 棒写 `O.01`；`P.09` K188 |
 | 2026-11-23 | §2 根目录补 `AGENTS.md`、`CLAUDE.md`、`RELAY.md`、`.gitattributes`；`docs/relay/`、`tools/relay/`、`.relay/` | 第 10 棒；`P.09` K195 |
+| 2026-11-23 | §2 `tools/` 加 `schemacheck/` | `P.09` K202 |

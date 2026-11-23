@@ -6,7 +6,7 @@
 | 类型 | 实施 |
 | 上级 | C.02 图文档 |
 | 下级 | 无 |
-| 状态 | 草稿 |
+| 状态 | 已审 |
 | 素材 | 引02 |
 | 最后修改 | 2026-11-22 |
 
@@ -31,7 +31,7 @@
     "type":     { "$ref": "#/$defs/NodeTypeRef" },
     "label":    { "type": "string", "minLength": 1, "maxLength": 80 },
     "pos":      { "$ref": "#/$defs/Pos" },
-    "params":   { "type": "object", "default": {}, "description": "开放对象；按 NodeDef.params 校验；未知键原样保留" },
+    "params":   { "type": "object", "x-open": true, "default": {}, "description": "开放对象；按 NodeDef.params 校验；未知键原样保留" },
     "promoted": { "type": "array", "items": { "type": "string", "pattern": "^[a-z_][a-z0-9_]*$" }, "uniqueItems": true, "default": [] },
     "tags":     { "type": "array", "items": { "type": "string", "maxLength": 40 }, "uniqueItems": true, "maxItems": 16, "default": [] },
     "lock":     { "enum": ["none", "user", "frozen"], "default": "none" },
@@ -87,6 +87,19 @@
 3. 读取只存了非默认值的节点，补齐默认值后再序列化，`params` 仍只含非默认值。
 
 ### 实施卡
-- 要改的文件：`schema/graph.schema.json`（`$defs/Node`、`NodeTypeRef`、`Origin`）；`schema/examples/invalid/node_*.json`。
-- 测试用例：`C0202-T1`（互斥）、`C0202-T2`（类型名格式）、`C0202-T3`（默认值往返）。
-- 禁止事项：`G.02.05-R1`、`R2`。
+- 要建 / 要改的文件：`schema/graph.schema.json`、`schema/examples/manifest.yaml`、`schema/examples/invalid/node_children_and_ref.json`、`schema/examples/invalid/node_type_unknown.json`、`schema/examples/invalid/node_type_no_major.json`、`tools/schemacheck/node_test.go`
+- 不许碰的文件：`gen/`、`engine/`、`internal/`、`web/`、`cmd/`、`tools/relay/`、`tools/build/`
+- 测试用例：
+  - `C0202-T1 互斥`：`invalid/node_children_and_ref.json`（同时有 `children` 和 `ref`）在那个节点的位置失败
+  - `C0202-T2 类型名`：13 个原子类型名和 `pricing-pack/价格标准化@1` 通过（测试里内联）；`invalid/node_type_unknown.json`（`调度器`）、`invalid/node_type_no_major.json`（`pack/x`）在 `type` 失败
+  - `C0202-T3 开放字段`：`params`、`ui` 里的未知键通过；节点本身多一个字段失败（测试里内联）
+- 在其他叶子跑的测试用例（不算本叶子的完成条件）：
+  - 默认值补齐后再序列化，`params` 仍只含非默认值（§7 验收 3）：`E.02.01`
+- 允许使用的依赖：标准库、`github.com/santhosh-tekuri/jsonschema/v6`、`github.com/goccy/go-yaml`（`G.10` 已登记，`C.01` 加进 `go.mod`）
+- 禁止事项：`G.02.05-R1`、`R2`
+- 完成标志：`relay check` ①–⑥ 通过；所在片整片验证通过（`G.02.06-R23`）
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | `params` 标 `x-open`；实施卡改为机器可读写法，默认值往返归 `E.02.01` | `P.09` K201、K202 |

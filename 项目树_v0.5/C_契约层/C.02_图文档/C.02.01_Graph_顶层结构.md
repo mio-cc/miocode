@@ -6,7 +6,7 @@
 | 类型 | 实施 |
 | 上级 | C.02 图文档 |
 | 下级 | 无 |
-| 状态 | 草稿 |
+| 状态 | 已审 |
 | 素材 | 引02 |
 | 最后修改 | 2026-11-23 |
 
@@ -23,6 +23,7 @@
 ## 4. 定义
 ```json
 {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://anydoor.local/schema/graph.schema.json",
   "x-version": "1.0",
   "title": "Graph",
@@ -36,13 +37,14 @@
     "branch":         { "type": "string", "pattern": "^(main|draft/[a-z0-9][a-z0-9_\\-]{0,62})$", "default": "main" },
     "title":          { "type": "string", "maxLength": 120, "default": "" },
     "root":           { "$ref": "#/$defs/Subgraph" },
-    "mandates":       { "type": "array", "items": { "$ref": "mandate.schema.json#/$defs/MandateMount" }, "default": [] },
+    "mandates":       { "type": "array", "items": { "$ref": "common.schema.json#/$defs/MandateMount" }, "default": [] },
     "packages":       { "type": "array", "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_\\-.]*@\\d+\\.\\d+\\.\\d+$" }, "uniqueItems": true, "default": [] },
     "meta":           { "$ref": "#/$defs/Meta" }
   },
   "$defs": {
     "Meta": {
       "type": "object",
+      "x-open": true,
       "description": "开放对象，未知字段原样保留（C.01-R19）",
       "properties": {
         "created_at": { "$ref": "common.schema.json#/$defs/Timestamp" },
@@ -74,22 +76,30 @@
 - `packages` 等于图中所有扩展节点类型所属包的集合（去重、按名称排序）。
 - 文档序列化时使用规范化 JSON（键按字典序、无多余空白），`hash = sha256(规范化 JSON)`。细则（`P.09` K93，Go 与 TS 必须逐字节相同）：字典序按 Unicode 码点比较（等于 UTF-8 字节序）；字符串按 JSON 标准转义，不做 HTML 转义（Go 用 `json.Encoder.SetEscapeHTML(false)`）；整数不带小数点和指数；以 `schema/examples/hash_vectors.json` 为准。
 
-## 7. 验收标准
+## 7. 示例文档
+- `graph_minimal.json`：只有空的 `root`（`nodes`、`edges` 都是空数组）。
+- `graph_loop.json`：闭环迭代模板，照 `demo_v0.5/src/29_nest.js` 的示例图：根图 → 闭环迭代（循环）→ 资料采集（子图引用，内联 `children`），共三层。节点类型、端口名、参数名按 `C.03.01` §6；参数只写和默认值不同的（`C.02.02` §5）；ID 用固定的、看得出层级的 ULID（如 `01JDN0000000000000000000A1`）。前端、后端很多测试都读它（`W.03.01`、`W.06.01`、`W.12`、`E.02.01`），所以按真实结构写，不能只求通过校验（`P.09` K207）。
+
+## 8. 验收标准
 1. `schema/examples/graph_minimal.json`（只有空 root）和 `graph_loop.json`（闭环迭代模板）都通过校验。
 2. 缺少 `root`、`version` 为负数、`branch` 为 `feature/x` 时校验失败。
 3. Go 和 TS 对同一份文档做规范化序列化，得到的哈希相同。
 
 ### 实施卡
-- 要建的文件：`schema/graph.schema.json`（本文 §4 + `C.02.02`–`C.02.05` 的 `$defs`）、`schema/examples/graph_minimal.json`、`schema/examples/graph_loop.json`、`schema/examples/invalid/*.json`。
-- 不许碰的文件：`gen/`、`web/src/lib/protocol/generated/`（由生成器产出）。
+- 要建 / 要改的文件：`schema/graph.schema.json`、`schema/common.schema.json`、`schema/examples/manifest.yaml`、`schema/examples/graph_minimal.json`、`schema/examples/graph_loop.json`、`schema/examples/invalid/graph_missing_root.json`、`schema/examples/invalid/graph_version_negative.json`、`schema/examples/invalid/graph_branch_feature.json`、`tools/schemacheck/graph_test.go`
+- 说明：`graph.schema.json` 一次写全（本文 §4 加 `C.02.02`–`C.02.05` 的全部 `$defs`），否则 `$ref` 解析不了；`common.schema.json` 里加 `PortRef`（定义见 `C.02.03` §4）。后面四个叶子只补自己的示例和测试，发现定义要改时改这个文件。
+- 不许碰的文件：`gen/`、`engine/`、`internal/`、`web/`、`cmd/`、`tools/relay/`、`tools/build/`
 - 测试用例：
-  - `C0201-T1` 两个合法示例通过校验。
-  - `C0201-T2` `invalid/` 下每个文件都校验失败，且报错位置与文件名里写的字段一致。
-  - `C0201-T3` 规范化哈希：Go 与 TS 结果一致（放在 `Q.04` 跨语言测试里）。
-- 允许使用的依赖：`santhosh-tekuri/jsonschema/v6`（Go 校验）、`ajv`（前端开发态校验）。
-- 禁止事项：`G.02.05-R1`、`R2`、`R4`。
-
+  - `C0201-T1 合法示例`：`graph_minimal.json`、`graph_loop.json` 通过
+  - `C0201-T2 非法示例`：缺 `root`、`version` 为负数、`branch` 为 `feature/x` 的三个文件失败，报错位置分别是 `""`、`/version`、`/branch`
+  - `C0201-T3 闭环示例的结构`：`graph_loop.json` 有三层；节点 ID 全树唯一（`C.02-R1`）；每条连线的两端在同一个子图里（`C.02-R2`）；每个子图都有 `entry` 和 `exit` 子图端口节点（`C.02.04-R2`）
+- 在其他叶子跑的测试用例（不算本叶子的完成条件）：
+  - 规范化哈希 Go 与 TS 一致（§8 验收 3）：`E0203-T3`（`E.02.03`）、`W05-T17`（`W.05`）
+- 允许使用的依赖：标准库、`github.com/santhosh-tekuri/jsonschema/v6`、`github.com/goccy/go-yaml`（`G.10` 已登记，`C.01` 加进 `go.mod`）
+- 禁止事项：`G.02.05-R1`、`R2`、`R4`
+- 完成标志：`relay check` ①–⑥ 通过；所在片整片验证通过（`G.02.06-R23`）
 ## 变更记录
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | §6 写明规范化 JSON 的细则 | `P.09` K93：Go 默认转义 `<>&`、JS 默认按 UTF-16 排序，不写清楚两边哈希会不同 |
+| 2026-11-23 | §4 加 `$schema`，`mandates` 引用 `common.schema.json`，`Meta` 标 `x-open`；新增 §7 示例文档（`graph_loop.json` 的依据）；实施卡改为机器可读写法 | `P.09` K201、K203、K207 |

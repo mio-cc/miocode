@@ -6,7 +6,7 @@
 | 类型 | 实施 |
 | 上级 | C.02 图文档 |
 | 下级 | 无 |
-| 状态 | 草稿 |
+| 状态 | 已审 |
 | 素材 | 引02 |
 | 最后修改 | 2026-11-22 |
 
@@ -28,6 +28,7 @@
 },
 "NodeUi": {
   "type": "object",
+  "x-open": true,
   "description": "开放对象，未知字段原样保留",
   "properties": {
     "collapsed": { "type": "boolean", "default": false, "description": "折叠后只显示标题行" },
@@ -44,7 +45,7 @@
   "properties": {
     "id":    { "$ref": "common.schema.json#/$defs/Ulid" },
     "pos":   { "$ref": "#/$defs/Pos" },
-    "size":  { "type": "object", "properties": { "w": { "type": "integer", "minimum": 80 }, "h": { "type": "integer", "minimum": 40 } } },
+    "size":  { "type": "object", "required": ["w", "h"], "additionalProperties": false, "properties": { "w": { "type": "integer", "minimum": 80 }, "h": { "type": "integer", "minimum": 40 } } },
     "text":  { "type": "string", "maxLength": 4000, "description": "Markdown，只支持粗体、斜体、列表、链接" },
     "color": { "enum": ["none", "c1", "c2", "c3", "c4", "c5", "c6"], "default": "none" },
     "origin":{ "$ref": "#/$defs/Origin" }
@@ -63,5 +64,19 @@
 2. 只改 `ui.collapsed` 的 Op 不触发运行中的热更新判定。
 
 ### 实施卡
-- 要改的文件：`schema/graph.schema.json`（`Pos`、`NodeUi`、`Note`）。
-- 测试用例：`C0205-T1`（坐标整数）、`C0205-T2`（未知 `ui` 字段往返保留）。
+- 要建 / 要改的文件：`schema/graph.schema.json`、`schema/examples/manifest.yaml`、`schema/examples/graph_ui_unknown.json`、`schema/examples/invalid/node_pos_float.json`、`schema/examples/invalid/note_size_extra.json`、`tools/schemacheck/view_test.go`
+- 不许碰的文件：`gen/`、`engine/`、`internal/`、`web/`、`cmd/`、`tools/relay/`、`tools/build/`
+- 测试用例：
+  - `C0205-T1 坐标整数`：`invalid/node_pos_float.json` 在 `pos/x` 失败
+  - `C0205-T2 开放的 ui`：`graph_ui_unknown.json`（节点 `ui` 里有未知键 `x_extra`）通过；`invalid/note_size_extra.json`（`size` 多一个字段）失败
+- 在其他叶子跑的测试用例（不算本叶子的完成条件）：
+  - 未知 `ui` 字段往返保留：`W0301-T1`（`W.03.01`）、`E.02.01`
+  - 只改 `ui` 不触发热更新判定（§5 验收 2）：`E.16.02`
+- 允许使用的依赖：标准库、`github.com/santhosh-tekuri/jsonschema/v6`、`github.com/goccy/go-yaml`（`G.10` 已登记，`C.01` 加进 `go.mod`）
+- 禁止事项：`G.02.05-R1`、`R2`
+- 完成标志：`relay check` ①–⑥ 通过；所在片整片验证通过（`G.02.06-R23`）
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | `NodeUi` 标 `x-open`，`Note.size` 加 `required`、`additionalProperties: false`；实施卡改为机器可读写法 | `P.09` K201、K204 |

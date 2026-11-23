@@ -6,7 +6,7 @@
 | 类型 | 实施 |
 | 上级 | C.02 图文档 |
 | 下级 | 无 |
-| 状态 | 草稿 |
+| 状态 | 已审 |
 | 素材 | 引02 |
 | 最后修改 | 2026-11-22 |
 
@@ -44,7 +44,7 @@
   }
 }
 ```
-`PortRef` 也定义在 `common.schema.json`（事件里也要用）；`graph.schema.json` 里只做引用。
+`PortRef` 只定义在 `common.schema.json`（事件里也要用，`C.01-R3`；由 `C.02.01` 实施时加入），`graph.schema.json` 里只做引用。
 
 ## 5. 规则
 | 编号 | 规则 | 违反时的诊断码（`C.11`） |
@@ -61,5 +61,18 @@
 2. 跨子图的连线在图检查时报 V05。
 
 ### 实施卡
-- 要改的文件：`schema/common.schema.json`（`PortRef`）、`schema/graph.schema.json`（`Edge`）。
-- 测试用例：`C0203-T1`（端口名格式）、`C0203-T2`（跨子图 V05，属于 `E.03.03` 的测试，这里只提供示例文件 `invalid/edge_cross_scope.json`）。
+- 要建 / 要改的文件：`schema/common.schema.json`、`schema/graph.schema.json`、`schema/examples/manifest.yaml`、`schema/examples/invalid/edge_port_uppercase.json`、`schema/examples/invalid/edge_port_index_1000.json`、`schema/examples/semantic/edge_cross_scope.json`、`tools/schemacheck/edge_test.go`
+- 不许碰的文件：`gen/`、`engine/`、`internal/`、`web/`、`cmd/`、`tools/relay/`、`tools/build/`
+- 测试用例：
+  - `C0203-T1 端口名`：`invalid/edge_port_uppercase.json`（`Result`）、`invalid/edge_port_index_1000.json`（`in[1000]`）在 `port` 失败；`out`、`in[0]`、`in[999]` 通过（测试里内联）
+  - `C0203-T2 跨子图示例`：`semantic/edge_cross_scope.json` 通过 schema，清单里写 `diag: V05`
+- 在其他叶子跑的测试用例（不算本叶子的完成条件）：
+  - 跨子图的连线报 V05（§6 验收 2）：`E.03.03` 的 V05 正反例读 `semantic/edge_cross_scope.json`
+- 允许使用的依赖：标准库、`github.com/santhosh-tekuri/jsonschema/v6`、`github.com/goccy/go-yaml`（`G.10` 已登记，`C.01` 加进 `go.mod`）
+- 禁止事项：`G.02.05-R1`、`R2`
+- 完成标志：`relay check` ①–⑥ 通过；所在片整片验证通过（`G.02.06-R23`）
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | `PortRef` 只在 `common.schema.json` 定义；实施卡改为机器可读写法，跨子图示例放 `semantic/` | `P.09` K201、K206 |

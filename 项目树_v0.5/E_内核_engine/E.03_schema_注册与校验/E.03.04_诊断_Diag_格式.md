@@ -14,7 +14,7 @@
 生成和组织诊断：定位信息、中文文案、去重、排序。
 
 ## 2. 不做什么
-- 不定义诊断码（`C.11` §5）
+- 不定义诊断码（`C.11` §5），不写文案文件（`diags.zh.yaml` 归 `C.11` §6，`P.09` K206）
 
 ## 3. 继承的上级约束
 `C.11` §5 `Diag` 结构、`G.13`。
@@ -43,7 +43,7 @@ func HasError(ds []gen.Diag) bool
 2. 排序和去重确定
 
 ### 实施卡
-- 要建 / 要改的文件：`engine/schema/diag.go`、`engine/schema/diag_test.go`、`schema/builtin/messages/diags.zh.yaml`
+- 要建 / 要改的文件：`engine/schema/diag.go`、`engine/schema/diag_test.go`（文案文件 `schema/builtin/messages/diags.zh.yaml` 归 `C.11` §6，本叶子只读）
 - 不许碰的文件：`schema/`、`gen/`、其他包的实现文件（只能 import 它们的导出接口）
 - 测试用例：
   - `E0304-T1 文案齐全`
@@ -51,3 +51,8 @@ func HasError(ds []gen.Diag) bool
 - 允许使用的依赖：标准库 + `G.10` 已登记依赖
 - 禁止事项：`G.02.05` 全部
 - 完成标志：`G.14` 全部条件
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | `diags.zh.yaml` 改归 `C.11`，本叶子只读 | `P.09` K206 |

@@ -25,7 +25,7 @@
     "pinned":          { "type": "boolean", "default": false },
     "graph_ids":       { "type": "array", "items": { "$ref": "common.schema.json#/$defs/Ulid" }, "uniqueItems": true, "default": [] },
     "active_graph_id": { "$ref": "common.schema.json#/$defs/Ulid", "description": "画布当前显示的图" },
-    "mandates":        { "type": "array", "items": { "$ref": "mandate.schema.json#/$defs/MandateMount" }, "default": [], "description": "anchor 只能是 session" },
+    "mandates":        { "type": "array", "items": { "$ref": "common.schema.json#/$defs/MandateMount" }, "default": [], "description": "anchor 只能是 session" },
     "orchestrator_model": { "type": "string", "description": "对话 Agent 用的模型；缺省用设置里的默认（P.09 Q17）" },
     "orchestrator_effort": { "type": "object", "default": {}, "additionalProperties": { "enum": ["off", "minimal", "low", "medium", "high", "xhigh", "max"] },
                          "description": "按模型记住的思考强度：模型引用 → 强度（U.09.06-R7）；没有记录的模型用设置里的默认强度" },
@@ -136,3 +136,4 @@
 | 2026-11-23 | 新增 `orchestrator_effort` 和 R6：思考强度按"会话 × 模型"记住，原来没有地方存、发消息也带不上 | `P.09` K74 |
 | 2026-11-23 | §5 的两条规则原编号与 §2 的 R3 重复，改为 R4、R5（这两条此前没有被引用） | `P.09` K78 |
 | 2026-11-23 | Message 新增 `refs`；新增 §5.1 `MessageRef` 与 R7 | 第 8 棒写 `W.07.07`：对话框的 `@` 引用、附件没有契约；`P.09` K113 |
+| 2026-11-23 | `mandates` 改为引用 `common.schema.json#/$defs/MandateMount` | `P.09` K203 |

@@ -78,18 +78,9 @@
     "until":  { "$ref": "common.schema.json#/$defs/Timestamp" },
     "run_id": { "$ref": "common.schema.json#/$defs/Ulid" }
   }
-},
-"MandateMount": {
-  "type": "object",
-  "required": ["anchor", "mandate_id"],
-  "additionalProperties": false,
-  "properties": {
-    "anchor":     { "type": "string", "pattern": "^(session|graph|node:[0-9A-HJKMNP-TV-Z]{26})$", "description": "session 只出现在会话文档里" },
-    "mandate_id": { "$ref": "common.schema.json#/$defs/Ulid" },
-    "priority":   { "type": "integer", "default": 0 }
-  }
 }
 ```
+挂载点 `MandateMount` 定义在 `common.schema.json`（`C.01` §4）：图文档和会话都用它，按 `C.01-R3` 放进公共定义（`P.09` K203）。
 相对旧文档（`引07`）的改动：`Budget.CostCN`（浮点人民币）改为 `cost_micros`；`time`（Go 时长）改为 `time_ms`；新增 `branch`（原来在 `scope.branch`，表述不清）；挂载点去掉 `path:`（节点 ID 全树唯一，容器节点 ID 就代表它的子图）。
 
 ## 4. 授权主体与动作
@@ -168,3 +159,4 @@
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | §4.1 `user` 行改正急停期间能做什么 | `P.09` K82 |
+| 2026-11-23 | `MandateMount` 移到 `common.schema.json`（`C.01` §4） | `P.09` K203 |

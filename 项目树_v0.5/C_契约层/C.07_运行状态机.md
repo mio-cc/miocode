@@ -6,7 +6,7 @@
 | 类型 | 实施 |
 | 上级 | C 契约层 |
 | 下级 | 无 |
-| 状态 | 草稿 |
+| 状态 | 已审 |
 | 素材 | 引03, 引14 |
 | 最后修改 | 2026-11-22 |
 
@@ -84,10 +84,51 @@ pending ──► running ◄──► paused            cancelled
 | 节点 `skipped` | 已跳过 |
 | 节点 `cached` | 用缓存 |
 
-## 6. 验收标准
+## 6. 枚举与状态机表
+`common.schema.json`：
+```json
+"RunStatus": { "enum": ["pending", "running", "paused", "done", "failed", "cancelled"] },
+"NodeState": { "enum": ["idle", "queued", "running", "waiting", "done", "failed", "cancelled", "skipped", "cached"] }
+```
+`schema/builtin/state_machine.yaml` 是 §2、§3.1 的机器可读版，`C.14` 由它生成 Go 和 TS 的转换检查函数：
+```yaml
+run:
+  states: [pending, running, paused, done, failed, cancelled]
+  terminal: [done, failed, cancelled]
+  transitions:          # 从 → 允许进入的状态；没写的状态没有出边
+    pending: [running, cancelled]
+    running: [paused, done, failed, cancelled]
+    paused:  [running, cancelled]
+node:
+  states: [idle, queued, running, waiting, done, failed, cancelled, skipped, cached]
+  terminal: [done, failed, cancelled, skipped, cached]
+  transitions:
+    idle:    [queued, cancelled, skipped, cached]
+    queued:  [running, cancelled]
+    running: [queued, waiting, done, failed, cancelled]
+    waiting: [running, failed, cancelled]
+    failed:  [queued]   # 用户手动重试
+```
+- **C.07-R9** `states` 的顺序与枚举相同；前端、后端都不手写这张表。
+
+## 7. 验收标准
 1. 状态机转换表做成数据 `schema/builtin/state_machine.yaml`，Go 和 TS 都从它生成转换检查函数；对 9×9 的每一格都有测试。
 2. 重放测试：任意一次运行的事件日志重放后，节点状态与运行结束时内存里的状态完全一致。
 
 ### 实施卡
-- 要建的文件：`schema/builtin/state_machine.yaml`（§2、§3.1 两张表）；`schema/common.schema.json` 里加 `RunStatus`、`NodeState` 枚举。
-- 测试用例：`C07-T1`（转换表全格）、`C07-T2`（重放一致，在 `Q.09` 跑）。
+- 要建 / 要改的文件：`schema/common.schema.json`、`schema/builtin/state_machine.yaml`、`tools/schemacheck/state_test.go`
+- 不许碰的文件：`gen/`、`engine/`、`internal/`、`web/`、`cmd/`、`tools/relay/`、`tools/build/`
+- 测试用例：
+  - `C07-T1 枚举`：`RunStatus`、`NodeState` 的值和顺序与 §2、§3 一致
+  - `C07-T2 状态机表`：`state_machine.yaml` 的 `states` 与枚举相同；`transitions` 与 §2、§3.1 逐格一致（测试里照本文写一份 6×6、9×9 的期望表，每一格都比）；终态除 `failed → queued` 外没有出边
+- 在其他叶子跑的测试用例（不算本叶子的完成条件）：
+  - 生成的转换检查函数逐格测试（§7 验收 1）：`C.14` 实施时加
+  - 重放一致（§7 验收 2）：`E0901-T3`（`E.09.01`）、`Q.09`
+- 允许使用的依赖：标准库、`github.com/santhosh-tekuri/jsonschema/v6`、`github.com/goccy/go-yaml`（`G.10` 已登记，`C.01` 加进 `go.mod`）
+- 禁止事项：`G.02.05-R1`、`R2`
+- 完成标志：`relay check` ①–⑥ 通过；所在片整片验证通过（`G.02.06-R23`）
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | 新增 §6：`RunStatus`、`NodeState` 的 JSON 与 `state_machine.yaml` 的格式；实施卡改为机器可读写法，验收 1、2 的代码测试归 `C.14`、`E.09.01` | `P.09` K201、K204 |

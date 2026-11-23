@@ -6,7 +6,7 @@
 | 类型 | 实施 |
 | 上级 | C.04 端口类型系统 |
 | 下级 | 无 |
-| 状态 | 草稿 |
+| 状态 | 已审 |
 | 素材 | 引02 |
 | 最后修改 | 2026-11-22 |
 
@@ -33,6 +33,21 @@
 | `stats` | `统计@1` |
 | `divergence` | `分歧报告@1` |
 
+`schema/builtin/aggregate_ops.yaml` 是上表的机器可读版，键是算子名，值是输出类型；输出类型 `整数@1`、`聚合结果@1`、`统计@1`、`分歧报告@1` 定义在 `C.13.03`（`P.09` K205）：
+```yaml
+count: 整数@1
+group: 聚合结果@1
+group_ratio: 聚合结果@1
+vote: $T
+dedupe: 列表[$T]
+sort: 列表[$T]
+filter: 列表[$T]
+top_k: 列表[$T]
+concat: 列表[$T]
+stats: 统计@1
+divergence: 分歧报告@1
+```
+
 ## 3. 推断算法（规范，实现在 `E.03.02`）
 1. 填入所有写死了具体类型的端口。
 2. 绑定所有 `param:*` 变量。
@@ -51,5 +66,18 @@
 3. 500 个节点的图全量推断 < 10ms（`Q.08` 基准）。
 
 ### 实施卡
-- 要建的文件：`schema/builtin/aggregate_ops.yaml`。
-- 测试用例：`C0403-T1`…`T3`（§5），实现代码在 `E.03.02`。
+- 要建 / 要改的文件：`schema/builtin/aggregate_ops.yaml`、`tools/schemacheck/aggregate_test.go`
+- 不许碰的文件：`gen/`、`engine/`、`internal/`、`web/`、`cmd/`、`tools/relay/`、`tools/build/`
+- 测试用例：
+  - `C0403-T1 算子表`：键恰好是 §2 表的 11 个算子；值符合 `TypeRef`，类型变量只用 `$T`
+- 在其他叶子跑的测试用例（不算本叶子的完成条件）：
+  - §5 验收 1–3：`E0302-T3`、`E0302-T5`（`E.03.02`）
+  - 输出类型都有定义：`C.13.03` 的测试
+- 允许使用的依赖：标准库、`github.com/santhosh-tekuri/jsonschema/v6`、`github.com/goccy/go-yaml`（`G.10` 已登记，`C.01` 加进 `go.mod`）
+- 禁止事项：`G.02.05-R1`、`R2`
+- 完成标志：`relay check` ①–⑥ 通过；所在片整片验证通过（`G.02.06-R23`）
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | §2 加 `aggregate_ops.yaml` 格式；实施卡改为机器可读写法 | `P.09` K201、K205 |

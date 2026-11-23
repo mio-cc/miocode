@@ -26,7 +26,7 @@
 | JSON Schema | Go | TS |
 |---|---|---|
 | `object` + `additionalProperties: false` | `struct` | `interface` |
-| 开放对象（`params`、`meta`、`ui`） | `map[string]json.RawMessage`（保留未知字段，`C.01-R19`） | `Record<string, unknown>` |
+| 开放对象（标了 `"x-open": true`，`C.01-R19`） | `map[string]json.RawMessage`（保留未知字段，`C.01-R19`） | `Record<string, unknown>` |
 | `$ref: Ulid` | `type Ulid string` | `type Ulid = string & { __brand: 'Ulid' }` |
 | `Timestamp` | `time.Time`（序列化强制 UTC 毫秒） | `string` |
 | `enum` | `type X string` + 常量 | 字符串字面量联合 |
@@ -80,3 +80,4 @@ func DecodeAs[T any](o *Op) (*T, error)
 |---|---|---|
 | 2026-11-23 | §2 加前端字段映射表；R6 补 TS 常量对象名；新增 §5.1（R8、R9） | `P.09` K84、K85（写 `W.04.03`、`W.04.04` 时发现映射规则和 TS 常量名没有定义） |
 | 2026-11-23 | §2 数据表补布局常数 `layout.yaml` | `P.09` K102（第 7 棒） |
+| 2026-11-23 | §3 开放对象按 `x-open` 标记识别 | `P.09` K202 |

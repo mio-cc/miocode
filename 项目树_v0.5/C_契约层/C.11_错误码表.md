@@ -6,7 +6,7 @@
 | 类型 | 实施 |
 | 上级 | C 契约层 |
 | 下级 | 无 |
-| 状态 | 草稿 |
+| 状态 | 已审 |
 | 素材 | 引09 |
 | 最后修改 | 2026-11-22 |
 
@@ -24,14 +24,16 @@
 "ErrorResponse": {
   "type": "object",
   "required": ["error"],
+  "additionalProperties": false,
   "properties": {
     "error": {
       "type": "object",
       "required": ["code", "message", "request_id"],
+      "additionalProperties": false,
       "properties": {
         "code":       { "$ref": "#/$defs/ApiErrorCode" },
         "message":    { "type": "string", "description": "给用户看的中文，一句话说清楚发生了什么、怎么办" },
-        "details":    { "type": "object" },
+        "details":    { "type": "object", "x-open": true, "description": "按 code 不同，见 §3 表" },
         "request_id": { "$ref": "common.schema.json#/$defs/Ulid" }
       }
     }
@@ -63,6 +65,12 @@
 | 503 | `provider_unavailable` | 没有配置可用的模型提供方 | — |
 | 202 | —（不是错误） | 已转为提议或审批 | `proposal_id` / `approval_id` |
 
+```json
+"ApiErrorCode": { "enum": ["bad_request", "unauthorized", "forbidden", "node_locked", "origin_rejected", "not_found",
+  "graph_conflict", "idempotency_mismatch", "proposal_stale", "approval_closed", "run_state", "too_large",
+  "invalid_graph", "extension_invalid", "estopped", "rate_limited", "internal", "provider_error", "provider_unavailable"] }
+```
+
 ## 4. 节点失败类别（`error.class`）
 | class | 含义 | 默认处理 |
 |---|---|---|
@@ -77,6 +85,10 @@
 | `cancelled` | 被取消（不是失败，只用于工具调用记录） | — |
 | `internal` | 引擎缺陷 | 失败并告警 |
 
+```json
+"FailureClass": { "enum": ["transient", "rate_limited", "format_invalid", "budget_exceeded", "auth_denied",
+  "user_input", "structural", "timeout", "cancelled", "internal"] }
+```
 旧文档的 `ErrNeedsApproval` 不再是失败类别：需要审批时节点进入 `waiting`（`C.07`）。
 
 ## 5. 诊断码
@@ -102,12 +114,15 @@
 | V18 | 长循环（`max_rounds > 10`）没有设预算 | warn |
 
 ```json
+"DiagCode":  { "enum": ["V01", "V02", "V03", "V04", "V05", "V06", "V07", "V08", "V09", "V10", "V11", "V12", "V13", "V14", "V15", "V16", "V17", "V18"] },
+"DiagLevel": { "enum": ["error", "warn"] },
 "Diag": {
   "type": "object",
   "required": ["level", "code", "msg"],
+  "additionalProperties": false,
   "properties": {
-    "level": { "enum": ["error", "warn"] },
-    "code":  { "type": "string", "pattern": "^V\\d{2}$" },
+    "level": { "$ref": "#/$defs/DiagLevel" },
+    "code":  { "$ref": "#/$defs/DiagCode" },
     "node":  { "$ref": "common.schema.json#/$defs/Ulid" },
     "port":  { "type": "string" },
     "param": { "type": "string" },
@@ -117,10 +132,40 @@
 }
 ```
 
-## 6. 验收标准
+三个枚举都定义在 `errors.schema.json` 的 `$defs` 里（`C.14-R6` 由它们生成 `ErrCode*`、`DiagV*` 常量，`P.09` K204）；`errors.schema.json` 顶层写 `$schema`、`$id`、`x-version`（`C.01`）。
+
+## 6. 文案文件
+- `schema/builtin/messages/errors.zh.yaml`：每个 `ApiErrorCode` 一行，`code: 文案`，格式和写法见 `G.13` §3；`{名字}` 是变量。不多不少，恰好覆盖 §3 的全部 code（`G.16`）。
+- `schema/builtin/messages/diags.zh.yaml`：每个诊断码一项，项下的键是它允许的级别（§5 表），值是文案模板（`E.03.04` 按 code 和级别渲染）：
+```yaml
+V06:
+  error: 「{src}」不能接到「{dst}」：{reason}
+V12:
+  warn: 嵌套已经 {depth} 层，超过 4 层。建议打包成子图库引用
+  error: 嵌套 {depth} 层，超过上限 8 层；或者子图引用成环：{chain}
+```
+- 这两个文件归本文；`E.03.04`、`B.03.03` 只读（`P.09` K206）。
+
+## 7. 验收标准
 1. `errors.schema.json` 的 `ApiErrorCode` 枚举和本文 §3 一致；后端每个 code 至少一个测试触发它。
 2. 所有错误文案写在 `schema/builtin/messages/errors.zh.yaml`，代码里不硬编码中文。
 
 ### 实施卡
-- 要建的文件：`schema/errors.schema.json`；`schema/builtin/messages/errors.zh.yaml`、`diags.zh.yaml`。
-- 测试用例：`C11-T1`（枚举一致）、`C11-T2`（每个 code 可触发，在 `B.04` 各接口测试里覆盖）。
+- 要建 / 要改的文件：`schema/errors.schema.json`、`schema/builtin/messages/errors.zh.yaml`、`schema/builtin/messages/diags.zh.yaml`、`schema/examples/manifest.yaml`、`schema/examples/errors/graph_conflict.json`、`schema/examples/errors/diag_v12_warn.json`、`schema/examples/invalid/error_unknown_code.json`、`schema/examples/invalid/diag_code_v99.json`、`tools/schemacheck/errors_test.go`
+- 不许碰的文件：`gen/`、`engine/`、`internal/`、`web/`、`cmd/`、`tools/relay/`、`tools/build/`
+- 测试用例：
+  - `C11-T1 枚举`：`ApiErrorCode`、`FailureClass`、`DiagCode` 与 §3、§4、§5 的表一致（测试里照本文写一份期望值）
+  - `C11-T2 错误文案`：`errors.zh.yaml` 恰好覆盖每个 `ApiErrorCode`，每条非空
+  - `C11-T3 诊断文案`：`diags.zh.yaml` 恰好覆盖每个 `DiagCode`；每个码下的级别与 §5 表一致（V12 有 `warn`、`error` 两个，其余一个）
+  - `C11-T4 示例`：清单里 `errors/graph_conflict.json`（`ErrorResponse`）、`errors/diag_v12_warn.json`（`Diag`）通过；`invalid/error_unknown_code.json` 在 `/error/code` 失败、`invalid/diag_code_v99.json` 在 `/code` 失败
+- 在其他叶子跑的测试用例（不算本叶子的完成条件）：
+  - 每个 code 至少一个测试触发它（§7 验收 1）：`B.03.03`、`B.04` 各接口的测试
+  - 每个诊断码都能渲染出文案：`E0304-T1`（`E.03.04`）
+- 允许使用的依赖：标准库、`github.com/santhosh-tekuri/jsonschema/v6`、`github.com/goccy/go-yaml`（`G.10` 已登记，`C.01` 加进 `go.mod`）
+- 禁止事项：`G.02.05-R1`、`R2`
+- 完成标志：`relay check` ①–⑥ 通过；所在片整片验证通过（`G.02.06-R23`）
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | 错误响应、`Diag` 加 `additionalProperties: false`，`details` 标 `x-open`；新增 `ApiErrorCode`、`FailureClass`、`DiagCode`、`DiagLevel` 枚举的 JSON；新增 §6 文案文件（`diags.zh.yaml` 的格式，归本文）；实施卡改为机器可读写法 | `P.09` K201、K204、K206 |

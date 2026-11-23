@@ -63,7 +63,7 @@ type Opts struct {
 规则内部 panic 被捕获，转为一条 `level=error, code=V01, msg="校验器内部错误"` 的诊断并记录日志，不影响其他规则。
 
 ## 8. 验收标准
-1. `schema/examples/invalid/` 每个文件触发且只触发文件名标注的规则
+1. `schema/examples/semantic/` 下清单里写了 `diag` 的每个文件，触发且只触发那个诊断码（`C.01-R23`）
 2. 增量 = 全量（属性测试 500 组）
 3. 基准达标
 
@@ -78,3 +78,8 @@ type Opts struct {
 - 允许使用的依赖：标准库、`santhosh-tekuri/jsonschema/v6`、`expr-lang/expr`、`pgregory.net/rapid`（测试）
 - 禁止事项：`G.02.05` 全部
 - 完成标志：`G.14` 全部条件
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-23 | 验收 1 改为读 `schema/examples/semantic/`（清单的 `diag`） | `P.09` K206 |
