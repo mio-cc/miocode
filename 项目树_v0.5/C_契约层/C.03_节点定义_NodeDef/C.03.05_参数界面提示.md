@@ -60,7 +60,7 @@ NodeDef 的 `dynamic_ports`（定义在 `C.03.01`）从 `from_param` 指定的�
 4. 工具节点选中一个工具后，参数按 `C.03.02` §5 展开，每个子参数都能接线
 
 ### 实施卡
-- 要建 / 要改的文件：`schema/nodedef.schema.json`
+- 要建 / 要改的文件：`schema/nodedef.schema.json`、`tools/schemacheck/paramui_test.go`
 - 不许碰的文件：`gen/`、`engine/`、`internal/`、`web/`、`cmd/`、`tools/relay/`、`tools/build/`
 - 测试用例：
   - `C0305-T1 ParamUI 定义`：字段与 §4 一致、`additionalProperties: false`；`widget` 的取值 = `widget_map.yaml` 用到的控件名 + `auto`、`connection`；`group` 只有 `常用`、`高级`
@@ -80,3 +80,4 @@ NodeDef 的 `dynamic_ports`（定义在 `C.03.01`）从 `from_param` 指定的�
 | 2026-11-23 | `widget` 统一为 `C.03.02` §4 的控件名，去掉 `help`；`dynamic_ports` 改为两种来源、schema 移到 `C.03.01`；R2 加文本参数绑定提示词的例外；R4 去掉不存在的 Op `rename_dynamic_port`；R5 补 `lifecycle`；实施卡只留契约文件，前端归 `W.06.03`、`W.06.10`、`W.07.03`，后端动态端口归 `E.03.02` | `P.09` K212、K213、K214 |
 | 2026-11-23 | 状态改为"已审"：第 3 片（`m0-contract-2`）开工前复查完成（用户授权设计方自主裁决，2026-11-23 15:00） | `G.02.01-R2`；`P.09` K210 |
 | 2026-11-23 | R4：模板变量名必须符合端口名的写法 | `P.09` K223 |
+| 2026-11-23 | 实施卡补上测试文件 `tools/schemacheck/paramui_test.go`（漏写会让 `relay check` ① 白名单不通过） | 第 3 片领取时发现；`G.02.06-R24` |
