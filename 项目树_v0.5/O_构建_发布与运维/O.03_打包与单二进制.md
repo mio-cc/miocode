@@ -30,15 +30,15 @@
 go run ./tools/release [-version-check] [-only os/arch] [-out dist/]
 go run ./tools/release -smoke <anydoor 程序的路径>        只做 §6.4（O.02 的 build 任务用）
 ```
-- `-prev-sizes <文件>`：上一个版本的 `sizes.txt`（`release.yml` 尽量从上一个预发布下载），有就按 §6.3 比较大小。
+- `-prev-sizes <文件>`：上一个版本的 `sizes.txt`，有就按 §6.3 比较大小。
 - 版本号取 `tools/build` 构建完打印的那一行（`已构建 <程序>（<版本>，<os>/<arch>）`），不另算；六个平台的版本号必须相同。构建信息里读不到：Go 在 `-trimpath` 时不记录 `-ldflags`（K246）。
-| 平台（`GOOS/GOARCH`） | 归档 | 能否在 CI 上运行冒烟 |
+| 平台（`GOOS/GOARCH`） | 归档 | 能否在开发机上冒烟 |
 |---|---|---|
-| `windows/amd64` | `.zip` | 能（windows 运行器） |
+| `windows/amd64` | `.zip` | 能（开发机是 Windows） |
 | `windows/arm64` | `.zip` | 不能，只检查 §6.3 |
-| `darwin/arm64` | `.tar.gz` | 能（macos 运行器） |
+| `darwin/arm64` | `.tar.gz` | 不能，只检查 §6.3 |
 | `darwin/amd64` | `.tar.gz` | 不能，只检查 §6.3 |
-| `linux/amd64` | `.tar.gz` | 能（ubuntu 运行器） |
+| `linux/amd64` | `.tar.gz` | 不能，只检查 §6.3 |
 | `linux/arm64` | `.tar.gz` | 不能，只检查 §6.3 |
 
 产物（`dist/`）：
@@ -60,13 +60,13 @@ SHA256SUMS.txt               每个归档一行：<哈希>  <文件名>
 ## 6. 行为
 
 ### 6.1 步骤
-1. `-version-check`（`release.yml` 里总是带）：当前提交必须正好在一个 `v*` 标签上，且工作区干净；否则退出 1。
+1. `-version-check`（发布时总是带）：当前提交必须正好在一个 `v*` 标签上，且工作区干净；否则退出 1。
 2. 前端只构建一次：`pnpm -C web build`。
 3. 对六个平台依次 `go run ./tools/build -os … -arch … -out dist/tmp/<os>-<arch> -preview`（`O-R6`：`O.04` 完成前一律带 `-preview`）。
 4. 每个平台做 §6.3 的检查，再按 §4 打包；归档里的文件按名字排序、修改时间统一设为提交时间、权限统一（可执行文件 0755，其余 0644），保证归档本身也可复现。
 5. 写 `SHA256SUMS.txt`。
-6. `release.yml` 里再执行一遍 1–5 到另一个目录，两次的 `SHA256SUMS.txt` 必须完全相同（`S.12-R6`），然后作为"预发布"上传到代码仓库的 GitHub Releases（`gh release create --prerelease`，运行器上自带 `gh`，用 `GITHUB_TOKEN`），说明里贴本版本的变更日志与支持的 schema 版本范围（`G.09-R1`）。
-7. 能运行的平台（windows、macos、ubuntu 运行器各一个任务）先对本平台的程序做 §6.4 冒烟（`go run ./tools/build -preview` 后 `go run ./tools/release -smoke bin/anydoor`），三个都通过后才进入第 1–6 步和上传。
+6. 验证者在开发机上再执行一遍 1–5 到另一个目录，两次的 `SHA256SUMS.txt` 必须完全相同（`S.12-R6`）。产物怎么发出去（GitHub Releases 手动上传，或只打标签）待用户决定（`P.09` Q28）；发布说明里贴本版本的变更日志与支持的 schema 版本范围（`G.09-R1`）。
+7. 第 1–6 步之前，先在开发机上对 `windows/amd64` 的程序做 §6.4 冒烟（`go run ./tools/build -preview` 后 `go run ./tools/release -smoke bin/anydoor.exe`）；macOS、Linux 只做 §6.3 的检查（不用 GitHub Actions，K248）。
 
 ### 6.2 嵌入的内容
 - `cmd/anydoor/dist/`：前端生产构建，含自托管字体（`U.04`、`O.01` §6）。
@@ -78,7 +78,7 @@ SHA256SUMS.txt               每个归档一行：<哈希>  <文件名>
 - 程序里能找到嵌入的 `index.html`（读取 Go 的 `embed` 文件表，或在程序文件里查找 `index.html` 的内容；不用运行程序）。M0 的前端还是 `W.02` 的空白页桩，它就是要验收的"空白前端"。
 - 大小记录进 `dist/sizes.txt`，与上一个标签相比增长超过 20% 时打印警告（不失败）。
 
-### 6.4 冒烟（能运行的三个平台，`O.02` 的 `build` 任务也做）
+### 6.4 冒烟（开发机上的 `windows/amd64`；`O.02` §4.2 的合并前检查也做）
 1. `anydoor --version`：输出版本、提交、时间与 `O.01` §4.2 一致。
 2. 用临时数据目录启动：`anydoor --no-browser --fake-llm --port 0 --data-dir <临时目录>`；从标准输出"Anywhere Door 已启动：<地址>"那一行读出带 token 的地址（`B.02` §4）。30 秒内没读到算失败。
 3. `GET /api/v1/health` 正常；用读到的带 token 地址请求 `/`，带着 cookie 跟随跳转后得到 `index.html`，内容含前端入口脚本；请求 `index.html` 里引用的第一个 `assets/` 文件返回 200 且带长缓存头（`B.02` §5）。
@@ -105,22 +105,21 @@ M1 起在第 3 步后加回"`GET /api/v1/nodedefs` 返回 13 个原子节点（�
 | 某个平台编译失败 | 整个发布失败，不上传任何产物 |
 | §6.3 或 §6.4 任一项不通过 | 同上，写出平台和失败项 |
 | 两次构建哈希不同 | 同上，并保留两份产物供比较 |
-| 仓库里没有 `LICENSE` / `NOTICE`（`G.17` 还没落地） | 打印警告，归档里不放；`release.yml` 里不算失败（用户决定先不处理许可证，`O-R7`） |
+| 仓库里没有 `LICENSE` / `NOTICE`（`G.17` 还没落地） | 打印警告，归档里不放，不算失败（用户决定先不处理许可证，`O-R7`） |
 
 ## 9. 性能与资源
 六个平台全部完成（含两遍可复现检查）≤ 20 分钟。
 
 ## 10. 验收标准
-1. M0 结束时在 `v0.1.0` 标签上运行 `release.yml`：产出六个归档和 `SHA256SUMS.txt`，作为"预发布"出现在 GitHub Releases，文件名带 `preview`（K241）。
-2. 三个能运行的平台通过 §6.4 全部四步；另外三个通过 §6.3。
-3. 两遍构建的 `SHA256SUMS.txt` 完全相同；在另一台装了相同工具版本的电脑上本地运行 `go run ./tools/release -only linux/amd64`，得到的哈希与 CI 相同。
+1. M0 结束时在 `v0.1.0` 标签上运行 `go run ./tools/release -version-check`：产出六个归档和 `SHA256SUMS.txt`，文件名带 `preview`；怎么发出去见 `P.09` Q28。
+2. `windows/amd64` 通过 §6.4 全部四步；另外五个通过 §6.3。
+3. 两遍构建的 `SHA256SUMS.txt` 完全相同；在另一台装了相同工具版本的电脑上运行 `go run ./tools/release -only linux/amd64`，得到的哈希与开发机相同。
 4. 解压任一归档，不安装任何东西，直接运行 `anydoor` 能打开空白前端（在 Windows 11、macOS 14、Ubuntu 24.04 上人工各试一次，记录在 Release 说明里）。
 5. 不在标签上运行 `go run ./tools/release -version-check` → 退出 1。
 
 ### 实施卡
-- 要建 / 要改的文件：`tools/release/main.go`、`tools/release/archive.go`、`tools/release/inspect.go`、`tools/release/smoke.go`、`tools/release/release_test.go`、`tools/release/README.txt.tmpl`、`.github/workflows/release.yml`
-- `release.yml` 由 `O.02` 建了入口（触发条件、权限、`-version-check`），本叶子补全 §6.1 第 2–7 步。
-- 不许碰的文件：`tools/build/`（只调用）、`cmd/`、`engine/`、`internal/`、`web/`、`schema/`、`gen/`、`.github/workflows/ci.yml`、`.github/workflows/nightly.yml`
+- 要建 / 要改的文件：`tools/release/main.go`、`tools/release/archive.go`、`tools/release/inspect.go`、`tools/release/smoke.go`、`tools/release/release_test.go`、`tools/release/README.txt.tmpl`（`.github/workflows/release.yml` 已随 K248 删除）
+- 不许碰的文件：`tools/build/`（只调用）、`cmd/`、`engine/`、`internal/`、`web/`、`schema/`、`gen/`
 - 函数签名：
   ```go
   func Targets() []Target                                   // §4 的六个
@@ -133,8 +132,8 @@ M1 起在第 3 步后加回"`GET /api/v1/nodedefs` 返回 13 个原子节点（�
 - 测试用例：
   - `O03-T1 目标`：`Targets()` 恰好是六个，归档格式与 §4 一致
   - `O03-T2 归档可复现`：同样的输入打包两次，字节相同；文件顺序、时间、权限符合 §6.1 第 4 步；`.zip` 和 `.tar.gz` 各一次
-  - `O03-T3 检查`：测试里用 `CGO_ENABLED=0 go build -trimpath` 构建 `./cmd/anydoor`，读出的构建信息 `checkBuildInfo` 通过；`checkBuildInfo` 对造出来的 `CGO_ENABLED=1`、缺 `-trimpath`、`GOARCH` 不对三种构建信息各自失败（不真的用 cgo 构建，开发机没有 C 编译器，K243）；`checkEmbedded` 在含有 index 全文的字节里通过、不含时失败。`Inspect` 整体在 `release.yml` 里跑（CI 的单元测试环境没有构建过的前端，K246）
-  - `O03-T4 冒烟`：测试里临时编译一个照 `B.02` §4–§5 行为的假程序（只用标准库）：正常时 `Smoke` 通过；`/` 返回不含入口脚本的页面 → 第 3 步失败；启动后不打印"已启动"那一行 → 第 2 步失败。真程序的冒烟在 `ci.yml` 的 `build` 任务和 `release.yml` 里跑（单元测试环境没有构建过的前端，K246）
+  - `O03-T3 检查`：测试里用 `CGO_ENABLED=0 go build -trimpath` 构建 `./cmd/anydoor`，读出的构建信息 `checkBuildInfo` 通过；`checkBuildInfo` 对造出来的 `CGO_ENABLED=1`、缺 `-trimpath`、`GOARCH` 不对三种构建信息各自失败（不真的用 cgo 构建，开发机没有 C 编译器，K243）；`checkEmbedded` 在含有 index 全文的字节里通过、不含时失败。`Inspect` 整体在发布时跑（单元测试不依赖已构建的前端，K246）
+  - `O03-T4 冒烟`：测试里临时编译一个照 `B.02` §4–§5 行为的假程序（只用标准库）：正常时 `Smoke` 通过；`/` 返回不含入口脚本的页面 → 第 3 步失败；启动后不打印"已启动"那一行 → 第 2 步失败。真程序的冒烟在 `O.02` §4.2 的合并前检查和发布时跑（单元测试不依赖已构建的前端，K246）
   - `O03-T5 版本检查`：§10 验收 5（在临时目录里建一个没有标签的 git 仓库）
 - 人工验收（不算本叶子的完成条件，不算 `relay check` 第 ⑤ 项；M0 结束打 `v0.1.0` 标签时做，K241、K243）：§10 验收 1、3、4。
 - 允许使用的依赖：Go 标准库（`archive/zip`、`archive/tar`、`compress/gzip`、`debug/buildinfo`、`crypto/sha256`）。
@@ -148,3 +147,4 @@ M1 起在第 3 步后加回"`GET /api/v1/nodedefs` 返回 13 个原子节点（�
 | 2026-11-24 | 第 ⑧b 片（`m0-ci`）开工前复查：M0 结束发 `0.1.0-preview`（用户决定）；冒烟去掉 `nodedefs` 一步（M1 加回），写明怎么读地址、怎么关闭；加 `-smoke`；`Inspect` 的失败一面用造出来的构建信息测；没有 `LICENSE` 时只警告；§10 验收 1、3、4 改为人工验收；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K241、K243 |
 | 2026-11-24 | §6.3 不再把 `STUB(` 开头的 `index.html` 当占位页（M0 的前端就是它） | `P.09` K243 |
 | 2026-11-24 | 写代码前补细节：版本号从构建信息读；`-prev-sizes`；`release.yml` 先冒烟再发布；`O03-T3`、`O03-T4` 改为不依赖已构建的前端，真程序的检查和冒烟在 CI 里跑 | `P.09` K246 |
+| 2026-11-24 | 不用 GitHub Actions：去掉 `release.yml`，发布时由验证者在开发机上两遍打包比较；冒烟只在开发机的 `windows/amd64` 上做；产物怎么发出去待用户决定 | `P.09` K248、Q28 |
