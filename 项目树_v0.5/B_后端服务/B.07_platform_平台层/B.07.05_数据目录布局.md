@@ -6,7 +6,7 @@
 | 类型 | 实施 |
 | 上级 | B.07 platform 平台层 |
 | 下级 | 无 |
-| 状态 | 冻结 |
+| 状态 | 已审 |
 | 素材 | 新 |
 | 最后修改 | 2026-11-24 |
 
@@ -49,7 +49,7 @@ func (d Dir) Tmp() string           // tmp/
 
 // Restrict 把 path 收紧到只有当前用户能访问。
 func Restrict(path string) error
-// WritePrivate 原子写：同目录临时文件 → 写入 → Restrict → 改名覆盖。
+// WritePrivate 原子写：同目录临时文件 → 写入 → Restrict → 改名覆盖（Windows 上目标正被打开时退避重试，最多 2 秒）。
 func WritePrivate(path string, data []byte) error
 // IsPrivate 判断 path 是否只有当前用户能访问（Unix：同组和其他用户没有权限；Windows：DACL 里只有当前用户的允许项）。
 func IsPrivate(path string) (bool, error)
@@ -90,6 +90,7 @@ func ExpandPath(p, base string) (string, error)
   - Unix：目录 `0700`，文件 `0600`。
   - Windows（`golang.org/x/sys/windows`）：DACL 设为受保护（不再继承上级目录的权限），只有一条"当前用户完全控制"；目录上这一条可被子目录和文件继承。
 - `WritePrivate`：临时文件名 `.<文件名>.tmp-<随机>`，写完 `Sync`、关闭、`Restrict`，再改名覆盖目标；任何一步失败删掉临时文件。
+  - Windows：Go 的 `os.Open` / `os.ReadFile` 打开文件时不带 `FILE_SHARE_DELETE`，目标文件这时正被别的句柄打开（例如 `B.07.03` 的热更新在轮询读它），改名覆盖会返回 `ERROR_ACCESS_DENIED` 或 `ERROR_SHARING_VIOLATION`。遇到这两种错误时退避重试（1 毫秒起、每次翻倍、最长 100 毫秒一次），总共最多 2 秒；还不行才返回错误（`P.09` K244）。其他错误不重试。Unix 上改名覆盖不受打开的句柄影响，不重试。
 - 路径计算集中在这个包里，其他代码不自己拼数据目录下的路径（`B.07-R6`）。
 
 ## 6. 不变量
@@ -104,9 +105,10 @@ func ExpandPath(p, base string) (string, error)
 2. 子目录自动创建，权限只有当前用户
 3. tmp 启动清空
 4. 原子写不留临时文件
+5. Windows 上覆盖正被读取的文件也能成功（`B.07.03` 热更新与写配置同时发生）
 
 ### 实施卡
-- 要建 / 要改的文件：`internal/platform/datadir/datadir.go`、`internal/platform/datadir/perm_unix.go`、`internal/platform/datadir/perm_windows.go`、`internal/platform/datadir/datadir_test.go`、`internal/platform/datadir/perm_windows_test.go`、`internal/platform/datadir/perm_unix_test.go`、`go.mod`、`go.sum`
+- 要建 / 要改的文件：`internal/platform/datadir/datadir.go`、`internal/platform/datadir/rename_windows.go`、`internal/platform/datadir/rename_other.go`、`internal/platform/datadir/perm_unix.go`、`internal/platform/datadir/perm_windows.go`、`internal/platform/datadir/datadir_test.go`、`internal/platform/datadir/perm_windows_test.go`、`internal/platform/datadir/perm_unix_test.go`、`go.mod`、`go.sum`
 - `go.mod` 加 `golang.org/x/sys`（`G.10` 已登记）：验证者 `go get golang.org/x/sys@latest` 后 `go mod tidy`；实施者不手改。
 - 不许碰的文件：`schema/`、`gen/`、`engine/`、`internal/platform/auth/`、`internal/platform/secret/`、`internal/platform/config/`、`internal/platform/lock/`
 - 测试用例：
@@ -114,6 +116,7 @@ func ExpandPath(p, base string) (string, error)
   - `B0705-T2 创建与权限`：`Open` 一个不存在的目录后 7 个子目录都在；根目录权限只有当前用户（Unix 查 mode；Windows 查 DACL 受保护、只有一条、SID 是当前用户）；`WritePrivate` 写的文件同样；`Open` 一个相对路径返回错误
   - `B0705-T3 tmp 清空`：`tmp/` 里放文件和子目录，再次 `Open` 后 `tmp/` 是空的，其他子目录里的文件还在
   - `B0705-T4 原子写`：`WritePrivate` 覆盖已有文件后内容是新的，目录里没有 `.tmp-` 文件；目标所在目录不存在时返回错误、不留临时文件
+  - `B0705-T5 覆盖正被读取的文件`：目标文件被 `os.Open` 打开、100 毫秒后才关闭时，`WritePrivate` 成功、内容是新的；另一个 goroutine 不停地 `os.ReadFile` 时连续写 100 次都成功；Windows 上把重试时限调成 200 毫秒、目标一直被打开时返回错误，用时不超过 2 秒，不留临时文件
 - 允许使用的依赖：标准库、`golang.org/x/sys`
 - 禁止事项：`G.02.05` 全部
 - 完成标志：`relay check` ①–⑥ 通过；所在片整片验证通过（`G.02.06-R23`）
@@ -123,3 +126,4 @@ func ExpandPath(p, base string) (string, error)
 |---|---|---|
 | 2026-11-24 | 第 ⑦ 片（`m0-platform`）开工前复查：接口写全（`Resolve`、`DefaultDir`、各路径方法、`Restrict`、`WritePrivate`）；Linux 默认位置的规则；布局加 `secrets.index.json`；本叶子把 `golang.org/x/sys` 加进 `go.mod`；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K239、K240 |
 | 2026-11-24 | 状态改为"冻结"：第 ⑦ 片（`m0-platform`）squash 合并进代码仓库 `main`，提交 `4585c9e928fed58c90b0a70cb8e4b08a5248533a`（`G.02.06-R21`） | `relay slice` 通过；评审 9 条全部符合；按 `G.08-R3` 由验证者合并 |
+| 2026-11-24 | 冻结后修复：Windows 上 `WritePrivate` 覆盖正被打开的文件时改名失败（`Access is denied`，第 ⑧a 片整仓测试里 `B0703-T3` 偶发失败），改为退避重试；加 `B0705-T5`；状态改回"已审"，修复放进第 ⑧a 片 `m0-server`（`G.02.06-R21`） | `P.09` K244 |
