@@ -60,7 +60,7 @@ var viteURL = "http://127.0.0.1:5173"          // 开发模式代理的目标；
   - M1 起在第 8 步和第 9 步之间加 `engine.New`、`app.New`、`--fake-llm` 的模型注册（`E.10.08`），并在本节写明。
 - **监听**（`S.02-R1`）：先监听 `127.0.0.1:<端口>`：`server.port` 不为 0 时用它，失败退出码 2；为 0 时先试 7300，被占用则让系统分配。再尝试 `[::1]:<同一端口>`：失败（没有 IPv6）只写一行 debug 日志，不算启动失败。不监听 `0.0.0.0` 或其他地址。
 - **路由**：`/api/` 和引导（`/?t=`）由 `api.Server` 处理（`B.03.05`）；其他路径交给 `Deps.Static`：
-  - 生产模式：静态文件服务 `webDist`；未命中的路径返回 `index.html`（前端路由）；`assets/` 下的文件（文件名含哈希）带 `Cache-Control: public, max-age=31536000, immutable`，`index.html` 带 `Cache-Control: no-cache`。嵌入目录里只有占位文件（没有先构建前端就编译了程序，`O.01` §6；判断方法：没有 `index.html`，或 `index.html` 第一行含 `STUB(`）时，`/` 返回一页静态说明"前端还没有构建：在仓库根运行 make build（或 task build）"，`/api/` 照常工作（`P.09` K187）。
+  - 生产模式：静态文件服务 `webDist`；未命中的路径返回 `index.html`（前端路由）；`assets/` 下的文件（文件名含哈希）带 `Cache-Control: public, max-age=31536000, immutable`，`index.html` 带 `Cache-Control: no-cache`。嵌入目录里只有占位文件（没有先构建前端就编译了程序，`O.01` §6；判断方法：嵌入目录里没有 `index.html`。`web` 的桩页面 `STUB(W.02)` 是正常构建出来的空白前端，照常服务）时，`/` 返回一页静态说明"前端还没有构建：在仓库根运行 make build（或 task build）"，`/api/` 照常工作（`P.09` K187）。
   - 开发模式 `--dev`：反向代理到 `http://127.0.0.1:5173`（Vite），包括热更新的 WebSocket；启动日志醒目提示"开发模式，不要用于日常使用"（`S.02-R9`）。
 - **已有实例**（`B.01` §3 第 3 步，`P.09` K240）：`lock.Acquire` 返回 `Instance` 时 `lock.Probe`（1 秒超时）；不通就等 3 秒再探一次。存活：打开浏览器到 `http://127.0.0.1:<端口>/?t=<token>`（token 用 `auth.ReadToken`；`--no-browser` 时不打开），打印"已在运行"那一行，退出码 0；仍不通：打印"另一个 Anywhere Door 进程没有响应（PID <n>），请结束它后重试"，退出码 1。
 - **打开浏览器**：`server.open_browser` 为 true（没写 `--no-browser`）时 `openURL(带 token 的地址)`；失败只写一行警告，并把带 token 的地址打印到终端。
@@ -89,7 +89,7 @@ var viteURL = "http://127.0.0.1:5173"          // 开发模式代理的目标；
 - 本叶子整体替换 `cmd/anydoor` 的 4 个桩（`main.go`、`embed.go`、`console_windows.go`、`console_other.go`）；`cmd/anydoor/dist/` 里的占位文件不动。
 - `go.mod` 加 `github.com/pkg/browser`（`G.10` 已登记）：验证者 `go get github.com/pkg/browser@latest` 后 `go mod tidy`；实施者不手改。写代码前请验证者用 `go doc github.com/pkg/browser` 贴出实际接口。
 - 不许碰的文件：`schema/`、`gen/`、`engine/`、`internal/`、`web/`、`cmd/anydoorctl/`
-- 测试里 `openURL` 换成记录调用的函数；数据目录用 `t.TempDir()`；端口用 `--port 0` 以外的方式时先在测试里取一个空闲端口。
+- 测试里 `openURL` 换成记录调用的函数；`secret` 用加密文件后端（包内变量，不碰真实系统密钥库，`B.07.02`）；已有实例的重试等待缩短；数据目录用 `t.TempDir()`；要指定端口时先在测试里取一个空闲端口。
 - 测试用例：
   - `B02-T1 启动与关闭`：`run(ctx, ["--data-dir", 临时目录, "--no-browser"])` 在 goroutine 里运行；从 stdout 读出"已启动"那一行的地址（带 token）；`GET /api/v1/health` 200；`<DataDir>/port` 里是这个端口；用本机的非回环 IPv4 地址（有的话）连这个端口被拒绝；取消 `ctx` 后 15 秒内返回 0，`port` 文件已删除，`logs/` 下有当天的日志文件
   - `B02-T2 开发代理`：`httptest` 起假的 Vite，把 `viteURL` 换成它的地址；`--dev` 启动后 `GET /src/main.tsx` 得到假 Vite 的内容；`/api/v1/health` 仍由本程序回答；CSP 含 `ws://127.0.0.1:5173`
@@ -110,3 +110,4 @@ var viteURL = "http://127.0.0.1:5173"          // 开发模式代理的目标；
 | 2026-11-23 | §5 加 Windows 控制台编码 | 第 1 片冒烟时发现；`P.09` K198 |
 | 2026-11-24 | §5 加"已有实例"的转交流程（从 `B.07.04` 移来） | `P.09` K240 |
 | 2026-11-24 | 第 ⑧a 片（`m0-server`）开工前复查：M0 只组装平台层和存储（内核、产品层、`--fake-llm` 留到 M1）；日志先用 `log/slog`；监听 `::1`；标准输出两行的写法固定；关闭顺序；打开浏览器用 `pkg/browser`；实施卡按 `G.02.06-R24` 重写，加 `B02-T7`、`B02-T8`；状态改为"已审" | `P.09` K241、K242 |
+| 2026-11-24 | 写代码前补细节：占位文件的判断只看有没有 `index.html`；测试里 `secret` 不碰系统密钥库 | `P.09` K242 |

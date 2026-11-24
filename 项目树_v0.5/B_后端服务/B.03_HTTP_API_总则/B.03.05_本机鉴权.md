@@ -56,7 +56,7 @@ var FS embed.FS
 ```
 
 ## 5. 行为
-1. **中间件链**（`B.03` §3，M0 不含幂等键）：`recover → request_id → 安全响应头 → Host 校验 → Origin 校验 → 鉴权 → 请求体大小 → 处理函数`。前四层对所有路径生效；Origin 校验对所有路径的非 GET 请求和 SSE 请求生效；鉴权只对 `/api/` 生效；`routes.go` 注册时可以把某条路由标为"不鉴权"，M0 只有 `GET /api/v1/health`（`B-R3`）。
+1. **中间件链**（`B.03` §3，M0 不含幂等键）：`recover → request_id → 安全响应头 → Host 校验 → Origin 校验 → 鉴权 → 请求体大小 → 处理函数`。`recover` 和 `request_id` 写在最外层同一个函数里（先生成 ID 再 `defer recover`，panic 时的 500 也带 `request_id`）。前四层对所有路径生效；Origin 校验对所有路径的非 GET 请求和 SSE 请求生效；鉴权只对 `/api/` 生效；`routes.go` 注册时可以把某条路由标为"不鉴权"，M0 只有 `GET /api/v1/health`（`B-R3`）。`/api/` 下路径存在但方法不对时由 `ServeMux` 返回 405（纯文本、带 `Allow`；`C.11` 没有对应的错误码）；路径不存在返回 404 `not_found`。只对 `/api/` 的非 SSE 请求设 30 秒时限（开发模式代理的热更新 WebSocket 不能被掐断）。
    - **recover**：处理函数 panic 时记录堆栈、返回 500 `internal`。
    - **request_id**：每个请求一个 ULID（`github.com/oklog/ulid/v2`），放进 `context` 和响应头 `X-Request-Id`，日志带上它。
    - **安全响应头**（`S.02-R8`）：每个响应都带 `S.02-R8` 的四个头；`Dev` 时 CSP 的 `connect-src` 加 `ws://127.0.0.1:5173`（`S.02-R9`）。不写任何 `Access-Control-Allow-*`（`S.02-R7`）。
@@ -93,7 +93,7 @@ var FS embed.FS
 - 测试用例：
   - `B0305-T1 Origin`：`POST` 带 `Origin: http://evil.example` → 403 `origin_rejected`；`Origin` 为三个本机地址之一且 cookie 有效 → 200；`Origin` 缺失、只有 cookie → 403；`Origin` 缺失、Bearer 有效 → 200；`GET` 不查 Origin
   - `B0305-T2 Host 重绑定`：`Host: evil.example:<端口>`、`Host: 127.0.0.1:<别的端口>` → 403 `origin_rejected`；三个本机 Host（含大写 `LOCALHOST`）→ 通过
-  - `B0305-T3 无 cookie`：不带凭证、cookie 是乱码、Bearer 错 → 401 `unauthorized`，三种情况响应体字节相同（不说明原因）
+  - `B0305-T3 无 cookie`：不带凭证、cookie 是乱码、Bearer 错 → 401 `unauthorized`，三种情况的响应体除 `request_id` 外完全相同（不说明原因）
   - `B0305-T4 token 轮换`：`/?t=<token>` → 302 到 `/`、`Location` 里没有 token、`Set-Cookie` 的属性符合 §5 第 2 条；用这个 cookie 访问 API 200；`Auth.Rotate` 后同一个 cookie 401、旧 token 引导 401；错 token 引导 401 且没有 `Set-Cookie`
   - `B0305-T6 Caller`：cookie 得到 `user:local`、Bearer 得到 `external:anydoorctl`；两者都带时是 cookie；`IsUser` 对这两个为 true，对 `external:其他` 为 false
   - `B0305-T7 安全响应头`：200、302、401、403、404、413、500 的响应都带 `S.02-R8` 的四个头和 `X-Request-Id`，没有任何 `Access-Control-Allow-*`；`Dev` 时 CSP 含 `ws://127.0.0.1:5173`，否则不含
@@ -110,3 +110,4 @@ var FS embed.FS
 |---|---|---|
 | 2026-11-24 | §5 第 1 条：会话 cookie 一律 30 天（不再区分"保持登录"），值由 `B.07.01` 发 | `P.09` K239 |
 | 2026-11-24 | 第 ⑧a 片（`m0-server`）开工前复查：类型改为"实施"（`relay` 只领实施叶子）；并入 `internal/api` 的服务器骨架、中间件链、错误响应写法；错误文案嵌入 `schema/builtin/messages`；`B0305-T5` 改为在 `S.09` 跑；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K241、K242 |
+| 2026-11-24 | 写代码前补细节：`recover` 与 `request_id` 合在最外层；405 由 `ServeMux` 返回；30 秒时限只对 `/api/`；`B0305-T3` 比较时去掉 `request_id` | `P.09` K242 |
