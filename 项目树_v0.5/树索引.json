@@ -317,8 +317,19 @@
     "type": "规",
     "src": "引01§1",
     "lvl": 2,
-    "children": [],
-    "path": "G_工程规范/G.03_仓库与目录规范.md"
+    "children": [
+     {
+      "id": "G.03.01",
+      "name": "depcheck 依赖方向检查",
+      "desc": "go run ./tools/depcheck：按 rules.yaml 检查 Go 包的 import 方向（E.01 §1、B.01 §2、INV-19）",
+      "type": "实",
+      "src": "用户 2026-11-24",
+      "lvl": 3,
+      "children": [],
+      "path": "G_工程规范/G.03_仓库与目录规范/G.03.01_depcheck_依赖方向检查.md"
+     }
+    ],
+    "path": "G_工程规范/G.03_仓库与目录规范/G.03_仓库与目录规范.md"
    },
    {
     "id": "G.04",

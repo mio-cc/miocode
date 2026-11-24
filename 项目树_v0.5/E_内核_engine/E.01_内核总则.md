@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 草稿 |
 | 素材 | 引01, 引03§4 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-24 |
 
 > 本文是内核核心接口的**唯一定义**（`P.09` K2）。`引01` §2、`引03` §4、`引_关键决定` 里的三个版本不再使用。
 
@@ -38,13 +38,15 @@
 | `obs` | `gen` | `run`、`exec` |
 | `llm`、`llm/*` | `gen`、`obs` | `exec`、`run` |
 | `tools`、`tools/builtin/*` | `gen`、`blob`、`obs`、`authz` | `exec`、`run` |
-| `mcp` | `tools` | `exec`、`run` |
+| `mcp` | `gen`、`tools` | `exec`、`run` |
 | `ctxasm` | `gen`、`schema`、`blob`、`llm`（只用计数接口） | `exec`、`run` |
-| `exec`、`exec/*` | `gen`、`graph`、`schema`、`ctxasm`、`llm`、`tools` 的接口 | `run`、`sched`、`store` |
-| `sched` | `gen`、`graph`、`obs` | `exec` 的实现、`run` |
+| `exec`、`exec/*` | `gen`、`graph`、`schema`、`ctxasm`、`llm`、`tools` 的接口、`obs`、`blob`（`RunCtx` 用到 `obs.Usage`、`blob.Reader`） | `run`、`sched`、`store` |
+| `sched` | `gen`、`graph`、`obs`、`exec` 的接口 | `exec` 的实现、`run` |
 | `run` | 以上全部（除 `orch`） | `internal/**` |
-| `orch` | `op`、`schema`、`authz`、`tools`、`exec`（接口） | `run` 的实现细节 |
+| `orch` | `gen`、`graph`、`op`、`schema`、`authz`、`tools`、`exec`（接口） | `run` 的实现细节 |
 | 全部 | — | `internal/**`、`cmd/**`；`net/http`（`llm/*`、`tools/builtin/http`、`tools/builtin/fetch`、`mcp` 例外） |
+
+机器可读版是 `tools/depcheck/rules.yaml`（`G.03.01` §5.3）：上表改了，规则文件同一批改。
 
 ## 2. 组装入口
 ```go
@@ -176,6 +178,11 @@ type SubOpts struct {
 - **E.01-R5** 接口变更是契约变更：按 `C.01` §5.2 的破坏性修改流程走，并同步本文。
 
 ### 实施卡
-- 要建的文件：`engine/engine.go`、`engine/doc.go`、`engine/exec/executor.go`、`engine/exec/runctx.go`、`engine/exec/value.go`、`engine/exec/errors.go`、`tools/depcheck/rules.yaml`（§1 表格）。
-- 测试用例：`E01-T1` depcheck 规则对一组故意违规的测试包报错；`E01-T2` `Engine.New` 缺少必需依赖时返回明确错误；`E01-T3` 没声明 `Caps.Model` 的执行器调用 `rc.LLM` 返回 `ErrCapDenied`。
+- 要建的文件：`engine/engine.go`、`engine/doc.go`、`engine/exec/executor.go`、`engine/exec/runctx.go`、`engine/exec/value.go`、`engine/exec/errors.go`。§1 表格的机器可读版 `tools/depcheck/rules.yaml` 和它的测试归 `G.03.01`（`P.09` K254）。
+- 测试用例：`E01-T1`（depcheck 对故意违规的包报错）移到 `G.03.01` 的 `G0301-T3`；`E01-T2` `Engine.New` 缺少必需依赖时返回明确错误；`E01-T3` 没声明 `Caps.Model` 的执行器调用 `rc.LLM` 返回 `ErrCapDenied`。
 - 允许使用的依赖：标准库、`gen`。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-24 | §1 表补全 `exec`（`obs`、`blob`）、`sched`（`exec` 的接口）、`orch`（`gen`、`graph`）、`mcp`（`gen`），与 §3、§4 的接口一致；机器可读版 `rules.yaml` 和 `E01-T1` 移到 `G.03.01` | `P.09` K254 |

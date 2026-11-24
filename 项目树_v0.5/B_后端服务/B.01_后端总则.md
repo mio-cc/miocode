@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 草稿 |
 | 素材 | 引15 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-24 |
 
 ## 1. 进程模型
 - 一个进程 `anydoor`：HTTP 服务、内核、产品层、后台维护都在同一个进程里。
@@ -24,10 +24,10 @@ cmd/anydoor ──► internal/api ──► internal/app ──► engine
 ```
 | 包 | 可以 import | 不可以 import |
 |---|---|---|
-| `internal/platform/*` | 标准库、已登记依赖、`gen` | `engine/**`（只通过 `engine.SecretResolver` 等接口被注入）、`internal/api`、`internal/app` |
+| `internal/platform/*` | 标准库、已登记依赖、`gen`、其他 `internal/platform/*` | `engine/**`（只通过 `engine.SecretResolver` 等接口被注入）、`internal/api`、`internal/app` |
 | `internal/app/*` | `engine/**`、`internal/platform` 的接口、`gen` | `internal/api`、`internal/sse` |
 | `internal/sse` | `engine/obs`、`engine/store`、`gen` | `internal/app`、`internal/api` |
-| `internal/api` | `internal/app` 暴露的接口、`internal/sse`、`internal/platform/auth`、`engine` 的公开方法、`gen` | `internal/app` 的实现细节 |
+| `internal/api` | `internal/app` 暴露的接口、`internal/sse`、`internal/platform/auth`、`engine` 的公开方法、`gen`、错误文案 `schema/builtin/messages`（`P.09` K242） | `internal/app` 的实现细节 |
 | `cmd/anydoor` | 全部 | — |
 
 ## 3. 启动顺序
@@ -54,6 +54,11 @@ cmd/anydoor ──► internal/api ──► internal/app ──► engine
 5. 总时限 15 秒；超时强制退出（下次启动靠恢复保证正确性）。
 
 ## 5. 规则
-- **B.01-R1** 依赖方向由 `tools/depcheck` 检查（规则写进 `tools/depcheck/rules.yaml`）。
+- **B.01-R1** 依赖方向由 `tools/depcheck` 检查（规则写进 `tools/depcheck/rules.yaml`，与 §2 表逐行对应，`G.03.01`）。
 - **B.01-R2** 任何 goroutine 都要在关闭流程里结束（`G.05.02`）。
 - **B.01-R3** 进程崩溃不能导致数据不一致：正确性只依赖事件日志和事务，不依赖优雅关闭。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-24 | §2 表：`internal/platform/*` 之间可以互相 import（`datadir` 被其他平台包使用）；`internal/api` 可以用错误文案 `schema/builtin/messages`（K242 已经这样做）；R1 写明对应 `G.03.01` | `P.09` K254 |

@@ -5,10 +5,10 @@
 | 编号 | G.03 |
 | 类型 | 规范 |
 | 上级 | G 工程规范 |
-| 下级 | 无 |
+| 下级 | G.03.01 depcheck 依赖方向检查 |
 | 状态 | 草稿 |
 | 素材 | 引01§1 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-24 |
 
 ## 1. 目的
 规定仓库里每个目录放什么、不许放什么。目录乱了，依赖方向就会乱（INV-19），实施模型也会把文件放错地方。
@@ -61,7 +61,7 @@ anywhere-door/
 |---|---|
 | G.03-R1 | 一级目录只能是上面列出的这些（加上面列出的不提交的输出目录）。新增一级目录必须改本文 |
 | G.03-R2 | `engine/` 下的包只能 import `gen/`、`engine/` 其他包和标准库 / 已登记依赖，不能 import `internal/`、`cmd/`（INV-19） |
-| G.03-R3 | `internal/platform/` 不能 import `engine/` 以外的产品层包；`internal/api/` 只能通过 `internal/app/` 暴露的接口使用产品层 |
+| G.03-R3 | 产品层内部的方向按 `B.01` §2：`internal/platform/` 只依赖标准库、已登记依赖、`gen/` 和 `internal/platform/` 自己，不 import `engine/`、`internal/api/`、`internal/app/`、`internal/sse/`；`internal/api/` 通过 `internal/app/` 暴露的接口使用产品层（另外可以用 `internal/sse/`、`internal/platform/auth`、`engine` 的公开方法、`gen/`、错误文案 `schema/builtin/messages`） |
 | G.03-R4 | 包之间的依赖只能向下（`引01` §2 依赖图）；环形依赖由 Go 编译器拦截，跨层的反向依赖由 `tools/depcheck` 拦截 |
 | G.03-R5 | 测试数据：只被一个包用的放在该包的 `testdata/`；多个包共用的放在仓库根 `testdata/` |
 | G.03-R6 | `gen/`、`web/src/lib/protocol/generated/`、`web/dist/` 是生成物：`gen/` 和 `generated/` 要提交进仓库（便于审查），其他生成物是否提交以 `G.16` 清单的"是否提交"一列为准；`web/dist/` 不提交；性能构建的 `web/dist-perf/`、测量结果 `web/.perf/`、测试产物 `web/.test/` 也不提交（`W.11`、`W.12`） |
@@ -70,7 +70,7 @@ anywhere-door/
 | G.03-R9 | 前端 `src/` 下新建目录必须属于 W 树里的某个节点 |
 
 ## 4. 检查方式
-- `go run ./tools/depcheck`：按 R2、R3、R4 检查 import，规则写在 `tools/depcheck/rules.yaml`。
+- `go run ./tools/depcheck`：按 R2、R3、R4 检查 import，规则写在 `tools/depcheck/rules.yaml`（逐行对应 `E.01` §1、`B.01` §2 的依赖表）；工具和规则文件由 `G.03.01` 实现。
 - CI 脚本：一级目录白名单；`git ls-files gen/ generated/` 里的文件和生成器输出一致。
 
 ## 变更记录
@@ -81,3 +81,4 @@ anywhere-door/
 | 2026-11-23 | §2 `tools/` 子目录补全；列出不提交的输出目录；R1 相应修改 | 第 10 棒写 `O.01`；`P.09` K188 |
 | 2026-11-23 | §2 根目录补 `AGENTS.md`、`CLAUDE.md`、`RELAY.md`、`.gitattributes`；`docs/relay/`、`tools/relay/`、`.relay/` | 第 10 棒；`P.09` K195 |
 | 2026-11-23 | §2 `tools/` 加 `schemacheck/` | `P.09` K202 |
+| 2026-11-24 | 新增下级 `G.03.01`（depcheck 的实现，本节点改为文件夹）；R3 改为与 `B.01` §2 一致（原写法"不能 import `engine/` 以外的产品层包"与 `B.01` §2 相反）；§4 写明规则文件与两张依赖表的对应 | `P.09` K254 |
