@@ -41,7 +41,7 @@ M0 不设分支保护：`main` 仍由验证者在本地 squash 合并后推送�
 | `tools/ci/allowlist` | 比较本次改动的文件与 PR 说明里"文件白名单"一节（`G.02-R3`） |
 | `tools/ci/cover` | 按包汇总 Go 覆盖率；有门槛时检查门槛（`Q.01-R5`；M0 只出报告，K243） |
 | `tools/ci/changelog` | 检查需要写变更日志的 PR 是否改了 `CHANGELOG.md`（`G.09-R4`） |
-| `tools/versions.txt` | 加 `gitleaks`、`govulncheck` 两行（`O-R2`，K243） |
+| `tools/versions.txt` | 加 `gitleaks`、`govulncheck` 两行（`O-R2`，K243）。这两行写成三列 `<工具> <版本> ci`：第三列 `ci` 表示只在 CI 上安装；`O.01` 的 `tools/build -check` 只检查两列的行，开发机不用装它们（K246） |
 | `docs/ci.md` | 当前该是绿的任务清单、哪些检查工具还是桩、门禁演练记录，以及本地复现某个任务的命令 |
 
 ### 4.2 `ci.yml` 的任务
@@ -83,7 +83,9 @@ M0 不设分支保护：`main` 仍由验证者在本地 squash 合并后推送�
 - 缓存：Go 模块与构建缓存、pnpm 存储、Playwright 浏览器；缓存键包含锁文件哈希，锁文件变了就失效。
 - 密钥：除 `release.yml` 用的 `GITHUB_TOKEN` 外不配置任何密钥；特别是没有任何模型 API 密钥（`O-R4`、`Q.06-R1`）。
 - 第三方 Actions 只用 `actions/*` 官方的几个，引用到具体提交哈希，行末注释写对应的版本标签（不用 `@v4` 这种会变的标签，`S.12-R6`）。写 `ci.yml` 前由验证者查出 `actions/checkout`、`actions/setup-go`、`actions/setup-node`、`actions/cache`、`actions/upload-artifact`、`actions/download-artifact` 当前版本的提交哈希贴给实施者（K243）。
-- `gitleaks`、`govulncheck` 不用第三方 Action：按 `tools/versions.txt` 的版本用 `go install`（`gitleaks` 也可以下载官方发布的二进制并核对校验和）。
+- `golangci-lint`、`gitleaks`、`govulncheck` 都不用第三方 Action：按 `tools/versions.txt` 的版本（不带 `v`，和现有的 `golangci-lint` 一行一样；安装时前面加 `v`）用 `go install` 或 `go run <模块>@v<版本>` 安装运行（K246）。
+- 所有任务用 bash（`defaults.run.shell: bash`，Windows 上是 Git Bash）；设置提交者环境变量 `GIT_AUTHOR_*`、`GIT_COMMITTER_*`（`tools/build`、`tools/relay` 的测试会在临时仓库里提交）。
+- `pr-meta` 用到的标题、说明、标签、分支名经环境变量传给命令，不在 `run:` 里直接展开 `${{ }}`（防注入）。
 
 ### 6.2 产物
 每个任务失败时上传：Go 测试输出、`cover.out`、前端测试报告、Playwright 追踪与截图差异、`anydoor` 日志。保留 14 天。
@@ -129,6 +131,8 @@ M0 不设分支保护：`main` 仍由验证者在本地 squash 合并后推送�
 - `release.yml` 本叶子只写：`on: push: tags: ['v*']`、`permissions: contents: write`、一个 ubuntu 任务（检出、装 Go 和 Node）和一步 `go run ./tools/release -version-check`；其余步骤由 `O.03` 补。
 - 不许碰的文件：`Makefile`、`Taskfile.yaml`、`tools/build/`、`tools/dev/`、`tools/relay/`、`tools/release/`、`tools/gen/`、`tools/depcheck/`、`tools/lint/`、`web/`、`cmd/`、`engine/`、`internal/`、`schema/`、`gen/`
 - 函数签名：各工具都是 `main` 包，命令行参数见 §4.2；可测试的部分写成 `func Check(...) []Problem`。
+- 小工具的参数（K246）：`commitcheck -title <PR 标题> -base <提交> -head <提交>`；`allowlist -branch <分支名> -body <PR 说明文件> -base … -head …`；`changelog -labels <逗号分隔> -base … -head …`；`deps`（无参数，读仓库根）；`cover [-min <门槛文件>] <cover.out>`。改动的文件取 `git diff --name-only <base>...<head>`，提交取 `git log <base>..<head>`。门槛文件每行 `<包路径或前缀/...> <百分比>`，`#` 开头为注释，按顺序第一条匹配的生效。
+- `tools/deps/allow.txt` 写 Go 模块路径和 npm 包名（`G.10` §3 写成包名的按所在模块写，例如 `golang.org/x/time/rate` 写 `golang.org/x/time`）；匹配规则和 `relay` 的 `DepAllowed` 一样：完全相同，或是登记项加 `/` 的子路径（K246）。
 - 测试用例：
   - `O02-T1 commitcheck`：合规的 `feat(E.14.07): …` 与 `Refs: E.14.07` 通过；`docs(repo): …` 不要求 `Refs`；类型错、范围不是编号也不是 `deps` / `ci` / `repo`、`feat` 缺 `Refs` 各自失败并写出是哪一条
   - `O02-T2 deps`：`allow.txt` 里没有的直接依赖 → 失败并列出；`// indirect` 不检查；`#` 注释行和空行被忽略；用仓库里真实的 `go.mod`、`web/package.json` 和本叶子写的 `allow.txt` 跑一次 → 通过
@@ -146,3 +150,4 @@ M0 不设分支保护：`main` 仍由验证者在本地 squash 合并后推送�
 | 2026-11-23 | 首版 | 第 10 棒；`P.09` K189、K192 |
 | 2026-11-23 | `main` 的合并条件改为按新的 `G.08-R3` | `P.09` K209 |
 | 2026-11-24 | 第 ⑧b 片（`m0-ci`）开工前复查：M0 不设分支保护，CI 做事后检查（用户决定）；`ci.yml` 也在 `ci-drill/**` 上运行；桩照常调用、`cover` 只出报告、`perf` 任务由带来脚本的叶子加；Actions 哈希由验证者查；`gitleaks`、`govulncheck` 版本进 `tools/versions.txt`；门禁演练改为人工验收；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K241、K243 |
+| 2026-11-24 | 写代码前补细节：CI 专用工具在 `tools/versions.txt` 里写三列；小工具的参数；`allow.txt` 写模块路径；所有任务用 bash、设提交者环境变量 | `P.09` K246 |
