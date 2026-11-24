@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 草稿 |
 | 素材 | 新 |
-| 最后修改 | 2026-11-23 |
+| 最后修改 | 2026-11-24 |
 
 ## 1. 目的
 统一配置的来源、优先级和命名。
@@ -37,7 +37,7 @@
 | `ui.theme.palette` | `paper`（可选 `graphite`、`whale`、`amber`，`U.03.05`） | — | 是 |
 | `ui.theme.mode` | `light`（可选 `dark`、`system`） | — | 是 |
 | `models.default` | 空（首次引导时选） | — | 是 |
-| `models.providers` | `[]` | — | 是 |
+| `models.providers` | `[]`（每项是一个模型提供方，格式见 `E.10.01` §4.3） | — | 是 |
 | `pools.global_concurrency` | `8` | — | 下次运行 |
 | `tools.allowed_hosts` | `[]` | — | 是 |
 | `mcp.servers` | `[]` | — | 是（重新连接） |
@@ -74,3 +74,4 @@
 |---|---|---|
 | 2026-11-23 | §3 补登设置页的全部配置路径（发送键、通知、默认模型与思考强度、演示模式、默认档位、审批、沙箱、文件目录、本机 HTTP MCP、预算、包的设置、引导进度、两个只读项） | 第 9 棒写 `W.09.02`；`P.09` K115 定稿为 K142 |
 | 2026-11-23 | 加 `chat.entry_graph`；`models.orchestrator` 写明只用于生成默认对话入口图 | `P.09` K233 |
+| 2026-11-24 | `models.providers` 写明格式 | `P.09` K250 |

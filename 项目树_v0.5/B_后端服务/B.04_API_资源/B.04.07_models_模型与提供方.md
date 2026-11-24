@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 草稿 |
 | 素材 | 引09 |
-| 最后修改 | 2026-11-23 |
+| 最后修改 | 2026-11-24 |
 
 ## 1. 职责
 列出可用模型，管理模型提供方（含密钥）、测试连接、价格表。
@@ -25,7 +25,7 @@
 | GET | `/models` | 可用模型（不含密钥）：`{ref, provider, window, caps, priced, effort}`（`effort`：这个模型支持的思考强度，`C.16`） | → `Model[]` |
 | POST | `/models/count-tokens` | 估算一段文字的 tokens（按模型的分词器，没有时按通用估算） | `{text, model?}` → `{tokens, exact}` |
 | GET | `/providers` | 提供方列表（密钥只显示末 4 位） | → `Provider[]` |
-| POST | `/providers` | 新增 `{name, kind, base_url?, backend?, secret?, caps_override?}`；`secret` 直接写入密钥库，不进配置文件 | → 201 |
+| POST | `/providers` | 新增：`E.10.01` §4.3 的提供方配置，另加 `secret`（明文，只在这一次请求里；写入密钥库后 `auth.secret` 记为密钥名，不进配置文件） | → 201 |
 | PUT | `/providers/{name}` | 修改；`secret` 缺省表示不改 | → `Provider` |
 | DELETE | `/providers/{name}` | 删除（同时删除密钥；被图使用时 409 列出受影响的图） | → 204 |
 | POST | `/providers/{name}/test` | 测试连接：发一次最小请求，返回可用模型和能力 | → `{ok, models, caps, error?}` |
@@ -72,3 +72,4 @@
 | 2026-11-23 | §4 `/models` 写明 `effort`；新增 `count-tokens` | 第 8 棒写 `W.07.03`、`W.07.07`；`P.09` K113 |
 | 2026-11-23 | §5 写明前端只用 `/connections`，`/providers` 为旧路径 | 第 9 棒写 `W.09.04`；`P.09` K144 |
 | 2026-11-23 | §4 补 `/connections`、`/connection-types` 接口及实施卡（`C.16` 已定义、前端在用，但本文没有登记） | W 全枝复查；`P.09` K178 |
+| 2026-11-24 | `POST /providers` 的请求体改为提供方配置（按协议，ADR-011） | `P.09` K250 |

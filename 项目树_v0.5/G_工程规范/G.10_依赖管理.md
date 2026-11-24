@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 草稿 |
 | 素材 | 引01§5 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-24 |
 
 ## 1. 目的
 控制引入哪些第三方依赖。每个依赖都是安全、体积、许可证和维护风险；实施模型尤其喜欢"顺手装一个库"。
@@ -38,9 +38,6 @@
 | Prometheus | `github.com/prometheus/client_golang` | Apache-2.0 |
 | 限流 | `golang.org/x/time/rate` | BSD-3 |
 | 并发工具 | `golang.org/x/sync`（errgroup、semaphore） | BSD-3 |
-| OpenAI 兼容 | `github.com/openai/openai-go` | Apache-2.0 |
-| Anthropic | `github.com/anthropics/anthropic-sdk-go` | MIT |
-| Gemini | `google.golang.org/genai` | Apache-2.0 |
 | MCP | `github.com/modelcontextprotocol/go-sdk` | MIT |
 | WASM 沙箱 | `github.com/tetratelabs/wazero` | Apache-2.0 |
 | 系统密钥 | `github.com/zalando/go-keyring` | MIT |
@@ -82,3 +79,4 @@ CI 脚本比对 `go.mod`（直接依赖）和 `web/package.json` 与本清单（
 | 2026-11-23 | §4 机器可读清单的文件名与 `O.02` 一致（`allow.txt`） | `P.09` K196 |
 | 2026-11-23 | 去掉 `go-jsonschema`、`json-schema-to-typescript`：生成器自研（`C.14` §2） | `P.09` K234 |
 | 2026-11-24 | 去掉 `pressly/goose`：迁移执行器自写（全局注册违反 `E-R3`，`E.07.03`） | `P.09` K237 |
+| 2026-11-24 | 去掉三家模型 SDK：模型接入改为按协议用标准库自研（ADR-011）；代码仓库 `tools/deps/allow.txt` 在第 ⑨ 片同步 | `P.09` K250 |

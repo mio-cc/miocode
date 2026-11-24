@@ -128,7 +128,7 @@
      {
       "id": "P.08.05",
       "name": "ADR-005 三家官方模型 SDK + OpenAI 兼容接入",
-      "desc": "模型接入策略",
+      "desc": "模型接入策略（已被 ADR-011 取代）",
       "type": "规",
       "src": "选§4",
       "lvl": 3,
@@ -184,6 +184,16 @@
       "lvl": 3,
       "children": [],
       "path": "P_产品总纲/P.08_决策记录_ADR/P.08.10_ADR-010_只参考不引入开源代码.md"
+     },
+     {
+      "id": "P.08.11",
+      "name": "ADR-011 按协议自研模型接入 + 提供方配置",
+      "desc": "模型接入策略：只实现主流接口协议，厂商差异全部写在配置和数据里（取代 ADR-005）",
+      "type": "规",
+      "src": "用户 2026-11-24",
+      "lvl": 3,
+      "children": [],
+      "path": "P_产品总纲/P.08_决策记录_ADR/P.08.11_ADR-011_按协议自研模型接入_提供方配置.md"
      }
     ],
     "path": "P_产品总纲/P.08_决策记录_ADR/P.08_决策记录_ADR.md"
@@ -1420,55 +1430,55 @@
    {
     "id": "E.10",
     "name": "llm 模型适配",
-    "desc": "统一模型接口",
+    "desc": "按接口协议接入模型：统一接口、提供方配置、三种协议",
     "type": "实",
     "src": "引05",
     "lvl": 2,
     "children": [
      {
       "id": "E.10.01",
-      "name": "Model 统一接口",
-      "desc": "请求、流式、工具调用、结构化输出",
+      "name": "统一接口与提供方配置",
+      "desc": "统一接口、提供方配置（协议、地址、鉴权、请求头、模型映射、请求体覆盖）、注册表与测试守卫",
       "type": "实",
       "src": "引01§2",
       "lvl": 3,
       "children": [],
-      "path": "E_内核_engine/E.10_llm_模型适配/E.10.01_Model_统一接口.md"
+      "path": "E_内核_engine/E.10_llm_模型适配/E.10.01_统一接口与提供方配置.md"
      },
      {
       "id": "E.10.02",
-      "name": "OpenAI 适配",
-      "desc": "含 OpenAI 兼容厂商（国内厂商、本地模型）",
+      "name": "Chat Completions 协议",
+      "desc": "/chat/completions：OpenAI、Mistral、DeepSeek、国内厂商、中转站、本地模型",
       "type": "实",
       "src": "引05",
       "lvl": 3,
       "children": [],
-      "path": "E_内核_engine/E.10_llm_模型适配/E.10.02_OpenAI_适配.md"
+      "path": "E_内核_engine/E.10_llm_模型适配/E.10.02_Chat_Completions_协议.md"
      },
      {
       "id": "E.10.03",
-      "name": "Anthropic 适配",
-      "desc": "",
+      "name": "Anthropic Messages 协议",
+      "desc": "/messages",
       "type": "实",
       "src": "引05",
       "lvl": 3,
       "children": [],
-      "path": "E_内核_engine/E.10_llm_模型适配/E.10.03_Anthropic_适配.md"
+      "path": "E_内核_engine/E.10_llm_模型适配/E.10.03_Anthropic_Messages_协议.md"
      },
      {
       "id": "E.10.04",
-      "name": "Gemini 适配",
-      "desc": "",
+      "name": "Responses 协议",
+      "desc": "/responses（无状态用法）",
       "type": "实",
       "src": "引05",
       "lvl": 3,
       "children": [],
-      "path": "E_内核_engine/E.10_llm_模型适配/E.10.04_Gemini_适配.md"
+      "path": "E_内核_engine/E.10_llm_模型适配/E.10.04_Responses_协议.md"
      },
      {
       "id": "E.10.05",
       "name": "quirks 厂商差异表",
-      "desc": "各家差异写成数据（如某模型只支持 low/high/max）",
+      "desc": "能力表（按协议 + 模型名）、错误规则、常用厂商；quirkscheck",
       "type": "实",
       "src": "引_关键决定",
       "lvl": 3,
