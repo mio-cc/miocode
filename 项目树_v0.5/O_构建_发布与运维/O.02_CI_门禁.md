@@ -78,7 +78,7 @@ M0 不设分支保护：`main` 仍由验证者在本地 squash 合并后推送�
 ## 6. 行为
 
 ### 6.1 环境
-- GitHub 托管的运行器：`ubuntu-24.04`、`windows-2022`、`macos-14`（Apple 芯片）。
+- GitHub 托管的运行器：`ubuntu-24.04`、`windows-2022`、`macos-15`（Apple 芯片）。GitHub 停用某个运行器镜像时（例如 `macos-14` 于 2026-11-02 停用），在同一批改动里改本条、`ci.yml`、`release.yml`，并在 `docs/ci.md` 记一行（`P.09` K247）。
 - Go 按 `go.mod` 的 `toolchain` 安装（`actions/setup-go` 的 `go-version-file`）；Node 按 `web/package.json` 的 `engines`，pnpm 用 `corepack enable`；CI 工具按 `tools/versions.txt` 安装（`O-R2`）。
 - 缓存：Go 模块与构建缓存、pnpm 存储、Playwright 浏览器；缓存键包含锁文件哈希，锁文件变了就失效。
 - 密钥：除 `release.yml` 用的 `GITHUB_TOKEN` 外不配置任何密钥；特别是没有任何模型 API 密钥（`O-R4`、`Q.06-R1`）。
@@ -93,7 +93,7 @@ M0 不设分支保护：`main` 仍由验证者在本地 squash 合并后推送�
 ### 6.3 每晚任务 `nightly.yml`
 | 任务 | 内容 | 失败时 |
 |---|---|---|
-| 漏洞扫描 | 在 `main` 上重跑 `security` 任务（`S.12-R2`：每天一次） | 开一个 Issue，标签 `security` |
+| 漏洞扫描 | 在 `main` 上重跑 `security` 任务（`S.12-R2`：每天一次） | 开一个 Issue，标签 `security`（标签不存在时先自动建，`P.09` K247） |
 | 可复现构建 | 同一提交在两个干净的运行器上各 `build` 一次，比较 `anydoor` 的 SHA-256（`S.12-R6`、`O01-T5`） | 开 Issue |
 | 全量故障注入 | `Q.09` 写成后加入 | 开 Issue |
 
@@ -151,3 +151,4 @@ M0 不设分支保护：`main` 仍由验证者在本地 squash 合并后推送�
 | 2026-11-23 | `main` 的合并条件改为按新的 `G.08-R3` | `P.09` K209 |
 | 2026-11-24 | 第 ⑧b 片（`m0-ci`）开工前复查：M0 不设分支保护，CI 做事后检查（用户决定）；`ci.yml` 也在 `ci-drill/**` 上运行；桩照常调用、`cover` 只出报告、`perf` 任务由带来脚本的叶子加；Actions 哈希由验证者查；`gitleaks`、`govulncheck` 版本进 `tools/versions.txt`；门禁演练改为人工验收；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K241、K243 |
 | 2026-11-24 | 写代码前补细节：CI 专用工具在 `tools/versions.txt` 里写三列；小工具的参数；`allow.txt` 写模块路径；所有任务用 bash、设提交者环境变量 | `P.09` K246 |
+| 2026-11-24 | §6.1 macOS 运行器改为 `macos-15`：`macos-14` 已于 2026-11-02 停用，合并后第一次 CI 运行时发现；§6.3 漏洞扫描开 Issue 前自动建 `security` 标签 | `P.09` K247 |
