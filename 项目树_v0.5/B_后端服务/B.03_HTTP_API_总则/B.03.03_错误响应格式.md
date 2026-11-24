@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 草稿 |
 | 素材 | 引09 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-24 |
 
 ## 1. 职责
 把内核和产品层的错误映射成 `C.11` 规定的 HTTP 错误响应，并生成给人看的中文信息。
@@ -26,6 +26,7 @@
 func writeError(w http.ResponseWriter, r *http.Request, err error)
 var mapping = []struct{ is func(error) bool; status int; code gen.ApiErrorCode; details func(error) any }{ … }
 ```
+M0 由 `B.03.05` 建 `internal/api/errors.go`，只含 M0 用到的几行（`bad_request`、`unauthorized`、`forbidden`、`origin_rejected`、`not_found`、`too_large`、`internal`），文案从 `schema/builtin/messages` 嵌入读取；本文复查时补全 §5 的表和 `B0303-T1`–`T3`（`P.09` K242）。
 
 ## 5. 行为
 | 内核 / 产品层错误 | HTTP | code |
@@ -75,3 +76,8 @@ var mapping = []struct{ is func(error) bool; status int; code gen.ApiErrorCode; 
 - 允许使用的依赖：标准库 + `G.10` 已登记依赖
 - 禁止事项：`G.02.05` 全部
 - 完成标志：`G.14` 全部条件
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-24 | §4 写明 M0 由 `B.03.05` 先建 `errors.go` 的一部分 | `P.09` K242 |

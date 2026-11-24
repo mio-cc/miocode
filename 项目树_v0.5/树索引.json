@@ -2170,7 +2170,7 @@
       "id": "B.03.05",
       "name": "本机鉴权",
       "desc": "随机 token、Origin 校验",
-      "type": "规",
+      "type": "实",
       "src": "引15",
       "lvl": 3,
       "children": [],
