@@ -37,7 +37,7 @@
 | `tools/ci/allowlist` | 比较改动的文件与说明里"文件白名单"一节（`G.02-R3`） |
 | `tools/ci/cover` | 按包汇总 Go 覆盖率；有门槛时检查门槛（`Q.01-R5`；M0 只出报告，K243） |
 | `tools/ci/changelog` | 检查对用户可见的改动写了 `CHANGELOG.md`（`G.09-R4`） |
-| `.gitleaksignore` | 确认是误报的 gitleaks 发现，每行一个指纹 `<提交>:<文件>:<规则>:<行>`，上一行用 `#` 写明为什么是误报和 `P.09` 的编号（K249） |
+| `tools/gitleaks/.gitleaksignore` | 确认是误报的 gitleaks 发现，每行一个指纹 `<提交>:<文件>:<规则>:<行>`，上一行用 `#` 写明为什么是误报和 `P.09` 的编号（K249） |
 | `tools/versions.txt` | `gitleaks`、`govulncheck` 两行写成三列 `<工具> <版本> run`：第三列 `run` 表示用 `go run <模块>@v<版本>` 运行、不用预先安装；`O.01` 的 `tools/build -check` 只检查两列的行（K246、K248） |
 | `.github/pull_request_template.md` | `G.07` §4 的模板（以后有合并请求流程时用） |
 | `docs/checks.md` | 合并前检查清单、哪些还是桩、每条命令怎么在本机跑 |
@@ -49,12 +49,12 @@
 | 其他平台的编译检查 | 改到的包各做一次 `GOOS=linux`、`GOOS=darwin` 的 `go vet` | Go 测试（三平台）的替代：开发机是 Windows，Linux、macOS 只查编译（K248） |
 | 依赖清单 | `go run ./tools/ci/deps` | 依赖清单 |
 | 漏洞扫描 | `go run golang.org/x/vuln/cmd/govulncheck@v<版本> ./...`、`pnpm -C web audit --audit-level high --prod` | 漏洞扫描（`S.12-R2`，原来的每天一次改为每片合并前一次，K248） |
-| 密钥扫描 | `go run github.com/zricethezav/gitleaks/v8@v<版本> git --redact .`（全部历史） | 密钥扫描（`S.12-R3`） |
+| 密钥扫描 | `go run github.com/zricethezav/gitleaks/v8@v<版本> git --redact --gitleaks-ignore-path tools/gitleaks/.gitleaksignore .`（全部历史） | 密钥扫描（`S.12-R3`） |
 | 前端构建与冒烟 | 片里改了 `cmd/`、`internal/api/`、`web/` 或 `tools/release/` 时：`pnpm -C web build`、`go run ./tools/build -preview`、`go run ./tools/release -smoke bin/anydoor.exe` | 前端构建（嵌入后的程序） |
 | 覆盖率报告 | `go test ./... -count=1 -coverpkg=./... -coverprofile=cover.out`、`go run ./tools/ci/cover cover.out`（M0 只出报告） | 覆盖率 |
 
 - 版本号见 `tools/versions.txt`。任何一项失败：不合并，按 `G.08-R3` 停下说明原因；漏洞扫描查出"有修复版本的高危漏洞"同样算失败（`S.12-R2`）。
-- 密钥扫描有发现时，验证者用 `--redact` 导出报告（不贴密钥原文）交给设计方判断：真密钥按安全事件处理（作废该密钥、上报用户，不靠改历史了事）；确认是误报的，在 `P.09` 登记，把这一条的指纹加进 `.gitleaksignore`，不改冻结叶子的文件、不改已推送的历史（K249）。
+- 密钥扫描有发现时，验证者用 `--redact` 导出报告（不贴密钥原文）交给设计方判断：真密钥按安全事件处理（作废该密钥、上报用户，不靠改历史了事）；确认是误报的，在 `P.09` 登记，把这一条的指纹加进 `tools/gitleaks/.gitleaksignore`，不改冻结叶子的文件、不改已推送的历史（K249）。
 - 端到端、前端性能基准（`G.08` §2）在 `W.12`、`W.11` 落地时加进本表（M1）。
 - 提交信息、文件白名单（`commitcheck`、`allowlist`、`changelog`）M0 不在清单里：片合并的提交写法与 `commitcheck` 的规则不同（K241），实施叶子的白名单已由 `relay check` 第 ① 项检查。
 
@@ -106,7 +106,7 @@
 3. 仓库里没有 `.github/workflows/`；`docs/checks.md` 写明清单、版本、还是桩的检查。
 
 ### 实施卡
-- 要建 / 要改的文件：`tools/ci/commitcheck/main.go`、`tools/ci/commitcheck/main_test.go`、`tools/ci/deps/main.go`、`tools/ci/deps/main_test.go`、`tools/ci/allowlist/main.go`、`tools/ci/allowlist/main_test.go`、`tools/ci/cover/main.go`、`tools/ci/cover/main_test.go`、`tools/ci/changelog/main.go`、`tools/ci/changelog/main_test.go`、`tools/deps/allow.txt`、`tools/versions.txt`、`.github/pull_request_template.md`、`docs/checks.md`、`.gitleaksignore`；删除 `.github/workflows/ci.yml`、`nightly.yml`、`release.yml` 和 `docs/ci.md`（K248）
+- 要建 / 要改的文件：`tools/ci/commitcheck/main.go`、`tools/ci/commitcheck/main_test.go`、`tools/ci/deps/main.go`、`tools/ci/deps/main_test.go`、`tools/ci/allowlist/main.go`、`tools/ci/allowlist/main_test.go`、`tools/ci/cover/main.go`、`tools/ci/cover/main_test.go`、`tools/ci/changelog/main.go`、`tools/ci/changelog/main_test.go`、`tools/deps/allow.txt`、`tools/versions.txt`、`.github/pull_request_template.md`、`docs/checks.md`、`tools/gitleaks/.gitleaksignore`；删除 `.github/workflows/ci.yml`、`nightly.yml`、`release.yml` 和 `docs/ci.md`（K248）
 - 不许碰的文件：`Makefile`、`Taskfile.yaml`、`tools/build/`、`tools/dev/`、`tools/relay/`、`tools/release/`、`tools/gen/`、`tools/depcheck/`、`tools/lint/`、`web/`、`cmd/`、`engine/`、`internal/`、`schema/`、`gen/`
 - 函数签名：各工具都是 `main` 包；可测试的部分写成 `func Check(...) []Problem`。
 - 小工具的参数（K246）：`commitcheck -title <标题> -base <提交> -head <提交>`；`allowlist -branch <分支名> -body <说明文件> -base … -head …`；`changelog -labels <逗号分隔> -base … -head …`；`deps`（无参数，读仓库根）；`cover [-min <门槛文件>] <cover.out>`。改动的文件取 `git diff --name-only <base>...<head>`，提交取 `git log <base>..<head>`。门槛文件每行 `<包路径或前缀/...> <百分比>`，`#` 开头为注释，按顺序第一条匹配的生效。
@@ -130,4 +130,4 @@
 | 2026-11-24 | 写代码前补细节：CI 专用工具在 `tools/versions.txt` 里写三列；小工具的参数；`allow.txt` 写模块路径；所有任务用 bash、设提交者环境变量 | `P.09` K246 |
 | 2026-11-24 | §6.1 macOS 运行器改为 `macos-15`：`macos-14` 已于 2026-11-02 停用，合并后第一次 CI 运行时发现；§6.3 漏洞扫描开 Issue 前自动建 `security` 标签 | `P.09` K247 |
 | 2026-11-24 | 不用 GitHub Actions（用户决定）：去掉工作流、每晚任务和分支保护的内容；§4.2 改为验证者在开发机上运行的合并前检查清单，漏洞和密钥扫描改为每片合并前跑一次；`docs/ci.md` 改为 `docs/checks.md`；K247 作废 | `P.09` K248 |
-| 2026-11-24 | 加 `.gitleaksignore` 和密钥扫描有发现时的处理办法：第一次跑合并前检查时 gitleaks 把测试里 RFC 6455 的示例 WebSocket 密钥当成了 API 密钥 | `P.09` K249 |
+| 2026-11-24 | 加 `tools/gitleaks/.gitleaksignore`（不放仓库根：`relay` 的实施卡解析认不出不带目录、以点开头又没有扩展名的文件名，K249）和密钥扫描有发现时的处理办法：第一次跑合并前检查时 gitleaks 把测试里 RFC 6455 的示例 WebSocket 密钥当成了 API 密钥 | `P.09` K249 |
