@@ -6,7 +6,7 @@
 | 类型 | 实施 |
 | 上级 | B.07 platform 平台层 |
 | 下级 | 无 |
-| 状态 | 已审 |
+| 状态 | 冻结 |
 | 素材 | 新 |
 | 最后修改 | 2026-11-24 |
 
@@ -127,3 +127,4 @@ func ExpandPath(p, base string) (string, error)
 | 2026-11-24 | 第 ⑦ 片（`m0-platform`）开工前复查：接口写全（`Resolve`、`DefaultDir`、各路径方法、`Restrict`、`WritePrivate`）；Linux 默认位置的规则；布局加 `secrets.index.json`；本叶子把 `golang.org/x/sys` 加进 `go.mod`；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K239、K240 |
 | 2026-11-24 | 状态改为"冻结"：第 ⑦ 片（`m0-platform`）squash 合并进代码仓库 `main`，提交 `4585c9e928fed58c90b0a70cb8e4b08a5248533a`（`G.02.06-R21`） | `relay slice` 通过；评审 9 条全部符合；按 `G.08-R3` 由验证者合并 |
 | 2026-11-24 | 冻结后修复：Windows 上 `WritePrivate` 覆盖正被打开的文件时改名失败（`Access is denied`，第 ⑧a 片整仓测试里 `B0703-T3` 偶发失败），改为退避重试；加 `B0705-T5`；状态改回"已审"，修复放进第 ⑧a 片 `m0-server`（`G.02.06-R21`） | `P.09` K244 |
+| 2026-11-24 | 状态改为"冻结"：冻结后修复随第 ⑧a 片（`m0-server`）squash 合并进代码仓库 `main`，提交 `8d3377c982ba5e870246e8213bb36bea20b11399`（`G.02.06-R21`） | `relay slice` 通过；评审 10 条（第 4、9 行已修正，第 2、7、10 行按 `P.09` K245 处理），全部已复核；按 `G.08-R3` 由验证者合并 |
