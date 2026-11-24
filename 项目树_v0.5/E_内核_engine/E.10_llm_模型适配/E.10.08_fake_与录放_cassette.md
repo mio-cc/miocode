@@ -62,7 +62,7 @@ func (c *Client) Requests() []llm.Req          // 收到过的请求，供断言
 - **匹配**：按顺序回放第 n 次请求时，比较方法、路径、规范化后的请求体（键排序；去掉 `stream` 以外不影响语义的字段：无）；不一致时测试失败并打印差异（不是静默跳过）。
 - **脱敏**（`S.03-R7`、`Q.06-R6`）：录制时不写请求头；响应头只留 `Content-Type`、`Retry-After`；请求体、响应体里出现传入的 `secrets` 原文或像密钥的串（`sk-…`、`Bearer …` 等，规则同 `E.10.01` §5.5）一律换成 `[REDACTED]`。
 - **手写录放**：没有真实密钥的协议，按官方文档的示例手写同样格式的文件，`note` 写明"按官方文档手写"和文档地址；有了密钥再用 `-record` 重录。
-- **录制**：只在开发机上，`go test ./engine/llm/protocol/<名>/... -record`；密钥用 `ANYDOOR_DEV_SECRET_<名>` 环境变量（`G.11-R3`、`Q.06-R7`），测试从它取。`-record` 让 `Transport` 设置 `ANYDOOR_LLM_RECORD=1`（`t.Setenv`），放开 `E.10.01` 的测试守卫。
+- **录制**：只在开发机上，`go test ./engine/llm/protocol/<名>/... -record`；密钥用 `ANYDOOR_DEV_SECRET_<名>` 环境变量（`G.11-R3`、`Q.06-R7`），测试从它取。`-record` 让 `Transport` 设置 `ANYDOOR_LLM_RECORD=1`（`t.Setenv`），放开 `E.10.01` 的测试守卫。录制写出的 `note` 是"真实录制（go test -record）："加请求过的地址（`scheme://host`）；可以手工补上厂商、模型和日期（`note` 不参与匹配）。
 
 ## 6. 不变量
 - 不带 `-record` 时，任何测试都不会发出真实模型请求
@@ -81,7 +81,7 @@ func (c *Client) Requests() []llm.Req          // 收到过的请求，供断言
 - 要建 / 要改的文件：`engine/llm/cassette/cassette.go`、`engine/llm/cassette/redact.go`、`engine/llm/cassette/cassette_test.go`、`engine/llm/fake/fake.go`、`engine/llm/fake/fake_test.go`
 - 不许碰的文件：`schema/`、`gen/`、`internal/`、`cmd/`、`engine/store/`、`web/`、`engine/llm/protocol/`
 - 测试用例：
-  - `E1008-T1 录放往返`：对 `httptest`（回环地址，守卫放行）用录制模式发两次请求写出文件；再用回放模式跑同样的两次请求，响应状态、头、体逐字节一致，且 `httptest` 没有再收到请求
+  - `E1008-T1 录放往返`：对 `httptest`（回环地址，守卫放行）用录制模式发两次请求写出文件；再用回放模式跑同样的两次请求，响应状态、头、体逐字节一致，且 `httptest` 没有再收到请求；写出的 `note` 含请求的地址
   - `E1008-T2 缺记录与不一致`：文件不存在、记录比请求少、请求体不一致，三种情况测试失败并说明原因（用 `testing.TB` 的替身捕获失败）
   - `E1008-T3 脱敏`：录制时带 `Authorization`、`x-api-key` 请求头和传入的密钥原文、响应体里含 `sk-` 开头的串，写出的文件里都找不到
   - `E1008-T4 fake 脚本`：按次序返回 Deltas / Resp / Err；`Requests()` 记下每次的请求；脚本用完后再调用 → 错误
@@ -95,3 +95,4 @@ func (c *Client) Requests() []llm.Req          // 收到过的请求，供断言
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-24 | 第 ⑨ 片（`m0-llm`）开工前复查：录放改在 HTTP 层（协议的编码解码对着真实格式测）、文件格式与脱敏写全、可以手写；fake 改为脚本化的 `llm.Client`；演示模式和模板录放推到 M1（`E1008-T5` 在其他叶子跑）；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K251 |
+| 2026-11-24 | 第 ⑨ 片整片评审后（`P.09` K252）：§5 录制写出的 `note` 写明请求的地址，可以手工补厂商和模型；`E1008-T1` 补一条 | `P.09` K252 |

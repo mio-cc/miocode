@@ -53,7 +53,7 @@ func New() llm.Protocol // Name() == "anthropic_messages"；默认路径 complet
 4. 编码出的请求体和预期一致
 
 ### 实施卡
-- 要建 / 要改的文件：`engine/llm/protocol/messages/messages.go`、`engine/llm/protocol/messages/encode.go`、`engine/llm/protocol/messages/decode.go`、`engine/llm/protocol/messages/messages_test.go`、`engine/llm/protocol/messages/testdata/`
+- 要建 / 要改的文件：`engine/llm/protocol/messages/messages.go`、`engine/llm/protocol/messages/encode.go`、`engine/llm/protocol/messages/decode.go`、`engine/llm/protocol/messages/messages_test.go`、`engine/llm/protocol/messages/testdata/`、`engine/llm/collect.go`、`engine/llm/provider.go`、`engine/llm/provider_test.go`、`engine/llm/transport_test.go`、`engine/llm/cassette/cassette.go`、`engine/llm/cassette/cassette_test.go`、`engine/llm/protocol/chat/testdata/cassettes/text.json`、`engine/llm/protocol/chat/testdata/cassettes/tool_call.json`、`engine/llm/protocol/chat/testdata/cassettes/tool_result.json`、`engine/llm/protocol/chat/testdata/cassettes/structured.json`、`engine/llm/protocol/chat/testdata/cassettes/models.json`、`engine/llm/protocol/responses/testdata/cassettes/text.json`、`engine/llm/protocol/responses/testdata/cassettes/tool_call.json`、`engine/llm/protocol/responses/testdata/cassettes/tool_result.json`、`engine/llm/protocol/responses/testdata/cassettes/structured.json`（只限 `P.09` K252 的整片评审修复：`Raw` 脱敏、`rename` 的 `to` 校验、录制的 `note` 写明来源。这些文件属于片内已完成的 `E.10.01`、`E.10.08`、`E.10.02`、`E.10.04`，不能再提交，按 K238 的做法记在本片最后一个叶子的范围里）
 - 不许碰的文件：`schema/`、`gen/`、`internal/`、`cmd/`、`engine/store/`、`web/`、`engine/llm/protocol/chat/`、`engine/llm/protocol/responses/`
 - 测试用例：
   - `E1003-T1 契约测试`：`contract.Run`，录放在 `testdata/cassettes/`（手写）
@@ -69,3 +69,4 @@ func New() llm.Protocol // Name() == "anthropic_messages"；默认路径 complet
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-24 | 第 ⑨ 片（`m0-llm`）开工前复查：改为 `anthropic_messages` 协议的实现（ADR-011），改名；不用 `anthropic-sdk-go`；写全编码、流式解码、用量、错误；还没有测试密钥，录放先按官方文档手写；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K250、K251 |
+| 2026-11-24 | 第 ⑨ 片整片评审后（`P.09` K252）：实施卡的文件清单加整片评审修复的文件（做法同 K238） | `P.09` K252 |

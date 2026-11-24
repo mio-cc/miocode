@@ -147,7 +147,7 @@ type ModelEntry struct {
 type BodyOp struct {
 	Op     string          `json:"op"`              // set | delete | rename
 	Path   string          `json:"path"`            // 点分路径，如 stream_options.include_usage、reasoning.effort；数组下标写数字
-	To     string          `json:"to,omitempty"`    // rename 的新路径
+	To     string          `json:"to,omitempty"`    // rename 的新路径（写法同 Path）
 	Value  json.RawMessage `json:"value,omitempty"` // set 的值（任意 JSON）
 	Models []string        `json:"models,omitempty"`// 只对这些上游模型生效（可以用 *）；空 = 全部
 }
@@ -216,6 +216,8 @@ type Suite struct {
 	Provider  llm.ProviderConfig // 协议的测试用提供方配置（BaseURL 指向录放，E.10.08）
 	Model     string
 	Cassettes string             // 录放目录
+	Caps      llm.CapsTable      // 能力表（协议的测试传 quirks 表）；nil 时用 contract.DefaultCaps（工具、原生结构化输出都支持）
+	Transport func(t testing.TB, dir, name string, secrets ...string) http.RoundTripper // 录放传输层（协议的测试传 cassette.Transport）；nil 时用缺省传输，只给本包自测用
 }
 func Run(t *testing.T, s Suite) // 跑 §5.6 的全部用例；每个用例的录放文件名就是用例名
 ```
@@ -226,7 +228,7 @@ func Run(t *testing.T, s Suite) // 跑 §5.6 的全部用例；每个用例的�
 1. `Client(provider, model)`：找到提供方和模型条目（`Models` 为空时任何名字都可以，`ID = Upstream = model`；不为空时不在列表里报错）；能力 = quirks 表 `Lookup(协议, 上游模型名)` → 提供方 `Caps` → 模型条目 `Caps`，后面覆盖前面写了的字段。
 2. `Complete`：`Protocol.Encode` 得到请求体 → 按顺序执行 `Override`（`Models` 过滤后）→ 序列化。
 3. 请求地址 `BaseURL` 去掉末尾的 `/` 加路径（`Paths` 覆盖协议默认值）；请求头依次是 `Content-Type: application/json`、`Accept: text/event-stream`、协议默认头、提供方 `Headers`、鉴权。`Headers` 里的 `{{secret:名}}` 和鉴权的密钥**在这一刻**用 `SecretResolver` 取（`E.10-R4`）。取不到时：错误满足 `errors.Is(err, llm.ErrSecretLocked)`（密钥库锁定；组装处把 `secret.ErrLocked` 包成它，`llm` 不 import 平台层）→ `*llm.Error{Class: auth_denied, Code: "secret_locked", Message: "密钥库已锁定，请先解锁"}`，上层（API、执行器）见到这个 `Code` 时对外报 `provider_unavailable`（`B.07.02` §5）；其他错误 → `auth_denied`，`Code` 为 `secret_missing`，说明"密钥 <名> 不存在"。
-4. 2xx：`Protocol.Decode` 返回的流外面包一层：保证最后一个 Delta 是 `Done=true` 并带完整 `Resp`（拼好的文本、工具调用、用量），收集 `Raw`。非 2xx：读最多 64 KB 的响应体，按 §5.5 分类成 `*Error`。
+4. 2xx：`Protocol.Decode` 返回的流外面包一层：保证最后一个 Delta 是 `Done=true` 并带完整 `Resp`（拼好的文本、工具调用、用量），收集 `Raw`（按 §5.5 的规则脱敏：这次请求用到的密钥原文和像密钥的串换成 `[REDACTED]`；替换后不再是合法 JSON 时不保留）。非 2xx：读最多 64 KB 的响应体，按 §5.5 分类成 `*Error`。
 5. 结构化输出（`Req.Output`）：协议按能力选写法：`NativeSchema` 为真用原生写法；否则 `Tools` 为真用强制工具（`emit_<名字>`，结果放进 `Resp.Structured`，不出现在 `ToolCalls` 里）；都不支持时返回 `user_input` 错误"这个模型不支持结构化输出"。修复和文本解析在 `E.10.06`（M1）。
 
 ### 5.2 请求体覆盖
@@ -277,8 +279,8 @@ func Run(t *testing.T, s Suite) // 跑 §5.6 的全部用例；每个用例的�
 - 测试用例：
   - `E1001-T1 Collect`：文本分片拼接；两个工具调用按 `Index` 交错到达也拼对；最后一个 Delta 带完整 `Resp`；流在没有 Done 时提前结束 → 错误
   - `E1001-T2 契约测试框架`：用测试里写的一个最小协议（`httptest` 返回固定 SSE）跑 `contract.Run`，§5.6 的每个用例都执行到；缺录放文件时用例失败并说明文件名
-  - `E1001-T3 提供方配置校验`：名字不合规、重名、未知协议、`base_url` 不是绝对地址、`header`/`query` 鉴权缺 `name`、需要密钥却没有 `secret`、`Override` 的 `op` 不认识、模型 `id` 重名各自报错并写明位置；`keys`、`priority`、`weight`、`fallback` 能解析，各记一条 warn；`http://` 加远程主机加鉴权记 warn
-  - `E1001-T4 请求组装`：`httptest` 记下收到的请求：地址等于 `BaseURL` + 默认路径，`Paths` 覆盖生效；`bearer`、`header`、`query`、`none` 四种鉴权；`Headers` 里的 `{{secret:名}}` 被换成密钥；`SecretResolver` 在 `SetProviders` 时不被调用、每次请求调用一次；返回包着 `ErrSecretLocked` 的错误 → `Code` 为 `secret_locked`，返回其他错误 → `secret_missing`，两种都不发出请求；`upstream` 映射；`set`（含建中间对象）、`delete`、`rename`、`Models` 过滤；`Models` 不为空时用列表外的名字报错
+  - `E1001-T3 提供方配置校验`：名字不合规、重名、未知协议、`base_url` 不是绝对地址、`header`/`query` 鉴权缺 `name`、需要密钥却没有 `secret`、`Override` 的 `op` 不认识、模型 `id` 重名各自报错并写明位置；`keys`、`priority`、`weight`、`fallback` 能解析，各记一条 warn；`http://` 加远程主机加鉴权记 warn；`path` 和 `rename` 的 `to` 不是点分路径（有空段）报错
+  - `E1001-T4 请求组装`：`httptest` 记下收到的请求：地址等于 `BaseURL` + 默认路径，`Paths` 覆盖生效；`bearer`、`header`、`query`、`none` 四种鉴权；`Headers` 里的 `{{secret:名}}` 被换成密钥；`SecretResolver` 在 `SetProviders` 时不被调用、每次请求调用一次；返回包着 `ErrSecretLocked` 的错误 → `Code` 为 `secret_locked`，返回其他错误 → `secret_missing`，两种都不发出请求；`upstream` 映射；`set`（含建中间对象）、`delete`、`rename`、`Models` 过滤；`Models` 不为空时用列表外的名字报错；上游在响应里回显密钥时，`Resp.Raw` 里换成 `[REDACTED]`
   - `E1001-T5 错误分类`：§5.5 表每一行一个用例；`Retry-After` 秒数和 HTTP 日期两种；quirks 错误规则优先；错误说明里的密钥原文被替换
   - `E1001-T6 测试守卫`：在测试里请求 `https://example.invalid` 不发出网络请求、直接得到"测试中不允许调用真实模型"；回环地址照常；`ANYDOOR_LLM_RECORD=1` 时守卫放行（只断言守卫的判定，不真的联网）
   - `E1001-T7 能力合并与强度`：quirks → 提供方 → 模型条目三层覆盖；`ResolveEffort` 按 `E.10.05` §5 的规则（不在列表里先查映射，再取最接近的、一样近取较高；`off` 和不支持调节时返回 ""）
@@ -292,3 +294,4 @@ func Run(t *testing.T, s Suite) // 跑 §5.6 的全部用例；每个用例的�
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-24 | 第 ⑨ 片（`m0-llm`）开工前复查：改名"统一接口与提供方配置"；按协议实现（ADR-011）：新增提供方配置（协议、地址、鉴权、请求头、模型映射、请求体覆盖、能力覆盖、预留多密钥字段）、`Protocol` 接口、注册表、传输与测试守卫、SSE、错误分类、契约测试框架；`Provider` 不再是适配器接口；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K250、K251 |
+| 2026-11-24 | 第 ⑨ 片整片评审后（`P.09` K252）：§4.6 `Suite` 加 `Caps`、`Transport` 两个字段（`E.10.08` 在本叶子之后，契约框架不直接 import 录放）；§5.1 第 4 步写明 `Raw` 也脱敏；`BodyOp.To` 的写法同 `Path`；`E1001-T3`、`T4` 各补一条 | `P.09` K252 |
