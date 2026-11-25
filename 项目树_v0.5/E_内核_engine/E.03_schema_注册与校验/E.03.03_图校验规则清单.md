@@ -62,6 +62,10 @@ type Rule interface {
 - 节点的性质一律从 NodeDef、TypeDef 和生成的表读（类别、参数、`container`、`producer`），不比较节点类型名（INV-02，`G.05.05.01` 的 `typenamecheck` 检查 `engine/schema`）。
 - 增量：只对 `touched` 里的节点、与它们相连的连线、它们所在子图（以及祖先子图的全量规则）重新检查，其余沿用 `prev`。
 - 结果用 `E.03.04` 的 `Sort`、`Dedup`，保证确定。
+- **连线两端的端口**（V05–V08、V14）：普通节点用 `Ports`（`E.03.02`）；`子图引用` 没有声明端口，外部端口按 `C.02.04-R3` 由子图端口节点生成（`entry` → 输入端口，`exit` → 输出端口，`summary`、`escalation` → 同名输出端口；名字取 `port_name`，缺省 `in` / `out`，重名依次 `in_2`、`out_2`…），类型取那个端口节点推断出的类型。写在本叶子的 `ContainerPorts`（`validate.go`），`Ports` 不变（`P.09` K258 ⑤）。
+- **源节点**（V06 的 `AssignAt.SrcNode`、V14）：源节点是入口端口节点（类别 `边界`、`role=entry`）时，沿容器上对应的外部输入端口（`port_name`；没写时按 `E.03.02` 入口端口的取法）的上游连线往上找；源节点是 `子图引用`、端口来自出口端口节点时，沿子图里连到那个出口端口节点的线往回找；一直找到不是这两种的节点。接了几路的逐路检查，有一路不是 `producer` 就报；找不到上游的不查（交给 V08、V16）（`P.09` K258 ④）。
+- V11 补一条：子图端口节点写了 `port_name`，而声明了端口的容器（循环、扇出）上没有这个同方向的端口时报 V11（K258 ⑤）。
+- V03：`type: object` 没写 `schema` 的参数接受任意 JSON（资源节点 `kind=列表` 的 `value` 是数组，K258 ⑥）。
 
 ## 6. 不变量
 - 同一张图全量校验与"空图 + 逐个 Op 增量校验"的结果集合相同（属性测试在第 ③ 片跑，要先有 Op）
@@ -101,6 +105,7 @@ type Rule interface {
   - `E0303-T21 规则 panic 隔离`：测试里注册一条会 panic 的规则，其他规则的结果照常，多一条 V01 诊断
   - `E0303-T22 semantic 示例`：`schema/examples/manifest.yaml` 里写了 `diag` 的每个 `semantic/` 文件触发且只触发那个码；`graph_minimal.json`、`graph_loop.json` 没有 error
   - `E0303-T23 增量与全量一致`：对 `graph_loop.json` 做 10 种改动（加删节点、连线、改参数），每次 `ValidateIncremental` 的结果与 `Validate` 相同
+  - `E0303-T25 边界回溯与子图引用端口`：从 `graph_loop.json` 改：扇出子图里入口端口节点接 Agent 的 `model`、`tools` 不报 V14；把容器外部那根线的上游换成不是资源节点的节点时报 V14；连到子图引用 `in`、`out` 的线不报 V05，连到它不存在的端口名报 V05；入口端口节点写了扇出上没有的 `port_name` 报 V11
   - `E0303-T24 运行前校验`：`ForRun` 时 warn 也返回；`HasError` 只看 error
 - 在其他叶子跑的测试用例（不算本叶子的完成条件）：
   - `E0303-T19 增量与全量一致（rapid）`：在 `E.05.01`（第 ③ 片）跑：随机 Op 序列逐个应用后增量校验，与全量相同（`pgregory.net/rapid`）
@@ -114,3 +119,4 @@ type Rule interface {
 |---|---|---|
 | 2026-11-23 | 验收 1 改为读 `schema/examples/semantic/`（清单的 `diag`） | `P.09` K206 |
 | 2026-11-25 | 第 ①a / ①b 片（`m1-graph`、`m1-validate`）开工前复查：M1 做 V01–V12（V12 只查深度）、V14、V16、V17，V13、V15、V18 推到 M3，V12 的引用链推到 M2；`ValidateIncremental` 改用本包的 `Touched`（不 import `op`）；V10、V11、V14、V17 写明按数据判断、不比较类型名；规则文件放在本包里；rapid 属性测试移到第 ③ 片；加 `T22`–`T24`；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K256 |
+| 2026-11-25 | §5 写明子图引用的外部端口（`ContainerPorts`）、C2 / V14 的源节点沿边界回溯、V11 检查 `port_name`、V03 的 `object` 参数接受任意 JSON；加 `E0303-T25` | `P.09` K258 |

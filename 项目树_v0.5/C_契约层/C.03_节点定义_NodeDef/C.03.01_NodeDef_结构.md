@@ -6,9 +6,9 @@
 | 类型 | 实施 |
 | 上级 | C.03 节点定义 NodeDef |
 | 下级 | 无 |
-| 状态 | 冻结 |
+| 状态 | 已审 |
 | 素材 | 引02 |
-| 最后修改 | 2026-11-23 |
+| 最后修改 | 2026-11-25 |
 
 ## 1. 职责
 定义 NodeDef 的结构，并列出 13 个原子节点的端口签名（这是前后端、画布、校验器都要用的数据）。
@@ -105,13 +105,13 @@ INV-01、INV-02、`C.03-R1`–`R3`。
 
 | 节点 | 分类 | 输入端口 | 输出端口 | 类型变量 | 容器 |
 |---|---|---|---|---|---|
-| 资源 | 资源 | —；`kind=提示词` 时模板里每个 `{{变量}}` 一个动态端口（`C.03.05`） | `ref`: 资源引用@1 | — | 否 |
+| 资源 | 资源 | —；`kind=提示词` 时模板里每个 `{{变量}}` 一个动态端口（`C.03.05`） | `ref`: 资源引用@1 · `items`: 列表[资源引用@1]（`kind=列表` 时每一项一个引用） | — | 否 |
 | Agent | 智能体 | `context`: 上下文包@1（必）· `model`: 资源引用@1（必）· `prompt`: 资源引用@1 · `role`: 资源引用@1（角色卡）· `tools`: 工具端点@1（多） | `result`: $T | T ← `param:output_schema` | 否 |
 | 上下文装配 | 状态 | `in`: 任意（多）· `model`: 资源引用@1 | `context`: 上下文包@1 · `dropped`: 列表[任意] | — | 否 |
 | 工具 | 工具 | `request`: 任意 · 所选工具的每个入参一个动态端口（`C.03.02` §5） | `endpoint`: 工具端点@1 · `result`: $T | T ← `param:result_type`（缺省 任意） | 否 |
 | 扇出 | 拓扑 | `items`: 列表[$T] · `shared`: 任意（多） | `results`: 列表[$U] | T ← `input:items.elem`，U ← `body:exit` | **必须** |
 | 汇合 | 拓扑 | `in`: 任意（动态） | `collected`: 列表[任意] | — | 否 |
-| 聚合 | 聚合 | `items`: 列表[$T]（必） | `result`: $U | T ← `input:items.elem`，U ← `op:op(T)` | 否 |
+| 聚合 | 聚合 | `items`: 列表[$T] · `value`: 任意（单个结果：从参数 `list_field` 给出的字段取列表） | `result`: $U | T ← `input:items.elem \| field:value(list_field)`，U ← `op:op(T)` | 否 |
 | 分支 | 控制 | `value`: $T（必） | `yes`: $T，类别 判定 · `no`: $T，类别 判定 | T ← `input:value` | 否 |
 | 循环 | 控制 | `init`: $T | `final`: $T · `summary`: 简报@1 | T ← `input:init` | **必须** |
 | 账本 | 状态 | `value`: 任意 | `value`: 状态@1 | — | 否 |
@@ -129,6 +129,7 @@ INV-01、INV-02、`C.03-R1`–`R3`。
 - `impl` 写 `{type: builtin}`；端口的 `label` 用 `U.10.07` §1 的中文名（上下文、模型、指令、工具、结果……）；`icon` 先不写（图标名随 `U.08` 定稿）。
 - `type_vars` 的值照 §6，写成字符串，如 `"input:items.elem"`；聚合的 `op:op(T)` 表示"算子取参数 `op` 的值"（`C.04.03` §2）。
 - 汇合的 `in` 只写 `dynamic: true`：`multi` 和 `dynamic` 不能同时为 true（`C.04.04-R4`），每条连线本来就是一个插口。
+- 资源节点的 `items` 端口标签"列表项"；聚合的 `value` 端口标签"单个结果"，参数 `list_field`：`type: string`，标签"列表字段"，`help` 写"接「单个结果」时从它的这个字段取列表，如 labels"，`ui.group: 常用`；聚合的 `items` 不再是必填（两种接法二选一，`P.09` K258）。
 - 子图引用的 `ports` 写成两个空对象：它的端口由子图的端口节点决定（`C.02.04-R3`）。
 - 值是列表的参数（循环的 `carry_fields`、人工的 `options`、子图引用的 `writeback`、聚合的 `levels`）：`type: object`，`schema` 写数组的 JSON Schema，`ui.widget: code`。`ParamDef` 没有列表类型。
 - 资源节点的 `kind` 有五种：模型、提示词、角色卡、列表、常量（`P.09` K233）。`kind=角色卡` 时用 `rolecard_ref` 参数 `rolecard`（`ui.show_if: kind == '角色卡'`），输出的 `ref` 是 `名称@版本`。资源节点的 `value`：`type: object`（任意 JSON，按 `kind` 不同），`ui.show_if: kind != '提示词' && kind != '角色卡'`；提示词模板单独一个 `text` 参数 `template`，`ui.show_if: kind == '提示词'`，`dynamic_ports` 从它里面抽取 `{{变量}}`（`from_param: template`，`C.03.05-R4`）。这样写提示词用的是多行文本框，不是 JSON 编辑框（`P.09` K226）。
@@ -168,3 +169,4 @@ INV-01、INV-02、`C.03-R1`–`R3`。
 | 2026-11-23 | 状态改为"冻结"：第 3 片（`m0-contract-2`）squash 合并进代码仓库 `main`，提交 `2fd3c25a165e36565f95fa9b16fc3d22a0569ec6`（`G.02.06-R21`、`R23`） | 整片验证通过；整片评审 14 条全部符合，两条"有疑问"由设计方裁决（`P.09` K226）、返工并复核；按 `G.08-R3` 由验证者合并 |
 | 2026-11-23 | 冻结后修改，状态改回"已审"：Agent 加 `role` 端口（标签"角色卡"，参数 `rolecard` 绑定它）；资源节点加 `kind=角色卡` 和 `rolecard` 参数 | 用户决定角色卡可以通过连线给 Agent（含对话入口的 Agent）；`P.09` K233（`G.02.06-R21`） |
 | 2026-11-23 | 状态改为"冻结"：修复片（`m0-fix-entry`，`P.09` K233）squash 合并进代码仓库 `main`，提交 `c2574ee2723dde9a4c704435c2160a18af255aed`（`G.02.06-R21`、`R23`） | 整片验证通过；整片评审 4 条全部符合；按 `G.08-R3` 由验证者合并 |
+| 2026-11-25 | 冻结后修改，状态改回"已审"：§6 资源加输出 `items`（列表[资源引用@1]）；聚合加输入 `value` 和参数 `list_field`，`items` 不再必填，`T` 加备选来源；§6.1 写明标签和参数 | `P.09` K258（闭环模板三根单值接列表的线；`G.02.06-R21`） |

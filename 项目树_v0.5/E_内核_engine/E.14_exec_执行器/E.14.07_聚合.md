@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 草稿 |
 | 素材 | 引03 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-25 |
 
 ## 1. 职责
 聚合节点：对列表做**纯规则**的结构化处理：计数、分组、比例、投票、去重、排序、取前 K、过滤、拼接、统计、分歧检测。
@@ -24,12 +24,13 @@
 |---|---|---|---|
 | `op` | enum：count / group / group_ratio / vote / dedupe / sort / top_k / filter / concat / stats / divergence | group_ratio | 内联 |
 | `key` | string（字段路径） | cluster | 内联 |
+| `list_field` | string（字段路径） | — | 内联；接「单个结果」时从它的这个字段取列表，如 `labels` |
 | `expr` | expr | — | filter、sort 的表达式 |
 | `k` | integer | 3 | top_k |
 | `levels` | object | — | group_ratio 的分级规则，如 `[{name: 共识, when: "ratio == 1"}]` |
 | `deterministic` | — | true | kernel 锁 |
 
-输入：`items`（列表[$T]，必）。输出：`result`（$U）。
+输入：`items`（列表[$T]）或 `value`（任意，单个结果，从 `list_field` 给出的字段取列表），二选一；两个都接、都没接、字段不存在或不是列表时运行时报 user_input（M1 校验不查，`P.09` K258）。输出：`result`（$U）。
 
 ## 5. 行为
 - 表达式用 `expr-lang/expr`，环境只暴露 `item`、`items`、`count`、`ratio` 等只读变量；禁用所有函数调用以外的内置能力（无时间、无随机、无 IO）。
@@ -57,3 +58,8 @@
 - 允许使用的依赖：标准库、`expr-lang/expr`
 - 禁止事项：`G.02.05` 全部
 - 完成标志：`G.14` 全部条件
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-25 | 加输入 `value` 和参数 `list_field`（从单个结果的字段取列表），`items` 不再必填 | `P.09` K258 |
