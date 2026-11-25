@@ -57,10 +57,14 @@ func (p *Pipeline) RevertTo(ctx context.Context, graphID, branch string, version
 
 ### 5.5 撤回
 - **RevertOp(opID)**：目标记录 R 不存在 → `ErrNotFound`；R 已撤销（`undone`）或没有 `inverse`（`migrate`）→ `ConflictError`（conflicts 写 R 的 id，说明原因）。新批次（normal）：`Ops` = R 的 `inverse`，`BaseVersion` = R 的版本，missed 同 §5.6，不能交换 → `ConflictError`（`C.05.03-R4`）。日志里落的是展开后的具体 Op（`E.05-R7`）；撤回本身进撤销栈，可以再撤销。
-- **RevertTo(v)**：`v` < 0 或大于 head → `ErrBadRequest`；`v` 等于 head → `Result{Version: head, Applied: []}`；否则取 `Range(v, head)`，记录倒序、每条的 `inverse` 按原顺序拼起来；有没有 `inverse` 的记录 → `ConflictError`（conflicts 写那条的 id、`graph:doc`）。提交一条 `revert_to{version: v, ops: 拼好的}`，`BaseVersion` = head（normal，进撤销栈）。不用 Diff：逆操作倒序拼起来正好回到 `v`（`P.09` K261）。
+- **RevertTo(v)**：`v` < 0 或大于 head → `ErrBadRequest`；`v` 等于 head → 方法直接返回 `Result{Version: head, Applied: []}`，经 `Submit` 提交 `revert_to{version: head}` 时 `ErrBadRequest`"图已经是版本 N"（K264）；否则取 `Range(v, head)`，记录倒序、每条的 `inverse` 按原顺序拼起来；有没有 `inverse` 的记录 → `ConflictError`（conflicts 写那条的 id、`graph:doc`）。提交一条 `revert_to{version: v, ops: 拼好的}`，`BaseVersion` = head（normal，进撤销栈）。不用 Diff：逆操作倒序拼起来正好回到 `v`（`P.09` K261）。
 
 ### 5.6 互相抵消的记录
-算撤销、重做、撤回的 missed 时去掉：已撤销的 group（记录的 `undone` 为 true）的 Op，以及撤销它们的那一批（reason 为"撤销 <那个 group>"、actor 与那个 group 的 actor 相同）的 Op。两者的效果互相抵消，留着会和要撤销的 Op 误判冲突（例：先撤销"移动 A"，再撤销"添加 A"）。只认同一个 actor，模型写不出用户的撤销记录。
+算撤销、重做、撤回的 missed 时去掉两种互相抵消的记录（只认同一个 actor，模型写不出用户的撤销记录）：
+1. 已撤销的 group（记录的 `undone` 为 true）的 Op，以及撤销它们的那一批（reason 为"撤销 <那个 group>"、actor 与那个 group 的 actor 相同）的 Op。例：先撤销"移动 A"，再撤销"添加 A"。
+2. 剩下的"撤销 <G>"批次，以及重做它的那一批（reason 为"重做 <G>"、同一个 actor）。例：撤销两次再重做两次，第二次重做的 base 在第一次撤销之前（`P.09` K264）。
+
+两种都要两边都在 missed 里才去掉；第 1 种用过的撤销批次不再参与第 2 种（组、撤销、重做三者都在时净效果是重做，重做要留下）。
 
 ## 6. 不变量
 - 用户的 Undo 永远不会撤销模型的 Op，反之亦然
@@ -96,3 +100,4 @@ func (p *Pipeline) RevertTo(ctx context.Context, graphID, branch string, version
 |---|---|---|
 | 2026-11-23 | 测试用例写明在本叶子跑的 C 层用例 | 第 4 片复查；`P.09` K227 |
 | 2026-11-25 | 第 ③ 片（`m1-op`）开工前复查：重做栈另存一份（`#redo`，存储只能取序号最大的一项）；写明怎么找 group 的 Op、Undo / Redo 的 base 版本、互相抵消的记录；`revert_op` 展开成具体 Op；`revert_to` 用逆操作倒序拼，不用 Diff；`C0503-T2` 改为经 `RevertOp`（用户的 Undo 撤销不到模型的 Op）；加 `E0502-T5`、`T6`；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K261 |
+| 2026-11-26 | §5.6 加第 2 种互相抵消的记录（撤销批次和重做它的批次）；§5.5 经 `Submit` 回到 head 时 400 | `P.09` K264 |
