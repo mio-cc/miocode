@@ -6,80 +6,111 @@
 | 类型 | 实施 |
 | 上级 | E.03 schema 注册与校验 |
 | 下级 | 无 |
-| 状态 | 草稿 |
+| 状态 | 已审 |
 | 素材 | 引02 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-25 |
 
 ## 1. 职责
-实现 `C.11` §5 的全部图校验规则 V01–V18，支持全量和增量两种模式。
+实现 `C.11` §5 的图校验规则，支持全量和增量两种模式。M1 做 V01–V12（V12 只查嵌套深度）、V14、V16、V17；V13、V15、V18 和 V12 的子图引用链在后面的里程碑补（`P.09` K256 ⑦）。
 
 ## 2. 不做什么
 - 不定义规则含义和文案（`C.11`、`messages/diags.zh.yaml`）
 - 不阻止 Op（流水线根据结果决定）
+- 不检查节点有没有执行器（运行冻结时由 `E.16.01` 检查，第 ④ 片）
 
 ## 3. 继承的上级约束
-`C.11` §5、`E.03-R1`、`E.03-R2`、INV-02、INV-06、INV-07。
+`C.11` §5、`E.03-R1`–`R4`、INV-02、INV-06、INV-07。
 
 ## 4. 接口
 ```go
-func Validate(g *graph.Graph, v View, opt Opts) []gen.Diag
-func ValidateIncremental(g *graph.Graph, touched op.Touched, v View) []gen.Diag
+type Touched struct{ Nodes, Edges []string }  // 被改动的节点、连线 ID（含已删除的）；Op 流水线负责把 Op 转成它（第 ③ 片）
 type Opts struct {
-    Mandates  MandateView   // V13（l3_skip_human）、V15 需要
-    ForRun    bool          // 冻结前校验：warn 也返回，但只有 error 阻止运行
+    ForRun bool  // 冻结前校验：warn 也返回，但只有 error 阻止运行
+}
+func Validate(g *graph.Graph, v View, opt Opts) []gen.Diag
+func ValidateIncremental(g *graph.Graph, prev []gen.Diag, touched Touched, v View, opt Opts) []gen.Diag // prev 是上次的完整结果；返回新的完整结果
+
+type Rule interface {
+    Code() gen.DiagCode
+    Check(c *Context) []gen.Diag  // Context 给出图、视图、推断结果、当前要检查的范围
 }
 ```
 
 ## 5. 行为
-| 规则 | 实现要点 | 模式 |
-|---|---|---|
-| V01 | jsonschema 校验整份文档 | 全量；增量时只校验被触及的节点和连线的子结构 |
-| V02 | `View.NodeDef` 查找 | 增量 |
-| V03 | 按 ParamDef 生成的 JSON Schema 校验 params；`expr` 参数编译检查 | 增量 |
-| V04 | 对比 `lock=def/kernel` 的参数 | 增量 |
-| V05 | 端口存在、方向、同一子图（C.02.03） | 增量 |
-| V06 | `Assignable` | 增量（受影响连线） |
-| V07 | 非多连端口连线数、重复连线 | 增量 |
-| V08 | 必填输入已连或有值 | 增量 |
-| V09 | 每个子图 `SCCs()` 非空即报（INV-06） | 全量，按子图哈希缓存 |
-| V10 | 循环参数至少一个有限出口 | 增量 |
-| V11 | 容器规则表 + entry / exit 存在 | 增量 |
-| V12 | `Depth` 与引用链 | 全量，缓存 |
-| V13 | L3 工具反向 BFS 找人工节点 | 全量，缓存 |
-| V14 | Agent.context 上游是上下文装配（C2 的友好提示，避免只报 V06） | 增量 |
-| V15 | 子图权限交集 | 全量 |
-| V16 | 来自 `Infer` | 全量，缓存 |
-| V17 | 无任何连线的非端口节点 | 增量 |
-| V18 | `max_rounds > 10` 且无预算 | 增量 |
+| 规则 | 实现要点 | 模式 | 里程碑 |
+|---|---|---|---|
+| V01 | `View.DocSchema("graph.schema.json")` 校验整份文档 | 全量；增量时只校验被触及的节点和连线 | M1 |
+| V02 | `View.NodeDef` 查找 | 增量 | M1 |
+| V03 | 按 ParamDef 生成的 JSON Schema 校验 params；`type: expr` 的参数用 `expr-lang/expr` 编译检查 | 增量 | M1 |
+| V04 | 对比 `lock=def/kernel` 的参数 | 增量 | M1 |
+| V05 | 端口存在、方向、两端都在同一子图（`C.02.03`）；悬空连线 | 增量 | M1 |
+| V06 | `Assignable` | 增量（受影响连线） | M1 |
+| V07 | 非多连端口连线数、重复连线 | 增量 | M1 |
+| V08 | 必填输入已连或有值 | 增量 | M1 |
+| V09 | 每个子图 `SCCs()` 非空即报（INV-06） | 全量，按子图哈希缓存 | M1 |
+| V10 | 定义里有 `max_rounds` 参数的节点：按轮次（`trigger` 不是 `event`）时有限；按事件时 `idle_timeout_ms`、`exits` 至少写一个 | 增量 | M1 |
+| V11 | `gen.ContainerRules`（`children` / `ref` 必须、不允许、二选一）；子图里有入口和出口：类别为 `边界` 的节点、`role` 参数为 `entry` / `exit` | 增量 | M1 |
+| V12 | 嵌套深度（`graph.Depth`）：> 4 warn，> 8 error | 全量，缓存 | M1；子图引用成环 M2（`E.14.13`） |
+| V13 | 高风险工具上游要有人工节点 | — | M3（要工具风险级别和授权书，`E.06`） |
+| V14 | 目标端口的类型是系统类型、写了 `producer`、源节点的类型不是它时，报 V14（比 V06 更具体的提示），这条连线不再报 V06 | 增量 | M1 |
+| V15 | 子图权限交集 | — | M3（`E.06`） |
+| V16 | 来自 `Infer` | 全量，缓存 | M1 |
+| V17 | 一条连线都没有的节点；类别为 `边界` 的节点不算 | 增量 | M1 |
+| V18 | 轮数多且没有预算 | — | M3（预算来自授权书，`C.09`） |
 
 - 每条规则是一个实现 `Rule` 接口的独立文件，按编号注册；新增规则只加文件，不改调度代码。
-- 结果按（级别、子图、节点 ID、规则号）排序，保证确定。
+- 节点的性质一律从 NodeDef、TypeDef 和生成的表读（类别、参数、`container`、`producer`），不比较节点类型名（INV-02，`G.05.05.01` 的 `typenamecheck` 检查 `engine/schema`）。
+- 增量：只对 `touched` 里的节点、与它们相连的连线、它们所在子图（以及祖先子图的全量规则）重新检查，其余沿用 `prev`。
+- 结果用 `E.03.04` 的 `Sort`、`Dedup`，保证确定。
 
 ## 6. 不变量
-- 同一张图全量校验与"空图 + 逐个 Op 增量校验"的结果集合相同（属性测试）
-- 性能：500 节点全量 < 20ms；增量 < 5ms（`U.17`）
+- 同一张图全量校验与"空图 + 逐个 Op 增量校验"的结果集合相同（属性测试在第 ③ 片跑，要先有 Op）
+- 性能：500 节点全量 < 20ms；增量 < 5ms（`U.17`，`ANYDOOR_PERF=1` 时判）
 
 ## 7. 错误处理
-规则内部 panic 被捕获，转为一条 `level=error, code=V01, msg="校验器内部错误"` 的诊断并记录日志，不影响其他规则。
+规则内部 panic 被捕获，转为一条 `level=error, code=V01, msg="校验器内部错误：<规则号>"` 的诊断并记录日志，不影响其他规则。
 
 ## 8. 验收标准
 1. `schema/examples/semantic/` 下清单里写了 `diag` 的每个文件，触发且只触发那个诊断码（`C.01-R23`）
-2. 增量 = 全量（属性测试 500 组）
-3. 基准达标
+2. M1 的每条规则有正反例
+3. 增量结果与全量相同（本叶子的例子级测试；属性测试在第 ③ 片）
+4. 基准达标
 
 ### 实施卡
-- 要建 / 要改的文件：`engine/schema/validate.go`、`engine/schema/rules/v01.go … v18.go`、`engine/schema/validate_test.go`
-- 不许碰的文件：`schema/`、`gen/`、其他包的实现文件（只能 import 它们的导出接口）
+- 要建 / 要改的文件：`engine/schema/validate.go`、`engine/schema/rules.go`、`engine/schema/rule_v01.go`、`engine/schema/rule_v02.go`、`engine/schema/rule_v03.go`、`engine/schema/rule_v04.go`、`engine/schema/rule_v05.go`、`engine/schema/rule_v06.go`、`engine/schema/rule_v07.go`、`engine/schema/rule_v08.go`、`engine/schema/rule_v09.go`、`engine/schema/rule_v10.go`、`engine/schema/rule_v11.go`、`engine/schema/rule_v12.go`、`engine/schema/rule_v14.go`、`engine/schema/rule_v16.go`、`engine/schema/rule_v17.go`、`engine/schema/validate_test.go`、`go.mod`、`go.sum`
+- 规则文件放在 `engine/schema` 包里（不另建子包：子包要 import `engine/schema` 的 `Context`，而 `Validate` 又要注册它们，会成环）
+- `go.mod` 只加 `github.com/expr-lang/expr`（`G.10` §3.1 已登记）
+- 不许碰的文件：`schema/`、`gen/`、`internal/`、`cmd/`、`web/`、`engine/graph/`、`engine/store/`、`engine/llm/`
 - 测试用例：
-  - `E0303-T01…T18 每条规则一组正反例`
-  - `E0303-T19 增量与全量一致（rapid）`
-  - `E0303-T20 BenchmarkValidate500`
-  - `E0303-T21 规则 panic 隔离`
-- 允许使用的依赖：标准库、`santhosh-tekuri/jsonschema/v6`、`expr-lang/expr`、`pgregory.net/rapid`（测试）
-- 禁止事项：`G.02.05` 全部
-- 完成标志：`G.14` 全部条件
+  - `E0303-T01 V01`：正反例各至少一个（在测试里从 `graph_minimal.json` 改出来）；反例只报这一个码
+  - `E0303-T02 V02`：正反例各至少一个（在测试里从 `graph_minimal.json` 改出来）；反例只报这一个码
+  - `E0303-T03 V03`：正反例各至少一个（在测试里从 `graph_minimal.json` 改出来）；反例只报这一个码
+  - `E0303-T04 V04`：正反例各至少一个（在测试里从 `graph_minimal.json` 改出来）；反例只报这一个码
+  - `E0303-T05 V05`：正反例各至少一个（在测试里从 `graph_minimal.json` 改出来）；反例只报这一个码
+  - `E0303-T06 V06`：正反例各至少一个（在测试里从 `graph_minimal.json` 改出来）；反例只报这一个码
+  - `E0303-T07 V07`：正反例各至少一个（在测试里从 `graph_minimal.json` 改出来）；反例只报这一个码
+  - `E0303-T08 V08`：正反例各至少一个（在测试里从 `graph_minimal.json` 改出来）；反例只报这一个码
+  - `E0303-T09 V09`：正反例各至少一个（在测试里从 `graph_minimal.json` 改出来）；反例只报这一个码
+  - `E0303-T10 V10`：正反例各至少一个（在测试里从 `graph_minimal.json` 改出来）；反例只报这一个码
+  - `E0303-T11 V11`：正反例各至少一个（在测试里从 `graph_minimal.json` 改出来）；反例只报这一个码
+  - `E0303-T12 V12`：正反例各至少一个（在测试里从 `graph_minimal.json` 改出来）；反例只报这一个码
+  - `E0303-T14 V14`：正反例各至少一个（在测试里从 `graph_minimal.json` 改出来）；反例只报这一个码
+  - `E0303-T16 V16`：正反例各至少一个（在测试里从 `graph_minimal.json` 改出来）；反例只报这一个码
+  - `E0303-T17 V17`：正反例各至少一个（在测试里从 `graph_minimal.json` 改出来）；反例只报这一个码
+  - `E0303-T20 校验性能`：`BenchmarkValidate500`、`BenchmarkValidateIncremental500`；`ANYDOOR_PERF=1` 时断言全量 < 20ms、增量 < 5ms
+  - `E0303-T21 规则 panic 隔离`：测试里注册一条会 panic 的规则，其他规则的结果照常，多一条 V01 诊断
+  - `E0303-T22 semantic 示例`：`schema/examples/manifest.yaml` 里写了 `diag` 的每个 `semantic/` 文件触发且只触发那个码；`graph_minimal.json`、`graph_loop.json` 没有 error
+  - `E0303-T23 增量与全量一致`：对 `graph_loop.json` 做 10 种改动（加删节点、连线、改参数），每次 `ValidateIncremental` 的结果与 `Validate` 相同
+  - `E0303-T24 运行前校验`：`ForRun` 时 warn 也返回；`HasError` 只看 error
+- 在其他叶子跑的测试用例（不算本叶子的完成条件）：
+  - `E0303-T19 增量与全量一致（rapid）`：在 `E.05.01`（第 ③ 片）跑：随机 Op 序列逐个应用后增量校验，与全量相同（`pgregory.net/rapid`）
+  - `E0303-T13 V13`、`E0303-T15 V15`、`E0303-T18 V18`：M3 `E.06` 落地时本叶子改回"已审"补上（`G.02.06-R21`）
+- 允许使用的依赖：标准库、`gen`、`engine/graph`、`github.com/santhosh-tekuri/jsonschema/v6`、`github.com/expr-lang/expr`
+- 禁止事项：`G.02.05` 全部；另：不比较节点类型名（INV-02）
+- 完成标志：`relay check` ①–⑥ 通过；所在片整片验证通过（`G.02.06-R23`）
 
 ## 变更记录
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | 验收 1 改为读 `schema/examples/semantic/`（清单的 `diag`） | `P.09` K206 |
+| 2026-11-25 | 第 ①a / ①b 片（`m1-graph`、`m1-validate`）开工前复查：M1 做 V01–V12（V12 只查深度）、V14、V16、V17，V13、V15、V18 推到 M3，V12 的引用链推到 M2；`ValidateIncremental` 改用本包的 `Touched`（不 import `op`）；V10、V11、V14、V17 写明按数据判断、不比较类型名；规则文件放在本包里；rapid 属性测试移到第 ③ 片；加 `T22`–`T24`；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K256 |

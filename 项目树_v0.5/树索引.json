@@ -457,8 +457,19 @@
       "type": "规",
       "src": "新",
       "lvl": 3,
-      "children": [],
-      "path": "G_工程规范/G.05_Go_编码规范/G.05.05_Go_lint_配置.md"
+      "children": [
+       {
+        "id": "G.05.05.01",
+        "name": "typenamecheck 节点类型名比较检查",
+        "desc": "go run ./tools/lint/typenamecheck：调度、校验、运行代码里不按原子节点类型名写分支（INV-02）",
+        "type": "实",
+        "src": "用户 2026-11-25",
+        "lvl": 4,
+        "children": [],
+        "path": "G_工程规范/G.05_Go_编码规范/G.05.05_Go_lint_配置/G.05.05.01_typenamecheck_节点类型名比较检查.md"
+       }
+      ],
+      "path": "G_工程规范/G.05_Go_编码规范/G.05.05_Go_lint_配置/G.05.05_Go_lint_配置.md"
      }
     ],
     "path": "G_工程规范/G.05_Go_编码规范/G.05_Go_编码规范.md"

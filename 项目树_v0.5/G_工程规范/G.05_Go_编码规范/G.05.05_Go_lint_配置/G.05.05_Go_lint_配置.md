@@ -5,10 +5,10 @@
 | 编号 | G.05.05 |
 | 类型 | 规范 |
 | 上级 | G.05 Go 编码规范 |
-| 下级 | 无 |
+| 下级 | G.05.05.01 typenamecheck 节点类型名比较检查 |
 | 状态 | 草稿 |
 | 素材 | 新 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-25 |
 
 ## 1. 配置
 `.golangci.yml`（golangci-lint v1.6x 或更新）。**注意**：开发机装的是 golangci-lint 2.15（v2），v2 的配置格式与下面不同（`linters.default`、`formatters` 一节等）；写 `.golangci.yml` 的那个叶子开工前，先把本节改成 v2 格式（`P.09` K197）。在那之前 `golangci-lint run` 用 v2 的缺省规则集：
@@ -63,9 +63,10 @@ issues:
 ## 2. 规则
 - **G.05.05-R1** 不允许在 CI 里放宽规则。确实需要豁免某一处时，写 `//nolint:<规则> // 原因`，原因不能为空（`nolintlint` 检查）。
 - **G.05.05-R2** 禁止 `if provider == "xxx"`（INV-18）由自定义检查实现：`tools/lint/quirkscheck`，在 `engine/llm` 下查找对厂商名字符串的比较。
-- **G.05.05-R3** 禁止在调度、校验代码里比较节点类型名（INV-02）：`tools/lint/typenamecheck`，检查 `engine/sched`、`engine/schema`、`engine/run` 下对原子节点类型名常量的比较。
+- **G.05.05-R3** 禁止在调度、校验代码里比较节点类型名（INV-02）：`tools/lint/typenamecheck`，检查 `engine/sched`、`engine/schema`、`engine/run` 下对原子节点类型名常量的比较；实现见 `G.05.05.01`。
 
 ## 变更记录
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | §1 注明 v1 配置格式与开发机的 v2 不一致，待改 | 第 1 片开工前发现；`P.09` K197 |
+| 2026-11-25 | 新增下级 `G.05.05.01`（typenamecheck 的实现，本节点改为文件夹；本节点是规范、不能领取，做法同 `G.03.01`） | `P.09` K256 |
