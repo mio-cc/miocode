@@ -129,7 +129,7 @@ Submit(b):
  5. 每条算 target（E.05.03 Target；和客户端填的不同时以计算结果为准，记一条日志）；授权钩子（E.05.05）：
     Deny → 对应的错误；Propose → Proposer 为 nil 时 ErrForbidden（"M1 还不能转为提议"），否则存提议并返回 Result{Proposal}
  6. 在 head 文档的副本上逐条应用（appliers），收集 inverse 和 touched；每条应用后文档 version + 1；任一失败 → ErrInvalid（第几条、为什么），回滚
- 7. 校验：这一批只有 move_nodes、set_node_ui、add_note、update_note、remove_notes、set_graph_title、set_graph_meta 时沿用缓存里的诊断（这些不影响校验，P.09 K261）；
+ 7. 校验：这一批只有 move_nodes 时沿用缓存里的诊断（坐标不受别的约束，P.09 K261、K263）；
     否则 ValidateIncremental(缓存里的诊断, touched 的并集, Opts{ForRun: true})；
     和缓存里的诊断比，这一批新出现的 error 里有 V01、V03、V05、V06、V07、V09、V12、V14 的（C.05.02 前置条件要求的端口、类型、成环、参数值）→ InvalidGraphError{Diags: 这些}，回滚；
     其余 error（V02、V08、V10、V11、V16：图还没搭完）和 warn 不阻止，随 validate 事件发出（P.09 K262 ②；migrate 例外，§5.5）
@@ -244,3 +244,4 @@ Submit(b):
 | 2026-11-23 | 测试用例写明在本叶子跑的 C 层用例 | 第 4 片复查；`P.09` K227 |
 | 2026-11-25 | 第 ③ 片（`m1-op`）开工前复查：只做 M1 收的 Op（`E.05-R6`，`group`、`ungroup` 到 M2、临时 ID 到 M4）；加 `Repo` 接口与适配器、`Read`、head 缓存、文档规范化、服务器补全写进日志、格式升级；每种 Op 的前置条件和逆操作写成表；只改视图的批次跳过增量校验；全文每 50 版且避开带 `coalesce_key` 的版本；补 `E0301-T12`、`E0303-T19`、`E0503-T2`、`Base` 加重放的用例；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K261 |
 | 2026-11-25 | 写代码时补：第 0 步改为按 kind 严格解码（整份请求体的 schema 校验在 API 层）；第 7 步只拒绝新出现的 V01、V03、V05–V07、V09、V12、V14，其余 error 不阻止；提交后发 `validate` 事件；`Result.Diags` 是全部诊断；规范化删掉等于默认值的参数；`set_param` 的逆操作是整个参数的旧值；`Read` 用 `Head`（-1）表示读 head | `P.09` K262 |
+| 2026-11-25 | 第 7 步只有 `move_nodes` 跳过校验：`set_node_ui`、便签、标题和说明受文档结构约束（V01） | `P.09` K263 |
