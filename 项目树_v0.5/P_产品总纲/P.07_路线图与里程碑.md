@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 草稿 |
 | 素材 | 引13 |
-| 最后修改 | 2026-11-24 |
+| 最后修改 | 2026-11-25 |
 
 > 只写交付物和验收标准，不写人天（P-R5）。每个里程碑结束时，用"验收"一列逐条检查，全部通过才进入下一个。
 
@@ -35,6 +35,23 @@
 | 合并前检查 | 开发机上跑测试、lint、生成物一致、Linux / macOS 编译检查、依赖与漏洞扫描（不用 GitHub Actions，`P.09` K248） | `O.02` |
 | 第一个预览版 | M0 验收通过后在 `main` 上打 `v0.1.0` 标签并推送；只打标签、不出归档（用户决定，`P.09` K253；要出归档时用 `tools/release`） | `O.03` |
 | 模型接入：三种协议 + 提供方配置 | Chat Completions、Responses 用 Mistral 真实录制，Anthropic Messages 用手写录放；三种协议通过同一套契约测试（流式、工具调用、结构化输出、用量、错误）；测试不调真模型 | `E.10`、`Q.06`、`P.08.11` |
+
+#### M0 验收结论（2026-11-25：通过）
+在代码仓库 `main` `1969564` 上由验证者（Codex）在开发机（Windows）上运行，输出原样贴在会话里；工作区运行前后都干净。
+
+| 交付物 | 证据（冻结叶子 · 合并提交） | 命令结果 | 结论 |
+|---|---|---|---|
+| `schema/` 全部契约首版 | `C.01`–`C.13.04` 共 28 份 · `34b28fb`、`2fd3c25`、`08f30f9`、`c2574ee` | `go test ./tools/schemacheck`（元校验 `C01-T1`、示例清单 `C01-T5`）通过 | 通过 |
+| 代码生成流水线 | `C.14` · `209a9b9` | `build -check` 第一步"gen：9 个生成物，改了 0 个"，之后工作区无差异 | 通过 |
+| 仓库骨架与依赖方向检查 | `G.03.01` · `3182ead` | `go run ./tools/depcheck` 36 个包无违规，`build -check` 里调用；合并前演练过一次违规被拦下（退出码 1） | 通过 |
+| 存储接口 + SQLite + 内存实现 | `E.07.01`–`E.07.05` · `8999858` | `engine/store/memstore`、`engine/store/sqlite` 都跑同一套 `storetest`，`go test` 通过 | 通过 |
+| 平台层默认实现 | `B.07.01`–`B.07.05`、`B.02`、`B.03.05`、`B.04.14` · `4585c9e`、`8d3377c` | `internal/platform/*`、`internal/api`、`cmd/anydoor` 的测试通过；`B0701-T1` 首次生成 token，`B02-T1` 用局域网地址连不上 | 通过 |
+| 单二进制打包 | `O.03`、`B.02` · `54d5122`、`8d3377c` | windows / linux / darwin × amd64 / arm64 六种 `go build` 都成功，linux、darwin 的 `go vet` 通过；Windows 上 `tools/release -smoke bin/anydoor.exe` 通过（启动、health、首页和静态资源、关闭） | 通过（按 K254 的写法） |
+| 合并前检查 | `O.02` · `54d5122`、`5da1f3c` | `build -check` 通过（golangci-lint 0 issues、depcheck、quirkscheck、前端 lint、`go test ./...` 全部 ok）；依赖清单、`govulncheck`、`pnpm audit`、`gitleaks`（全部历史）都没有问题 | 通过 |
+| 第一个预览版 | K253 | 验收通过后在 `main` 上打 `v0.1.0` 附注标签并推送 | 见变更记录 |
+| 模型接入：三种协议 + 提供方配置 | `E.10.01`–`E.10.05`、`E.10.08` · `fdbda29` | 三个协议包各跑同一套契约用例（`text`、`tool_call`、`tool_result`、`structured`、`usage`、`error_auth`、`error_rate`、`models`、`guard`），通过；chat 5 份、responses 4 份是 Mistral 真实录制，Anthropic 8 份手写 | 通过 |
+
+仍是桩、按 `P.09` K243 以 0 退出的检查：`typenamecheck`（`G.05.05`）、前端测试（`W.12`）、前端空白页（`W.01`、`W.02`）、`anydoorctl`（`B.08`）。它们不在 M0 的验收范围内，由 M1 起的对应叶子替换。
 
 ### M1 最小闭环
 | 交付物 | 验收 | 相关文档 |
@@ -100,3 +117,4 @@
 | 2026-11-24 | 模型接入改为按协议自研：M0 交付物改为"三种协议 + 提供方配置"，MCP 验证留在 M2；M1 加模型调用外层与多密钥；M2 的"Anthropic、Gemini 适配"改为多步 / 异步 API 节点 | `P.09` K250、K251 |
 | 2026-11-24 | M0"第一个预览版"改为只打 `v0.1.0` 标签 | 用户决定；`P.09` K253 |
 | 2026-11-24 | M0"单二进制打包"的验收改为 Windows 实际启动、Linux / macOS 只做编译检查；"依赖方向检查"一行加 `G.03.01` | 用户决定；`P.09` K254 |
+| 2026-11-25 | M0 验收通过，§2 M0 表下写验收结论 | 验证者在 `main` `1969564` 上运行的结果 |
