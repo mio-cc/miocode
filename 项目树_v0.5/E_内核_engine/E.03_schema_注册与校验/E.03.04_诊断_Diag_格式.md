@@ -25,6 +25,7 @@ type Messages struct{ /* 私有 */ }
 func LoadMessages(fsys fs.FS, log *slog.Logger) (*Messages, error) // 读 builtin/messages/diags.zh.yaml、assign.zh.yaml（fsys 的根是仓库的 schema/）；log 为 nil 时丢弃
 func (m *Messages) Diag(code gen.DiagCode, level gen.DiagLevel, at Loc, vars map[string]any) gen.Diag
 func (m *Messages) Assign(rule string, vars map[string]any) string // C.04.02 的判定原因文案
+func (m *Messages) Levels(code string) []string                    // 这个诊断码允许的级别（error 在前）
 type Loc struct{ Scope, Node, Port, Param string }                 // 空字符串的字段不写进 Diag
 func Sort(ds []gen.Diag)                     // 级别（error 在前）→ scope → node → code → port → param → msg
 func Dedup(ds []gen.Diag) []gen.Diag         // 同 code + 同位置只留一条（保留先出现的）

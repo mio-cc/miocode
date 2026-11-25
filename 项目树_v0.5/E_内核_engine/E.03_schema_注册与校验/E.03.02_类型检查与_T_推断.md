@@ -34,21 +34,29 @@ func Parse(ref string) (*Type, error)
 func (t *Type) String() string
 func Category(t *Type, portCategory string, v View) string  // C.04.01 §3（按 gen 的 CategoryRules）
 
-func Assignable(src, dst *Type, srcNode *graph.Node, v View) gen.Assign  // C.04.02 规则表；srcNode 给 C2 的 producer 检查
+type AssignAt struct{ SrcNode string; DstContainer bool }               // 源节点的类型（C2 的 producer 检查）；目标是容器节点时不做 C7 展开（C.04.02-R3）
+func Assignable(src, dst *Type, at AssignAt, ts TypeSource) gen.Assign  // C.04.02 规则表；TypeSource 见 E.03.01（Type + Messages）
 func Infer(g *graph.Graph, v View) (Types, []gen.Diag)                   // C.04.03 算法
 type Types interface {
     Port(nodeID, port, dir string) *Type                                 // dir: in / out；端口不存在时 nil
 }
 func Ports(n *graph.Node, def *gen.NodeDef, v View) (in, out map[string]*gen.PortDef) // 静态端口 + 动态端口展开（C.03.02 §5、C.03.05-R4）
+type SchemaSource interface{ ObjectSchema(ref string) (json.RawMessage, bool) } // 视图实现它才展开 schema_from（工具注册表在 E.11 接入）
+func ExpandSchema(schema json.RawMessage, reserved []string) (bool, []ExpandedParam) // C.03.02 §5 的 R7、R8、R10
+func TemplateVars(s string) []string                                     // {{变量}}，按出现顺序去重
+type InferCache struct{ /* 私有 */ }                                       // 图文档哈希 + 注册表哈希都没变时直接用上次的结果
+func (c *InferCache) Infer(g *graph.Graph, v View) (Types, []gen.Diag)
+func (c *InferCache) Misses() int                                         // 重新计算的次数
 ```
 
 ## 5. 行为
 - `Assignable` 严格按 `C.04.02` 规则表顺序判断，返回命中的规则号和中文原因（`View.Messages().Assign`，文案来自 `assign.zh.yaml`）。
 - C2 系统类型的 `producer` 检查：目标类型的 `TypeDef.Producer` 与源节点的类型比较——数据来自 `schema/builtin/types/*.yaml`，不硬编码（`E.03-R1`）。
 - C5 继承：按 `TypeDef.Extends` 向上找。
-- `Infer` 按 `C.04.03` §3 的 6 步；结果按"子图哈希"（`graph.Hash` 同样的规范化，作用在子图上）缓存，子图没变就直接用上次的结果。
-- 推断冲突不报推断错误，交给 V06（`C.04.03-R1`）；推断不出时生成 V16。
-- `Ports`：提示词变量按出现顺序去重、每个一个输入端口；`schema_from` 按 `C.03.02` §5 展开。
+- `Infer` 按 `C.04.03` §3 的 6 步。容器子图里的入口端口节点（`role=entry`）没有上游连线时，类型取自容器节点：写了 `port_name` 取容器上那个输入端口对应的变量，否则取容器第一个来自 `input:` 的变量；`body:R` 取子图里 `role=R` 的端口节点的变量（读子图端口节点定义里的参数，不比较节点类型名）。
+- `InferCache` 按"图文档哈希 + 注册表哈希"缓存：推断要跨子图传类型，按子图分容易出错，性能够用时不拆。
+- 推断冲突不报推断错误，交给 V06（`C.04.03-R1`）；推断不出、而且用到这个变量的端口有连线时生成 V16（没接线的不报），文案写端口和建议设置的参数（或要接的线）。
+- `Ports`：提示词变量按出现顺序去重、每个一个输入端口（类型取 `dynamic_ports.type`，没写时 `任意`）；`schema_from` 按 `C.03.02` §5 展开，端口一律 `任意`，视图实现了 `SchemaSource` 时才展开（M1 的内置视图不展开）。
 
 ## 6. 不变量
 - 同样输入结果确定
@@ -69,7 +77,7 @@ TypeRef 语法错误返回包着 `ErrBadTypeRef` 的错误；推断不出时生�
   - `E0302-T1 TypeRef 解析`：合法与非法各 10 条；`String()` 往返
   - `E0302-T2 assign_vectors 全集`：每条的 `ok`、`rule`、`expand`、`migrate` 与向量相同，`reason` 与 `assign.zh.yaml` 渲染的文案相同
   - `E0302-T3 推断模板`：`graph_loop.json` 推断后没有 V16，`$T` 端口都有确定类型
-  - `E0302-T4 推断缓存失效正确`：改一个节点的参数后重新推断，结果反映改动；没改的子图命中缓存（测试里能观察到的计数）
+  - `E0302-T4 推断缓存失效正确`：改一个节点的参数后重新推断，结果反映改动；同一张图再次推断命中缓存（`Misses()` 计数）
   - `E0302-T5 推断性能`：`BenchmarkInfer500`；`ANYDOOR_PERF=1` 时断言 < 10ms
   - `E0302-T6 动态端口`：提示词变量去重后每个一个端口；`schema_from` 按 `schema_expand_vectors.json` 展开出的端口名、类型与期望一致（`C.03.02` §5、`C.03.05-R4`）
 - 在其他叶子跑的测试用例（不算本叶子的完成条件）：

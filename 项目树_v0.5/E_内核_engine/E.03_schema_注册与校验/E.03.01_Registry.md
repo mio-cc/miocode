@@ -41,15 +41,19 @@ type Package struct {                                     // 扩展包里已经�
     RoleCards []*gen.Rolecard
 }
 
-type View interface {                                     // 只读视图
+type TypeSource interface {                               // 连线判定只要它（E.03.02）
+    Type(ref string) (*gen.TypeDef, bool)
+    Messages() *Messages
+}
+type View interface {                                     // 只读视图；返回的定义只读
+    TypeSource
     NodeDef(typeRef string) (*gen.NodeDef, bool)          // "Agent" / "pack/节点@1"（主版本 → 已安装的最高次版本）
     NodeDefs() []*gen.NodeDef                             // 按类型名排序
     Type(ref string) (*gen.TypeDef, bool)                 // "方案@1.2" 解析到主版本 1 的最高次版本
     TypeSchema(ref string) (*jsonschema.Schema, bool)     // 类型对应的 JSON Schema（C.13.03-R3，注册时生成并缓存）
     DocSchema(name string) (*jsonschema.Schema, bool)     // 编译好的 schema/*.schema.json，如 "graph.schema.json"（V01 用）
-    Recipe(ref string) (*gen.Recipe, bool)
-    RoleCard(ref string) (*gen.Rolecard, bool)            // 原样返回，不合并继承
-    Messages() *Messages                                  // E.03.04
+    Recipe(ref string) (*gen.Recipe, bool)                // "执行者配方@1"；只写名称时取最高版本
+    RoleCard(ref string) (*gen.Rolecard, bool)            // 同上；原样返回，不合并继承
     Hash() string                                         // 注册表哈希（C.12 §2）
 }
 func (r *Registry) Snapshot() View                        // 冻结运行时调用；之后安装新包不影响它
@@ -57,7 +61,8 @@ func (r *Registry) Live() View                            // 编辑态使用
 
 type RegistryError struct{ File string; Line int; Item, Msg string }
 func (e *RegistryError) Error() string
-type Errors []*RegistryError                             // LoadBuiltin 返回的全部错误；实现 error
+type Errors []*RegistryError                             // LoadBuiltin、Install 返回的全部错误；实现 error
+func LooksLikeSecret(s string) bool                       // C.03.02-R3 的判断（V03 也用）
 ```
 ```go
 package migrate // engine/schema/migrate（C.12-R4）
@@ -66,17 +71,19 @@ type Func func(doc map[string]any) (map[string]any, error)
 type Step struct{ From, To string; Fn Func }
 var Chain []Step                                         // 内置迁移链；v1 的格式从 1.0 开始，现在为空
 var ErrTooNew = errors.New("这张图由更新版本的 Anywhere Door 创建，请升级") // C.12-R3
+var ErrNoVersion error                                   // 没有 schema_version 或写法不对
 func Apply(raw []byte, chain []Step) (out []byte, from string, err error) // 按 schema_version 逐级升级到链的最后一个版本；已是最新时原样返回；高于 Current 返回 ErrTooNew
 ```
 
 ## 5. 行为
 1. `LoadBuiltin`：编译 `*.schema.json`；依次加载类型 → 配方 → 角色卡 → NodeDef；每个文件先按对应 schema 校验（YAML 报错带行号，`C.13-R1`）。遇到错误继续加载其他文件，最后返回全部错误（`Errors`）。
-2. 注册 NodeDef 时检查：`kind=atomic` 只能来自内置目录；端口名、参数名不重复（`C.03.01-R3`）；端口数 ≤ 8（动态端口不计，`C.03.01-R5`）；参数的 `ui.widget` 与 `type` 兼容（按 `gen.WidgetRules`，`C.03.02`）；`secret` 类型参数的缺省值像密钥值时拒绝（`C.03.02-R2`、`R3`）；端口和参数里引用的类型都已注册。
-3. 注册类型时检查：同名同主版本的次版本只能加可选字段（`C.13.03-R1`）；扩展包不能声明系统类型；为每个类型生成 JSON Schema 并缓存（`C.13.03-R3`）。
-4. 注册角色卡时检查：`extends` 指向的父卡已注册、继承链不成环。
-5. `Hash()` = 所有已注册 NodeDef、类型、配方、角色卡按"种类 + 名称 + 版本"排序后，逐个 `graph.Canonical` 拼接的 sha256（`"sha256:<hex>"`）。
-6. 执行器、"13 个原子节点都要有执行器"不在这里检查：M1 只实现 6 个执行器，其余 7 种节点能搭图、能校验，运行冻结时（`E.16.01`，第 ④ 片）因为没有执行器被拒绝运行（用户决定"能搭不能跑"，K256）。
-7. `migrate.Apply`：读 `schema_version`；等于链上某个 `From` 就调用它、再从新的版本接着找，直到没有可用的步骤；结果 `schema_version` 写成最后的 `To`。
+2. 名字归属：节点定义、类型、配方、角色卡各按名字记归谁，内置和别的包已经用过的名字都不能再用；扩展节点的查找键是 `包名/名称@主版本`。每次修改在副本上做，成功后整体替换（`Snapshot` 因此不用复制）；失败时注册表不变。跨项的检查（引用的类型已注册、角色卡继承链、类型的 JSON Schema）在全部项加进来之后统一做。
+3. 注册 NodeDef 时检查：`kind=atomic` 只能来自内置目录；端口名、参数名不重复（`C.03.01-R3`）；端口数 ≤ 8（动态端口不计，`C.03.01-R5`）；参数的 `ui.widget` 与 `type` 兼容（`gen.WidgetRules` 推得出的控件加 `auto`；`connection` 只用于 `string`，`C.03.02`）；`secret` 类型参数的缺省值像密钥值时拒绝（`C.03.02-R2`、`R3`）；端口和参数里引用的类型都已注册。
+4. 注册类型时检查：同名同主版本的次版本只能加可选字段（`C.13.03-R1`）；扩展包不能声明系统类型；为每个类型生成 JSON Schema 并缓存（`C.13.03-R3`；引用别的类型用 `$ref`，`extends` 用 `allOf`，不限制多余字段）。
+5. 注册角色卡时检查：`extends` 指向的父卡已注册、继承链不成环。
+6. `Hash()` = 所有已注册 NodeDef、类型、配方、角色卡按"种类 + 名称 + 版本"排序后，逐个 `graph.Canonical` 拼接的 sha256（`"sha256:<hex>"`）。
+7. 执行器、"13 个原子节点都要有执行器"不在这里检查：M1 只实现 6 个执行器，其余 7 种节点能搭图、能校验，运行冻结时（`E.16.01`，第 ④ 片）因为没有执行器被拒绝运行（用户决定"能搭不能跑"，K256）。
+8. `migrate.Apply`：读 `schema_version`；高于 `Current` 和链上所有 `To` 时返回 `ErrTooNew`；等于链上某个 `From` 就调用它、再从新的版本接着找，直到没有可用的步骤；结果 `schema_version` 写成最后的 `To`；没有可用的步骤时原样返回输入的字节。
 
 ## 6. 不变量
 - `Snapshot()` 返回后，任何安装、卸载都不改变它的结果
