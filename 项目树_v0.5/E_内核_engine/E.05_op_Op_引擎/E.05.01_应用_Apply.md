@@ -59,12 +59,13 @@ type Result struct {
     Applied  []string               // 落库的 op id，按版本顺序
     Rebased  bool
     IDMap    map[string]string      // M1 一直是空对象（临时 ID 在 M4，E.05.06）
-    Diags    []gen.Diag             // 提交后整张图的 warn
+    Diags    []gen.Diag             // 提交后整张图的全部诊断（error 与 warn）
     Proposal string                 // 非空：已转为提议（HTTP 202）
 }
 
 func (p *Pipeline) Submit(ctx context.Context, b Batch) (*Result, error)
-// Read 读某个版本的图（version 为 0 时读 head）和它的全量诊断（error 与 warn）。
+// Read 读某个版本的图（version 为 Head，即 -1 时读 head；0 是建图时的版本）和它的全量诊断（error 与 warn）。
+const Head int64 = -1
 func (p *Pipeline) Read(ctx context.Context, graphID, branch string, version int64) (*graph.Graph, []gen.Diag, error)
 
 type Estop interface{ Active(runID string) bool }                 // 全局或这个运行在急停中
@@ -113,7 +114,9 @@ func NewOpStore(s store.Store) op.Repo    // 方法一一转给 store；Head 取
 Submit(b):
  0. 整理与结构校验（不读库）
     - Ops 为空或超过 500 条 → ErrBadRequest
-    - normal 批次每条按 op.schema.json#/$defs/Op 校验（View.DocSchema）；internal 批次（撤销、重做、撤回展开的）不再校验结构
+    - normal 批次每条按 kind 严格解码 payload（gen.DecodeAs：不认识的字段、类型不对都报错），取值范围按 §5.2 的前置条件查；
+      整份请求体按 OpsRequest 的 JSON Schema 校验在 API 层（B.03；op.schema.json 没有根结构，View.DocSchema 校验不了 $defs/Op，P.09 K262 ①）；
+      internal 批次（撤销、重做、撤回展开的）不再解码校验
     - kind 按 E.05-R6：还没收的、normal 批次里的 restore_nodes → ErrBadRequest（文案写里程碑）
     - revert_op、revert_to 只能单独成批，否则 ErrBadRequest；交给 expanders 展开（E.05.02 §5.5），展开后从这里接着走
     - 丢掉客户端填的 actor、approver、inverse、ts（target 在第 5 步重算）；没填 id 的生成；批内 id 重复 → ErrBadRequest
@@ -127,20 +130,23 @@ Submit(b):
     Deny → 对应的错误；Propose → Proposer 为 nil 时 ErrForbidden（"M1 还不能转为提议"），否则存提议并返回 Result{Proposal}
  6. 在 head 文档的副本上逐条应用（appliers），收集 inverse 和 touched；每条应用后文档 version + 1；任一失败 → ErrInvalid（第几条、为什么），回滚
  7. 校验：这一批只有 move_nodes、set_node_ui、add_note、update_note、remove_notes、set_graph_title、set_graph_meta 时沿用缓存里的诊断（这些不影响校验，P.09 K261）；
-    否则 ValidateIncremental(缓存里的诊断, touched 的并集, Opts{ForRun: true})；有 error → InvalidGraphError{Diags}，回滚（migrate 例外，§5.5）
+    否则 ValidateIncremental(缓存里的诊断, touched 的并集, Opts{ForRun: true})；
+    和缓存里的诊断比，这一批新出现的 error 里有 V01、V03、V05、V06、V07、V09、V12、V14 的（C.05.02 前置条件要求的端口、类型、成环、参数值）→ InvalidGraphError{Diags: 这些}，回滚；
+    其余 error（V02、V08、V10、V11、V16：图还没搭完）和 warn 不阻止，随 validate 事件发出（P.09 K262 ②；migrate 例外，§5.5）
  8. 落库（同一个事务）：
     - Repo.Commit：每条 Op 一个 OpRecord，版本号 head+1 起；Op 带服务器填的 id、actor、approver、mandate_id、reason、taint、target、group_id、coalesce_key、inverse、ts（Now）
       Hash = graph.Hash(最后的文档)，Title、Stats 见 §5.4；
       Doc：最后的版本 − 最近一份全文的版本 ≥ 50，且最后一条 Op 没有 coalesce_key 时给全文（有 coalesce_key 的版本以后可能被合并改掉，全文推到下一次，E.05.04）
     - 撤销栈（E.05.02 §5.1）：actor 是 user 或 model 时，normal、redo 批次把 group 推进 actor.id 的栈（栈顶已是这个 group 时不重复推）；normal 批次再把 actor.id + "#redo" 栈里还在的全部弹出；undo 批次不推
- 9. 事务提交后：更新缓存；Bus.Publish 每条 Op 一个 op.applied（seq = 这条的版本号，data {op, version}，actor = 批次的 actor）；Runs.GraphChanged(graph, branch, 最后的版本)
+ 9. 事务提交后：更新缓存；Bus.Publish 每条 Op 一个 op.applied（seq = 这条的版本号，data {op, version}，actor = 批次的 actor），
+   再一条 validate（E 级，seq 0，data {version: 最后的版本, diags: 提交后的全部诊断}，C.06.03，P.09 K262 ④）；Runs.GraphChanged(graph, branch, 最后的版本)
 ```
 - `Repo.Commit` 返回 `ErrRepoConflict`：返回 `ConflictError`（同一进程串行、单实例锁保证只有一个进程，正常不会出现）。
-- `Result.Diags` 是提交后整张图的 warn；`Result.IDMap` 是空对象。
+- `Result.Diags` 是提交后整张图的全部诊断（error 和 warn，K262 ④）；`Result.IDMap` 是空对象。
 
 ### 5.2 每种 Op 的应用（`C.05.02`、`C.05.03`）
 通用规则：
-- **文档规范化**（读进缓存时做一次，之后每次修改都保持）：每一层的 `nodes`、`edges`、`notes` 按 ID 排序，插入时放在排序位置；`promoted` 按名字排序；等于 schema 默认值的可选字段不写（`lock: none`、便签 `color: none`、空的 `title`）。这样"应用再逆序应用逆操作"回到逐字节相同的文档（`C.05.03-R1`；`Removed` 里没有原来的数组位置）。
+- **文档规范化**（读进缓存时做一次，之后每次修改都保持）：每一层的 `nodes`、`edges`、`notes` 按 ID 排序，插入时放在排序位置；`promoted` 按名字排序；等于 schema 默认值的可选字段不写（`lock: none`、便签 `color: none`、空的 `title`）；节点参数里等于 NodeDef 默认值的键删掉（没有默认值时 `null` 当作没写；`Node.params` 本来就"只存和默认值不同的键"，P.09 K262 ③）。这样"应用再逆序应用逆操作"回到逐字节相同的文档（`C.05.03-R1`；`Removed` 里没有原来的数组位置）。
 - 前置条件不满足 → `ErrInvalid`。端口存在、方向、类型兼容、成环、参数值合法交给第 7 步的校验（V03、V05–V07、V09；失败是 `InvalidGraphError`）。
 - 删除类 Op 的 `touched` 带被删的 ID（增量校验因此退回全量，`P.09` K259）。
 - internal 批次的逆操作可以用空值表示"删掉这个字段"：`set_label`、`set_graph_title` 的空串，`set_tags` 的 `[]`，`set_node_ui`、`set_graph_meta` 的 `{}`；客户端提交时同样按"删掉"处理（schema 允许的那些）。
@@ -152,7 +158,7 @@ Submit(b):
 | `restore_nodes` | 只在 internal 批次；ID 都没被占用；`scope` 存在 | 插回节点和连线 | `remove_nodes{ids: 节点 ID}` |
 | `connect` | `edge.id` 没用过；两端节点存在且在同一层 | 插入；目标端口存在且不是多连（`schema.Ports` 的 `multi`）时，先删掉已经连到它的连线 | `disconnect{ids:[新 id]}`，有被替换的再加逐条 `connect{edge: 旧}` |
 | `disconnect` | `ids` 都存在 | 删 | 逐条 `connect{edge}` |
-| `set_param` | 节点存在；`key` 是这个类型的参数；参数锁不是 `def`、`kernel`（`C.03.03`）；`path` 只用于 `schema_from` 对象参数 | `to` 等于默认值（规范化 JSON 比较）或参数没有默认值而 `to` 是 `null` 时删键，否则写；比较修改前后的 `schema.Ports`，消失的动态端口上的连线一并删除 | `set_param{to: 旧值}`（旧值不存在时为默认值，没有默认值为 `null`），有一并删除的连线再加逐条 `connect` |
+| `set_param` | 节点存在；`key` 是这个类型的参数；参数锁不是 `def`、`kernel`（`C.03.03`）；`path` 只用于 `schema_from` 对象参数 | 有 `path` 时改这个对象参数的一个属性（`to` 为 `null` 时删掉属性）；新值等于默认值（规范化 JSON 比较）或参数没有默认值而新值是 `null` 时删键，否则写；比较修改前后的 `schema.Ports`，消失的动态端口上的连线一并删除 | `set_param{to: 整个参数的旧值}`（不带 `path`；旧值不存在时为默认值，没有默认值为 `null`，K262 ⑤），有一并删除的连线再加逐条 `connect` |
 | `promote_param` | `promotable: true`；还没提升 | 加进 `promoted` | `demote_param` |
 | `demote_param` | 已提升 | 移出；连到它生成的那个输入端口的连线删掉 | `promote_param` + 逐条 `connect` |
 | `set_label`、`set_tags`、`set_lock` | 节点存在；`set_lock` 的 actor 在 `E.05.05` 检查 | 改字段（`set_lock` 为 `none` 时删字段） | 同 kind，`to` 换成旧值（没有时用上面的空值或 `none`） |
@@ -171,7 +177,7 @@ Submit(b):
 ### 5.3 head 缓存与 Read
 - 每个 (图, 分支) 缓存一份：`version`、规范化后的文档、`*graph.Graph`、诊断（`Opts{ForRun: true}` 的全量或增量结果）、最近一份全文的版本、上一次拖动合并的时间（`E.05.04`）。
 - 没有缓存或版本对不上：`Repo.Base(head)` → 规范化全文 → 按 `Snapshot.Ops` 逐条重放（同一套应用函数，按日志里的 payload，不补全、不生成 ID）→ `graph.FromDoc` → `Validate`。
-- `Read(v)`：`v` 为 0 或等于 head 时返回缓存；其他版本同样 `Base(v)` + 重放 + 全量校验，不进缓存。`v` 大于 head：`ErrNotFound`。
+- `Read(v)`：`v` 为 `Head`（-1）或等于 head 时返回缓存；其他版本同样 `Base(v)` + 重放 + 全量校验，不进缓存。`v` 大于 head：`ErrNotFound`。
 - 缓存只在事务提交后更新；事务回滚时丢掉这次的副本。
 
 ### 5.4 提交时写进元信息的
@@ -237,3 +243,4 @@ Submit(b):
 |---|---|---|
 | 2026-11-23 | 测试用例写明在本叶子跑的 C 层用例 | 第 4 片复查；`P.09` K227 |
 | 2026-11-25 | 第 ③ 片（`m1-op`）开工前复查：只做 M1 收的 Op（`E.05-R6`，`group`、`ungroup` 到 M2、临时 ID 到 M4）；加 `Repo` 接口与适配器、`Read`、head 缓存、文档规范化、服务器补全写进日志、格式升级；每种 Op 的前置条件和逆操作写成表；只改视图的批次跳过增量校验；全文每 50 版且避开带 `coalesce_key` 的版本；补 `E0301-T12`、`E0303-T19`、`E0503-T2`、`Base` 加重放的用例；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K261 |
+| 2026-11-25 | 写代码时补：第 0 步改为按 kind 严格解码（整份请求体的 schema 校验在 API 层）；第 7 步只拒绝新出现的 V01、V03、V05–V07、V09、V12、V14，其余 error 不阻止；提交后发 `validate` 事件；`Result.Diags` 是全部诊断；规范化删掉等于默认值的参数；`set_param` 的逆操作是整个参数的旧值；`Read` 用 `Head`（-1）表示读 head | `P.09` K262 |
