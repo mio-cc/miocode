@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 草稿 |
 | 素材 | 引01 §4；`C.14`；`G.16`；`G.02.05-R1`–`R3`；`P.09` K80、K85 |
-| 最后修改 | 2026-11-23 |
+| 最后修改 | 2026-11-25 |
 
 ## 1. 目的
 前端所有协议数据（图、Op、事件、错误码、会话、HTTP 响应）的类型都从 `schema/` 生成（INV-17）。生成类型如果用得乱——有人从 `generated/` 深层引用 snake_case 的原始类型、有人手写一份"差不多"的接口、有人写 `ev.kind === 'node.state'` 这样的裸字符串——schema 一改，编译器发现不了，前后端就悄悄对不上。本规范规定前端代码怎样拿、怎样用这些类型和常量，以及前端依赖的 HTTP 响应结构必须在 `api.schema.json` 里有哪些字段。
@@ -52,21 +52,21 @@
 - **W.04.04-R12** 可选字段没有值时省略，不赋 `undefined`、不赋 `null`（`tsconfig` 的 `exactOptionalPropertyTypes`，`B.03.02` §4）；`null` 只用在 schema 明确允许的位置（如 `set_mandate{to: null}`）。
 
 ### 3.5 前端依赖的 HTTP 响应结构（`api.schema.json`，`P.09` K80）
-下表是前端代码按名字引用、因此**必须**在 `schema/api.schema.json`（或表里写的其他 schema 文件）中定义的结构，以及前端读取的字段。字段名按 schema 写（snake_case）；"读取"之外的字段可以有，前端不依赖。正文由 `B.04` 各文档的"数据结构"写，本表是前端一侧的最低要求。
+下表是前端代码按名字引用、因此**必须**在 `schema/api.schema.json`（或表里写的其他 schema 文件）中定义的结构，以及前端读取的字段。字段正文在 `B.04.15`（`P.09` K260）；列表接口的响应是具体的分页结构 `<条目>Page`（`{items, next_cursor?}`），前端的 `Page<T>`（`W.04.03`）是它们共同的形状。字段名按 schema 写（snake_case）；"读取"之外的字段可以有，前端不依赖。正文由 `B.04` 各文档的"数据结构"写，本表是前端一侧的最低要求。
 
 | 结构 | 接口 | 前端读取的字段 | 用在 |
 |---|---|---|---|
 | `GraphRead` | `GET /graphs/{id}` | `graph`、`registry_hash`、`diags` | `W.03.05` §6.7、`W.05` |
 | `GraphMeta` | `GET /graphs` | `id`、`title`、`updated_at`、`version`、`stats {layers, subgraphs, nodes}` | `U.09.04-R2`、`W.07.02` |
 | `VersionMeta` | `GET /graphs/{id}/versions` | `version`、`actor`、`ts`、`summary` | `W.07.05` |
-| `OpResult` | `POST /graphs/{id}/ops`、`/undo`、`/redo`、`/revert`、`/ops/{op_id}/revert`、提议的 `decide` / `accept-all` / `reject-all` | `version`、`applied`、`rebased`、`id_map`、`diags` | `W.05`、`W.03.06` |
-| `ProposalAccepted` | `POST /graphs/{id}/ops` 的 202 | `proposal_id`、`status` | `W.05` |
+| `OpsApplied`（`op.schema.json`；原写 `OpResult`） | `POST /graphs/{id}/ops`、`/undo`、`/redo`、`/revert`、`/ops/{op_id}/revert`、提议的 `decide` / `accept-all` / `reject-all` | `version`、`applied`、`rebased`、`id_map`、`diags` | `W.05`、`W.03.06` |
+| `OpsProposed`（`op.schema.json`；原写 `ProposalAccepted`） | `POST /graphs/{id}/ops` 的 202 | `proposal_id`、`status` | `W.05` |
 | `GraphConflictDetails` | 409 `graph_conflict` 的 `details` | `head`、`missed_ops[]`（每项是带 `version` 的 `OpRecord`）、`conflicts[] {op_id, object}` | `W.05` §6.6 |
 | `OpRecord` | `GET /graphs/{id}/ops` | `version`、`op`（完整 `Op`，含服务器填写的 `actor`、`target`、`group_id`）、`undone` | `W.03.01`、`W.05` |
 | `BranchMeta` | `GET /graphs/{id}/branches` | `name`、`head`、`behind`、`ahead`（`op.schema.json` 已有字符串类型 `Branch`，这个结构叫 `BranchMeta`，`P.09` K236） | `W.03.01` |
 | `RunMeta` | `GET /runs`、控制类 POST 的响应 | `id`、`session_id`、`kind`、`status`、`graph_id`、`graph_version`、`branch`、`created_at`、`ended_at`、`no`、`headline`、`steps {done, total}`、`cost_micros` | `W.03.04`、`W.03.05` §6.3、`W.07.05` |
 | `RunStarted` | `POST /runs` | `run_id`、`graph_version`、`status` | `W.03.04` |
-| `RunView` | `GET /runs/{id}`、`/view?at_seq=` | `meta`（`RunMeta`）、`usage {in, out, cached}`、`cost_micros`、`current_path`、`pending_approvals`、`pending_patches[]` | `W.03.04`、`W.07.05` |
+| `RunView` | `GET /runs/{id}`、`/view?at_seq=` | `meta`（`RunMeta`，用量和费用读 `meta.usage`、`meta.cost_micros`）、`current_path`、`pending_approvals`；`pending_patches[]` 在 M2 加 | `W.03.04`、`W.07.05` |
 | `Bar` | `GET /runs/{id}/timeline` | `exec_key`、`node_id`、`loc`、`state`、`started_at`、`ended_at`、`error` | `W.07.05` |
 | `NodeSnapshot` | `GET /runs/{id}/nodes` | `seq`、`items[]`（`NodeStateRow`） | `W.03.04` §6.2 |
 | `NodeStateRow` | 同上 | `exec_key`、`node_id`、`loc`、`state`、`attempt`、`progress`、`round`、`started_at`、`ended_at`、`error` | `W.03.04` |
@@ -78,7 +78,7 @@
 | `MessageSent` | `POST /sessions/{sid}/messages` | `user_message`、`assistant_message_id` | `W.03.05` |
 | `OnboardingState` | `GET /settings/onboarding` | `step`、`done` | `W.02` |
 | `SettingsPatched` | `PATCH /settings` | `settings`、`applied`、`restart_required`、`next_run` | `W.02.03` |
-| `Model` | `GET /models` | `ref`、`provider`、`window`、`caps`、`priced`、`effort` | `W.03`、`W.07.07` |
+| `Model` | `GET /models` | `ref`（`<提供方名>/<模型 id>`）、`provider`、`model`、`max_output`、`window`、`caps`、`priced`、`effort` | `W.03`、`W.07.07` |
 | `NodePresetItem` | `GET /node-presets` | `preset`（`C.15` `NodePreset`）、`package_id`、`package_name`、`source`、`enabled`、`disabled_reason`；外层 `total` | `W.03` §4.5、`W.07.02` |
 | `MergePreview`、`Resolution` | `POST /graphs/{id}/branches/{name}/merge/preview`、`…/merge` | `base`、`ours`、`theirs`、`auto[]`、`conflicts[]`、`diags[]`；`Resolution {conflict_id, pick: ours\|theirs\|value, value?}` | `W.07.01` |
 | `PromptPreview` | `POST /graphs/{id}/nodes/{node_id}/prompt-preview` | `segments[] {kind, text, tokens, placeholders[]}` | `W.07.03` |
@@ -120,3 +120,4 @@
 | 2026-11-23 | §3.5 补 `W.07` 用到的字段与结构：`RunMeta`、`RunView`、`Approval`、`Model` 加字段；新增 `Bar`、`NodePresetItem`、`MergePreview`、`Resolution`、`PromptPreview`、`ContextUsage`、`Upload`、`SessionFile`、`LibraryItem` | 第 8 棒；`P.09` K113、K116、K117 |
 | 2026-11-23 | §3.5 补 `W.09` 用到的结构：`LibraryItem.ports`、`Package`、`ConnectionType` / `Connection`、`ConnectionTest`、`ConnectionUsages`、MCP 与扩展包、`Usage`、运行历史字段、模板、设置页的诊断类响应 | 第 9 棒（B）；`P.09` K144–K146、K150、K152 |
 | 2026-11-24 | §3.5 分支结构改名 `BranchMeta`；`GraphMeta`、`OpRecord`、`BranchMeta`、`RunMeta`、`NodeStateRow` 已由 `E.07.01` 写进 `api.schema.json` | `P.09` K236 |
+| 2026-11-25 | §3.5：`OpResult`、`ProposalAccepted` 改用 `op.schema.json` 已有的 `OpsApplied`、`OpsProposed`；`RunView` 的用量、费用在 `meta` 里，`pending_patches` 在 M2；`Model` 加 `model`、`max_output`，写明 `ref` 的写法；正文在 `B.04.15`、分页结构 | `P.09` K260 |

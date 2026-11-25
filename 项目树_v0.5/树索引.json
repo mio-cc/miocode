@@ -2368,6 +2368,16 @@
       "lvl": 3,
       "children": [],
       "path": "B_后端服务/B.04_API_资源/B.04.14_health_与诊断.md"
+     },
+     {
+      "id": "B.04.15",
+      "name": "接口结构",
+      "desc": "各接口请求体、响应体结构的正文（schema/api.schema.json）；M1 接口清单",
+      "type": "实",
+      "src": "新",
+      "lvl": 3,
+      "children": [],
+      "path": "B_后端服务/B.04_API_资源/B.04.15_接口结构.md"
      }
     ],
     "path": "B_后端服务/B.04_API_资源/B.04_API_资源.md"
