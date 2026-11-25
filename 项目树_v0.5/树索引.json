@@ -1235,13 +1235,13 @@
      },
      {
       "id": "E.05.03",
-      "name": "rebase 与三方合并",
-      "desc": "并发编辑合并",
+      "name": "可交换判定与 rebase",
+      "desc": "并发提交时判断能不能交换、自动 rebase、作用对象",
       "type": "实",
       "src": "引08",
       "lvl": 3,
       "children": [],
-      "path": "E_内核_engine/E.05_op_Op_引擎/E.05.03_rebase_与三方合并.md"
+      "path": "E_内核_engine/E.05_op_Op_引擎/E.05.03_可交换判定与_rebase.md"
      },
      {
       "id": "E.05.04",
@@ -1262,6 +1262,26 @@
       "lvl": 3,
       "children": [],
       "path": "E_内核_engine/E.05_op_Op_引擎/E.05.05_授权钩子.md"
+     },
+     {
+      "id": "E.05.06",
+      "name": "分支、合并与补丁",
+      "desc": "草稿分支、三方合并、模型冲突转草稿、模型补丁与临时 ID（M4）",
+      "type": "实",
+      "src": "引08",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.05_op_Op_引擎/E.05.06_分支_合并与补丁.md"
+     },
+     {
+      "id": "E.05.07",
+      "name": "打包、子图引用与导入 Op",
+      "desc": "group、ungroup、set_subgraph_ref、import_apply（M2）",
+      "type": "实",
+      "src": "引08",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.05_op_Op_引擎/E.05.07_打包_子图引用与导入_Op.md"
      }
     ],
     "path": "E_内核_engine/E.05_op_Op_引擎/E.05_op_Op_引擎.md"
