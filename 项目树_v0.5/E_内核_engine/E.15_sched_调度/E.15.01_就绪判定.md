@@ -21,7 +21,7 @@
 
 ## 4. 接口
 ```go
-// engine/sched/ready.go：纯函数，运行的调度循环（E.16.01）每次有上游变化时调用
+// engine/sched/ready.go：纯函数 Judge，运行的调度循环（E.16.01）每次有上游变化时调用
 type Readiness int // NotReady | Ready | Skip
 type InEdge struct {
     Port     string        // 本节点的输入端口
@@ -36,7 +36,7 @@ type ReadyInput struct {
     In          []InEdge
     Early       func(arrived, total int) bool // 执行器声明的 EarlyReady（汇合的 k_of_n / first / timeout）；nil 表示没有
 }
-func Ready(in ReadyInput) (r Readiness, empty []string)   // empty：可选端口里没有激活连线的（按名字排序）
+func Judge(in ReadyInput) (r Readiness, empty []string)   // empty：可选端口里没有激活连线的（按名字排序）
 
 // engine/sched/prio.go
 type Prio struct{ Escalation, Critical, Round, User int }  // 都是小者优先；Critical 取负的下游节点数
@@ -47,7 +47,7 @@ func (q *Queue[T]) Len() int
 ```
 
 ## 5. 行为
-`Ready` 按顺序判断：
+`Judge` 按顺序判断：
 1. `State` 不是 `idle`，也不是重试中的 `queued` → `NotReady`；`ScopeActive` 为 false → `NotReady`。
 2. 没有入边 → `Ready`（`seed`）。
 3. 有上游 `failed`、`cancelled` → `NotReady`：失败的路由（升级、冒到根图）由运行处理（`E.16.01`）。
@@ -87,3 +87,4 @@ func (q *Queue[T]) Len() int
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-26 | 第 ④ 片（`m1-base`）开工前复查：改为纯函数 `Ready`（运行每次上游变化时调用）和泛型优先队列；上游失败交给运行；`EarlyReady` 用函数传入，测试用假的；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K265 |
+| 2026-11-26 | 判定函数改名为 `Judge`：原名 `Ready` 和枚举值 `Ready` 同名，编译不过（验证时发现） | `P.09` K266 |
