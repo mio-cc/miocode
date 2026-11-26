@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 草稿 |
 | 素材 | 引01§5 |
-| 最后修改 | 2026-11-24 |
+| 最后修改 | 2026-11-26 |
 
 ## 1. 目的
 控制引入哪些第三方依赖。每个依赖都是安全、体积、许可证和维护风险；实施模型尤其喜欢"顺手装一个库"。
@@ -66,7 +66,9 @@
 | 浮层行为 | `@floating-ui/dom`（定位） |
 
 ### 3.4 前端（开发）
-`vite`、`typescript`、`eslint`、`typescript-eslint`、`eslint-plugin-react-hooks`、`eslint-plugin-react-refresh`、`stylelint`、`prettier`、`vitest`、`jsdom`、`@playwright/test`、`ajv`。
+`vite`、`typescript`、`eslint`、`typescript-eslint`、`eslint-plugin-react-hooks`、`eslint-plugin-react-refresh`、`stylelint`、`prettier`、`vitest`、`jsdom`、`@playwright/test`、`ajv`、`@vitejs/plugin-react`、`@types/react`、`@types/react-dom`、`@types/node`、`@eslint/js`、`globals`（后 6 个是 React、TypeScript、ESLint 10 flat config 的官方配套包，`P.09` K272）。
+
+`typescript` 暂时用 6.x（6.0.3）：`typescript-eslint` 还不支持 TypeScript 7 的正式版（`P.09` K272），它正式支持后再升回 7.x。
 
 ## 4. 检查方式
 CI 脚本比对 `go.mod`（直接依赖）和 `web/package.json` 与本清单（清单的机器可读版：`tools/deps/allow.txt`，`O.02`；在它建立之前，`tools/relay check` 直接读本节，`O.01` §4.5）。
@@ -80,3 +82,4 @@ CI 脚本比对 `go.mod`（直接依赖）和 `web/package.json` 与本清单（
 | 2026-11-23 | 去掉 `go-jsonschema`、`json-schema-to-typescript`：生成器自研（`C.14` §2） | `P.09` K234 |
 | 2026-11-24 | 去掉 `pressly/goose`：迁移执行器自写（全局注册违反 `E-R3`，`E.07.03`） | `P.09` K237 |
 | 2026-11-24 | 去掉三家模型 SDK：模型接入改为按协议用标准库自研（ADR-011）；代码仓库 `tools/deps/allow.txt` 在第 ⑨ 片同步 | `P.09` K250 |
+| 2026-11-26 | §3.4 加 6 个前端开发依赖；`typescript` 暂用 6.x；删掉重复的变更记录表 | 前端线上报单 M-001；`P.09` K272 |
