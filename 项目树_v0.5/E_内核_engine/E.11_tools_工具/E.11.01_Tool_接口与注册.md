@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 已审 |
 | 素材 | 引01§2 |
-| 最后修改 | 2026-11-26 |
+| 最后修改 | 2026-11-27 |
 
 ## 1. 职责
 定义工具接口、注册表，以及调用包装 `Handle`：幂等查询 → 授权 → 意图 → 资源池 → 超时 → 调用 → 裁剪 → 记录。
@@ -107,8 +107,8 @@ func NewHandle(i Impl, env Env) Handle    // 执行器通过 RunCtx.Tool 拿到�
 4. L1 及以上：`OnIntent`（INV-14）。
 5. 资源池 `Acquire`（池名 `Def.Pool`，默认 `tool:<ID>`）；L2、L3 拿到名额后、调用前再判定一次授权（`S.04-R6`）。
 6. 超时 context（`Def.Timeout`，默认 60 秒）→ `Invoke`（`Call.IdemKey` 带上幂等键）。
-7. 成功：`Trim`（`E.11.02`，选项 `Env.Trim`）；`Taint = 输入污染 || Def.TaintsResult`，`TaintSrc` = `Raw.Sources`（只在 `TaintsResult` 时）；`Result` 的 JSON 写进工作区作 `ResultRef`；`Ledger.Finish(succeeded)`；`OnCall`。
-8. 失败：`Ledger.Finish(failed)`；`OnCall`；返回 `*Error`。
+7. 成功：`Trim`（`E.11.02`，选项 `Env.Trim`）；`Taint = 输入污染 || Def.TaintsResult`，`TaintSrc` = `Raw.Sources`（只在 `TaintsResult` 时）；`Result` 的 JSON 写进工作区作 `ResultRef`；`Ledger.Finish(succeeded)`；`OnCall`。`Invoke` 返回以后的这些步骤不随调用方取消（`context.WithoutCancel`）：工具可能已经有副作用，结果和记录必须写下（`P.09` K274）。
+8. 失败：`Ledger.Finish(failed)`（同样不随取消）；`OnCall`；返回 `*Error`。`OnCall` 拿到的 ctx 都不随调用方取消，每次 `Call` 恰好一条记录（K274）。
 
 ## 6. 不变量
 - L1 及以上的每次真实调用之前都有 `OnIntent`
@@ -134,6 +134,7 @@ func NewHandle(i Impl, env Env) Handle    // 执行器通过 RunCtx.Tool 拿到�
   - `E1101-T3 风险下限`：`builtin:ws_read` 声明 L0 能注册；把下限表里的工具声明得更低被拒；ID、Name 不合法、重复注册被拒
   - `E1101-T5 发出前再判定`：L0 判定 1 次、L2 判定 2 次；第二次 `deny` 时不调用、返回 `auth_denied`；L1 有 `OnIntent`、L0 没有
   - `E1101-T6 失败与记录`：超时 → `timeout`；`*Error` 的类别原样保留；失败时 `Ledger` 记 `failed`、`OnCall` 恰好一次且错误信息不含参数原文；污染标记按输入和 `TaintsResult` 合并
+  - `E1101-T7 调用成功后取消`：工具成功后调用方立刻取消（账本取消后写不进，工作区用 fsblob）时仍返回结果；账本记 `succeeded` 并有结果引用；`OnCall` 恰好一次、拿到的 ctx 没取消；同键再调为 `deduplicated`、不再执行（`P.09` K274；代码在 `E.13.05` 里交付）
 - 允许使用的依赖：标准库 + `G.10` 已登记依赖
 - 禁止事项：`G.02.05` 全部
 - 完成标志：`G.14` 全部条件
@@ -142,3 +143,4 @@ func NewHandle(i Impl, env Env) Handle    // 执行器通过 RunCtx.Tool 拿到�
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-26 | 第 ⑤b 片（`m1-tools-ctx`）开工前复查：依赖方向：账本、资源池、token 计数用本包接口，事件交给 `Hooks`；结果类型挪到 `E.11.02`；回放、转人工、`ask` 推到后面的里程碑（`E1101-T4` 回放推到 M2，加 `E1101-T6`）；写明重复键三种情况；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K271 |
+| 2026-11-27 | §5 第 7、8 步写明工具调用以后的记录不随调用方取消；加 `E1101-T7`（代码按 K238 在 `E.13.05` 里改） | `P.09` K274（第 ⑤b 片整片评审第 18 行） |
