@@ -6,9 +6,9 @@
 | 类型 | 实施 |
 | 上级 | W.03 状态层 |
 | 下级 | 无 |
-| 状态 | 草稿 |
-| 素材 | 设18 §3.1、§5（`lastChange` 增量通知的思路）；demo `设计规范_v0.3/src/22_state.js`（`HX.walk`、图数据 Map）；demo v0.5 `32_sessions.js`（`stat()` 结构摘要） |
-| 最后修改 | 2026-11-23 |
+| 状态 | 已审 |
+| 素材 | 设18 §3.1、§5（`lastChange` 增量通知的思路）；demo `设计规范_v0.3/src/22_state.js`（`HX.walk`、图数据 Map）；demo v0.5 `32_sessions.js`（`stat()` 结构摘要）；`P.09` K236、K306 |
+| 最后修改 | 2026-11-27 |
 
 ## 1. 职责
 保存一份正在打开的图文档：把嵌套的 `Graph` 规范化成按 ID 查找的 `GraphModel`，记录服务器确认的版本、校验结果、谁在编辑、分支、操作历史；提供纯函数选择器（结构树、面包屑、结构摘要、AI 角标）；给 `W.05` 提供唯一的写入接口，给画布引擎提供增量变化通知。
@@ -86,7 +86,7 @@ export type GraphState = {
   registryHash: string;
   diags: { version: number; items: readonly Diag[] };
   presence: ReadonlyMap<string, Presence>;     // 键 = `${kind}:${id}:${instanceId ?? ''}`；不含本页自己
-  branches: readonly Branch[];
+  branches: readonly BranchMeta[];             // K236、K306：对应 schema BranchMeta
   sync: SyncState;
   change: GraphChange;
   history: { items: readonly OpRecord[]; nextCursor?: string; status: 'idle' | 'loading' | 'ready' | 'error'; stale: boolean };
@@ -95,10 +95,10 @@ export type GraphActions = {
   loadHistory(opts?: { refresh?: boolean }): Promise<void>;   // GET /graphs/{id}/ops?branch=&cursor=（监控页 › 操作历史）
   loadBranches(): Promise<void>;                              // GET /graphs/{id}/branches
   rebaseBranch(name: string): Promise<void>;                  // POST …/branches/{name}/rebase（AI 草稿分支，W.07.01，K116）
-  mergePreview(name: string): Promise<MergePreview>;          // POST …/branches/{name}/merge/preview
+  mergePreview(name: string): Promise<Readonly<Record<string, unknown>>>;          // POST …/branches/{name}/merge/preview（M4 契约收紧，K306）
   mergeBranch(name: string, resolutions: readonly Resolution[]): Promise<void>;   // POST …/merge {into:'main', resolutions}；成功后 loadBranches
   deleteBranch(name: string): Promise<void>;                  // DELETE …/branches/{name}
-  promptPreview(nodeId: Ulid): Promise<PromptPreview>;        // POST /graphs/{id}/nodes/{node_id}/prompt-preview（W.07.03，K113）
+  promptPreview(nodeId: Ulid): Promise<Readonly<Record<string, unknown>>>;        // POST /graphs/{id}/nodes/{node_id}/prompt-preview（M2/M4 契约收紧，K306）
 };
 export type GraphStoreApi = ReadonlyStore<GraphState> & { actions: GraphActions };
 
@@ -143,7 +143,7 @@ export function editingByOthers(s: GraphState, nodeId: Ulid): readonly Presence[
 ```
 
 ### 4.4 依赖
-`@/lib/protocol` 的 `Graph`、`Node`、`Edge`、`Note`、`Diag`、`Actor`、`Branch`、`OpRecord`（`P.09` K80）；`W.03` §4.3 的 `RestClient`、`ApiError`；`zustand/vanilla` 的 `createStore`、`zustand/middleware` 的 `subscribeWithSelector`。
+`@/lib/protocol` 的 `Graph`、`Node`、`Edge`、`Note`、`Diag`、`Actor`、`BranchMeta`、`OpRecord`、`Resolution`（`P.09` K80、K236、K306）；`W.03` §4.3 的 `RestClient`、`ApiError`；`zustand/vanilla` 的 `createStore`、`zustand/middleware` 的 `subscribeWithSelector`。
 
 ## 5. 数据结构
 见 §4.1、§4.2。`GraphModel` 内部不可变：每次 `commit` 都给一个新对象；没变的节点、连线对象沿用旧引用（结构共享），所以引擎和选择器可以用引用相等判断"没变"。
@@ -213,14 +213,15 @@ const tree  = useGraphStore((s) => (s.model ? structureTree(s.model) : null));
 5. 在 `panels/` 里 import `GraphWriter` 或 `createGraphStore` 时 ESLint 报错。
 
 ### 实施卡
-- 要建 / 要改的文件：`web/src/state/types.ts`（只放 `W.03` §4.2 的公共类型）、`web/src/state/graphModel.ts`、`web/src/state/graphModel.test.ts`、`web/src/state/graphStore.ts`、`web/src/state/graphStore.test.ts`、`web/src/state/graphSelectors.ts`、`web/src/state/graphSelectors.test.ts`；`web/eslint.config.js` 只加一条 `no-restricted-imports`：`state/` 和 `ops/` 以外禁止 import `@/state/graphStore` 的 `GraphWriter`、`GraphIngest`、`createGraphStore`（测试文件和 `pages/history/` 的只读用法除外：后者只能用 `store`）。
-- 不许碰的文件：`web/src/lib/protocol/`（含 `generated/`）、`web/src/ops/`、`web/src/canvas/`、`schema/`（测试只读 `schema/examples/graph_loop.json`）。
+- 要建 / 要改的文件：`web/src/state/graphModel.ts`、`web/src/state/graphModel.test.ts`、`web/src/state/graphStore.ts`、`web/src/state/graphStore.test.ts`、`web/src/state/graphSelectors.ts`、`web/src/state/graphSelectors.test.ts`、`web/eslint.config.js`
+- 说明：属于第 ⑩b 片 `m1-web-state`（领取顺序 `W.03.01` → `W.03.04` → `W.03.05`，`P.09` K306）。`web/src/state/types.ts` 已由第 ⑨c 片 `W.03.03` 首建，本叶子不修改；`web/eslint.config.js` 只加一条 `no-restricted-imports`：`state/` 和 `ops/` 以外禁止 import `@/state/graphStore`（及 `**/state/graphStore`）的 `GraphWriter`、`GraphIngest`、`createGraphStore`（测试文件和 `pages/history/` 的只读用法除外）；`W0301-T13` 在 `graphStore.test.ts` 中通过 ESLint API 断言 `src/panels/bad.ts` 导入 `GraphWriter` 报错。
+- 不许碰的文件：`web/src/lib/protocol/`（含 `generated/`）、`web/src/state/types.ts`、`web/src/ops/`、`web/src/canvas/`、`schema/`（测试只读 `schema/examples/graph_loop.json`、`graph_minimal.json`）
 - 函数签名：见 §4.1–§4.3。
 - 测试用例：
   - `W0301-T1 往返`：`graph_loop.json`、`graph_minimal.json` 经 `fromDoc` → `toDoc` 与原文规范化 JSON 相等；节点 `params` 里加一个未知键 `x_extra` 也保留
   - `W0301-T2 索引一致`：每个节点的 `scope` 存在；`scopes` 的 `depth` 依次为 0、1、2；带 `ref` 无 `children` 的节点 `isContainer=false`
   - `W0301-T3 重复 ID`：文档里两个节点同 ID → 只保留第一个，`console.error` 一次
-  - `W0301-T4 选择器`：`crumbs(m, 资料采集的 ID)` = 根图 / 闭环迭代 / 资料采集；`structureTree` 层次正确；`stats` 不计子图端口节点；`isDeep` 在第 5 层为 true
+  - `W0301-T4 选择器`：`crumbs(m, 资料采集的 ID)` = 根图 / 闭环迭代 / 资料采集；`structureTree` 层次正确；`stats` 不计子图端口节点；`isDeep` 在第 5 层为 true；`boundaryLinks` 覆盖容器入边与出边
   - `W0301-T5 缓存`：同一 `model` 调两次 `nodesIn` 返回同一数组；`commit` 一个新 `model` 后返回新数组
   - `W0301-T6 commit 通知`：订阅 `change` 的回调每次 `commit` 只调一次，`seq` 递增；只订阅 `diags` 的回调不被调用
   - `W0301-T7 confirm 单调`：`confirm(5)` 后 `confirm(3)` 不改 `serverVersion`
@@ -228,14 +229,16 @@ const tree  = useGraphStore((s) => (s.model ? structureTree(s.model) : null));
   - `W0301-T9 presence`：用假时钟，60 秒后删除；`selfInstance` 的 presence 被忽略；`editing=[]` 且无 `cursor` 时删除
   - `W0301-T10 AI 角标`：`origin.actor.kind='model'` 为 true；用户再改后（`origin.actor.kind='user'`）为 false（`U.12-R1`）
   - `W0301-T11 操作历史`：`markHistoryStale` 后 `loadHistory({refresh:true})` 从第一页重新拉；失败时 `status='error'`
-  - `W0301-T12 性能`：500 节点 `fromDoc` ≤ 10ms（vitest bench，`W.11` 收集）
-  - `W0301-T13 ESLint`：`web/tests/lint/` 下的反例文件在 `panels/` 里 import `GraphWriter`，lint 报错
-- 允许使用的依赖：`zustand`（`G.10` §3.3）；测试用 `vitest`、`jsdom`。
+  - `W0301-T13 ESLint`：ESLint API 校验 `src/panels/bad.ts` import `GraphWriter` / `createGraphStore` 报错
+- 在其他叶子跑的测试用例（不算本叶子的完成条件，`P.09` K306）：
+  - `W0301-T12 性能`：第 ⑪ 片 `W.11`（500 节点 `fromDoc` ≤ 10ms，vitest bench）
+- 允许使用的依赖：`zustand`（`G.10` §3.3）；测试用 `vitest`、`jsdom`、`eslint`（`G.10` §3.4）。
 - 禁止事项：`G.02.05` 全部（特别是 R1、R2、R6）；另：不提供任何绕过 `GraphWriter` 修改 `model` 的方法（包括 `setState` 暴露给外部）；不在本 store 里存类型推断、校验预检这类派生结果；不在 localStorage 存图数据。
-- 完成标志：`G.14` 全部条件；§10 五条验收通过。
+- 完成标志：`G.14` 全部条件；§10 五条验收通过，`relay slice m1-web-state` ①–⑦ 全部通过。
 
 ## 变更记录
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | §4.3 新增 `boundaryLinks`（父图位置卡的连接行） | `P.09` K109（第 7 棒写 `W.06.13` 时发现：连接行由 React 画，需要纯函数） |
 | 2026-11-23 | `GraphChange` 加 `opIds`；`GraphActions` 新增草稿分支的 rebase / 合并预览 / 合并 / 删除和 `promptPreview` | 第 8 棒写 `W.07.01`、`W.07.03`、`W.07.10`；`P.09` K113、K114、K116 |
+| 2026-11-27 | 状态改为"已审"；`Branch` 对齐 `BranchMeta`（K236），`MergePreview`/`PromptPreview` 在 M1 用最小记录占位；实施卡按 R24 重写，`W0301-T12` 移入 `W.11` | M1 第 ⑩b 片 `m1-web-state` 复查（`P.09` K306） |

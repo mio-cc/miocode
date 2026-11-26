@@ -6,9 +6,9 @@
 | 类型 | 实施 |
 | 上级 | W.04 协议层 |
 | 下级 | 无 |
-| 状态 | 草稿 |
-| 素材 | 新；`U.14.05`；`B.04.14`（`/health` 不需要鉴权）；`B.05.03`（心跳、关闭帧）；`P.09` K91 |
-| 最后修改 | 2026-11-23 |
+| 状态 | 已审 |
+| 素材 | 新；`U.14.05`；`B.04.14`（`/health` 不需要鉴权）；`B.05.03`（心跳、关闭帧）；`P.09` K91、K306 |
+| 最后修改 | 2026-11-27 |
 
 ## 1. 职责
 `createConnectivity`：汇总 REST 客户端和事件流报告的成功与失败，探测本机服务是否还在，得出唯一的连接状态 `NetState`，经 `bindNet` 写进 `ui.net`；服务恢复时通知各方立即重连、继续提交。
@@ -121,10 +121,11 @@ export function bindNet(c: Connectivity, ui: { setNet(n: NetState): void }): () 
 5. 断线期间服务端产生 5 个图版本：重连后前端图与服务器一致（`C.06.03` §4 验收 2，`C0603-T2` 的前端一侧）。
 
 ### 实施卡
-- 要建 / 要改的文件：`web/src/lib/protocol/offline.ts`、`web/src/lib/protocol/offline.test.ts`、`web/tests/e2e/reconnect.spec.ts`。
-- 不许碰的文件：`web/src/lib/protocol/generated/`、`client.ts`、`events.ts`、`mapping.ts`、`web/src/state/`（只 import `uiStore.ts` 的 `NetState` 类型）、`web/src/panels/`、`schema/`、`internal/`。
+- 要建 / 要改的文件：`web/src/lib/protocol/offline.ts`、`web/src/lib/protocol/offline.test.ts`
+- 说明：属于第 ⑩a 片 `m1-web-proto`（领取顺序 `W.04.05` → `W.04.01` → `W.04.02`，`P.09` K306）；`assemble.ts` 与 `index.ts` 统一导出放在 `W.04.02`；Playwright 端到端测试推至 `W.12`（第 ⑫ 片）。
+- 不许碰的文件：`web/src/lib/protocol/generated/`、`web/src/lib/protocol/client.ts`、`web/src/lib/protocol/events.ts`、`web/src/lib/protocol/mapping.ts`、`web/src/state/`（只 import `uiStore.ts` 的 `NetState` 类型）、`web/src/panels/`、`schema/`、`internal/`
 - 函数签名：见 §4。
-- 测试用例（假 `fetch`、假时钟；e2e 用真实 `anydoor --fake-llm`）：
+- 测试用例（假 `fetch`、假时钟）：
   - `W0405-T1 短暂中断`：`reportFailure` 后 2 秒内探测成功 → 状态始终 `online`，`onOnline` 一次，订阅者 0 次
   - `W0405-T2 进入重连`：一直失败 → 第 3000ms 变 `reconnecting`；第 30000ms 变 `down`；`down` 后探测间隔 5000ms
   - `W0405-T3 恢复`：`reconnecting` 时 `reportOk` → 立即 `online`、停止探测、`whenOnline` 的 Promise 完成
@@ -132,9 +133,15 @@ export function bindNet(c: Connectivity, ui: { setNet(n: NetState): void }): () 
   - `W0405-T5 关闭帧`：`reportFailure('shutdown')` 后 1 秒服务回来 → 不显示 `reconnecting`
   - `W0405-T6 可见性`：隐藏期间探测间隔为 5000ms；变为可见立即探测一次
   - `W0405-T7 bindNet`：绑定时同步一次；状态变化时 `setNet` 被调用；解绑后不再调用
-  - `W0405-T8 端到端断线`：Playwright 拦截 `/api/v1/**` 6 秒 → 出现横幅、画布不能拖动；拦截开始后 1 秒内（还没进入只读）在属性页改一个参数，它进入 Op 队列等待；放开后横幅变绿消失，参数修改已提交（`GET /graphs/{id}` 里能看到）
-  - `W0405-T9 端到端补齐版本`：拦截图协同流期间用 `anydoorctl` 提交 5 批 Op → 放开后前端 `toDoc(graph store)` 的规范化哈希（`W.05` 的 `graphHash`）等于服务器 `GET /graphs/{id}` 的哈希（`C0603-T2`）
-  - `W0405-T10 token 轮换`：`POST /settings/token/rotate` 后（旧 cookie 失效）→ 页面显示整页说明，控制台无未处理异常
-- 允许使用的依赖：无第三方运行时依赖；测试用 `vitest`、`jsdom`、`@playwright/test`。
+- 在其他叶子跑的测试用例（不算本叶子的完成条件，`P.09` K306）：
+  - `W0405-T8 端到端断线`：第 ⑫ 片 `W.12`（`web/tests/e2e/reconnect.spec.ts`，Playwright 拦截 `/api/v1/**` 6 秒验证横幅、只读与 Op 补交）
+  - `W0405-T9 端到端补齐版本`：第 ⑫ 片 `W.12`（`web/tests/e2e/reconnect.spec.ts`，断线期间服务端提交 5 批 Op 重连后哈希一致，`C0603-T2`）
+  - `W0405-T10 token 轮换`：第 ⑫ 片 `W.12`（`web/tests/e2e/reconnect.spec.ts`，轮换 token 后进入 `closed` 整页说明）
+- 允许使用的依赖：无第三方运行时依赖；测试用 `vitest`、`jsdom`（`G.10` §3.4）。
 - 禁止事项：`G.02.05` 全部（特别是 R14、R21）；另：不在本节点显示任何界面或文案；不调用 `/health` 以外的接口；恢复时不调用解除急停或任何改变授权状态的接口；不把连接状态存进 localStorage。
-- 完成标志：`G.14` 全部条件；§10 五条验收通过。
+- 完成标志：`G.14` 全部条件；`W0405-T1`–`T7` 全部通过，`relay slice m1-web-proto` ①–⑦ 全部通过。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-27 | 状态改为"已审"；实施卡按 `G.02.06-R24` 重写，`W0405-T8`–`T10` Playwright 用例移入第 ⑫ 片 `W.12` | M1 第 ⑩a 片 `m1-web-proto` 复查（`P.09` K306） |

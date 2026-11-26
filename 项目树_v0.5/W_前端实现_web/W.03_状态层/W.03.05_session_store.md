@@ -6,9 +6,9 @@
 | 类型 | 实施 |
 | 上级 | W.03 状态层 |
 | 下级 | 无 |
-| 状态 | 草稿 |
-| 素材 | 引15（会话）；demo v0.5（v0.5.11）`32_sessions.js`（会话列表、`save` / `load` 整套现场、新建会话、`Alt+[ ]`）、`35_inbox.js`（待处理）；`U.09.04`；`P.09` K40、K73、K74、K81 |
-| 最后修改 | 2026-11-23 |
+| 状态 | 已审 |
+| 素材 | 引15（会话）；demo v0.5（v0.5.11）`32_sessions.js`（会话列表、`save` / `load` 整套现场、新建会话、`Alt+[ ]`）、`35_inbox.js`（待处理）；`U.09.04`；`P.09` K40、K73、K74、K81、K260、K306 |
+| 最后修改 | 2026-11-27 |
 
 ## 1. 职责
 应用级的会话数据和会话工作区：会话列表、各会话的活动摘要（运行中、待审批）、全局待审批、急停状态、已打开会话的对话；`SessionWorkspace` 的创建、复用、释放（最多 5 个）和事件流的开关；三条流的事件路由；React 用的 Provider 与 hook；以及应用级的目录 store（`W.03` §4.5，K81）。
@@ -258,9 +258,14 @@ export function createWorkspaceManager(deps: StateDeps, app: { ui: UiStoreApi; s
 7. 急停后：顶部条急停横幅出现、待审批清空；全局搜索代码，除急停横幅确认框外没有调用 `releaseEstop` 的地方。
 
 ### 实施卡
-- 要建 / 要改的文件：`web/src/state/sessionStore.ts`、`web/src/state/sessionStore.test.ts`、`web/src/state/activityPoller.ts`、`web/src/state/activityPoller.test.ts`、`web/src/state/workspace.ts`、`web/src/state/workspace.test.ts`、`web/src/state/eventRouter.ts`、`web/src/state/eventRouter.test.ts`、`web/src/state/WorkspaceProvider.tsx`、`web/src/state/WorkspaceProvider.test.tsx`、`web/src/state/hooks.ts`、`web/src/state/deps.ts`、`web/src/state/catalogStore.ts`、`web/src/state/catalogStore.test.ts`、`web/src/state/hubStore.ts`、`web/src/state/hubStore.test.ts`（`W.03` §4.6，K143；测试至少覆盖：60 秒内不重复加载、`createConnection` 后状态与请求日志里没有 `secrets` 的明文、`setPackageEnabled` 后调 `ensureDefs`、`lastCreatedConnection.seq` 递增、`patchSettings` 成功后 `catalog.setSettings`）、`web/src/state/appStores.ts`、`web/tests/e2e/session-switch.spec.ts`；`web/eslint.config.js` 只加两条：`releaseEstop` 的使用限制（§7）；启用自定义规则 `hx/no-bare-store`（`useXxxStore()` 必须带选择器，`G.06.02` §2；规则本身由 `W.12` 在 `tools/lint/eslint/` 实现，`P.09` K179）。
-- 不许碰的文件：`web/src/ops/`（Op 队列由 `W.05` 实现并经 `OpsFactory` 注入）、`web/src/lib/protocol/`、`web/src/routes/`、`web/src/canvas/`、`web/src/panels/`、其他 store 的实现文件（只用它们的工厂和导出类型）、`schema/`。
-- 函数签名：见 §4。
+- 要建 / 要改的文件：`web/src/state/types.ts`、`web/src/state/deps.ts`、`web/src/state/sessionStore.ts`、`web/src/state/sessionStore.test.ts`、`web/src/state/activityPoller.ts`、`web/src/state/activityPoller.test.ts`、`web/src/state/catalogStore.ts`、`web/src/state/catalogStore.test.ts`、`web/src/state/hubStore.ts`、`web/src/state/hubStore.test.ts`、`web/src/state/eventRouter.ts`、`web/src/state/eventRouter.test.ts`、`web/src/state/workspace.ts`、`web/src/state/workspace.test.ts`、`web/src/state/WorkspaceProvider.tsx`、`web/src/state/WorkspaceProvider.test.tsx`、`web/src/state/hooks.ts`、`web/src/state/appStores.ts`、`web/eslint.config.js`
+- 说明：属于第 ⑩b 片 `m1-web-state` 最后一个叶子（`W.03.01` → `W.03.04` → `W.03.05`，`P.09` K306）。
+  1. `web/src/state/types.ts` 保留 `W.03.03` 的基础类型并补齐 `CanvasStores`、`AppStores` 与 `ViewStoreLike`/`ModelStoreLike` 解耦接口（`W.03.02` 在第 ⑪ 片、`W.03.06` 在 M4，通过 `StateDeps` 的可选工厂回调 `createView?`/`createModel?` 注入，零悬空 import）；`web/src/state/deps.ts` 在 `W.04.01` 协议形状基础上补齐 `OpsHandle`/`OpsFactory`/`StateDeps`。
+  2. `Effort`、`Session`、`Message`、`MessageRef`、`Selection`、`GraphMeta`、`RunMeta`、`NodeDefItem`、`NodeDef`、`TypeItem`、`TypeDef`、`Model`、`Template`、`Recipe`、`Rolecard`、`Mandate` 一律从 `@/lib/protocol` 导入（不手写重复业务类型，`W.04.04-R4`）；M2–M4 未入 `api.schema.json` 的响应（`Approval`/`ApprovalGroup`/`Settings`/`Package`/`Connection`/`McpServer` 等）使用最小结构记录占位，待后端 `B.04.15` 扩展后收紧。
+  3. `hubStore.test.ts` 至少覆盖：60 秒内不重复加载、`createConnection` 后状态与日志里没有 `secrets` 明文、`setPackageEnabled` 后调 `ensureDefs`、`lastCreatedConnection.seq` 递增、`patchSettings` 成功后调 `catalog.setSettings`。
+  4. `web/eslint.config.js` 只加两条：① `releaseEstop` 标识符限制（只允许在 `src/panels/notice/**` 与 `src/state/**` 声明/定义处及测试文件中出现，`W.03.05` §7）；② 启用 `hx/no-bare-store` 规则（`G.06.02-R3`、`P.09` K179）。`W0305-T15` 用 ESLint API 断言 `src/panels/chat/bad.ts` 调用 `releaseEstop` 与无参调用 `useSessionStore()` 均报错。
+- 不许碰的文件：`web/src/ops/`（Op 队列由 `W.05` 实现并经 `OpsFactory` 注入）、`web/src/lib/protocol/`、`web/src/routes/`、`web/src/canvas/`、`web/src/panels/`、`web/src/state/graphStore.ts`、`web/src/state/uiStore.ts`、`web/src/state/runStore.ts`、`schema/`
+- 函数签名：见 §4 与 `W.03` §4.2、§4.5、§4.6。
 - 测试用例（假 `RestClient`、假 `StreamClient`、假 `OpsFactory`、假时钟）：
   - `W0305-T1 列表`：`loadList` 分页追加；`create` 插在置顶之后；`remove` 后释放工作区并 `dropSelection`
   - `W0305-T2 乐观回退`：`rename` 返回 500 → 标题恢复、Promise 拒绝
@@ -276,12 +281,13 @@ export function createWorkspaceManager(deps: StateDeps, app: { ui: UiStoreApi; s
   - `W0305-T12 切换不等网络`：内存里的工作区 `activate` 在流打开之前就通知订阅者（假 `StreamClient` 延迟 2 秒，`activate` 返回 ≤ 50ms）
   - `W0305-T13 换图`：`setLocation` 从图 A 到图 B → A 的 graph / model / view `dispose`、A 的图协同流关闭、发出 `PATCH active_graph_id`、run store 收到 `setGraph(B)`
   - `W0305-T14 路由表`：`W.03` §6.2 每一行一条事件，断言到达了正确的 store 方法；不认识的 `kind` 只记 `console.debug`
-  - `W0305-T15 释放急停的限制`：lint 反例文件在 `panels/chat/` 里调用 `releaseEstop` → 报错
-  - `W0305-T16 目录 store`：`ensureDefs` 同一哈希只请求一次；哈希变了重新请求
-  - `W0305-T17 端到端`：§10 验收 2、3、4（Playwright，`--fake-llm`）
-- 允许使用的依赖：`react`、`zustand`（`G.10` §3.3）；测试用 `vitest`、`jsdom`、`@playwright/test`。
+  - `W0305-T15 释放急停的限制`：ESLint API 断言 `src/panels/chat/bad.ts` 调用 `releaseEstop` 报错，且无参 `useSessionStore()` 触发 `hx/no-bare-store` 报错
+  - `W0305-T16 目录 store`：`ensureDefs` 同一哈希只请求一次；哈希变了重新请求；`settingOf` 正确映射路径且保留 `packages.<id>.<key>` 原样
+- 在其他叶子跑的测试用例（不算本叶子的完成条件，`P.09` K306）：
+  - `W0305-T17 端到端`：第 ⑫ 片 `W.12`（`web/tests/e2e/session-switch.spec.ts`，§10 验收 2、3、4，Playwright + `--fake-llm`）
+- 允许使用的依赖：`react`、`zustand`（`G.10` §3.3）；测试用 `vitest`、`jsdom`、`eslint`（`G.10` §3.4）。
 - 禁止事项：`G.02.05` 全部（特别是 R14、R20、R28）；另：后台工作区不连任何事件流；除急停横幅确认框外不调用 `releaseEstop`；不在 localStorage 存会话、消息、审批；不在 `state/` 里 import `ops/`。
-- 完成标志：`G.14` 全部条件；§10 七条验收通过。
+- 完成标志：`G.14` 全部条件；§10 单元测试对应验收全部通过，`relay slice m1-web-state` ①–⑦ 全部通过。
 
 ## 变更记录
 | 日期 | 变更 | 原因 |
@@ -290,3 +296,4 @@ export function createWorkspaceManager(deps: StateDeps, app: { ui: UiStoreApi; s
 | 2026-11-23 | §4.1 新增 `graphMeta`、`inbox` 状态和 `reloadConversation`、`upload`、`listFiles`、`contextUsage`、`compact`、`clearMessages`、`loadGraphMeta`、`loadInbox`、`getApproval`；`send` 改为带 `selection`、`refs` 的选项对象 | 第 8 棒写 `W.07`；`P.09` K113、K114 |
 | 2026-11-23 | 实施卡加 `hubStore.ts` 及其测试要点；目录 store 加 `settingOf`、`ensureLibSig` | 第 9 棒写 `W.09`；`P.09` K142、K143、K145 |
 | 2026-11-23 | 实施卡：`useXxxStore()` 带选择器改为启用 `hx/no-bare-store`（规则实现归 `W.12`） | W 全枝复查；`P.09` K179 |
+| 2026-11-27 | 状态改为"已审"；对齐 M1 契约类型与 `viewStore`/`modelStore` 可选工厂解耦，实施卡按 R24 重写，`W0305-T17` 移入第 ⑫ 片 `W.12` | M1 第 ⑩b 片 `m1-web-state` 复查（`P.09` K306） |

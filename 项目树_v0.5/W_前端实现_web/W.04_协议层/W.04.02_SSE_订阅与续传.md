@@ -6,9 +6,9 @@
 | 类型 | 实施 |
 | 上级 | W.04 协议层 |
 | 下级 | 无 |
-| 状态 | 草稿 |
-| 素材 | 设18 §8.4（运行事件流）；引09 §3.5（断线重连）、§4（`subscribe`）；`B.05.02`–`B.05.04`；`C.06.01` §4；`P.09` K83、K86 |
-| 最后修改 | 2026-11-23 |
+| 状态 | 已审 |
+| 素材 | 设18 §8.4（运行事件流）；引09 §3.5（断线重连）、§4（`subscribe`）；`B.05.02`–`B.05.04`；`C.06.01` §4；`P.09` K83、K86、K300、K306 |
+| 最后修改 | 2026-11-27 |
 
 ## 1. 职责
 `createStreamClient`：打开三种 SSE 流（会话流、图协同流、运行流），按帧解析、转 camelCase、按 `seq` 去重后交给调用方；断线自动重连并续传；处理控制帧 `resync`、`shutdown`；保证同时最多 3 条连接、每种流最多 1 条。
@@ -140,9 +140,10 @@ export function createSseParser(onFrame: (f: SseFrame) => void, onBytes: () => v
 5. 新事件名（schema 里没有的 `kind`）照样交给 `onEvent`，不崩溃。
 
 ### 实施卡
-- 要建 / 要改的文件：`web/src/lib/protocol/events.ts`、`web/src/lib/protocol/events.test.ts`、`web/src/lib/protocol/sse.ts`、`web/src/lib/protocol/sse.test.ts`。
-- 不许碰的文件：`web/src/lib/protocol/generated/`、`client.ts`、`mapping.ts`、`offline.ts`（只用导出）、`web/src/state/`（只 import `deps.ts` 的类型）、`schema/`、`internal/`。
-- 函数签名：见 §4。
+- 要建 / 要改的文件：`web/src/lib/protocol/sse.ts`、`web/src/lib/protocol/sse.test.ts`、`web/src/lib/protocol/events.ts`、`web/src/lib/protocol/events.test.ts`、`web/src/lib/protocol/assemble.ts`、`web/src/lib/protocol/assemble.test.ts`、`web/src/lib/protocol/index.ts`
+- 说明：属于第 ⑩a 片 `m1-web-proto` 最后一个叶子（`W.04.05` → `W.04.01` → `W.04.02`，`P.09` K300、K306）；本叶子同步落齐 `assemble.ts`（`createProtocol`）并在 `web/src/lib/protocol/index.ts` 补齐 `assemble`、`client`、`ulid`、`events`、`offline` 全部对外导出，同时确保 `W0403-T9` 继续全绿。
+- 不许碰的文件：`web/src/lib/protocol/generated/`、`web/src/lib/protocol/client.ts`、`web/src/lib/protocol/mapping.ts`、`web/src/lib/protocol/offline.ts`、`web/src/state/`（只 import `deps.ts` 的类型）、`schema/`、`internal/`
+- 函数签名：见 §4；`createProtocol` 见 `W.04` §4.2。
 - 测试用例（假 `fetch` 返回可控的 `ReadableStream`、假 `Connectivity`、假时钟）：
   - `W0402-T1 解析`：一帧里多行 `data`、`\r\n` 换行、注释行、跨 chunk 切开的帧、没有 `event` 的帧（`message`）都解析正确
   - `W0402-T2 映射与回调`：`data` 里的 `run_id`、`cause_seq` → `runId`、`causeSeq`；`data.data` 里节点 `params` 的键不变
@@ -160,6 +161,12 @@ export function createSseParser(onFrame: (f: SseFrame) => void, onBytes: () => v
   - `W0402-T14 回调异常`：`onEvent` 对第 2 条抛错 → 第 3 条照常交出
   - `W0402-T15 未知事件`：`event: foo.bar` 的合法信封 → 交给 `onEvent`
   - `W0402-T16 shutdown`：收到 `event: shutdown` → `reportFailure('shutdown')` 并退避重连
-- 允许使用的依赖：无第三方运行时依赖；测试用 `vitest`、`jsdom`。
+  - `W0402-T17 协议组装`：`createProtocol` 组装后的 `client`/`streams`/`net` 共用同一个 `Connectivity`，且 `@/lib/protocol` 入口导出完整
+- 允许使用的依赖：无第三方运行时依赖；测试用 `vitest`、`jsdom`（`G.10` §3.4）。
 - 禁止事项：`G.02.05` 全部（特别是 R3：控制帧名、事件名用生成常量）；另：不使用 `EventSource`；不用 `Last-Event-ID` 头；不在本节点缓存或重放事件内容；不在 `onEvent` 之外改调用方的状态；`close()` 后不调用回调。
-- 完成标志：`G.14` 全部条件；§10 五条验收通过。
+- 完成标志：`G.14` 全部条件；§10 五条验收通过，`relay slice m1-web-proto` ①–⑦ 全部通过。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-27 | 状态改为"已审"；实施卡按 `G.02.06-R24` 重写，纳入 `assemble.ts` 与 `index.ts` 完整导出并补 `W0402-T17` | M1 第 ⑩a 片 `m1-web-proto` 复查（`P.09` K300、K306） |

@@ -6,9 +6,9 @@
 | 类型 | 实施 |
 | 上级 | W 前端实现 web/ |
 | 下级 | 无 |
-| 状态 | 草稿 |
-| 素材 | 设18 §4（Op 与 dispatch，旧版 Op 名与本地撤销栈已作废，只作参考）；引08 §4.2（前端处理 409）、§7（拖动合并）；`C.05`；`E.05`；`P.09` K82、K87–K90 |
-| 最后修改 | 2026-11-23 |
+| 状态 | 已审 |
+| 素材 | 设18 §4（Op 与 dispatch，旧版 Op 名与本地撤销栈已作废，只作参考）；引08 §4.2（前端处理 409）、§7（拖动合并）；`C.05`；`E.05`；`P.09` K82、K87–K90、K256、K260、K306 |
+| 最后修改 | 2026-11-27 |
 
 ## 1. 职责
 `web/src/ops/`：前端修改图的唯一入口 `dispatch`。对每次用户修改做提示性预检，乐观地应用到 graph store，按顺序提交 `POST /graphs/{id}/ops`，用服务端确认的 Op 校正本地图；失败时回滚、409 时本地合并或请用户选择；处理图协同流的 `op.applied` / `op.coalesced`、版本缺口和重拉；连续拖动每 250ms 提交一次；撤销、重做、撤回；上报"正在编辑"。
@@ -324,10 +324,11 @@ type QueueState = {
 7. 在 `panels/` 里直接调用 `GraphWriter` 或绕过 `dispatch` 改图：ESLint 报错（`W.03.01` §10 验收 5）。
 
 ### 实施卡
-- 要建 / 要改的文件：`web/src/ops/index.ts`、`web/src/ops/types.ts`、`web/src/ops/queue.ts`、`web/src/ops/queue.test.ts`、`web/src/ops/apply.ts`、`web/src/ops/apply.test.ts`、`web/src/ops/validate.ts`、`web/src/ops/validate.test.ts`、`web/src/ops/typecheck.ts`、`web/src/ops/typecheck.test.ts`、`web/src/ops/merge.ts`、`web/src/ops/merge.test.ts`、`web/src/ops/gesture.ts`、`web/src/ops/gesture.test.ts`、`web/src/ops/history.ts`、`web/src/ops/history.test.ts`、`web/src/ops/presence.ts`、`web/src/ops/registry.ts`（图 → `OpsApi`、后台队列）、`web/src/ops/useOps.ts`、`web/src/ops/hash.ts`、`web/src/ops/hash.test.ts`、`web/tests/e2e/ops.spec.ts`。
-- 不许碰的文件：`web/src/state/`（只用导出的类型、`GraphWriter`、`fromDoc` / `toDoc`、选择器）、`web/src/lib/protocol/`（含 `generated/`）、`web/src/canvas/`、`web/src/panels/`、`schema/`（测试只读 `schema/examples/`）、`engine/`、`internal/`。
+- 要建 / 要改的文件：`web/src/ops/types.ts`、`web/src/ops/hash.ts`、`web/src/ops/hash.test.ts`、`web/src/ops/typecheck.ts`、`web/src/ops/typecheck.test.ts`、`web/src/ops/apply.ts`、`web/src/ops/apply.test.ts`、`web/src/ops/validate.ts`、`web/src/ops/validate.test.ts`、`web/src/ops/merge.ts`、`web/src/ops/merge.test.ts`、`web/src/ops/gesture.ts`、`web/src/ops/gesture.test.ts`、`web/src/ops/history.ts`、`web/src/ops/history.test.ts`、`web/src/ops/presence.ts`、`web/src/ops/presence.test.ts`、`web/src/ops/queue.ts`、`web/src/ops/queue.test.ts`、`web/src/ops/registry.ts`、`web/src/ops/useOps.ts`、`web/src/ops/index.ts`、`web/src/lib/i18n/zh.ts`
+- 说明：属于第 ⑩c 片 `m1-web-ops` 的唯一叶子（`P.09` K306）。响应结构使用 `@/lib/protocol` 的 `OpsApplied`、`OpsProposed`、`GraphConflictDetails`、`OpRecord`（K260）；`web/src/lib/i18n/zh.ts` 仅补齐 `ops.*` 运行期提示文案（409 合并、冲突、202 提议、锁节点解锁、依赖撤回、撤销失败等）；`W05-T17` 同时满足 `E0203-T4`（`P.09` K256）；`W05-T16` 在本片单元测试覆盖 `schema/examples/op_vectors.json` 全乐观合法向量，真实后端联调哈希比对与 `W05-T23` Playwright 用例移入第 ⑫ 片 `W.12`。
+- 不许碰的文件：`web/src/state/`（只用导出的类型、`GraphWriter`、`fromDoc` / `toDoc`、选择器）、`web/src/lib/protocol/`（含 `generated/`）、`web/src/canvas/`、`web/src/panels/`、`schema/`（测试只读 `schema/examples/`）、`engine/`、`internal/`
 - 函数签名：见 §4。
-- 测试用例（假 `RestClient`、假时钟、内存 graph store；e2e 用 `anydoor --fake-llm`）：
+- 测试用例（假 `RestClient`、假时钟、内存 graph store）：
   - `W05-T1 乐观与回声`：`dispatch(set_param)` → graph store 立即变化、`sync.pending=1`；200 后 `sync` 仍为 `saving`；收到同 id 的 `op.applied` → 条目移出、`pending=0`、`idle`、结果 `applied`
   - `W05-T2 回声先到`：`op.applied` 先于 POST 响应到达 → 只应用一次，结果正确
   - `W05-T3 串行与 base_version`：连续 3 次 `dispatch`：同一时刻只有 1 个请求在途；第 2 个请求的 `base_version` 等于第 1 个响应的 `version`
@@ -343,22 +344,24 @@ type QueueState = {
   - `W05-T13 coalesced`：远端 `op.coalesced{opId: 已知, to:{moves}}` → 节点到新位置、版本不变；`opId` 未知 → `reload()`
   - `W05-T14 手势节流`：假时钟 3 秒内 `update` 180 次 → `dispatch` ≤ 13 次、全部带同一 `coalesceKey` 和 `groupId`；`end` 立即提交最后一条；`cancel`（已提交过）→ 提交 `revert`；`cancel`（没提交过）→ 不发请求
   - `W05-T15 预检`：P1–P11 每条一个正例一个反例；`assign_vectors.json` 全集结果与文件一致（`C0402-T1` 前端一侧）；资源 `ref` → Agent `context` 被拒、规则 C2（`C0402-T2`）；类型未加载时 `uncertain:true`；急停中用户的 `set_param` 预检通过（K82）
-  - `W05-T16 本地应用一致`（端到端，`anydoor --fake-llm`）：`schema/examples/ops/` 里每个"乐观"类合法示例，先在前端对示例图 `applyOp` 算 `graphHash`，再提交给服务端、`GET /graphs/{id}` 后算哈希，两者相同
-  - `W05-T17 哈希向量`：`schema/examples/hash_vectors.json` 每条 `graphHash` 与期望值相同（`E0203-T3`）
+  - `W05-T16 本地应用一致`（单元测试侧）：读取 `schema/examples/op_vectors.json` 中每条乐观类合法示例并在示例图上执行 `applyOp`，验证 `toDoc` 规范化结构完整、结构共享且未修改原图
+  - `W05-T17 哈希向量`：`schema/examples/hash_vectors.json` 每条 `canonicalJson` 与 `graphHash` 与期望值逐字节相同（落实 `E0203-T3` / `E0203-T4`）
   - `W05-T18 撤销`：有排队修改时 `undo` 先等它们提交；`applied=[]` → `nothing`；正常 → `done` 且 `touched` 含改动所在的层；409 → `failed`、提示原因；有冲突时 `undo` 直接 `failed`
   - `W05-T19 不乐观的 Op`：`group` 不改本地图，`op.applied` 到达后图里出现子图引用节点和服务端生成的端口
   - `W05-T20 释放与接回`：有未确认条目时 `dispose` → 后台队列继续提交；同一张图再建队列 → 接回剩余条目；`beforeunload` 在有条目时注册、清空后注销
   - `W05-T21 presence`：1 秒内 `setEditing` 10 次 → 请求 ≤ 2 个；保持编辑 45 秒 → 重发 2 次；变空 → 发一次空列表
   - `W05-T22 容器节点`：`dispatch(add_node 循环)` 的 payload 自带一对子图端口；乐观结果的 `scopes` 有这个容器
-  - `W05-T23 端到端`：§10 验收 1、2、6（Playwright）
-  - `W05-T24 ESLint`：`panels/` 下的反例文件 import `GraphWriter` → 报错
+  - `W05-T24 ESLint`：ESLint API 校验 `src/panels/bad.ts` import `GraphWriter` → 报错
   - `W05-T25 portTypes 与 fits`：`portTypes(scope)` 与 `inferScope` 结果相同，同一 `model` 下两次调用返回同一个 Map；`fits` 对 `assign_vectors.json` 每条与 `assignable(...).ok` 一致
-- 允许使用的依赖：无第三方运行时依赖（`zustand/vanilla` 只用于 `conflict` 的小 store，`G.10` §3.3）；测试用 `vitest`、`jsdom`、`@playwright/test`。
+- 在其他叶子跑的测试用例（不算本叶子的完成条件，`P.09` K306）：
+  - `W05-T23 端到端`：第 ⑫ 片 `W.12`（`web/tests/e2e/ops.spec.ts`，§10 验收 1、2、6 及 `W05-T16` 真实服务端 `anydoor --fake-llm` 哈希联调，Playwright）
+- 允许使用的依赖：`zustand`（`zustand/vanilla` 用于 `conflict` 小 store，`G.10` §3.3）；测试用 `vitest`、`jsdom`、`eslint`（`G.10` §3.4）。
 - 禁止事项：`G.02.05` 全部（特别是 R1–R3、R6、R14、R28）；另：不在前端计算逆操作、不保存撤销栈；不在 Op 里填 `actor` / `approver` / `reason` / `taint`；不对"等服务端"一栏的 Op 做乐观应用；不用 `tmp:N`；拖动中提交不得快于每 250ms 一次；不在 localStorage 存未提交的修改；不调用解除急停。
-- 完成标志：`G.14` 全部条件；§10 七条验收通过。
+- 完成标志：`G.14` 全部条件；§10 单元测试对应验收全部通过，`relay slice m1-web-ops` ①–⑦ 全部通过。
 
 ## 变更记录
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | §4.1 `OpsApi` 新增 `portTypes`、`fits`；测试 `W05-T25` | `P.09` K99（画布要显示推断后的端口类型、给不在图里的节点挑端口） |
 | 2026-11-23 | §6.7：远端 Op 写 graph store 时填 `change.opIds`、`groupId` | 第 8 棒写 `W.07.10`；`P.09` K114 |
+| 2026-11-27 | 状态改为"已审"；对齐 `OpsApplied`/`OpsProposed`（K260），实施卡按 R24 重写，加入 `zh.ts` 运行期文案与 `E0203-T4` 覆盖，`W05-T23` 移入第 ⑫ 片 `W.12` | M1 第 ⑩c 片 `m1-web-ops` 复查（`P.09` K306） |

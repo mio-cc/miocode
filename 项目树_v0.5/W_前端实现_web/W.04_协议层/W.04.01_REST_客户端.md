@@ -6,9 +6,9 @@
 | 类型 | 实施 |
 | 上级 | W.04 协议层 |
 | 下级 | 无 |
-| 状态 | 草稿 |
-| 素材 | 设18 §8.4（Op 提交部分）；引09 §1（幂等）、§4（`HarnessClient`）；`B.03.01`–`B.03.05` |
-| 最后修改 | 2026-11-23 |
+| 状态 | 已审 |
+| 素材 | 设18 §8.4（Op 提交部分）；引09 §1（幂等）、§4（`HarnessClient`）；`B.03.01`–`B.03.05`；`P.09` K235、K306 |
+| 最后修改 | 2026-11-27 |
 
 ## 1. 职责
 `createRestClient`：把 store 的一次调用变成一次 `/api/v1` 请求——字段映射、幂等键、ETag 缓存、超时，再把响应转成 camelCase 返回，或把失败变成结构化的 `ApiError` / `NetError` 抛出；同时提供 ULID 生成和路径拼接。
@@ -30,7 +30,7 @@
 // web/src/lib/protocol/client.ts
 import type { Query, RestClient } from '@/state/deps';            // 形状以 W.03 §4.3 为准（仅类型）
 import type { Connectivity } from './offline';
-import type { ApiErrorCode } from './generated/errors';
+import type { ApiErrorCode, Ulid } from './types';                // K306：ApiErrorCode 来自 ./types（无 ./generated/errors）
 
 export class ApiError extends Error {
   readonly status: number;            // HTTP 状态码
@@ -144,15 +144,16 @@ export function isUlid(s: string): s is Ulid;        // ^[0-9A-HJKMNP-TV-Z]{26}$
 5. 前端代码里没有 `/api/v1` 以外的地址常量（`W.01-R3`）。
 
 ### 实施卡
-- 要建 / 要改的文件：`web/src/lib/protocol/client.ts`、`web/src/lib/protocol/client.test.ts`、`web/src/lib/protocol/ulid.ts`、`web/src/lib/protocol/ulid.test.ts`；`web/vite.config.ts` 只加一处 `define: { __HX_VERSION__ }`（取 `package.json` 的 `version`，与 `anydoor` 同版本发布，`O`）。
-- 不许碰的文件：`web/src/lib/protocol/generated/`、`web/src/lib/protocol/mapping.ts`、`events.ts`、`offline.ts`（只用它们的导出）、`web/src/state/`（只 import `deps.ts` 的类型）、`schema/`、`internal/`。
+- 要建 / 要改的文件：`web/src/state/deps.ts`、`web/src/env.d.ts`、`web/src/lib/protocol/ulid.ts`、`web/src/lib/protocol/ulid.test.ts`、`web/src/lib/protocol/client.ts`、`web/src/lib/protocol/client.test.ts`
+- 说明：属于第 ⑩a 片 `m1-web-proto`（`W.04.05` → `W.04.01` → `W.04.02`，`P.09` K306）。`web/vite.config.ts` 已在第 ⑧ 片定义 `__HX_VERSION__`，本叶子建 `web/src/env.d.ts` 声明其全局类型；`web/src/state/deps.ts` 本叶子首建协议最小接口形状（`Query`/`RestClient`/`ApiError`/`NetError`/`StreamSpec`/`StreamState`/`StreamHandle`/`StreamClient`），`StateDeps`/`OpsFactory` 等由 10b `W.03.05` 补全；`client.ts` 按 K235/K306 维护 M1 路径 → `WireTypeName` 映射表（支持 `GraphRead`/`OpsRequest`/`OpsApplied`/`OpsProposed`/`GraphConflictDetails`/`OpRecordPage`/`RunStart`/`RunStarted`/`RunView`/`NodeSnapshot`/`NodeDetail`/`NodeDefItem[]`/`TypeItem[]`/`Model[]`/`Session`/`SessionPage`/`SessionCreate`/`SessionUpdate`/`SessionGraphAttach` 等），并对未登记的 M2–M4 路径按键转换且保留开放对象键（`params`/`ui`/`meta`/`kv`/`to`）原样。
+- 不许碰的文件：`web/src/lib/protocol/generated/`、`web/src/lib/protocol/mapping.ts`、`web/src/lib/protocol/events.ts`、`web/src/lib/protocol/offline.ts`、`web/vite.config.ts`、`schema/`、`internal/`
 - 函数签名：见 §4。
 - 测试用例（假 `fetch`、假 `Connectivity`、假时钟）：
   - `W0401-T1 地址与方法`：`get('/runs', {sessionId: S, status: ['pending','running']})` → `GET /api/v1/runs?session_id=S&status=pending,running`；`path` 含 `?` 时开发模式抛错
   - `W0401-T2 幂等键`：`post` 不传键 → 请求头有合法 ULID；连续两次调用键不同；传 `{idempotencyKey: K}` → 头里是 `K`；`patch`、`put`、`del` 不带
-  - `W0401-T3 请求体映射`：`post('/graphs/x/ops', {baseVersion: 3, ops: [{kind:'set_param', payload:{node:N, key:'max_rounds', to:{a_b:1}}}]})` → 发出的 JSON 是 `base_version`，`payload.key`、`to` 里的 `a_b` 不变
-  - `W0401-T4 响应映射`：响应 `{graph:{…}, registry_hash:'h', diags:[]}` → 返回 `{graph, registryHash, diags}`；节点 `params` 里的 `max_rounds` 不变
-  - `W0401-T5 错误`：409 `{error:{code:'graph_conflict', details:{head:5, missed_ops:[…]}, request_id:R}}` → `ApiError{status:409, code:'graph_conflict', details:{head:5, missedOps:[…]}, requestId:R}`；响应体是 HTML → `code='internal'`
+  - `W0401-T3 请求体映射`：`post('/graphs/x/ops', {baseVersion: 3, branch: 'main', ops: [{id: U, kind:'set_param', payload:{node:N, key:'max_rounds', to:{a_b:1}}}]})` → 发出的 JSON 是 `base_version`，`payload.key`、`to` 里的 `a_b` 不变
+  - `W0401-T4 响应映射`：`get('/graphs/x')` 响应 `{graph:{…}, registry_hash:'h', diags:[]}` → 返回 `{graph, registryHash, diags}`；节点 `params` 里的 `max_rounds` 不变
+  - `W0401-T5 错误`：409 `{error:{code:'graph_conflict', details:{head:5, missed_ops:[…], conflicts:[]}, request_id:R}}` → `ApiError{status:409, code:'graph_conflict', details:{head:5, missedOps:[…], conflicts:[]}, requestId:R}`；响应体是 HTML → `code='internal'`
   - `W0401-T6 429`：`Retry-After: 2` → `retryAfterMs=2000`
   - `W0401-T7 连接状态`：`fetch` 抛 `TypeError` → `NetError('network')` 且 `reportFailure('rest')` 一次；任意 500 响应 → `reportOk()`；401 → `reportUnauthorized()`；中止 → `NetError('aborted')` 且不报告
   - `W0401-T8 超时`：假时钟推进 35 秒 → `NetError('timeout')`
@@ -165,4 +166,9 @@ export function isUlid(s: string): s is Ulid;        // ^[0-9A-HJKMNP-TV-Z]{26}$
   - `W0401-T15 不泄露`：`post('/providers', {secret:'sk-xxx'})` 返回 500 → 测试期间 `console.*` 没有被调用，`ApiError` 的任何字段里没有 `sk-`
 - 允许使用的依赖：无第三方运行时依赖；测试用 `vitest`、`jsdom`（`G.10` §3.4）。
 - 禁止事项：`G.02.05` 全部（特别是 R1、R3、R20、R21、R28）；另：不自动重试；不弹提示、不调用 `ui.notify`；不发 `X-Actor` / `X-Mandate` / `Authorization` 头；不在 localStorage、sessionStorage 存任何响应；不打印请求体或响应体。
-- 完成标志：`G.14` 全部条件；§10 五条验收通过。
+- 完成标志：`G.14` 全部条件；§10 五条验收通过，`relay slice m1-web-proto` ①–⑦ 全部通过。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-27 | 状态改为"已审"；§4 `ApiErrorCode` 改从 `./types` 导入；实施卡按 `G.02.06-R24` 重写，首建 `web/src/state/deps.ts` 与 `web/src/env.d.ts`，说明按类型映射表 | M1 第 ⑩a 片 `m1-web-proto` 复查（`P.09` K306） |

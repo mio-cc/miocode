@@ -6,9 +6,9 @@
 | 类型 | 实施 |
 | 上级 | W.03 状态层 |
 | 下级 | 无 |
-| 状态 | 草稿 |
-| 素材 | 设18 §3.2（`run` 一节）；demo `设计规范_v0.3/src/28_run.js`（运行模拟、节点状态与进度）；demo v0.5 `39_monitor.js`（运行列表、步骤按层分组）；`C.06.02` §9（前端去向） |
-| 最后修改 | 2026-11-23 |
+| 状态 | 已审 |
+| 素材 | 设18 §3.2（`run` 一节）；demo `设计规范_v0.3/src/28_run.js`（运行模拟、节点状态与进度）；demo v0.5 `39_monitor.js`（运行列表、步骤按层分组）；`C.06.02` §9（前端去向）；`P.09` K260、K306 |
+| 最后修改 | 2026-11-27 |
 
 ## 1. 职责
 一个会话工作区的运行数据：本会话的运行列表、**当前运行**（画布正在显示状态的那一次）的状态、费用、预算、升级、日志，以及节点执行的实时投影；启动、暂停、继续、取消、分叉、回放这些动作；当前运行的运行流的开关。
@@ -223,8 +223,9 @@ export function createRunStore(o: {
 6. 运行进入终态后 5 秒内会话列表的"● 运行中"消失（`onTerminal` 触发活动刷新）。
 
 ### 实施卡
-- 要建 / 要改的文件：`web/src/state/runLive.ts`、`web/src/state/runLive.test.ts`、`web/src/state/runStore.ts`、`web/src/state/runStore.test.ts`、`web/src/state/__fixtures__/run_loop3.events.json`（闭环迭代 3 轮的事件序列，按 `schema/examples/events/run/` 的格式手写）。
-- 不许碰的文件：`web/src/canvas/`（`RunBridge` 在 `W.06.15`）、`web/src/lib/protocol/`、`web/src/state/sessionStore.ts`、`schema/`。
+- 要建 / 要改的文件：`web/src/state/runLive.ts`、`web/src/state/runLive.test.ts`、`web/src/state/runStore.ts`、`web/src/state/runStore.test.ts`、`web/src/state/__fixtures__/run_loop3.events.json`
+- 说明：属于第 ⑩b 片 `m1-web-state`（`W.03.01` → `W.03.04` → `W.03.05`，`P.09` K306）。`run_loop3.events.json` 按 `schema/examples/run_event_vectors.json` 的真实信封格式编写；`EscalationItem`/`BriefItem` 为本 store 内部视图结构（聚合 `escalation.*`/`brief.updated` 事件）；M2/M5 契约未落地的 `timeline`（`Bar`）与 `nodeReplay`（`NodeReplay`）在 M1 使用最小记录占位，待对应里程碑收紧；`RunView` 按 `B.04.15` 读取（`pendingPatches` 可选缺省为空数组）。
+- 不许碰的文件：`web/src/canvas/`（`RunBridge` 在 `W.06.15`）、`web/src/lib/protocol/`、`web/src/state/sessionStore.ts`、`web/src/state/graphStore.ts`、`schema/`
 - 函数签名：见 §4。
 - 测试用例（假 `RestClient`、假 `StreamClient`、假时钟）：
   - `W0304-T1 最新执行`：同一节点第 1、2 轮的 `node.state` → `stateOf` 返回第 2 轮；`execsOf` 两条；`footOf` 的 `round.cur=2`
@@ -240,10 +241,11 @@ export function createRunStore(o: {
   - `W0304-T11 交回路由`：`approval.requested`、`estop.triggered`、`orch.tool_call` 交给 `onRouted`，本 store 状态不变
   - `W0304-T12 日志上限`：2100 条 `node.log` → 保留后 2000 条
   - `W0304-T13 快照模式`：`mode:'snapshot'` 拉 `/view?at_seq=`，`attach` 不开流
-  - `W0304-T14 性能`：10 万条事件 `ingest` 总耗时 ≤ 2 秒（vitest bench）
-- 允许使用的依赖：`zustand`；测试用 `vitest`、`jsdom`。
+- 在其他叶子跑的测试用例（不算本叶子的完成条件，`P.09` K306）：
+  - `W0304-T14 性能`：第 ⑪ 片 `W.11`（10 万条事件 `ingest` 总耗时 ≤ 2 秒，vitest bench）
+- 允许使用的依赖：`zustand`（`G.10` §3.3）；测试用 `vitest`、`jsdom`（`G.10` §3.4）。
 - 禁止事项：`G.02.05` 全部（特别是 R3、R25）；另：不把实时投影放进 zustand 状态；不在本 store 存审批和急停；同时不开两条运行流；不缓存节点详情超过 20 条。
-- 完成标志：`G.14` 全部条件；§10 六条验收通过。
+- 完成标志：`G.14` 全部条件；§10 六条验收通过，`relay slice m1-web-state` ①–⑦ 全部通过。
 
 ## 变更记录
 | 日期 | 变更 | 原因 |
@@ -251,3 +253,4 @@ export function createRunStore(o: {
 | 2026-11-23 | `ExecState` 增加 `activeOuts`（`node.state{to:done}` 的 `active_outs`）；`RunBridge` 的订阅写为 `live.subscribe` | `P.09` K108（第 7 棒，`W.06.15` 判断未激活的连线） |
 | 2026-11-23 | `LiveRun.all`、`CurrentRun.pendingPatches`、`timeline`、`blob` | 第 8 棒写 `W.07.03`、`W.07.05`；`P.09` K114、K117 |
 | 2026-11-23 | `RunActions` 加 `nodeReplay`、`seek`（快照模式按 seq 跳转） | 第 9 棒写 `W.09.05`；`P.09` K146 |
+| 2026-11-27 | 状态改为"已审"；对齐 `B.04.15` M1 `RunView` 与事件向量格式，实施卡按 R24 重写，`W0304-T14` 移入 `W.11` | M1 第 ⑩b 片 `m1-web-state` 复查（`P.09` K306） |
