@@ -167,8 +167,8 @@ export function bpOf(width: number): ShellLayout['bp'];
 7. `/welcome` 时侧栏不可聚焦；其他页面急停按钮可用。
 
 ### 实施卡
-- 要建 / 要改的文件：`web/src/shell/AppShell.tsx`、`web/src/shell/AppShell.css`、`web/src/shell/CanvasArea.tsx`、`web/src/shell/CanvasArea.css`、`web/src/shell/FloatLayer.tsx`、`web/src/shell/BannerSlot.tsx`、`web/src/shell/layout.ts`、`web/src/shell/breakpoints.ts`、`web/src/shell/uiEnv.ts`、`web/src/shell/layout.test.ts`、`web/src/shell/AppShell.test.tsx`、`web/src/App.tsx`、`web/src/main.tsx`、`web/src/main.ts`、`web/src/lib/i18n/zh.ts`
-- 说明：删除 `web/src/main.ts`（`STUB(W.02)`）并由 `main.tsx`、`App.tsx`、`shell/uiEnv.ts` 整体替换；`App.tsx` 传给 `UiEnvProvider` 的 `value` 用模块常量或 `useMemo` 固定引用（`P.09` K307）；`web/src/lib/i18n/zh.ts` 只补 `shell.*` 窄屏提示文案；宽度媒体查询限制已在第 ⑧ 片 `W.12` 写入 `web/stylelint.config.js`（`P.09` K305）。
+- 要建 / 要改的文件：`web/src/shell/AppShell.tsx`、`web/src/shell/AppShell.css`、`web/src/shell/CanvasArea.tsx`、`web/src/shell/CanvasArea.css`、`web/src/shell/FloatLayer.tsx`、`web/src/shell/BannerSlot.tsx`、`web/src/shell/layout.ts`、`web/src/shell/breakpoints.ts`、`web/src/shell/uiEnv.ts`、`web/src/shell/layout.test.ts`、`web/src/shell/AppShell.test.tsx`、`web/src/App.tsx`、`web/src/main.tsx`、`web/src/main.ts`、`web/src/lib/i18n/zh.ts`、`web/src/state/types.ts`、`web/src/state/uiStore.ts`、`web/src/state/uiStore.test.ts`、`web/src/shell/theme/useTheme.ts`、`web/src/shell/theme/themeController.test.ts`、`web/src/shell/keys/registry.ts`、`web/src/shell/keys/registry.test.ts`、`web/src/routes/nav.ts`、`web/src/routes/nav.test.ts`、`web/src/routes/SessionRoute.tsx`、`web/src/routes/SessionRoute.test.tsx`、`web/eslint.config.js`
+- 说明：删除 `web/src/main.ts`（`STUB(W.02)`）并由 `main.tsx`、`App.tsx`、`shell/uiEnv.ts` 整体替换；`App.tsx` 传给 `UiEnvProvider` 的 `value` 用模块常量或 `useMemo` 固定引用（`P.09` K307）；`web/src/lib/i18n/zh.ts` 只补 `shell.*` 窄屏提示文案；宽度媒体查询限制已在第 ⑧ 片 `W.12` 写入 `web/stylelint.config.js`（`P.09` K305）；其余前序叶子文件为第 ⑨c 片第 1 轮独立交叉评审返工（`P.09` K309、K238）。
 - 不许碰的文件：`design/tokens.css`、`web/src/styles/tokens.css`、`web/src/canvas/`、`web/src/panels/`、`schema/`
 - 函数签名：见 §4.1–§4.3。
 - 测试用例：
@@ -190,3 +190,4 @@ export function bpOf(width: number): ShellLayout['bp'];
 | 2026-11-23 | §4.1：`FloatLayer` 的子元素包在 `FloatReplyProvider` 里；新增 `useCanvasAreaRect`；横幅列出子图库内容提示 | 第 8 棒写 `W.07`；`P.09` K111 |
 | 2026-11-23 | `AppShell` 新增 `canvasOverlay`、`cover` 两个插槽（§4.1、§6.5a） | 第 9 棒写 `W.09`；`P.09` K146、K148 |
 | 2026-11-23 | §4.1：各区域包 `PerfRegion` | 第 10 棒写 `W.11`；`P.09` K167 |
+| 2026-11-27 | 实施卡补入第 ⑨c 片整片评审返工涉及的片内文件（按 K238 记入片内最后一个叶子） | 第 ⑨c 片第 1 轮独立交叉评审返工（`P.09` K309） |
