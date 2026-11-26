@@ -6,9 +6,9 @@
 | 类型 | 实施 |
 | 上级 | W.08 基础组件库 |
 | 下级 | 无 |
-| 状态 | 已审 |
+| 状态 | 冻结 |
 | 素材 | 设10 §10.4–§10.7；设计规范 v0.3 `src/06_controls.css`（`.hx-input`、`.hx-step`）；demo v0.5（v0.5.11）`17_fix.css`（搜索框透明底、聚焦 `bg-2`）；`P.09` K125–K127 |
-| 最后修改 | 2026-11-26 |
+| 最后修改 | 2026-11-27 |
 
 ## 1. 职责
 单行输入 `TextInput`、多行输入 `TextArea`、数字步进 `NumberStepper`、滑块 `Slider`、搜索框 `SearchInput`，以及它们共用的字段错误行 `FieldError`、数值计算 `stepMath.ts`、自动增高 `autosize.ts`。
@@ -247,3 +247,4 @@ export function fitRows(el: HTMLTextAreaElement, minRows: number, maxRows: numbe
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | 首版 | 第 9 棒；`P.09` K125–K127 |
+| 2026-11-27 | 状态改为"冻结"：M1 第 ⑨b 片 `m1-web-ui` squash 合并进代码仓库 `main`，提交 `bc699f053f37271acb0dd43d897c8910d98c63f9`（`G.02.06-R21`、`P.09` K307） | 三轮独立评审通过（`docs/relay/m1-web-ui.review.md`）；Codex 合并推送 |

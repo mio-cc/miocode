@@ -6,9 +6,9 @@
 | 类型 | 实施 |
 | 上级 | W.08 基础组件库 |
 | 下级 | 无 |
-| 状态 | 已审 |
+| 状态 | 冻结 |
 | 素材 | 设10 §10.0–§10.3、§10.29；设计规范 v0.3 `src/06_controls.css`（按钮、图标按钮、`kbd`）、`src/20_icons.js`（图标名）；demo v0.5（v0.5.11）`43_float.js` ②（流动高亮）、`21_flow.css`（`.hx-glide`）、`15_art.css`、`17_fix.css`（按钮透明底、顶部图标 `text-3`）；`P.09` K118、K122、K123、K125–K128 |
-| 最后修改 | 2026-11-26 |
+| 最后修改 | 2026-11-27 |
 
 ## 1. 职责
 按钮 `Button`、图标按钮 `IconButton`、键帽 `Kbd`、图标 `Icon`（含给画布引擎用的 `iconSvg`）、流动高亮 `GlideGroup`；以及 `W.08` 的唯一出口 `index.ts`、共用类型 `types.ts`、共用样式 `base.css`。
@@ -238,3 +238,4 @@ export const ICON_FALLBACK: IconName;   // '扩展'
 |---|---|---|
 | 2026-11-23 | 首版 | 第 9 棒；`P.09` K118、K122、K123、K125–K128 |
 | 2026-11-23 | 图标生成器的负责叶子改为 `C.14` | `P.09` K234 |
+| 2026-11-27 | 状态改为"冻结"：M1 第 ⑨b 片 `m1-web-ui` squash 合并进代码仓库 `main`，提交 `bc699f053f37271acb0dd43d897c8910d98c63f9`（`G.02.06-R21`、`P.09` K307） | 三轮独立评审通过（`docs/relay/m1-web-ui.review.md`）；Codex 合并推送 |
