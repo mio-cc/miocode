@@ -6,9 +6,9 @@
 | 类型 | 实施 |
 | 上级 | W.02 应用外壳与路由 |
 | 下级 | 无 |
-| 状态 | 草稿 |
+| 状态 | 已审 |
 | 素材 | demo v0.5（v0.5.11）`10_body.html`、`40_tidy.js`（`fitTarget`）；demo v0.4 `30_layout.js`、`08_layout.css`；`U.09.01`–`U.09.03` |
-| 最后修改 | 2026-11-23 |
+| 最后修改 | 2026-11-27 |
 
 ## 1. 职责
 会话页的整体骨架：顶部条、左侧栏、画布区域（画布 + 浮在画布上的各元素）、右侧栏、横幅的挂载位置和尺寸；侧栏收展、专注模式、断点、适应画布要避开的区域。
@@ -167,8 +167,9 @@ export function bpOf(width: number): ShellLayout['bp'];
 7. `/welcome` 时侧栏不可聚焦；其他页面急停按钮可用。
 
 ### 实施卡
-- 要建 / 要改的文件：`web/src/shell/AppShell.tsx`、`web/src/shell/AppShell.css`、`web/src/shell/CanvasArea.tsx`、`web/src/shell/CanvasArea.css`、`web/src/shell/FloatLayer.tsx`、`web/src/shell/BannerSlot.tsx`、`web/src/shell/layout.ts`、`web/src/shell/breakpoints.ts`、`web/src/shell/layout.test.ts`、`web/src/shell/AppShell.test.tsx`、`web/tests/visual/shell.spec.ts`（五个宽度 × 浅色深色截图）；`web/.stylelintrc.json` 只加 §4.3 的媒体查询限制。
-- 不许碰的文件：`design/tokens.css`（令牌缺失时上报）、`web/src/styles/tokens.css`（生成物）、`web/src/canvas/`、`web/src/panels/` 各组件的实现、`schema/`。
+- 要建 / 要改的文件：`web/src/shell/AppShell.tsx`、`web/src/shell/AppShell.css`、`web/src/shell/CanvasArea.tsx`、`web/src/shell/CanvasArea.css`、`web/src/shell/FloatLayer.tsx`、`web/src/shell/BannerSlot.tsx`、`web/src/shell/layout.ts`、`web/src/shell/breakpoints.ts`、`web/src/shell/uiEnv.ts`、`web/src/shell/layout.test.ts`、`web/src/shell/AppShell.test.tsx`、`web/src/App.tsx`、`web/src/main.tsx`、`web/src/main.ts`、`web/src/lib/i18n/zh.ts`
+- 说明：删除 `web/src/main.ts`（`STUB(W.02)`）并由 `main.tsx`、`App.tsx`、`shell/uiEnv.ts` 整体替换；`web/src/lib/i18n/zh.ts` 只补 `shell.*` 窄屏提示文案；宽度媒体查询限制已在第 ⑧ 片 `W.12` 写入 `web/stylelint.config.js`（`P.09` K305）。
+- 不许碰的文件：`design/tokens.css`、`web/src/styles/tokens.css`、`web/src/canvas/`、`web/src/panels/`、`schema/`
 - 函数签名：见 §4.1–§4.3。
 - 测试用例：
   - `W0202-T1 bpOf`：759→xs、760→sm、899→sm、900→md、1099→md、1100→lg、1179→lg、1180→xl
@@ -177,10 +178,11 @@ export function bpOf(width: number): ShellLayout['bp'];
   - `W0202-T4 覆盖式右栏`：宽 1000 时打开右栏，主体列宽不变；在画布空白按下后关闭
   - `W0202-T5 小地图避让`：宽 1180、画布窄到与对话框相交时小地图隐藏
   - `W0202-T6 持久化`：§10 验收 6
-  - `W0202-T7 视觉回归`：§10 验收 1
-- 允许使用的依赖：`react`、`zustand`、`@/lib/perf` 的 `PerfRegion`（`W.11`）；测试用 `vitest`、`jsdom`、`@playwright/test`。
+- 在其他叶子跑的测试用例（不算本叶子的完成条件）：
+  - `W0202-T7 视觉回归`（`web/tests/visual/shell.spec.ts`）：`W.12`（第 ⑫ 片 Playwright 视觉回归，`P.09` K305）
+- 允许使用的依赖：`react`、`react-dom`、`react-router`、`zustand`；测试用 `vitest`、`jsdom`。
 - 禁止事项：`G.02.05` 全部；另：不对宽度、高度、`left`、`top` 做动画；不写宽度媒体查询；不在外壳里改画布视图。
-- 完成标志：`G.14` 全部条件（含浅色、深色截图）；§10 七条验收通过。
+- 完成标志：`G.14` 全部条件；§10 验收通过。
 
 ## 变更记录
 | 日期 | 变更 | 原因 |

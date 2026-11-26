@@ -6,9 +6,9 @@
 | 类型 | 实施 |
 | 上级 | W.03 状态层 |
 | 下级 | 无 |
-| 状态 | 草稿 |
+| 状态 | 已审 |
 | 素材 | 设18 §3.2（`ui` 一节）；demo `设计规范_v0.3/src/22_state.js`（`sel`、`tool`、`focus`）；demo v0.5 `32_sessions.js`（切换会话保存 / 恢复选中）、`39_monitor.js`（筛选记住）；`W.02.02` §4.2（`ShellLayout`） |
-| 最后修改 | 2026-11-23 |
+| 最后修改 | 2026-11-27 |
 
 ## 1. 职责
 整个应用唯一的一份界面状态：外壳布局（收编 `W.02.02` 的 `ShellLayout`，不另起一套）、每个会话各自的画布选中、当前工具、列表视图、监控页筛选、中心窗口、与服务的连接状态、提示队列。
@@ -181,8 +181,9 @@ export function canvasReadonly(s: UiState): boolean;                       // ne
 6. 断开服务 3 秒以上：画布不能拖动、属性页不能编辑；恢复后可以（`U.14.05`）。
 
 ### 实施卡
-- 要建 / 要改的文件：`web/src/state/uiStore.ts`、`web/src/state/uiStore.test.ts`。
-- 不许碰的文件：`web/src/shell/`（`W.02.02` 只调用本 store）、`web/src/canvas/`、`web/src/panels/`、`web/src/lib/`。
+- 要建 / 要改的文件：`web/package.json`、`web/pnpm-lock.yaml`、`web/src/state/types.ts`、`web/src/state/uiStore.ts`、`web/src/state/uiStore.test.ts`
+- 说明：`web/package.json`、`web/pnpm-lock.yaml` 仅安装已登记的 `zustand`；`web/src/state/types.ts` 首建 `Scope`、`ReadonlyStore`、`SelectionKey` 基础类型（`P.09` K305）。
+- 不许碰的文件：`web/src/shell/`、`web/src/canvas/`、`web/src/panels/`、`web/src/lib/`
 - 函数签名：见 §4。
 - 测试用例（内存 `Storage` 假实现）：
   - `W0303-T1 缺省值`：空存储、宽 1440 → `lsOpen=true`；空存储、宽 800 → `lsOpen=false`；已有 `hx:ls-open="1"`、宽 800 → `true`

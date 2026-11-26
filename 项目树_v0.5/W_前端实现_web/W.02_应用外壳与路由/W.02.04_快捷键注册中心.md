@@ -6,9 +6,9 @@
 | 类型 | 实施 |
 | 上级 | W.02 应用外壳与路由 |
 | 下级 | 无 |
-| 状态 | 草稿 |
+| 状态 | 已审 |
 | 素材 | 设13；demo v0.5 `26_keys.js`；`U.13.04`（含 K72 的 R5、R6）、`U.16` §3 |
-| 最后修改 | 2026-11-23 |
+| 最后修改 | 2026-11-27 |
 
 ## 1. 职责
 全前端唯一的键盘快捷键入口：从数据表加载全部快捷键，按"当前在哪一层界面"分发按键，检查冲突，提供给提示框、速查面板、设置页显示用的按键文字。
@@ -72,7 +72,7 @@
 ### 4.2 运行时接口
 ```ts
 // web/src/shell/keys/registry.ts
-import { SHORTCUTS } from '@/lib/protocol/generated/tables';   // 生成物
+import { SHORTCUTS } from '@/lib/protocol';   // 经协议出口导入生成物（P.09 K303）
 export type ShortcutId = (typeof SHORTCUTS)[number]['id'];
 export type KeyHandler = (e: KeyboardEvent, phase: 'down' | 'up') => boolean;  // 返回 true = 已处理
 export type Overlay = 'modal' | 'popover' | 'peek';           // §6.1 最上面三层
@@ -158,8 +158,9 @@ export const keys: {
 8. 往表里加一条 `Mod+W`：测试失败。
 
 ### 实施卡
-- 要建 / 要改的文件：`schema/builtin/shortcuts.yaml`（按 §4.1 建立；这是实施本叶子时唯一允许改动的 `schema/` 文件）、`web/src/shell/keys/registry.ts`、`web/src/shell/keys/normalize.ts`、`web/src/shell/keys/registry.test.ts`、`web/src/shell/keys/normalize.test.ts`、`web/tests/e2e/shortcuts.spec.ts`；`web/eslint.config.js` 只加 §7 那一条规则。
-- 不许碰的文件：`web/src/lib/protocol/generated/`（运行 `make gen` 重新生成，不手改）、`tools/gen/`（生成器已支持 `schema/builtin/*.yaml` 表，`C.14` §2；不支持时上报）、`web/src/canvas/`、各功能模块的处理函数实现。
+- 要建 / 要改的文件：`web/src/shell/keys/registry.ts`、`web/src/shell/keys/normalize.ts`、`web/src/shell/keys/index.ts`、`web/src/shell/keys/registry.test.ts`、`web/src/shell/keys/normalize.test.ts`、`web/src/lib/i18n/zh.ts`、`web/eslint.config.js`
+- 说明：`schema/builtin/shortcuts.yaml` 已由第 ⑨a 片 `C.14` 落地，本叶子只读 `@/lib/protocol` 的 `SHORTCUTS`；`web/src/lib/i18n/zh.ts` 只补 `shortcut.*` 44 条文案；`web/eslint.config.js` 只加 §7 禁止在 `shell/keys/` 以外监听全局键盘规则（`P.09` K305）。
+- 不许碰的文件：`schema/`、`web/src/lib/protocol/generated/`、`tools/gen/`、`web/src/canvas/`
 - 函数签名：见 §4.2。
 - 测试用例：
   - `W0204-T1 规范化`：`Alt+N`（macOS `key='˜'`、`code='KeyN'`）→ `Alt+N`；Windows `Ctrl+K` 与 macOS `Meta+K` 都 → `Mod+K`
@@ -170,9 +171,11 @@ export const keys: {
   - `W0204-T6 hold 补发`：§10 验收 6
   - `W0204-T7 label`：§10 验收 7
   - `W0204-T8 处理函数异常`：抛错后不落到下一层
-- 允许使用的依赖：无运行时依赖（标准 DOM API）；测试用 `vitest`、`jsdom`、`@playwright/test`。
+- 在其他叶子跑的测试用例（不算本叶子的完成条件）：
+  - `web/tests/e2e/shortcuts.spec.ts`：`W.12`（第 ⑫ 片 Playwright e2e，`P.09` K305）
+- 允许使用的依赖：无运行时依赖（标准 DOM API）；测试用 `vitest`、`jsdom`。
 - 禁止事项：`G.02.05` 全部；另：不在 `shell/keys/` 以外监听键盘；不占用 `U.13.04-R2` 的保留键；不提供任何解除急停的快捷键。
-- 完成标志：`G.14` 全部条件；§10 八条验收通过。
+- 完成标志：`G.14` 全部条件；§10 验收通过。
 
 ## 变更记录
 | 日期 | 变更 | 原因 |

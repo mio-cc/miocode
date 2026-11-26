@@ -6,9 +6,9 @@
 | 类型 | 实施 |
 | 上级 | W.02 应用外壳与路由 |
 | 下级 | 无 |
-| 状态 | 草稿 |
+| 状态 | 已审 |
 | 素材 | 设02；demo v0.5 `31_palette.js`、`09_palettes.css`；`U.03.04`、`U.03.05`、`U.07.04` |
-| 最后修改 | 2026-11-23 |
+| 最后修改 | 2026-11-27 |
 
 ## 1. 职责
 主题 = 配色 × 明暗（`U.03.05`）：首屏不闪地应用、切换、跟随系统、保存到本地和服务端配置、多个标签页同步，以及"减少动效"开关；通知画布引擎重画用 canvas 绘制的缩略图。
@@ -122,18 +122,19 @@ export const DEFAULT_PALETTE = 'paper';
 8. 页面 CSP 不放宽，控制台没有"违反 CSP"报错。
 
 ### 实施卡
-- 要建 / 要改的文件：`web/public/boot.js`、`web/index.html`（只加 §4.1 那一行）、`web/src/shell/theme/themeController.ts`、`web/src/shell/theme/useTheme.ts`、`web/src/shell/theme/themeController.test.ts`、`web/src/styles/base.css`（只加 §6.2 第 2 步那条规则）、`web/tests/e2e/theme.spec.ts`、`web/tests/visual/themes.spec.ts`。
-- 不许碰的文件：`web/src/styles/themes.css`、`web/src/styles/themes.ts`、`web/src/styles/tokens.css`（生成物）、`design/`、`cmd/anydoor/`（CSP 在 `B.03.05` 里，不改）。
+- 要建 / 要改的文件：`web/public/boot.js`、`web/index.html`、`web/src/shell/theme/themeController.ts`、`web/src/shell/theme/useTheme.ts`、`web/src/shell/theme/index.ts`、`web/src/shell/theme/themeController.test.ts`、`web/src/styles/base.css`
+- 说明：`web/index.html` 替换 `STUB(W.02)`，加载 `/boot.js` 与 `/src/main.tsx`；`W0203-T7`/`T8` 推到 `W.12` 第 ⑫ 片（`P.09` K305）。
+- 不许碰的文件：`web/src/styles/themes.css`、`web/src/styles/themes.ts`、`web/src/styles/tokens.css`、`design/`、`cmd/anydoor/`
 - 函数签名：见 §4.2。
 - 测试用例：
   - `W0203-T1 解析`：mode=system × 系统明 / 暗；motion=auto × 系统减少动效开 / 关
   - `W0203-T2 非法本地值`：`hx:theme-palette='xyz'` → 宣纸
-  - `W0203-T3 切换无过渡`：切换期间 `--hx-t-2` 计算值为 0s，两帧后恢复
+  - `W0203-T3 切换无过渡`：切换期间 `html[data-theme-switching]` 存在，两帧后移除且 `base.css` 定义时长 0s
   - `W0203-T4 服务端为准`：本地 paper、服务端 whale → 结果 whale，localStorage 被改写
   - `W0203-T5 PATCH 合并`：300ms 内连续切 3 次只发 1 次
   - `W0203-T6 storage 同步不重复保存`：§10 验收 5
-  - `W0203-T7 首屏不闪`：§10 验收 2（Playwright 录屏取第一帧像素）
-  - `W0203-T8 视觉`：§10 验收 1
-- 允许使用的依赖：`react`；测试用 `vitest`、`jsdom`、`@playwright/test`。
+- 在其他叶子跑的测试用例（不算本叶子的完成条件）：
+  - `W0203-T7 首屏不闪`、`W0203-T8 视觉`：`W.12`（第 ⑫ 片 Playwright e2e 与视觉回归，`P.09` K305）
+- 允许使用的依赖：`react`；测试用 `vitest`、`jsdom`。
 - 禁止事项：`G.02.05` 全部；另：不用内联 `<script>`、不放宽 CSP；不在组件里写主题分支；不在组件里写死配色列表。
-- 完成标志：`G.14` 全部条件；§10 八条验收通过。
+- 完成标志：`G.14` 全部条件；§10 验收通过。

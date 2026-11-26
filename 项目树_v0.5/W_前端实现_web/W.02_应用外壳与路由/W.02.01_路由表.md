@@ -6,9 +6,9 @@
 | 类型 | 实施 |
 | 上级 | W.02 应用外壳与路由 |
 | 下级 | 无 |
-| 状态 | 草稿 |
+| 状态 | 已审 |
 | 素材 | 引01 §3；`P.09` K27、K68；`U.13.06-R3`；`U.09.04-R7` |
-| 最后修改 | 2026-11-23 |
+| 最后修改 | 2026-11-27 |
 
 ## 1. 职责
 定义前端全部路由、每条路由的解析规则，以及"进入层、返回、切换会话、切换图"和浏览器前进后退的对应关系。
@@ -105,8 +105,9 @@ export function useNav(): {
 5. 引导未完成时打开 `/c/…`：先进入 `/welcome`。
 
 ### 实施卡
-- 要建 / 要改的文件：`web/src/routes/index.tsx`（路由表）、`web/src/routes/nav.ts`、`web/src/routes/SessionRoute.tsx`、`web/src/routes/nav.test.ts`、`web/src/routes/SessionRoute.test.tsx`、`web/tests/e2e/routes.spec.ts`；`web/eslint.config.js` 只加一条 `no-restricted-imports` 规则（`useNavigate` 只能在 `routes/nav.ts`）。
-- 不许碰的文件：`web/src/lib/protocol/generated/`、`web/src/canvas/`、`web/src/state/` 的实现（只能用导出的 store 和工作区接口）、`schema/`。
+- 要建 / 要改的文件：`web/package.json`、`web/pnpm-lock.yaml`、`web/src/routes/index.tsx`、`web/src/routes/nav.ts`、`web/src/routes/SessionRoute.tsx`、`web/src/routes/nav.test.ts`、`web/src/routes/SessionRoute.test.tsx`、`web/eslint.config.js`
+- 说明：`web/package.json`、`web/pnpm-lock.yaml` 只安装已登记的 `react-router`；`web/eslint.config.js` 只加一条禁止在 `routes/nav.ts` 以外 import `useNavigate` 的规则；未实现的 `W.03.05`/`W.09.*` 经依赖注入接口解耦（`P.09` K305）。
+- 不许碰的文件：`web/src/lib/protocol/generated/`、`web/src/canvas/`、`web/src/state/`、`schema/`
 - 函数签名：见 §4.2。
 - 测试用例：
   - `W0201-T1 toUrl / parseUrl 往返`：`{s,g,root}`、`{s,g,X}`、非法 ULID → `null`
@@ -115,9 +116,11 @@ export function useNav(): {
   - `W0201-T4 跨会话后退`：§10 验收 3
   - `W0201-T5 scope 不存在`：§10 验收 4
   - `W0201-T6 last_location 节流`：1 秒内 5 次层变化只发 1 次 PATCH，内容是最后一次
-- 允许使用的依赖：`react`、`react-router`、`zustand`（`G.10` §3.3）；测试用 `vitest`、`@playwright/test`。
+- 在其他叶子跑的测试用例（不算本叶子的完成条件）：
+  - `web/tests/e2e/routes.spec.ts`：`W.12`（第 ⑫ 片 Playwright e2e，`P.09` K305）
+- 允许使用的依赖：`react`、`react-router`、`zustand`（`G.10` §3.3）；测试用 `vitest`、`jsdom`。
 - 禁止事项：`G.02.05` 全部；另：不把中心窗口、预览、右栏标签放进 URL；不在 `nav.ts` 以外改 URL。
-- 完成标志：`G.14` 全部条件；§10 五条验收通过。
+- 完成标志：`G.14` 全部条件；§10 验收通过。
 
 ## 变更记录
 | 日期 | 变更 | 原因 |

@@ -6,9 +6,9 @@
 | 类型 | 实施 |
 | 上级 | W 前端实现 web/ |
 | 下级 | W.03.01 graph store、W.03.02 view store、W.03.03 ui store、W.03.04 run store、W.03.05 session store、W.03.06 model store |
-| 状态 | 草稿 |
+| 状态 | 已审 |
 | 素材 | 设18 §1.3、§3、§5（按 Next.js 写的旧版，只作参考，`P.09` K9）；demo `设计规范_v0.3/src/22_state.js`；demo v0.5（v0.5.11）`32_sessions.js`、`28_run.js`、`29_model.js`、`39_monitor.js` |
-| 最后修改 | 2026-11-23 |
+| 最后修改 | 2026-11-27 |
 
 ## 1. 职责
 `web/src/state/`：前端所有"服务器数据"和"界面状态"的唯一存放处——六个 zustand store、会话工作区（`SessionWorkspace`）、三条事件流到各 store 的路由，以及组件和画布引擎读这些数据的方式。
