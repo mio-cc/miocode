@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 已审 |
 | 素材 | 设10 §10.18–§10.20、§10.23；`U.06` §3；`U.16-R6`；`W.02.04` §6.1；`G.06.01-R9`；`P.09` K121、K125、K126 |
-| 最后修改 | 2026-11-26 |
+| 最后修改 | 2026-11-27 |
 
 ## 1. 职责
 所有浮层的唯一实现：界面环境 `UiEnvProvider` / `useUiEnv`、浮层底座 `Overlay`（顶层容器、层级、按键压栈、焦点移入 / 回位 / 循环、外部点击、进出动画）、锚定弹层 `Popover`（`@floating-ui/dom` 定位）、菜单 `Menu`（含子菜单）、确认框 `Dialog`、提示框 `Tooltip`；以及内部的浮层栈 `layerStack.ts`、定位 `position.ts`、焦点工具 `focus.ts`。
@@ -162,7 +162,7 @@ export function resolveRestore(r: OverlayProps['restoreFocus'], opener: Element 
    - `Escape` → 有 `onClose` 时 `onClose('esc')`，返回 true（`W.02.04` §10 验收 4：只关这一层，因为注册中心只把键交给栈顶）；
    - `Tab` 且 `trapFocus` → `cycleTab(content, e)`；
    - 其余 → `onKey?.(e) ?? false`。
-4. 初始焦点（`useLayoutEffect`，挂载同一帧）：`'first'` → `focusInitial(content, 'first')`（没有可聚焦元素时退到 `'container'`，内容根 `tabIndex=-1`）；`'container'` → 聚焦内容根；`'none'` → 不动（组合框：焦点留在输入框，`W.08` §6.2）。
+4. 初始焦点（`useLayoutEffect`，仅在 `open` 从 `false` 变为 `true` 时执行一次，不随 `env` 重渲染抢焦点，`P.09` K307）：`'first'` → `focusInitial(content, 'first')`（没有可聚焦元素时退到 `'container'`，内容根 `tabIndex=-1`）；`'container'` → 聚焦内容根；`'none'` → 不动（组合框：焦点留在输入框，`W.08` §6.2）。
 5. 外部点击：打开期间在 `document` 上挂 `pointerdown` 捕获阶段监听（`W.08-R9`）；目标不在 `inTree(id, target)` 里、且 `closeOnOutside` → `onClose('outside')`。点在锚点上不算外部（锚点按钮自己负责开关，避免"关了又开"）。
 6. 非模态、`initialFocus ≠ 'none'` 的浮层：内容上的 `focusout` 的 `relatedTarget` 不在 `inTree` 里（`Tab` 走出了弹层）→ `onClose('tab')`。
 7. `open` 变 false：立即出栈（`pushOverlay` 返回的函数、`pushLayer` 返回的函数），`phase='leaving'`，根元素 `pointer-events: none`，离开动画结束（`animationend`，或 `--hx-t-2` 后的保底计时）后卸载。焦点回位：`resolveRestore(restoreFocus, opener)` 得到的元素仍在文档里、且当前焦点在浮层内或在 `body` 上 → `focus({preventScroll: true})`；焦点已经被用户移到别处 → 不抢。
@@ -185,7 +185,7 @@ export function resolveRestore(r: OverlayProps['restoreFocus'], opener: Element 
 - 画布上的弹层（快速添加）按屏幕坐标定位，自身尺寸不随画布缩放（`设10` §10.19）。
 
 ### 6.3 `Menu`（`U.13.05-R1`、`R2`，`U.11` §2，`设10` §10.20）
-- 内部是 `Popover role='menu' padding='sm' initialFocus='container'`：`at` 是点 → 虚拟元素、`placement='right-start'`、`offset=0`；`at` 是元素 → `placement='bottom-start'`、`offset=4`。放不下时 `flip` / `shift` 自动翻转、避让视口（`W.07.11` §6）。宽：最小 220、最大 300（`calc` 令牌）。
+- 内部是 `Popover role='menu' padding='sm' initialFocus='container'`：`at` 是点 → 按 `at.x`、`at.y` 用 `useMemo` 缓存虚拟元素 `DOMRect`（避免悬停或方向键重渲染触发 `Popover` 反复 `place()` 闪烁，`P.09` K307）、`placement='right-start'`、`offset=0`；`at` 是元素 → `placement='bottom-start'`、`offset=4`。缺省 `ariaLabel` 取 `t('ui.menu')`（`P.09` K307）。放不下时 `flip` / `shift` 自动翻转、避让视口（`W.07.11` §6）。宽：最小 220、最大 300（`calc` 令牌）。
 - 行：高 28、`r-sm`、内边距 `0 var(--hx-s-4)`；结构 `[Icon 16 或 ✓] 标签 …… Kbd(inline) 或 ›`；高亮底 `bg-4`；`danger` 字 `danger`、高亮底 `danger-weak`；`model` 图标和字 `model`；禁用 `text-3`、高亮或悬停时 `Tooltip` 显示 `disabledReason`（`placement='right'`）；`{group}` 标题高 24、`fs-11`、`text-3`，不可聚焦；`'sep'` 为 1px `line-1`、上下 `s-2`。
 - 可访问性：内容根 `role="menu"`、`aria-activedescendant` 指向高亮项；项 `role="menuitem"`（`checked` 有值时 `menuitemcheckbox` + `aria-checked`），`aria-disabled`、有子菜单的 `aria-haspopup="menu"`、`aria-expanded`，读屏补充 `t('ui.submenu')`。
 - 键盘（`onKey`）：`↓` / `↑` 移动高亮（循环；跳过分组标题和分隔线，**不跳过**禁用项，让读屏能读到原因）；打开时没有高亮，第一次 `↓` 到第一项、`↑` 到最后一项；`Home` / `End`；可打印字符 → typeahead（500ms 缓冲）；`Enter` / 空格 → 选中（禁用项不响应）；`→` → 有子菜单时打开并高亮子菜单第一项；子菜单里 `←` → 关闭子菜单、高亮回到父项；`Esc` → 只关当前这一层（子菜单是自己的 `Overlay`，在栈顶）。
@@ -195,7 +195,7 @@ export function resolveRestore(r: OverlayProps['restoreFocus'], opener: Element 
 
 ### 6.4 `Dialog`（`U.11` §2"确认框"、`设10` §10.23）
 - 内部是 `Overlay layer='modal' scrim trapFocus`；面板 `hx-dialog` 居中，宽 `width`（内联几何值），底 `bg-2`、`shadow-pop`、`r-xl`、内边距 `s-8`。不用玻璃（`W.07` §6.5：对话框式弹窗不用）。
-- 结构：标题 `<h2 id>`（`fs-16`、600、`text-1`，`aria-labelledby`）→ 正文（`fs-13`、`text-2`，`aria-describedby` 指向它）→ `error`（`FieldError`）→ 按钮行（右对齐，间距 `s-3`；`actions` 按原顺序，`danger` 变体稳定地移到最右，`U.11` §2）。
+- 结构：标题 `<h2 id>`（`fs-16`、600、`text-1`，`aria-labelledby`）→ 正文（`fs-13`、`text-2`，`aria-describedby` 指向正文 `id`，存在 `error` 时同时包含 `FieldError` 的 `id`，`P.09` K307）→ `error`（`FieldError`）→ 按钮行（右对齐，间距 `s-3`；`actions` 按原顺序，`danger` 变体稳定地移到最右，`U.11` §2）。
 - `role`：有 `danger` 按钮 → `alertdialog`，否则 `dialog`；`aria-modal="true"`。
 - 初始焦点：`autoFocus` 的按钮 → 第一个非 `danger` 按钮（通常是"取消"）→ 正文里第一个可聚焦元素 → 面板本身。`Enter` 只触发**当前聚焦**的按钮（浏览器原生），不会默认触发危险操作（`设10` §10.23）。
 - `dismissible`（缺省 true）：`Esc` → `onClose('esc')`、点遮罩 → `onClose('outside')`；为 false 时两者都不关闭，`Esc` 仍被吞掉（不落到下层，`W.02.04` §6.1 的模态规则）。
@@ -242,8 +242,8 @@ export function resolveRestore(r: OverlayProps['restoreFocus'], opener: Element 
 8. 打开、关闭各类浮层 100 次后：`document` 上没有残留的 `pointerdown` 监听，`W.02.04` 栈为空（用 `fakeEnv` 计数）。
 
 ### 实施卡
-- 要建 / 要改的文件：`web/package.json`、`web/pnpm-lock.yaml`、`web/tests/kit/shell.ts`、`web/tests/kit/index.ts`、`web/src/components/ui/overlay/UiEnv.tsx`、`web/src/components/ui/overlay/UiEnv.test.tsx`、`web/src/components/ui/overlay/Overlay.tsx`、`web/src/components/ui/overlay/Overlay.css`、`web/src/components/ui/overlay/Overlay.test.tsx`、`web/src/components/ui/overlay/Popover.tsx`、`web/src/components/ui/overlay/Popover.css`、`web/src/components/ui/overlay/Popover.test.tsx`、`web/src/components/ui/overlay/Menu.tsx`、`web/src/components/ui/overlay/Menu.css`、`web/src/components/ui/overlay/Menu.test.tsx`、`web/src/components/ui/overlay/Dialog.tsx`、`web/src/components/ui/overlay/Dialog.css`、`web/src/components/ui/overlay/Dialog.test.tsx`、`web/src/components/ui/overlay/Tooltip.tsx`、`web/src/components/ui/overlay/Tooltip.css`、`web/src/components/ui/overlay/Tooltip.test.tsx`、`web/src/components/ui/overlay/layerStack.ts`、`web/src/components/ui/overlay/layerStack.test.ts`、`web/src/components/ui/overlay/position.ts`、`web/src/components/ui/overlay/position.test.ts`、`web/src/components/ui/overlay/focus.ts`、`web/src/components/ui/overlay/focus.test.ts`、`web/src/components/ui/index.ts`
-- 说明：`web/package.json`、`web/pnpm-lock.yaml` 只安装已登记的 `@floating-ui/dom`（`G.10` §3.3）；`web/tests/kit/shell.ts` 提供 `fakeEnv` 并经 `web/tests/kit/index.ts` 导出（`P.09` K304）。
+- 要建 / 要改的文件：`web/package.json`、`web/pnpm-lock.yaml`、`web/tests/kit/shell.ts`、`web/tests/kit/index.ts`、`web/src/lib/i18n/zh.ts`、`web/src/components/ui/overlay/UiEnv.tsx`、`web/src/components/ui/overlay/UiEnv.test.tsx`、`web/src/components/ui/overlay/Overlay.tsx`、`web/src/components/ui/overlay/Overlay.css`、`web/src/components/ui/overlay/Overlay.test.tsx`、`web/src/components/ui/overlay/Popover.tsx`、`web/src/components/ui/overlay/Popover.css`、`web/src/components/ui/overlay/Popover.test.tsx`、`web/src/components/ui/overlay/Menu.tsx`、`web/src/components/ui/overlay/Menu.css`、`web/src/components/ui/overlay/Menu.test.tsx`、`web/src/components/ui/overlay/Dialog.tsx`、`web/src/components/ui/overlay/Dialog.css`、`web/src/components/ui/overlay/Dialog.test.tsx`、`web/src/components/ui/overlay/Tooltip.tsx`、`web/src/components/ui/overlay/Tooltip.css`、`web/src/components/ui/overlay/Tooltip.test.tsx`、`web/src/components/ui/overlay/layerStack.ts`、`web/src/components/ui/overlay/layerStack.test.ts`、`web/src/components/ui/overlay/position.ts`、`web/src/components/ui/overlay/position.test.ts`、`web/src/components/ui/overlay/focus.ts`、`web/src/components/ui/overlay/focus.test.ts`、`web/src/components/ui/index.ts`
+- 说明：`web/package.json`、`web/pnpm-lock.yaml` 只安装已登记的 `@floating-ui/dom`（`G.10` §3.3）；`web/tests/kit/shell.ts` 提供 `fakeEnv` 并经 `web/tests/kit/index.ts` 导出（`P.09` K304）；`web/src/lib/i18n/zh.ts` 只补 `'ui.menu': '菜单'`（`P.09` K307）。
 - 不许碰的文件：`web/src/shell/`、`web/src/styles/`、`web/src/state/`、`web/src/ops/`、`web/src/panels/`、`web/src/pages/`、`web/src/canvas/`、`web/src/lib/protocol/`
 - 函数签名：见 §4。
 - 测试用例（`fakeEnv` 记录 `pushOverlay` 的种类、处理函数与出栈；测试直接调用栈顶处理函数模拟注册中心的分发）：
@@ -251,14 +251,14 @@ export function resolveRestore(r: OverlayProps['restoreFocus'], opener: Element 
   - `W0804-T2 压栈`：`layer='popover'` 打开 → `pushOverlay('popover')` 1 次；`'modal'` → `'modal'`；`'toast'` / `'tooltip'` → 0 次；`open=false` 或卸载 → 出栈函数被调用 1 次
   - `W0804-T3 层级`：根元素类 `hx-ov--modal`，CSS 里 `z-index: var(--hx-z-modal)`（读 `.css` 源码断言没有数字 z-index）
   - `W0804-T4 Esc`：调用栈顶处理函数 `Escape` → `onClose('esc')`、返回 true；`isComposing` → false；`Dialog dismissible=false` → 不调 `onClose` 但返回 true
-  - `W0804-T5 焦点`：`initialFocus='first'` → 第一个按钮获得焦点；`'none'` → 焦点不变；关闭后回到打开前的按钮；`restoreFocus=元素` → 回到该元素；关闭前用户已点到别的输入框 → 不抢焦点
+  - `W0804-T5 焦点`：`initialFocus='first'` → 第一个按钮获得焦点；`'none'` → 焦点不变；弹窗打开且焦点在输入框里时 `UiEnvProvider` 重渲染 → 焦点不被抢走（`P.09` K307）；关闭后回到打开前的按钮；`restoreFocus=元素` → 回到该元素；关闭前用户已点到别的输入框 → 不抢焦点
   - `W0804-T6 焦点循环`：`trapFocus` 时在最后一个元素上 `Tab` → 第一个；`Shift+Tab` 反向
   - `W0804-T7 外部点击`：外部 `pointerdown` → `onClose('outside')`；锚点上 → 不关；子浮层里 → 父浮层不关；`closeOnOutside=false` → 不关；关闭后 `document` 上没有监听
   - `W0804-T8 Tab 走出`：非模态弹层内容 `focusout` 到外部 → `onClose('tab')`；`initialFocus='none'` → 不关
   - `W0804-T9 Popover 定位`：`vi.mock('@floating-ui/dom')`：`computePosition` 收到 `placement`、`offset`、`flip`、`shift`；`strategy='fixed'`；结果写 `left` / `top`；`DOMRect` 锚点变成虚拟元素；锚点 `isConnected=false` → `onClose('outside')`；关闭后 `autoUpdate` 的清理被调用
-  - `W0804-T10 Menu 键盘`：打开无高亮；`↓` → 第一项；跳过分组标题与分隔线；禁用项可高亮、`Enter` 不触发；`→` 打开子菜单（`fakeEnv` 再压一层）、`←` 关闭；`Enter` → `run` 先于 `onPick`、随后 `onClose('action')`；typeahead "复"→"复制"
-  - `W0804-T11 Menu 位置`：`at={x,y}` → 虚拟元素 `placement='right-start'`；`at=元素` → `'bottom-start'`
-  - `W0804-T12 Dialog`：危险按钮排到最右（输入顺序 [删除, 取消] → 渲染 [取消, 删除]）；有危险按钮 → `role="alertdialog"`；初始焦点在"取消"；`error` → 红字；`busy` → 全部按钮 `disabled`
+  - `W0804-T10 Menu 键盘`：打开无高亮；`↓` → 第一项；跳过分组标题与分隔线；禁用项可高亮、`Enter` 不触发；`→` 打开子菜单（`fakeEnv` 再压一层）、`←` 关闭；`Enter` → `run` 先于 `onPick`、随后 `onClose('action')`；typeahead "复"→"复制"；缺省 `aria-label` 为 `t('ui.menu')`
+  - `W0804-T11 Menu 位置`：`at={x,y}` → 虚拟元素 `placement='right-start'`，按方向键/悬停重渲染不重新触发 `place()`（`P.09` K307）；`at=元素` → `'bottom-start'`
+  - `W0804-T12 Dialog`：危险按钮排到最右（输入顺序 [删除, 取消] → 渲染 [取消, 删除]）；有危险按钮 → `role="alertdialog"`；初始焦点在"取消"；`error` → 红字且 `FieldError` 的 `id` 写入对话框 `aria-describedby`（`P.09` K307）；`busy` → 全部按钮 `disabled`
   - `W0804-T13 Tooltip`：假时钟：`pointerenter` 后 399ms 不显示、400ms 显示；键盘聚焦立即显示；隐藏后 200ms 内进入另一个目标立即显示；同时只有一个 `role="tooltip"`；子元素原有 `onPointerEnter` 仍被调用；`Esc` 隐藏且事件未被 `stopPropagation`
   - `W0804-T14 减少动效`：`fakeEnv.reducedMotion=true` → 根元素带 `is-reduced`，CSS 在 `html[data-motion="reduce"]` 下没有 `transform` 过渡
   - `W0804-T15 泄漏`：各类浮层打开关闭 100 次 → `fakeEnv` 栈为空、`pushLayer` 栈为空
@@ -270,3 +270,4 @@ export function resolveRestore(r: OverlayProps['restoreFocus'], opener: Element 
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | 首版 | 第 9 棒；`P.09` K121、K125、K126 |
+| 2026-11-27 | `Overlay` 初始焦点仅 `false→true` 触发、`Menu` 点坐标 `useMemo` 缓存且默认 `ariaLabel` 用 `t('ui.menu')`、`Dialog` `error` 进 `aria-describedby` | 第 ⑨b 片主线评审修复片 `m1-web-ui-fix`（`P.09` K307） |

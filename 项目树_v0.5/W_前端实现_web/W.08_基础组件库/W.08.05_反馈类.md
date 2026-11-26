@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 已审 |
 | 素材 | 设10 §10.15–§10.17、§10.22、§10.28；demo v0.5（v0.5.11）`21_flow.css`（隐藏式滚动条）、`17_fix.css`；`U.14.01`、`U.14.02`；`P.09` K123、K124、K126、K128、K129 |
-| 最后修改 | 2026-11-26 |
+| 最后修改 | 2026-11-27 |
 
 ## 1. 职责
 单条提示 `Toast`、徽标 `Badge`、状态点 `StatusDot`、旋转弧 `Spinner`、进度条 `ProgressBar`、空状态 `EmptyState`，以及区域容器 `ScrollArea`（滚动条平时隐藏）和 `ErrorBoundary`（区域出错时的兜底）。
@@ -89,6 +89,7 @@ export type ScrollAreaProps = {
   axis?: 'y' | 'x' | 'both';           // 缺省 'y'
   className?: string;                  // 调用方的块类名（高度、内边距由调用方定）
   ariaLabel?: string;                  // 有值 → role="region"，tabIndex=0（内容里没有可聚焦元素时用键盘也能滚动）
+  onScroll?: React.UIEventHandler<HTMLDivElement>;   // 透传到真正滚动的根元素，供窗口化列表使用（P.09 K307）
   ref?: React.Ref<HTMLDivElement>;     // 调用方保存 / 恢复 scrollTop（W.07.03 §6.1）
 };
 export function ScrollArea(p: ScrollAreaProps): JSX.Element;
@@ -100,7 +101,7 @@ export type ErrorBoundaryProps = {
   name: string;                        // 写进 console.error，定位是哪一块（"右侧栏 · 监控"）
   resetKey?: unknown;                  // 变化时自动重试（切换会话后旧错误不再挡住新内容）
 };
-export class ErrorBoundary extends React.Component<ErrorBoundaryProps, { error: unknown | null }> { /* §6.8 */ }
+export class ErrorBoundary extends React.Component<ErrorBoundaryProps, { hasError: boolean; error: unknown }> { /* §6.8，P.09 K307 */ }
 ```
 
 ### 4.2 依赖
@@ -175,11 +176,11 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, { error: 
   - 颜色只用新令牌 `--hx-bg-thumb`（demo 的 `color-mix(… 16% …)` 不迁移，`G.06.03-R1`）。
 - `gutter='stable'` → `scrollbar-gutter: stable`（出现滑块时内容不跳，左栏用，`U.23-R20`）。
 - `.hx-scroll` 的滚动条规则同时用于 `W.08.02` 的 `TextArea`（它的根元素同时带 `hx-scroll` 类）。
-- 不用 JS 模拟滚动条、不监听滚动事件；`ref` 原样转给根元素。
+- 不用 JS 模拟滚动条；`onScroll` 与 `ref` 原样转给滚动根元素（`P.09` K307）。
 
-### 6.8 `ErrorBoundary`（`W.07` §8、`P.09` K129）
-- `static getDerivedStateFromError(error)` → `{error}`；`componentDidCatch(error, info)` → `console.error('[ErrorBoundary]', this.props.name, error, info.componentStack)`（`G.12` §2.1，`G.12-R10`）。
-- 有错误时渲染 `fallback(retry)`，`retry = () => this.setState({error: null})`；`componentDidUpdate` 里 `resetKey` 与上次不同（`Object.is`）且有错误 → 自动重试。
+### 6.8 `ErrorBoundary`（`W.07` §8、`P.09` K129、K307）
+- `static getDerivedStateFromError(error)` → `{hasError: true, error}`（用独立 `hasError` 标志，不以 `error === null` 判断，避免 `throw null` 漏判）；`componentDidCatch(error, info)` → `console.error('[ErrorBoundary]', this.props.name, error, info.componentStack)`（`G.12` §2.1，`G.12-R10`）。
+- `hasError` 为真时渲染 `fallback(retry)`，`retry = () => this.setState({hasError: false, error: null})`；`componentDidUpdate` 里 `resetKey` 与上次不同（`Object.is`）且 `hasError` 为真 → 自动重试。
 - 只接住渲染、生命周期里的错误；事件处理函数和 Promise 里的错误不经过它（React 的行为），由调用方按 `W.07` §8 处理。
 - 这是全前端唯一的 class 组件；其余组件一律函数组件（`G.06-R2`，`W.08-R13`）。
 
@@ -227,8 +228,8 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, { error: 
   - `W0805-T7 Spinner`：缺省 `role="status"` 且有视觉隐藏的 `ui.loading` 文字；`label=null` → `aria-hidden="true"`、没有 `role`
   - `W0805-T8 ProgressBar`：`value=1.4` → `--_v: 1`、`aria-valuenow=100`；`value=NaN` → 0；只有 `transform` 依赖 `--_v`（CSS 源码断言没有 `width` 过渡）
   - `W0805-T9 EmptyState`：标题、说明、按钮按顺序；`size='page'` 加 `hx-empty--page`；3 个动作只渲染 2 个；没有 `img`
-  - `W0805-T10 ScrollArea`：类名、`gutter='stable'` → `hx-scroll--stable`；`ariaLabel` → `role="region"`、`tabIndex=0`；`ref` 指向根元素；CSS 里滑块颜色是 `var(--hx-bg-thumb)`、宽 `var(--hx-s-3)`
-  - `W0805-T11 ErrorBoundary`：子组件抛错 → 渲染 `fallback`，`console.error` 的参数含 `name`；调 `retry` → 子组件重新渲染；`resetKey` 改变 → 自动恢复；兄弟组件不受影响
+  - `W0805-T10 ScrollArea`：类名、`gutter='stable'` → `hx-scroll--stable`；`ariaLabel` → `role="region"`、`tabIndex=0`；`ref` 指向根元素；`onScroll` 绑在滚动根元素上触发回调；CSS 里滑块颜色是 `var(--hx-bg-thumb)`、宽 `var(--hx-s-3)`
+  - `W0805-T11 ErrorBoundary`：子组件抛错（含 `throw null`）→ 渲染 `fallback`，`console.error` 的参数含 `name`；调 `retry` → 子组件重新渲染；`resetKey` 改变 → 自动恢复；兄弟组件不受影响
   - `W0805-T12 减少动效`：CSS 源码里 `html[data-motion="reduce"]` 下 `.hx-spin` 无 `animation`、`.hx-dot` 无呼吸、`.hx-toastcard` 无 `transform` 动画
 - 允许使用的依赖：`react`；测试用 `vitest`、`jsdom`。
 - 禁止事项：`G.02.05` 全部；另：不在 `Toast` 里自己计时消失；不用 JS 画滚动条；不用 `width` 做进度动画；除 `ErrorBoundary` 外不写 class 组件；空状态不放插画。
@@ -239,3 +240,4 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, { error: 
 |---|---|---|
 | 2026-11-23 | 首版 | 第 9 棒；`P.09` K123、K124、K126、K128、K129 |
 | 2026-11-23 | `ErrorBoundary` 的日志规则改为引用 `G.12` §2.1 | W 全枝复查；`P.09` K180 |
+| 2026-11-27 | `ScrollArea` 增加 `onScroll`、`ErrorBoundary` 改为独立 `hasError` 标志并补 `throw null` 用例 | 第 ⑨b 片主线评审修复片 `m1-web-ui-fix`（`P.09` K307） |

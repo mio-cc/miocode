@@ -8,7 +8,7 @@
 | 下级 | 无 |
 | 状态 | 已审 |
 | 素材 | 设10 §10.9、§10.11、§10.12、§10.25；设计规范 v0.3 `src/06_controls.css`（`.hx-select`）；demo v0.5（v0.5.11）`17_fix.css`（节点库筛选纯文字 + 下划线）、`21_flow.css`（思考强度分段）；`P.09` K123、K125–K127、K130 |
-| 最后修改 | 2026-11-26 |
+| 最后修改 | 2026-11-27 |
 
 ## 1. 职责
 下拉 `Select`、分段 `Segmented`、开关 `Switch`、标签页 `Tabs`、选择列表 `Picker`（`U.11` 的"选择器 picker"，`P.09` K130），以及它们共用的列表导航与窗口化计算 `listNav.ts`。
@@ -149,7 +149,7 @@ export function matchSpan(label: string, q: string): [number, number] | null;   
 - 打开时高亮当前值并滚到可见；`onChange` 只在选了**不同**的值时调用。
 - `footer`：列表下方 1px `line-1` 分隔后的一行，内容由调用方给（可以是按钮）。
 - 锁定 / 禁用：不打开；外观见 `W.08` §6.1。
-- 选项 > 200 时窗口化（`windowOf`，行高固定 28、组标题 24）。
+- 选项 > 200 时窗口化（`windowOf`，行高固定 28、组标题 24）；`onScroll` 绑在外层 `ScrollArea` 上，选项 DOM `id` 使用无空格的编码值或序号，保证 `aria-activedescendant` 合法（`P.09` K307）。
 
 ### 6.2 `Segmented`（`U.11` §2"分段"、`设10` §10.11）
 - 外壳 `bg-4`、`r-md`、内边距 2px（`var(--hx-s-1)`）；各段等宽，字 `text-2`，悬停 `text-1`；选中段字 `text-1`。
@@ -180,7 +180,7 @@ export function matchSpan(label: string, q: string): [number, number] | null;   
 - 全部组都没有条目 → 一行 `text-3` 的 `emptyText`（不是 option）。
 - `query`：每个 `label` 按 `matchSpan` 拆成三段，中间段 `<b>`；只用文本节点（`W.08-R11`）。
 - 可访问性：`<div role="listbox" id={listId} aria-label>`；组 `role="group" aria-label={title}`；行 `role="option" id={pickerOptionId(...)} aria-selected={id === activeId} aria-disabled`。
-- 条目合计 > 200 时窗口化（`windowOf`，按行高前缀和计算），否则全部渲染。
+- 条目合计 > 200 时窗口化（`windowOf`，按行高前缀和计算），否则全部渲染；`onScroll` 绑在外层 `ScrollArea` 上，滚到当前项的 effect 通过 ref 读取 `scrollTop`（不将 `scrollTop` 放进依赖，避免用户滚动后被拉回当前项），`pickerOptionId` 对 `itemId` 做无空格编码保证 `aria-activedescendant` 合法（`P.09` K307）。
 - `maxHeight`：`sm` 240、`md` 320（`calc` 令牌），超出用 `ScrollArea`。
 - `footer`：列表下方 1px `line-1` 后的一行 `fs-11` `text-3`。
 
@@ -228,7 +228,7 @@ export function matchSpan(label: string, q: string): [number, number] | null;   
   - `W0803-T9 Picker 键盘`：`key(ArrowDown)` 返回 true 并 `onActiveChange`；`key(Enter)` → `onPick(id,'enter')`；`key({key:'a'})` 返回 false；`isComposing` 的 Enter 返回 false；`activeId=null` 时 Enter 返回 false
   - `W0803-T10 Picker 指针`：模拟滚动后的 `pointerover`（坐标不变）→ 不调 `onActiveChange`；坐标变化的 `pointermove` → 调用；`pointerdown` 被 `preventDefault`
   - `W0803-T11 Picker 可访问性`：`role="listbox"`、行 `id = pickerOptionId(listId, id)`、`aria-selected`；空 → `emptyText` 行且没有 `role="option"`
-  - `W0803-T12 窗口化`：600 项 → 渲染的行数 ≤ 视口行数 + 20；199 项 → 全部渲染
+  - `W0803-T12 窗口化`：600 项 → 渲染的行数 ≤ 视口行数 + 20；对滚动容器派发 `scroll`（`scrollTop=5000`）→ 渲染行切到对应位置且不被拉回当前项（`Select` 与 `Picker` 均测，`P.09` K307）；含空格的选项值 DOM `id` 无空格且 `aria-activedescendant` 一致；199 项 → 全部渲染
   - `W0803-T13 加粗`：`query='age'`、`label='Agent'` → `<b>Age</b>nt`，没有 `innerHTML` 写入
 - 允许使用的依赖：`react`、`react-dom`；测试用 `vitest`、`jsdom`（`@floating-ui/dom` 经 `Popover` 间接使用，测试里 `vi.mock`）。
 - 禁止事项：`G.02.05` 全部；另：不在本目录直接 import `@floating-ui/dom`（只经 `Popover`）；不给控件加边框；分段 / 开关不对 `left` / `width` 做过渡；不隐藏不可用的选项（`U.13.05-R2`）。
@@ -239,3 +239,4 @@ export function matchSpan(label: string, q: string): [number, number] | null;   
 |---|---|---|
 | 2026-11-23 | 首版 | 第 9 棒；`P.09` K123、K125–K127、K130 |
 | 2026-11-23 | `SelectOption.desc` 的示例改为"12.8 万" | 第 10 棒；`P.09` K163 |
+| 2026-11-27 | `Select`/`Picker` 窗口化 `onScroll` 移至 `ScrollArea`、`Picker` 用 ref 读 `scrollTop`、选项 `id` 无空格编码，补 `W0803-T12` 滚动测试 | 第 ⑨b 片主线评审修复片 `m1-web-ui-fix`（`P.09` K307） |

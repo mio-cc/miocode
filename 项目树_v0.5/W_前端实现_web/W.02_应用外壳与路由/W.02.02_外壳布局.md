@@ -168,7 +168,7 @@ export function bpOf(width: number): ShellLayout['bp'];
 
 ### 实施卡
 - 要建 / 要改的文件：`web/src/shell/AppShell.tsx`、`web/src/shell/AppShell.css`、`web/src/shell/CanvasArea.tsx`、`web/src/shell/CanvasArea.css`、`web/src/shell/FloatLayer.tsx`、`web/src/shell/BannerSlot.tsx`、`web/src/shell/layout.ts`、`web/src/shell/breakpoints.ts`、`web/src/shell/uiEnv.ts`、`web/src/shell/layout.test.ts`、`web/src/shell/AppShell.test.tsx`、`web/src/App.tsx`、`web/src/main.tsx`、`web/src/main.ts`、`web/src/lib/i18n/zh.ts`
-- 说明：删除 `web/src/main.ts`（`STUB(W.02)`）并由 `main.tsx`、`App.tsx`、`shell/uiEnv.ts` 整体替换；`web/src/lib/i18n/zh.ts` 只补 `shell.*` 窄屏提示文案；宽度媒体查询限制已在第 ⑧ 片 `W.12` 写入 `web/stylelint.config.js`（`P.09` K305）。
+- 说明：删除 `web/src/main.ts`（`STUB(W.02)`）并由 `main.tsx`、`App.tsx`、`shell/uiEnv.ts` 整体替换；`App.tsx` 传给 `UiEnvProvider` 的 `value` 用模块常量或 `useMemo` 固定引用（`P.09` K307）；`web/src/lib/i18n/zh.ts` 只补 `shell.*` 窄屏提示文案；宽度媒体查询限制已在第 ⑧ 片 `W.12` 写入 `web/stylelint.config.js`（`P.09` K305）。
 - 不许碰的文件：`design/tokens.css`、`web/src/styles/tokens.css`、`web/src/canvas/`、`web/src/panels/`、`schema/`
 - 函数签名：见 §4.1–§4.3。
 - 测试用例：

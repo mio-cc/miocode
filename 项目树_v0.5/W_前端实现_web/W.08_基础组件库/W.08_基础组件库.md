@@ -8,7 +8,7 @@
 | 下级 | W.08.01 按钮类、W.08.02 输入类、W.08.03 选择类、W.08.04 浮层类、W.08.05 反馈类 |
 | 状态 | 已审 |
 | 素材 | 设10；设计规范 v0.3 `src/06_controls.css`、`src/20_icons.js`；demo v0.5（v0.5.11）`21_flow.css`、`43_float.js`（流动高亮）、`15_art.css`、`17_fix.css`；`W.07` §4.3；`P.09` K121–K130 |
-| 最后修改 | 2026-11-26 |
+| 最后修改 | 2026-11-27 |
 
 ## 1. 职责
 `web/src/components/ui/`：全前端共用的、只拿 props 的基础控件——按钮、图标、输入、选择、浮层、提示与反馈，以及没有对应叶子的四个通用组件（`Icon`、`GlideGroup`、`ScrollArea`、`ErrorBoundary`）。`W.07` 面板、`W.09` 页面、`canvas/Canvas.tsx` 与 `CanvasOverlays.tsx` 只组合这些控件，不自建通用控件（`W.07` §4.3 末尾）。
@@ -120,7 +120,7 @@ export type { IconName } from '@/styles/icons';     // 生成物（P.09 K122）
 | `Toast` | W.08.05 | `action` 改为 `actions`（最多 3 个，`W.03.03` 的 `Toast.actions` 与 `W.07.10` §6.3 要多个动作）；加 `onHover(on)`（`W.07.10` 悬停暂停计时）、`role` 由 `level` 决定 |
 | `Badge`、`StatusDot`、`Spinner`、`ProgressBar`、`EmptyState` | W.08.05 | `Badge` 加 `dot`；`ProgressBar` 加 `ariaLabel`；`Spinner` 加 `label`（读屏文字，缺省"加载中"） |
 | `Icon`、`GlideGroup` | W.08.01 | `Icon` 加 `label`（有含义时的读屏文字，缺省 `aria-hidden`）、`size` 加 32（空状态，`U.14.02-R2`）；`GlideGroup` 加 `className` |
-| `ScrollArea`、`ErrorBoundary` | W.08.05 | `ScrollArea` 加 `axis?: 'y' \| 'x' \| 'both'`、`className`、`ref`（调用方保存 / 恢复 `scrollTop`，`W.07.03` §6.1）；`ErrorBoundary` 加 `resetKey`（变化时自动重试，切换会话用） |
+| `ScrollArea`、`ErrorBoundary` | W.08.05 | `ScrollArea` 加 `axis?: 'y' \| 'x' \| 'both'`、`className`、`onScroll`（`P.09` K307）、`ref`（调用方保存 / 恢复 `scrollTop`，`W.07.03` §6.1）；`ErrorBoundary` 加 `resetKey`（变化时自动重试，切换会话用） |
 
 ### 4.6 需要 `W.10` 提供的文案键（前缀 `ui.`）
 组件可见的文字全部由调用方传入（`W.07` §4.3）；只有组件自带的读屏名称和少数固定说明用 `useT()`（`@/lib/i18n`）取，键名如下（`U.15-R6`；`W.10` 定稿时建这些键）：
@@ -135,6 +135,7 @@ export type { IconName } from '@/styles/icons';     // 生成物（P.09 K122）
 | `ui.noMatch` | 没有匹配的选项 | `Select` 过滤无结果 |
 | `ui.filter` | 筛选 | `Select` 过滤框的读屏名称 |
 | `ui.submenu` | 展开子菜单 | `Menu` 有子菜单的项的读屏提示 |
+| `ui.menu` | 菜单 | `Menu` 未传入 `ariaLabel` 时的缺省读屏名称（`P.09` K307） |
 | `ui.ai` | AI | `Toast level='model'` 的 AI 字样 |
 
 ### 4.7 依赖
@@ -250,3 +251,4 @@ export type { IconName } from '@/styles/icons';     // 生成物（P.09 K122）
 |---|---|---|
 | 2026-11-23 | 首版：目录与分工、唯一出口、`UiEnv`、共用类型、`W.07` §4.3 落实表、外观 / 键盘 / 动效 / 文案约定、W.08-R1–R14 | 第 9 棒；`P.09` K121–K130 |
 | 2026-11-23 | §10 验收 5 改为在基础组件陈列页上截图 | 第 10 棒写 `W.12`；`P.09` K175 |
+| 2026-11-27 | §4.5 `ScrollArea` 补 `onScroll`，§4.6 补 `ui.menu` 读屏键 | 第 ⑨b 片主线评审修复（`P.09` K307） |
