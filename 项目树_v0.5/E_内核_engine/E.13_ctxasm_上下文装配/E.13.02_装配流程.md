@@ -90,7 +90,8 @@ func Assemble(ctx context.Context, plan *Plan, in []Value, env Env) (Packet, err
 6. 透传约束不能被排除、超 30% 告警
 
 ### 实施卡
-- 要建 / 要改的文件：`engine/ctxasm/packet.go`、`engine/ctxasm/assemble.go`、`engine/ctxasm/assemble_test.go`、`engine/ctxasm/testdata/inputs_exec.json`、`engine/ctxasm/testdata/*.golden`
+- 要建 / 要改的文件：`engine/ctxasm/packet.go`、`engine/ctxasm/assemble.go`、`engine/ctxasm/assemble_test.go`、`engine/ctxasm/testdata/inputs_exec.json`、`engine/ctxasm/testdata/*.golden`、`engine/ctxasm/inherit.go`、`engine/ctxasm/inherit_test.go`
+- `inherit.go`、`inherit_test.go` 归 `E.13.06`，按 `P.09` K273 改的合并规则在本叶子里一起改（片内已完成的叶子不能重开，K238 的做法）
 - 不许碰的文件：`schema/`、`gen/`、其他包的实现文件（只能 import 它们的导出接口）
 - 测试用例：
   - `E1302-T1 黄金文件`：执行者配方 + `testdata/inputs_exec.json`（一张任务卡、一个目标）装配出的 `Packet.Value()` 与 `testdata/exec_packet.golden` 一致；黄金文件用 `go test -run E1302 -update` 生成，实施者读过确认后提交（`P.09` K271）
@@ -108,3 +109,4 @@ func Assemble(ctx context.Context, plan *Plan, in []Value, env Env) (Packet, err
 |---|---|---|
 | 2026-11-23 | `Vars` 来自配方段的 `var`；补 `E1302-T5` | `P.09` K222 |
 | 2026-11-26 | 第 ⑤b 片（`m1-tools-ctx`）开工前复查：输入改用本包的 `Value`；事件和存包交给执行器；`Packet` 加 `Clamped`、`Inherit`、`Pointers`、`Warnings` 和 `Value()`、`Event()`；黄金文件用 `-update` 生成后由实施者确认；加 `E1302-T6`；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K271 |
+| 2026-11-26 | 实施卡加 `inherit.go`、`inherit_test.go`（K273 的合并规则在本叶子里改） | `P.09` K273 |
