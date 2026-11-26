@@ -6,9 +6,9 @@
 | 类型 | 实施 |
 | 上级 | W 前端实现 web/ |
 | 下级 | W.04.01 REST 客户端、W.04.02 SSE 订阅与续传、W.04.03 字段映射、W.04.04 生成类型使用规则、W.04.05 离线与重连 |
-| 状态 | 草稿 |
+| 状态 | 已审 |
 | 素材 | 设18 §8（按 Next.js + EventSource 写的旧版，只作参考，`P.09` K9）；引09 §1、§3.5、§4；引01 §3、§4；`P.09` K73、K80、K83–K86、K91 |
-| 最后修改 | 2026-11-23 |
+| 最后修改 | 2026-11-26 |
 
 ## 1. 职责
 `web/src/lib/protocol/`：前端和本机 `anydoor` 之间的全部通信——REST 客户端、三条 SSE 流的订阅与续传、snake_case ↔ camelCase 字段映射、生成类型的导出与使用规则、连接状态检测。对上只提供 `W.03` §4.3 规定的形状（`RestClient`、`ApiError`、`NetError`、`StreamClient`）和 `@/lib/protocol` 导出的 camelCase 类型与常量。
@@ -128,3 +128,8 @@ fetch(text/event-stream) ──► sse.ts 按帧解析 ──► 控制帧 resyn
 3. 浏览器开发者工具里：任意请求都在 `/api/v1/` 下；POST 都带 `Idempotency-Key`；任何时候 SSE 连接 ≤ 3 条。
 4. 关掉 `anydoor` 再启动：3 秒内不提示，之后出现横幅，恢复后横幅消失、三条流续传、未提交的修改重新提交（`U.14.05`，端到端由 `W0405-T8` 覆盖）。
 5. 全局搜索 `web/src`：`lib/protocol/` 以外没有 `fetch(`、`EventSource`、`lib/protocol/generated` 的 import。
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-26 | 状态改为"已审" | M1 第 ⑧ 片 `m1-web-base` 复查（`P.09` K300） |

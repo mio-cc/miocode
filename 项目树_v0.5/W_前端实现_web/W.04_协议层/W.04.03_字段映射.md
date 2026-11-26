@@ -6,9 +6,9 @@
 | 类型 | 实施 |
 | 上级 | W.04 协议层 |
 | 下级 | 无 |
-| 状态 | 草稿 |
-| 素材 | 引01 §3；`G.04.02` §2；`C.01-R4`、`R19`；`C.14` §3；`P.09` K84 |
-| 最后修改 | 2026-11-23 |
+| 状态 | 已审 |
+| 素材 | 引01 §3；`G.04.02` §2；`C.01-R4`、`R19`；`C.14` §3；`P.09` K84、K235、K300、K301 |
+| 最后修改 | 2026-11-26 |
 
 ## 1. 职责
 在前端唯一的一处把服务端的 snake_case 字段名转成 camelCase（进），把 camelCase 转回 snake_case（出），同时保证开放对象、无类型的值、以数据为键的映射原样不动；并提供与运行时转换一一对应的类型 `FromWire<T>`，以及 `@/lib/protocol` 导出的全部 camelCase 类型别名。
@@ -45,8 +45,8 @@ export type FromWire<T> =
     { [K in keyof T as K extends string ? CamelKey<K> : K]: FromWire<T[K]> }) :
   T;
 
-// web/src/lib/protocol/types.ts —— 别名（节选；完整清单见 §5）
-import type * as gen from './generated';
+// web/src/lib/protocol/types.ts —— 别名（从 ./generated/types 导入；完整覆盖 generated/types.ts 全部导出类型，见 §5.2、K301）
+import type * as gen from './generated/types';
 export type Graph = FromWire<gen.Graph>;
 export type Node = FromWire<gen.Node>;
 export type Op = FromWire<gen.Op>;
@@ -55,19 +55,23 @@ export type RunEvent = FromWire<gen.RunEvent>;
 
 // web/src/lib/protocol/index.ts —— 唯一入口（W.04.04-R1）
 export * from './types';
-export { Ev, OpKind, ErrCode, DiagCode, Act, SseControl, RunStatus /* …生成常量 */ } from './generated/consts';
+export { Act, ErrCode, Ev, NodeType, SseControl } from './generated/consts';
+export { ActorKind, Category, DiagCode, DiagLevel, Effort, FailureClass, ImplType, MessageBlockKind, MessageRefKind, NodeState, OpKind, RunStatus } from './generated/types';
+export { CONTAINER_RULES, WIDGET_MAP, CATEGORY_MAP, AGGREGATE_OPS, AUTHZ_MATRIX, STATE_MACHINE } from './generated/tables';
+export type { WireTypeName } from './generated/wire';
 export type Page<T> = { items: readonly T[]; nextCursor?: string };      // B.03.02 §4
-export { createProtocol, type Protocol } from './assemble';
-export { createRestClient, ApiError, NetError, isApiError, isNetError, errorReport, apiPath } from './client';
-export { newUlid, isUlid } from './ulid';
-export { createStreamClient } from './events';
-export { createConnectivity, bindNet, type Connectivity } from './offline';
-export { fromWire, toWire } from './mapping';
+export { fromWire, toWire, toWireQuery, camelKey, snakeKey, type FromWire, type WireQuery } from './mapping';
+// 以下四行在第 ⑩ 片由 W.04.01、W.04.02、W.04.05 实现后补齐导出（P.09 K300）：
+// export { createProtocol, type Protocol } from './assemble';
+// export { createRestClient, ApiError, NetError, isApiError, isNetError, errorReport, apiPath } from './client';
+// export { newUlid, isUlid } from './ulid';
+// export { createStreamClient } from './events';
+// export { createConnectivity, bindNet, type Connectivity } from './offline';
 ```
-`createProtocol` 放在 `lib/protocol/assemble.ts`（`W.04` §4.2 的组装函数，十几行）。
+`createProtocol` 放在 `lib/protocol/assemble.ts`（第 ⑩ 片 `W.04.05` 随 `client`、`events`、`offline` 就位后建，`P.09` K300）。
 
 ### 4.1 依赖
-生成物 `generated/wire.ts`（`WIRE_TYPES`、`WireTypeName`、`WireNode`）、`generated/*.ts`（类型）、`generated/consts.ts`（常量）。
+生成物 `generated/wire.ts`（`WIRE_TYPES`、`WireTypeName`、`WireNode`）、`generated/types.ts`（类型与同名枚举常量）、`generated/consts.ts`（常量）、`generated/tables.ts`（数据表）。
 
 ## 5. 数据结构
 ### 5.1 字段映射表（`generated/wire.ts`，`C.14-R8`，`P.09` K235）
@@ -135,21 +139,23 @@ export { fromWire, toWire } from './mapping';
 5. `web/src/` 里 `lib/protocol/` 以外搜索不到 snake_case 的字段访问（开放对象的字符串键除外；ESLint `@typescript-eslint/naming-convention` 对属性名检查，`G.04.02` §3）。
 
 ### 实施卡
-- 要建 / 要改的文件：`web/src/lib/protocol/mapping.ts`、`web/src/lib/protocol/mapping.test.ts`、`web/src/lib/protocol/mapping.test-d.ts`（类型测试，`vitest --typecheck`）、`web/src/lib/protocol/types.ts`、`web/src/lib/protocol/index.ts`、`web/src/lib/protocol/assemble.ts`。
-- 不许碰的文件：`web/src/lib/protocol/generated/`（含 `wire.ts`，由 `tools/gen` 生成）、`client.ts`、`events.ts`、`offline.ts`、`web/src/state/`、`schema/`、`tools/gen/`（生成器另由 `C.14` 的实施任务改）。
+- 要建 / 要改的文件：`web/src/lib/protocol/mapping.ts`、`web/src/lib/protocol/mapping.test.ts`、`web/src/lib/protocol/mapping.test-d.ts`、`web/src/lib/protocol/types.ts`、`web/src/lib/protocol/index.ts`。
+- 说明：`assemble.ts` 推到第 ⑩ 片 `W.04.05`，待 `client.ts` / `events.ts` / `offline.ts` 就位后建（`P.09` K300）。
+- 不许碰的文件：`web/src/lib/protocol/generated/`、`web/src/lib/protocol/client.ts`、`web/src/lib/protocol/events.ts`、`web/src/lib/protocol/offline.ts`、`web/src/state/`、`schema/`、`tools/`。
 - 函数签名：见 §4。
 - 测试用例：
-  - `W0403-T1 往返`：示例清单 `schema/examples/manifest.yaml` 里每个合法示例按它的 schema 对应的类型名（根类型名见 `schema/builtin/aliases.yaml` 的 `roots`，`#/$defs/X` 为 `X`），四份 `*_vectors.json` 里合法的项按 `Op` 和三条流的类型：`toWire(T, fromWire(T, x))` 深相等；同时补上 `C.14-R4` 的 TS 侧往返：读 Go 侧编码的同一批数据（`P.09` K235）
+  - `W0403-T1 往返`：示例清单 `schema/examples/manifest.yaml` 里每个合法示例按它的 schema 对应的类型名（根类型名见 `schema/builtin/aliases.yaml` 的 `roots`，`#/$defs/X` 为 `X`），四份 `*_vectors.json` 里合法的项按 `Op` 和三条流的类型：`toWire(T, fromWire(T, x))` 深相等（覆盖 `C.14-R4` 的 TS 侧往返，P.09 K235）
   - `W0403-T2 原样`：`Node` 的 `params:{max_rounds:3, aB:{c_d:1}}` 原样且是同一引用；`set_param` 的 `to:{a_b:1}` 原样；`NodeDef.params` 的键（参数名）原样、每个 `ParamDef` 里的 `show_if`、`enum_labels` 转换；`Mandate.overrides` 里的 `tools_max_risk` 转换、`SubgraphRef.overrides` 的键原样
   - `W0403-T3 映射`：`{orchestrator_effort:{gpt_4o:'high'}}` → `{orchestratorEffort:{gpt_4o:'high'}}`（内部键原样）；`{decisions:{'01JX…':'accepted'}}` 的 ULID 键原样；`{id_map:{'tmp:1':'01J…'}}` → `{idMap:{'tmp:1':'01J…'}}`；`toWire` 反过来还原
-  - `W0403-T4 判别联合`：`run-event` 示例里 `data.cause_seq`、`data.exec_key` 转换；`op` 示例里 `payload.node_ids`、`new_id` 转换
-  - `W0403-T5 键往返`：生成物里出现的全部字段名 `snakeKey(camelKey(k)) === k`
-  - `W0403-T6 toWire 空值`：`{a: undefined, b: null}` → `{b: null}`
+  - `W0403-T4 判别联合`：`run-event` 示例里 `data.cause_seq`、`data.exec_key` 转换；`op` 示例里 `payload.node_ids`、`new_id` 转换；整体联合 `MessageBlock` / `MessageRef` / `Impl` 转换
+  - `W0403-T5 键往返`：生成物 `WIRE_TYPES` 里出现的全部字段名 `snakeKey(camelKey(k)) === k`
+  - `W0403-T6 toWire 空值`：`{a: undefined, b: null}` → `{b: null}`；`toWireQuery` 跳过 `undefined`、数组用逗号连接、键转 snake_case
   - `W0403-T7 非普通对象`：`Blob`、`FormData` 原样
-  - `W0403-T8 类型`：`FromWire<gen.Graph>['registryHash']` 不存在、`FromWire<gen.GraphRead>['registryHash']` 是 `string`；`FromWire<gen.Node>['params']` 是 `{ readonly [k: string]: unknown }`；`FromWire<gen.NodeDef>['params'][string]['ui']` 有 `showIf`
-  - `W0403-T9 别名齐全`：脚本列出 `generated/` 导出的全部类型名，每个在 `types.ts` 都有同名别名
-  - `W0403-T10 性能`：500 节点图 `fromWire` ≤ 5ms（vitest bench，`W.11` 收集）
-- 允许使用的依赖：无第三方运行时依赖；测试用 `vitest`、`ajv`（`G.10` §3.4）。
+  - `W0403-T8 类型`：`FromWire<gen.GraphRead>['registryHash']` 是 `string`；`FromWire<gen.Node>['params']` 是 `{ readonly [k: string]: unknown }`；`FromWire<gen.NodeDef>['params'][string]['ui']` 有 `showIf`；`EventOf<'node.state'>` 与 `OpOf<'set_param'>` 精确收窄
+  - `W0403-T9 别名齐全`：扫描 `generated/types.ts` 导出的全部类型名，每个在 `types.ts` 都有同名别名；扫描 `generated/consts.ts`、`generated/types.ts` 常量对象与 `generated/tables.ts` 表，确认 `index.ts` 全部导出
+- 在其他叶子跑的测试用例（不算本叶子的完成条件）：
+  - `W0403-T10 性能`：第 ⑪ 片 `W.11`（500 节点图 `fromWire` ≤ 5ms，vitest bench，`W.11` 收集）
+- 允许使用的依赖：无第三方运行时依赖；测试用 `vitest`（`G.10` §3.4）；`manifest.yaml` / `aliases.yaml` 读取用测试内最小纯函数解析（<40 行，不新增依赖）。
 - 禁止事项：`G.02.05` 全部（特别是 R1、R2）；另：不手写字段映射（只读 `WIRE_TYPES`）；不转换任何值；不在 `lib/protocol/` 以外提供转换函数。
 - 完成标志：`G.14` 全部条件；§10 五条验收通过。
 
@@ -158,3 +164,4 @@ export { fromWire, toWire } from './mapping';
 |---|---|---|
 | 2026-11-23 | §6.1 映射类的值是数组时逐项转换；§5.1 `payload`、`data` 在所有位置按结构 | `P.09` K234 |
 | 2026-11-23 | 字段映射表改为按类型（`WIRE_TYPES`）：`fromWire`、`toWire` 带根类型名；§5.1、§6.1、§6.2、`FromWire<T>`、`W0403-T1`、`T2`、`T8` 相应改；补上漏掉的"变更记录"标题 | `P.09` K235 |
+| 2026-11-26 | 状态改为"已审"；对齐已冻结的 `generated/{types,consts,tables,wire}.ts` 导出结构；实施卡按 `G.02.06-R24` 重写，`assemble.ts` 推到第 ⑩ 片 `W.04.05`，`W0403-T10` 移到 `W.11` | M1 第 ⑧ 片 `m1-web-base` 复查（`P.09` K300、K301） |

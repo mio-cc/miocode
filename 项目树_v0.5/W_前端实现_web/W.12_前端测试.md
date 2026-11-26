@@ -6,9 +6,9 @@
 | 类型 | 实施 |
 | 上级 | W 前端实现 web/ |
 | 下级 | 无 |
-| 状态 | 草稿 |
-| 素材 | 引12（只作参考）；`G.06.04` §1；`U.20`；设计规范 v0.3 `test_core.js`、`test_smoke.js`、`check_syntax.js` 与 `U.20` 补充第 1 条（只靠 Node 假 DOM 冒烟测试的教训）；`P.09` K172–K176 |
-| 最后修改 | 2026-11-23 |
+| 状态 | 已审 |
+| 素材 | 引12（只作参考）；`G.06.04` §1；`U.20`；设计规范 v0.3 `test_core.js`、`test_smoke.js`、`check_syntax.js` 与 `U.20` 补充第 1 条（只靠 Node 假 DOM 冒烟测试的教训）；`P.09` K172–K176、K300 |
+| 最后修改 | 2026-11-26 |
 
 ## 1. 职责
 前端测试怎么落地：`web/tests/` 的目录与命令；Vitest 的配置（环境分配、两个时区、测试启动文件）；共用测试工具 `web/tests/kit/`（各叶子共用的假对象、组件渲染、共用测试向量的读取）；自定义 lint 规则的测试；端到端测试的运行方式（启动真实 `anydoor --fake-llm`、准备数据、网络隔离、浏览器矩阵）；视觉回归（截图矩阵、基础组件陈列页、截图基线和更新规则）；测试编号的写法与核对；CI 用到的命令和产物。
@@ -255,33 +255,36 @@ export const tag: { chromiumOnly(reason: string): string };   // 只在 Chromium
 9. 产品构建 `web/dist/` 里没有 `tests/kit`、陈列页的任何代码。
 
 ### 实施卡
-- 要建 / 要改的文件：`web/vitest.config.ts`、`web/playwright.config.ts`；`web/tests/kit/index.ts`、`render.ts`、`user.ts`、`time.ts`、`raf.ts`、`protocol.ts`（`fakeRest`、`fakeStreams`、`fakeFetch`、`fakeConnectivity`）、`stores.ts`（`memStorage`、`makeStores`、`fakeOps`、`fakeOpsFactory`、`fakeLiveRun`）、`shell.ts`（`fakeEnv`、`fakeKeys`、`fakeTheme`）、`dom.ts`（§6.3 的替身）、`data.ts`（`loadVectors`、`loadExample`）、`console.ts`、`setup.ts`、`run-tz.mjs`、`ids.mjs`，以及 `kit/*.test.ts`；`web/tests/e2e/fixtures.ts`、`web/tests/e2e/global-setup.ts`、`web/tests/e2e/smoke.spec.ts`（打开首页、新建会话、控制台无错误）；`web/tests/visual/gallery/index.html`、`gallery/main.tsx`、`gallery/sections/*.tsx`、`web/tests/visual/gallery.spec.ts`、`web/tests/visual/helpers.ts`（截图矩阵、固定时钟、等待稳定）；`tools/lint/eslint/index.js`（插件入口）及三条规则的实现与 `*.test.ts`（`hx/no-cjk-literal` 的规则内容以 `W.10` §6.5 为准）；`web/tests/lint/kit-import/{ok,bad}/`；`web/package.json`（只加 §4.4 的 `scripts`）；`web/tsconfig.json`（只加 `@tests/kit` 别名，限测试文件）；`web/vite.config.ts`（只加 `gallery` 模式）；`web/eslint.config.js`（注册 `hx` 插件、忽略 `tests/lint/**`、禁止产品代码 import `tests/kit`）；`.gitignore` 加 `web/.test/`。
-- 不许碰的文件：`web/src/**`（各叶子的产品代码和它们自己的 `*.test.ts(x)`）；各叶子的 `web/tests/e2e/*.spec.ts`、`web/tests/visual/*.spec.ts`（`smoke.spec.ts`、`gallery.spec.ts` 除外）；`web/tests/bench/`（`W.11`）；`schema/`、`testdata/`（只读）；`cmd/`、`engine/`、`internal/`。
-- 函数签名：见 §4.2、§4.3。
+- 要建 / 要改的文件：`web/package.json`、`web/pnpm-lock.yaml`、`web/tsconfig.json`、`web/vite.config.ts`、`web/vitest.config.ts`、`web/eslint.config.js`、`web/stylelint.config.js`、`web/.prettierrc.json`、`web/.prettierignore`、`web/scripts/stub.mjs`、`web/tests/kit/index.ts`、`web/tests/kit/render.tsx`、`web/tests/kit/user.ts`、`web/tests/kit/time.ts`、`web/tests/kit/raf.ts`、`web/tests/kit/dom.ts`、`web/tests/kit/console.ts`、`web/tests/kit/data.ts`、`web/tests/kit/setup.ts`、`web/tests/kit/run-tz.mjs`、`web/tests/kit/ids.mjs`、`web/tests/kit/kit.test.tsx`、`web/tests/kit/time.tz.test.ts`、`web/tests/kit/lint.test.ts`、`tools/lint/eslint/index.js`、`tools/lint/eslint/no-react-in-canvas-core.js`、`tools/lint/eslint/no-react-in-canvas-core.test.ts`、`tools/lint/eslint/no-bare-store.js`、`tools/lint/eslint/no-bare-store.test.ts`、`tools/lint/eslint/no-cjk-literal.js`、`tools/lint/eslint/no-cjk-literal.test.ts`、`web/tests/lint/kit-import/ok/src/ok.ts`、`web/tests/lint/kit-import/bad/src/bad.ts`、`web/tests/lint/canvas-core/ok/src/canvas/core/ok.ts`、`web/tests/lint/canvas-core/bad/src/canvas/core/bad.ts`、`web/tests/lint/protocol-generated/ok/src/lib/protocol/ok.ts`、`web/tests/lint/protocol-generated/bad/src/panels/bad.ts`、`docs/checks.md`。
+- 说明：M1 第 ⑧ 片先落地单元测试基础设施、ESLint/Stylelint/Prettier 与 `hx/*` 规则，替换 `web/package.json`、`web/tsconfig.json`、`web/scripts/stub.mjs` 三个桩并更新 `docs/checks.md` §3；`web/index.html` 与 `web/src/main.ts` 保留到第 ⑨ 片 `W.02` 替换，本片确保 `pnpm -C web build` 正常产出 `web/dist/`；Playwright 端到端与视觉回归陈列页在第 ⑫ 片落地（`P.09` K300）。
+- 不许碰的文件：`web/src/lib/protocol/generated/`、`web/src/lib/i18n/generated/`、`web/src/main.ts`、`web/index.html`、`schema/`、`testdata/`、`cmd/`、`engine/`、`internal/`、`tools/relay/`、`tools/ci/`、`tools/build/`、`tools/gen/`。
+- 函数签名：见 §4.2（M1 第 ⑧ 片落地 `render`、`act`、`user`、`useFakeTime`、`fakeRaf`、`memStorage`、`stubElementFromPoint`、`recordAnimate`、`fake2d`、`resize`、`loadVectors`、`loadExample`、`expectConsole`；涉及 `RestClient`/`StreamClient`/`AppStores`/`OpsApi`/`UiEnv`/`CanvasKeys`/`ThemeHooks` 的假对象在第 ⑨–⑩ 片对应接口落地时补齐，K300）。
 - 测试用例：
   - `W12-T1 render 与角色查询`：渲染带 `aria-label` 的按钮 → `getByRole('button', {name})` 找到；两个同名 → 抛错；`unmount` 后容器为空
   - `W12-T2 user`：`click` 依次派发 `pointerdown`、`mousedown`、`pointerup`、`mouseup`、`click`；`type('ab{Enter}')` 产生 3 组 `keydown` / `keyup`；`key('{Mod+K}')` 在 macOS 与其他平台分别带 `metaKey` / `ctrlKey`
-  - `W12-T3 时间`：`useFakeTime` 后 `advance(60_000)` 触发 1 次整分钟刷新（`W.10` §6.4）；测试结束后真实定时器与 `setClock(null)` 已恢复
+  - `W12-T3 时间`：`useFakeTime` 后 `advance(60_000)` 触发 1 次整分钟定时器推进；测试结束后真实定时器与时钟已恢复
   - `W12-T4 fakeRaf`：`raf` 3 次后 `pending()=3`，`step()` 执行全部回调一次
-  - `W12-T5 fakeRest`：登记的路由返回登记的结果；未登记的请求抛错并写出方法与路径；`calls` 记录请求体
-  - `W12-T6 fakeStreams / fakeFetch`：`push` 的事件按顺序到达订阅方；`fakeFetch().stream` 分段 `write` 能被 `W.04.02` 的解析器读到（跨段切开的帧）
-  - `W12-T7 makeStores`：用真实工厂建出的 store 与 `W.03` §4.2 的 `AppStores` 类型一致；两次调用互不共享状态
-  - `W12-T8 fakeEnv / fakeKeys`：`pushOverlay` 入栈、返回的函数出栈；`fire` 调用已注册的处理函数并返回它的结果
   - `W12-T9 替身`：§6.3 每一项装上后可用、测试结束后恢复
   - `W12-T10 控制台从严`：§10 验收 2
-  - `W12-T11 网络隔离`：§10 验收 3
-  - `W12-T12 时区`：§10 验收 4
-  - `W12-T13 lint 规则`：§10 验收 5
-  - `W12-T14 端到端夹具`：§10 验收 6；`chromiumOnly` 不带原因 → 报错
-  - `W12-T15 视觉`：§10 验收 7
-  - `W12-T16 类型约束`：§10 验收 8
+  - `W12-T11 网络隔离`：单元测试里直接调 `fetch('https://example.com')` 失败（端到端网络隔离在第 ⑫ 片 `W12-T14` 跑）
+  - `W12-T12 时区`：同一时区测试在 `Asia/Shanghai`、`America/New_York` 下各跑一遍并断言不同偏移（`run-tz.mjs`）
+  - `W12-T13 lint 规则`：`tools/lint/eslint/` 三条规则各自 `RuleTester` 正反例通过；`web/tests/lint/` 下 `kit-import`、`canvas-core`、`protocol-generated` 的 `bad/` 报出期望规则、`ok/` 无报错
   - `W12-T17 test:ids`：样例测试名里的编号按叶子分组输出；同一编号出现在两个测试名开头 → 报错
-  - `W12-T18 构建干净`：§10 验收 9
-- 允许使用的依赖：只有 §4.5 列出的。
-- 禁止事项：`G.02.05` 全部（特别是 R1、R4、R28、R30、R34）；另：不引入 §4.5 列出的未登记测试库；端到端不连外部网络、不改数据库文件；视觉测试不在非 Linux 平台比对；不在测试里写固定等待时间；不为了通过而更新截图基线、放宽阈值或加重试次数。
-- 完成标志：`G.14` 全部条件；§10 九条验收通过。
+  - `W12-T18 构建干净`：`pnpm -C web build` 产出的 `web/dist/` 里没有 `tests/kit` 的代码
+- 在其他叶子跑的测试用例（不算本叶子的完成条件）：
+  - `W12-T5 fakeRest`：第 ⑩ 片 `W.04.01`（`RestClient` 接口落地后）
+  - `W12-T6 fakeStreams / fakeFetch`：第 ⑩ 片 `W.04.02`（`StreamClient` 与 SSE 解析器落地后）
+  - `W12-T7 makeStores`：第 ⑩ 片 `W.03.05`（`createAppStores` 落地后）
+  - `W12-T8 fakeEnv / fakeKeys`：第 ⑨ 片 `W.02.04` / `W.08.04`（`UiEnv`、`CanvasKeys` 落地后）
+  - `W12-T14 端到端夹具`：第 ⑫ 片 `W.12`（端到端与 `anydoor --fake-llm` 汇合时）
+  - `W12-T15 视觉`：第 ⑫ 片 `W.12`（`W.08` 基础组件陈列页与主题生成物落地后）
+  - `W12-T16 类型约束`：第 ⑩ 片 `W.04.01` / `W.03.05`（假对象全部就位后）
+- 允许使用的依赖：§4.5 及主线按上报单登记进 `G.10` §3.4 与 `tools/deps/allow.txt` 的前端开发依赖（`react`、`react-dom`、`vite`、`typescript`、`eslint`、`typescript-eslint`、`eslint-plugin-react-hooks`、`eslint-plugin-react-refresh`、`stylelint`、`prettier`、`vitest`、`jsdom`、`ajv`、`@vitejs/plugin-react`、`@types/react`、`@types/react-dom`、`@types/node`、`@eslint/js`、`globals`）。
+- 禁止事项：`G.02.05` 全部（特别是 R1、R4、R28、R30、R34）；另：不引入未登记测试库；单元测试不连外部网络；不在测试里写固定等待时间；不为了通过而放宽或跳过测试。
+- 完成标志：`G.14` 全部条件；本片测试用例全部通过，`pnpm -C web lint`、`pnpm -C web test`、`pnpm -C web build` 与 `go run ./tools/relay check W.12` 全部通过。
 
 ## 变更记录
 | 日期 | 变更 | 原因 |
 |---|---|---|
 | 2026-11-23 | 首版 | 第 10 棒；`P.09` K172–K176 |
+| 2026-11-26 | 状态改为"已审"；实施卡按 `G.02.06-R24` 重写，拆分 M1 第 ⑧ 片与第 ⑨/⑩/⑫ 片范围，明确替换 `web/package.json`、`tsconfig.json`、`scripts/stub.mjs` 桩 | M1 第 ⑧ 片 `m1-web-base` 复查（`P.09` K300） |

@@ -6,9 +6,9 @@
 | 类型 | 实施 |
 | 上级 | W 前端实现 web/ |
 | 下级 | 无 |
-| 状态 | 草稿 |
-| 素材 | 设18（只作参考）；`U.15`；`G.13`；`C.01` §3；`C.04.02`；demo v0.5.11 `39_monitor.js`、`32_sessions.js`、`36_composer.js`、`34_center.js`（数字与时间的写法，差异见 §6.3 末尾）；`P.09` Q9、Q15、K158–K165 |
-| 最后修改 | 2026-11-23 |
+| 状态 | 已审 |
+| 素材 | 设18（只作参考）；`U.15`；`G.13`；`C.01` §3；`C.04.02`；demo v0.5.11 `39_monitor.js`、`32_sessions.js`、`36_composer.js`、`34_center.js`（数字与时间的写法，差异见 §6.3 末尾）；`P.09` Q9、Q15、K158–K165、K300 |
+| 最后修改 | 2026-11-26 |
 
 ## 1. 职责
 `web/src/lib/i18n/`：唯一的界面文案表 `zh.ts` 和取文案的 `t` / `useT`；由 `schema/builtin/messages/*.zh.yaml` 生成的错误文案与端口兼容提示；数字、token、金额、时长、字节、百分比、时间的格式化和金额输入的解析；相对时间的统一刷新；"组件里不写中文字面量"和文案表本身的检查。v1 只有简体中文（`P.09` Q15），不做语言切换；但所有文案都抽取出来，以后加语言只需要加一份文案表。
@@ -312,11 +312,12 @@ demo 与本文一致、照搬的：`刚刚` / `N 分钟前` / `N 小时前` / `�
 7. 生产构建里 `lib/i18n` 的体积不超过 §9。
 
 ### 实施卡
-- 要建 / 要改的文件：`web/src/lib/i18n/index.ts`、`t.ts`、`t.test.ts`、`zh.ts`（建骨架：§4.3 全部区段的注释头，§4.4 四组的键值；其他区段由各叶子填）、`zh.test.ts`、`terms.ts`、`format.ts`、`format.test.ts`、`clock.ts`、`clock.test.ts`、`RelTime.tsx`、`RelTime.test.tsx`、`errors.ts`、`errors.test.ts`、`messages.test.ts`；生成物 `web/src/lib/i18n/generated/messages.ts`（由 `tools/gen` 产出，不手写）；`tools/gen/messages/`（生成器的 messages 部分，`G.16`）；`tools/lint/eslint/no-cjk-literal.js` 及其 `RuleTester` 测试（§6.5 第 1 条）、`web/eslint.config.js`（启用该规则）；`web/tests/bench/i18n.bench.ts`。
-- 不许碰的文件：`schema/`（只读 `schema/builtin/messages/`）、`web/src/lib/protocol/`、`web/src/state/`、`web/src/ops/`、`web/src/canvas/`、`web/src/panels/`、`web/src/pages/`、`web/src/components/`、`web/src/shell/`；`zh.ts` 里 §4.4 以外的区段。
+- 要建 / 要改的文件：`web/src/lib/i18n/index.ts`、`web/src/lib/i18n/t.ts`、`web/src/lib/i18n/t.test.ts`、`web/src/lib/i18n/zh.ts`、`web/src/lib/i18n/zh.test.ts`、`web/src/lib/i18n/terms.ts`、`web/src/lib/i18n/format.ts`、`web/src/lib/i18n/format.test.ts`、`web/src/lib/i18n/clock.ts`、`web/src/lib/i18n/clock.test.ts`、`web/src/lib/i18n/RelTime.tsx`、`web/src/lib/i18n/RelTime.test.tsx`、`web/src/lib/i18n/errors.ts`、`web/src/lib/i18n/errors.test.ts`、`web/src/lib/i18n/messages.test.ts`、`web/tests/lint/no-cjk-literal/ok/src/ok.tsx`、`web/tests/lint/no-cjk-literal/bad/src/bad-str.ts`、`web/tests/lint/no-cjk-literal/bad/src/bad-tpl.ts`、`web/tests/lint/no-cjk-literal/bad/src/bad-jsx.tsx`、`web/tests/kit/time.ts`、`web/tests/kit/setup.ts`。
+- 说明：`web/tests/kit/time.ts` 与 `setup.ts` 接入 `setClock` 并在测试后恢复 `setClock(null)`；`web/src/lib/i18n/generated/messages.ts` 已由冻结的 `C.14` 生成，本叶子只读不改；`hx/no-cjk-literal` 规则实现已在同片前序叶子 `W.12` 落地，本叶子补齐样例目录并通过 `W10-T14` 验收（`P.09` K300）。
+- 不许碰的文件：`schema/`、`tools/`、`web/src/lib/i18n/generated/`、`web/src/lib/protocol/`、`web/src/state/`、`web/src/ops/`、`web/src/canvas/`、`web/src/panels/`、`web/src/pages/`、`web/src/components/`、`web/src/shell/`。
 - 函数签名：见 §4.1、§4.5。
 - 测试用例（`vitest` + `jsdom`；时区固定为 `Asia/Shanghai`，另跑一遍 `America/New_York`）：
-  - `W10-T1 取文案`：`t('common.cancel')` → "取消"；`t.dyn('err.internal')`、`t.dyn('assign.C2', {dst:'上下文包', producer:'上下文装配'})` 返回生成物文案；`useT()` 两次返回同一对象
+  - `W10-T1 取文案`：`t('common.cancel')` → "取消"；`t.dyn('err.internal')`、`t.dyn('assign.C2', {dst_name:'上下文包', producer:'上下文装配'})` 返回生成物文案；`useT()` 两次返回同一对象
   - `W10-T2 占位符`：`{n}` 收到 18080 → "18080"；`{n:count}` 收到 12345 → "1.2 万"；8 种格式各一例；`{head_version}` 能取到 `headVersion`
   - `W10-T3 缺键与缺变量`：开发模式 `t.dyn('x.y')` → "⟦x.y⟧"，`console.warn` 只调 1 次（连续调 3 次）；生产模式返回 "x.y"；缺变量保留 `{x}`
   - `W10-T4 fmtCount / fmtTokens`：0、9999、10000、12345、99999（→"10 万"）、99 995 000（→"1 亿"）、150 000 000、-12345、NaN
@@ -329,12 +330,13 @@ demo 与本文一致、照搬的：`刚刚` / `N 分钟前` / `N 小时前` / `�
   - `W10-T11 errorText`：`NetError` 三种 kind；有 `message` 原样返回；无 `message` 有 `ERRORS[code]` 用 `details` 渲染；未知码 → `ERRORS.internal`
   - `W10-T12 时钟`：假定时器下 `RelTime` 跨整分钟重渲染 1 次；`document.hidden=true` 时没有待执行的定时器；可见后立即刷新；`setClock` 冻结后 5 分钟内不重渲染；卸载最后一个 `RelTime` 后定时器为 0
   - `W10-T13 文案表检查`：§10 第 4 条（正例为初始 `zh.ts`，反例逐条构造）
-  - `W10-T14 中文字面量 lint`：`web/tests/lint/` 下的正例、反例文件跑 ESLint，结果与 §10 第 2 条一致
+  - `W10-T14 中文字面量 lint`：`web/tests/lint/no-cjk-literal/` 下的正例、反例文件跑 ESLint，结果与 §10 第 2 条一致
   - `W10-T15 生成物`：§6.5 第 3 条
-  - `W10-T16 体积`：§10 第 7 条（`W.11` 的包体积检查里登记 `lib/i18n` 一项）
+- 在其他叶子跑的测试用例（不算本叶子的完成条件）：
+  - `W10-T16 体积`：第 ⑪ 片 `W.11`（`W.11` 的包体积检查与 `web/tests/bench/i18n.bench.ts` 一起登记）
 - 允许使用的依赖：运行时只用 `react`（`G.10` §3.3）；测试用 `vitest`、`jsdom`、`eslint`（`G.10` §3.4）。不引入任何 i18n、日期或数字格式化库（`G.10-R3`）。
 - 禁止事项：`G.02.05` 全部（特别是 R1、R26、R28）；另：不用 `Intl.NumberFormat`、`toLocaleString` 输出界面数字；金额不用浮点运算；`zh.ts` 里不拼接、不写函数值；不做语言切换和语言设置（Q15、K151）；不在本目录 import 任何界面目录或 `lib/protocol`。
-- 完成标志：`G.14` 全部条件；§10 七条验收通过。
+- 完成标志：`G.14` 全部条件；§10 第 1–6 条验收通过（第 7 条由 `W.11` 覆盖）。
 
 ## 变更记录
 | 日期 | 变更 | 原因 |
@@ -342,3 +344,4 @@ demo 与本文一致、照搬的：`刚刚` / `N 分钟前` / `N 小时前` / `�
 | 2026-11-23 | 首版 | 第 10 棒；`P.09` K158–K162 |
 | 2026-11-23 | 对照全树与 demo v0.5.11 复查：相对时间改为 24 小时内写小时、"昨天"不带时刻、旧日期用 `MM-DD`；新增 `fmtCostInput`；网络错误文案与离线横幅一致并说明不重复提示；§6.3 末尾列出 demo 的差异 | 第 10 棒复查；`P.09` K163 |
 | 2026-11-23 | §6.5 第 1 条改为自定义规则 `hx/no-cjk-literal`（与 `G.06.04` 一致） | 第 10 棒写 `W.12` 时发现；`P.09` K173 |
+| 2026-11-26 | 状态改为"已审"；实施卡按 `G.02.06-R24` 重写：删掉已由 `C.14` 生成的 `tools/gen/messages/` 与生成物，将 `W10-T16` 移到 `W.11`，修正 `W10-T1` 占位符名为 `dst_name`（与 `assign.zh.yaml` 一致） | M1 第 ⑧ 片 `m1-web-base` 复查（`P.09` K300） |

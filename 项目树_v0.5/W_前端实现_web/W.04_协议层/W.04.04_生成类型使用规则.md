@@ -6,9 +6,9 @@
 | 类型 | 规范 |
 | 上级 | W.04 协议层 |
 | 下级 | 无 |
-| 状态 | 草稿 |
+| 状态 | 已审 |
 | 素材 | 引01 §4；`C.14`；`G.16`；`G.02.05-R1`–`R3`；`P.09` K80、K85 |
-| 最后修改 | 2026-11-25 |
+| 最后修改 | 2026-11-26 |
 
 ## 1. 目的
 前端所有协议数据（图、Op、事件、错误码、会话、HTTP 响应）的类型都从 `schema/` 生成（INV-17）。生成类型如果用得乱——有人从 `generated/` 深层引用 snake_case 的原始类型、有人手写一份"差不多"的接口、有人写 `ev.kind === 'node.state'` 这样的裸字符串——schema 一改，编译器发现不了，前后端就悄悄对不上。本规范规定前端代码怎样拿、怎样用这些类型和常量，以及前端依赖的 HTTP 响应结构必须在 `api.schema.json` 里有哪些字段。
@@ -121,3 +121,4 @@
 | 2026-11-23 | §3.5 补 `W.09` 用到的结构：`LibraryItem.ports`、`Package`、`ConnectionType` / `Connection`、`ConnectionTest`、`ConnectionUsages`、MCP 与扩展包、`Usage`、运行历史字段、模板、设置页的诊断类响应 | 第 9 棒（B）；`P.09` K144–K146、K150、K152 |
 | 2026-11-24 | §3.5 分支结构改名 `BranchMeta`；`GraphMeta`、`OpRecord`、`BranchMeta`、`RunMeta`、`NodeStateRow` 已由 `E.07.01` 写进 `api.schema.json` | `P.09` K236 |
 | 2026-11-25 | §3.5：`OpResult`、`ProposalAccepted` 改用 `op.schema.json` 已有的 `OpsApplied`、`OpsProposed`；`RunView` 的用量、费用在 `meta` 里，`pending_patches` 在 M2；`Model` 加 `model`、`max_output`，写明 `ref` 的写法；正文在 `B.04.15`、分页结构 | `P.09` K260 |
+| 2026-11-26 | 状态改为"已审" | M1 第 ⑧ 片 `m1-web-base` 复查（`P.09` K300） |
