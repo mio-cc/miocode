@@ -99,7 +99,7 @@ Op 的 `payload`、事件的 `data`、`MessageBlock`、`MessageRef`、`NodeDef.i
 | `state_machine.yaml` | `RunCanTransition(from, to RunStatus) bool`、`RunIsTerminal`、`NodeCanTransition`、`NodeIsTerminal` | `STATE_MACHINE`、`runCanTransition`、`runIsTerminal`、`nodeCanTransition`、`nodeIsTerminal` |
 | `shortcuts.yaml` | —（只给前端） | `SHORTCUTS` |
 
-Go 侧按固定结构读这些 YAML，不认识的键报错；`authz_matrix.yaml` 里的动作、Op 种类、actor 必须是枚举里的值，状态机里的状态必须是 `RunStatus` / `NodeState` 的值，`shortcuts.yaml` 每项必填 `id`、`keys`、`layer`、`label`、`group` 且 `id` 唯一、`layer ∈ {global, canvas, nest, composer}`，否则生成失败。TS 侧照 YAML 原样输出（`as const`，键不转换，只有 `lib/protocol` 读它们，`W.04.04-R1`）。
+Go 侧按固定结构读这些 YAML，不认识的键报错；`authz_matrix.yaml` 里的动作、Op 种类、actor 必须是枚举里的值，状态机里的状态必须是 `RunStatus` / `NodeState` 的值，`shortcuts.yaml` 非空且每项必填 `id`、`keys`、`layer`、`label`、`group`（`id` 唯一、`layer ∈ {global, canvas, nest, composer}`、`keys` 符合 `W.02.04` §5.1 修饰键顺序与物理键语法、同层组合不冲突、不占 `U.13.04-R2` 保留键、非 `composer` 层单键不能 `in_input: true`），否则生成失败；`label` 在 `W.10` 文案表中的存在性由 `W.02.04`（`W0204-T2`）在写入 `shortcut.*` 文案时逐条校验。TS 侧照 YAML 原样输出（`as const`，键不转换，只有 `lib/protocol` 读它们，`W.04.04-R1`）。
 
 ### 5.4 设计令牌、主题与图标（`P.09` K303）
 - 令牌与主题（`go run ./tools/gen tokens` 及默认 `go run ./tools/gen`）：读 `design/tokens.css` 与 `design/themes/{paper,graphite,whale}.css`，检查 4 套配色 × 明暗共 8 组全部定义 `U.03.05` §5 与 `U.03.01` 颜色令牌、主题文件不定义非颜色/阴影令牌（`U.03.05-R6`）、对比度满足 `U.03.05-R3`（`text-1..3`/`accent-strong`/`ok`/`danger`/`wait`/`model` 在 `bg-1`/`bg-2` ≥ 4.5:1，在 `bg-4` 上 `text-3` ≥ 4.0:1 其余 ≥ 4.5:1；`primary-fg` 在 `primary` ≥ 4.5:1；8 种 `type-*` 与 6 种 `mark-c1..c6` 在 `bg-3` ≥ 3.0:1）及 `accent` 与 `model` HSL 色相差 ≥ 35°（K303）；校验通过后生成 `web/src/styles/tokens.css`、`web/src/styles/themes.css`、`web/src/styles/themes.ts`。
