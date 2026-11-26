@@ -1566,6 +1566,16 @@
       "lvl": 3,
       "children": [],
       "path": "E_内核_engine/E.10_llm_模型适配/E.10.09_重试_超时与限流.md"
+     },
+     {
+      "id": "E.10.10",
+      "name": "多密钥与故障转移",
+      "desc": "多密钥轮询、冷却与换密钥",
+      "type": "实",
+      "src": "引05",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.10_llm_模型适配/E.10.10_多密钥与故障转移.md"
      }
     ],
     "path": "E_内核_engine/E.10_llm_模型适配/E.10_llm_模型适配.md"

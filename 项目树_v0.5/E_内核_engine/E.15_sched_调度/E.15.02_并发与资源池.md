@@ -6,7 +6,7 @@
 | 类型 | 实施 |
 | 上级 | E.15 sched 调度 |
 | 下级 | 无 |
-| 状态 | 冻结 |
+| 状态 | 已审 |
 | 素材 | 引03 |
 | 最后修改 | 2026-11-26 |
 
@@ -48,6 +48,7 @@ func (p *Pool) Key() string
 func (p *Pool) Waiting() int64
 func (p *Pool) Acquire(ctx context.Context, onWait func(waiting int64)) (release func(), err error)
 func (p *Pool) Ready() bool                        // 派发时的粗过滤：并发和令牌都有余量（不占）
+func (p *Pool) Penalize(factor float64, d time.Duration) // 临时降低速率（模型返回 429 时，E.10.09）；不限速的池什么也不做
 ```
 
 ## 5. 行为
@@ -76,6 +77,7 @@ ctx 取消时 `Acquire` 立刻返回 ctx 的错误，不占名额。
   - `E1502-T2 全局上限`：`TryAcquire` 到上限后失败，释放后成功；同一配置的两个快照共享
   - `E1502-T3 热更新`：`Reconfigure` 后旧快照仍用旧配置，新快照用新配置
   - `E1502-T4 等待回调`：并发满时 `onWait` 收到等待数；没有令牌时也回调
+  - `E1502-T5 降速`：`Penalize(0.5, 1m)` 后（虚拟时钟）令牌补充变慢一半、1 分钟后恢复；不限速的池调用不出错
 - 允许使用的依赖：标准库（信号量用有容量的 channel，不加 `golang.org/x/sync`）
 - 禁止事项：`G.02.05` 全部
 - 完成标志：`relay check` ①–⑥ 通过；所在片整片验证通过（`G.02.06-R23`）
@@ -85,3 +87,4 @@ ctx 取消时 `Acquire` 立刻返回 ctx 的错误，不占名额。
 |---|---|---|
 | 2026-11-26 | 第 ④ 片（`m1-base`）开工前复查：加 `Config`、`PoolSet` 快照（热更新在下一次运行生效）、等待回调；节点级上限由执行器自己做；背压移到 `E.16.01`；信号量用标准库；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K265 |
 | 2026-11-26 | 状态改为"冻结"：第 ④ 片（`m1-base`） squash 合并进代码仓库 `main`，提交 `b666abb35c90221e3389d7bfb487413c401bf8bb`（`G.02.06-R21`） | `relay slice` 通过；评审 15 条全部符合（`-race` 留给 Linux CI）；按 `G.08-R3` 由验证者合并 |
+| 2026-11-26 | 第 ⑤a 片（`m1-llm`）复查：冻结后修改——加 `Pool.Penalize`（`E.10.09` 的 429 降速用）和 `E1502-T5`；状态改回"已审"（`G.02.06-R21`） | `P.09` K268 |

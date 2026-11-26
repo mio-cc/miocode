@@ -6,9 +6,9 @@
 | 类型 | 实施 |
 | 上级 | E.10 llm 模型适配 |
 | 下级 | 无 |
-| 状态 | 冻结 |
+| 状态 | 已审 |
 | 素材 | 引01§2；用户 2026-11-24（像 NewAPI 的渠道一样可自定义） |
-| 最后修改 | 2026-11-24 |
+| 最后修改 | 2026-11-26 |
 
 ## 1. 职责
 定义统一的模型接口（消息、工具、结构化输出、流式、用量、能力、错误），**模型提供方的配置格式**（协议、地址、鉴权、请求头、模型映射、请求体覆盖、能力覆盖），协议适配器要实现的 `Protocol` 接口，以及所有协议共用的部分：HTTP 传输与测试守卫、SSE 解析、请求体覆盖、错误分类、`Collect`、提供方注册表、契约测试框架。
@@ -128,7 +128,7 @@ type ProviderConfig struct {
 	Proxy    string            `json:"proxy,omitempty"`     // http(s):// 代理；空用系统代理设置
 	Vendor   string            `json:"vendor,omitempty"`    // 从哪个常用厂商填的（E.10.05），只用于显示
 
-	// 预留给 M1（多密钥轮询、优先级、故障转移，P.09 K250）：M0 能解析、校验类型，不生效，写了就记一条 warn
+	// 多密钥轮询、优先级、故障转移（P.09 K250、K268；换密钥和转移的做法在 E.10.10、E.10.09）：keys 写了时只用 keys，auth.secret 不再用（两个都写记 warn）；fallback 是别的已有提供方名（不能是自己、不能重复）；priority 决定它被列在别人 fallback 里时的先后（大的先）；weight 还不生效（以后有模型分组时用，写了记 warn）
 	Keys     []string `json:"keys,omitempty"`     // 多个密钥名
 	Priority int      `json:"priority,omitempty"`
 	Weight   int      `json:"weight,omitempty"`
@@ -193,7 +193,10 @@ type Registry struct{ /* 并发安全 */ }
 func NewRegistry(protocols []Protocol, caps CapsTable, secrets SecretResolver, o Options) *Registry
 func (r *Registry) SetProviders(ps []ProviderConfig) error            // 整体替换（配置热更新时）
 func (r *Registry) Providers() []ProviderConfig
-func (r *Registry) Client(provider, model string) (Client, error)      // 资源节点的模型引用 → Client
+func (r *Registry) Client(provider, model string) (Client, error)      // 资源节点的模型引用 → Client；写了 keys 时用第一个密钥
+func (r *Registry) ClientWithKey(provider, model, key string) (Client, error) // 同 Client，鉴权用指定的密钥名（必须在 keys 里，否则 user_input / key_not_found）
+func (r *Registry) Keys(provider string) []string                    // 提供方的 keys（副本）；没写或没有这个提供方时为 nil
+func (r *Registry) Fallbacks(provider string) []string               // fallback 按目标的 priority 从大到小（一样大保持原顺序）
 func (r *Registry) ListModels(ctx context.Context, provider string) ([]string, error) // "测试连接"用
 ```
 
@@ -273,16 +276,17 @@ func Run(t *testing.T, s Suite) // 跑 §5.6 的全部用例；每个用例的�
 4. 三种协议用同一个契约测试框架
 
 ### 实施卡
-- 要建 / 要改的文件：`engine/llm/llm.go`、`engine/llm/provider.go`、`engine/llm/registry.go`、`engine/llm/transport.go`、`engine/llm/sse.go`、`engine/llm/body.go`、`engine/llm/errors.go`、`engine/llm/collect.go`、`engine/llm/effort.go`、`engine/llm/llm_test.go`、`engine/llm/provider_test.go`、`engine/llm/transport_test.go`、`engine/llm/contract/contract.go`、`engine/llm/contract/contract_test.go`、`tools/deps/allow.txt`
+- 要建 / 要改的文件：`engine/llm/llm.go`、`engine/llm/provider.go`、`engine/llm/registry.go`、`engine/llm/transport.go`、`engine/llm/sse.go`、`engine/llm/body.go`、`engine/llm/errors.go`、`engine/llm/collect.go`、`engine/llm/effort.go`、`engine/llm/llm_test.go`、`engine/llm/provider_test.go`、`engine/llm/transport_test.go`、`engine/llm/registry_test.go`、`engine/llm/contract/contract.go`、`engine/llm/contract/contract_test.go`、`tools/deps/allow.txt`
 - `tools/deps/allow.txt` 去掉 `github.com/openai/openai-go`、`github.com/anthropics/anthropic-sdk-go`、`google.golang.org/genai` 三行（`G.10` 同步，ADR-011）
 - 不许碰的文件：`schema/`、`gen/`、`internal/`、`cmd/`、`engine/store/`、`web/`
 - 测试用例：
   - `E1001-T1 Collect`：文本分片拼接；两个工具调用按 `Index` 交错到达也拼对；最后一个 Delta 带完整 `Resp`；流在没有 Done 时提前结束 → 错误
   - `E1001-T2 契约测试框架`：用测试里写的一个最小协议（`httptest` 返回固定 SSE）跑 `contract.Run`，§5.6 的每个用例都执行到；缺录放文件时用例失败并说明文件名
-  - `E1001-T3 提供方配置校验`：名字不合规、重名、未知协议、`base_url` 不是绝对地址、`header`/`query` 鉴权缺 `name`、需要密钥却没有 `secret`、`Override` 的 `op` 不认识、模型 `id` 重名各自报错并写明位置；`keys`、`priority`、`weight`、`fallback` 能解析，各记一条 warn；`http://` 加远程主机加鉴权记 warn；`path` 和 `rename` 的 `to` 不是点分路径（有空段）报错
+  - `E1001-T3 提供方配置校验`：名字不合规、重名、未知协议、`base_url` 不是绝对地址、`header`/`query` 鉴权缺 `name`、需要密钥却没有 `secret`、`Override` 的 `op` 不认识、模型 `id` 重名各自报错并写明位置；`keys`、`priority`、`fallback` 能解析、不记 warn，`weight` 记一条 warn；`fallback` 指向不存在的提供方、自己、重复都报错；`keys` 有空名或重名报错；写了 `keys` 时可以不写 `auth.secret`，两个都写记 warn；`http://` 加远程主机加鉴权记 warn；`path` 和 `rename` 的 `to` 不是点分路径（有空段）报错
   - `E1001-T4 请求组装`：`httptest` 记下收到的请求：地址等于 `BaseURL` + 默认路径，`Paths` 覆盖生效；`bearer`、`header`、`query`、`none` 四种鉴权；`Headers` 里的 `{{secret:名}}` 被换成密钥；`SecretResolver` 在 `SetProviders` 时不被调用、每次请求调用一次；返回包着 `ErrSecretLocked` 的错误 → `Code` 为 `secret_locked`，返回其他错误 → `secret_missing`，两种都不发出请求；`upstream` 映射；`set`（含建中间对象）、`delete`、`rename`、`Models` 过滤；`Models` 不为空时用列表外的名字报错；上游在响应里回显密钥时，`Resp.Raw` 里换成 `[REDACTED]`
   - `E1001-T5 错误分类`：§5.5 表每一行一个用例；`Retry-After` 秒数和 HTTP 日期两种；quirks 错误规则优先；错误说明里的密钥原文被替换
   - `E1001-T6 测试守卫`：在测试里请求 `https://example.invalid` 不发出网络请求、直接得到"测试中不允许调用真实模型"；回环地址照常；`ANYDOOR_LLM_RECORD=1` 时守卫放行（只断言守卫的判定，不真的联网）
+  - `E1001-T8 多密钥与备用提供方`：`ClientWithKey` 用指定密钥鉴权（请求头里是那个密钥的原文）；`Client` 用 `keys` 的第一个；不在 `keys` 里的名字返回 `key_not_found`；`Keys` 返回副本；`Fallbacks` 按 `priority` 排序、一样大保持原顺序
   - `E1001-T7 能力合并与强度`：quirks → 提供方 → 模型条目三层覆盖；`ResolveEffort` 按 `E.10.05` §5 的规则（不在列表里先查映射，再取最接近的、一样近取较高；`off` 和不支持调节时返回 ""）
 - 在其他叶子跑的测试用例（不算本叶子的完成条件）：
   - 三种协议各自用 `contract.Run`：在 `E.10.02`、`E.10.03`、`E.10.04` 跑
@@ -296,3 +300,4 @@ func Run(t *testing.T, s Suite) // 跑 §5.6 的全部用例；每个用例的�
 | 2026-11-24 | 第 ⑨ 片（`m0-llm`）开工前复查：改名"统一接口与提供方配置"；按协议实现（ADR-011）：新增提供方配置（协议、地址、鉴权、请求头、模型映射、请求体覆盖、能力覆盖、预留多密钥字段）、`Protocol` 接口、注册表、传输与测试守卫、SSE、错误分类、契约测试框架；`Provider` 不再是适配器接口；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K250、K251 |
 | 2026-11-24 | 第 ⑨ 片整片评审后（`P.09` K252）：§4.6 `Suite` 加 `Caps`、`Transport` 两个字段（`E.10.08` 在本叶子之后，契约框架不直接 import 录放）；§5.1 第 4 步写明 `Raw` 也脱敏；`BodyOp.To` 的写法同 `Path`；`E1001-T3`、`T4` 各补一条 | `P.09` K252 |
 | 2026-11-24 | 状态改为"冻结"：第 ⑨ 片（`m0-llm`）squash 合并进代码仓库 `main`，提交 `fdbda299d663789d112f4ecb124901e234b645f8`（`G.02.06-R21`） | `relay slice` 通过；整片评审 19 行，1 条不符合、3 条有疑问已修（`P.09` K252）并复核；按 `G.08-R3` 由验证者合并 |
+| 2026-11-26 | 第 ⑤a 片（`m1-llm`）复查：冻结后修改——多密钥、优先级、故障转移的字段生效（`ClientWithKey`、`Keys`、`Fallbacks`，校验 `keys`、`fallback`），只有 `weight` 还记 warn；加 `E1001-T8`、改 `E1001-T3`；状态改回"已审"（`G.02.06-R21`） | `P.09` K268 |
