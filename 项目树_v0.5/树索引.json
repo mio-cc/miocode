@@ -1657,6 +1657,16 @@
       "lvl": 3,
       "children": [],
       "path": "E_内核_engine/E.11_tools_工具/E.11.07_技能_SKILL.md.md"
+     },
+     {
+      "id": "E.11.08",
+      "name": "内置工具：ws_read",
+      "desc": "按引用读工作区原文，只能读本运行出现过的引用",
+      "type": "实",
+      "src": "引06",
+      "lvl": 3,
+      "children": [],
+      "path": "E_内核_engine/E.11_tools_工具/E.11.08_内置工具_ws_read.md"
      }
     ],
     "path": "E_内核_engine/E.11_tools_工具/E.11_tools_工具.md"
