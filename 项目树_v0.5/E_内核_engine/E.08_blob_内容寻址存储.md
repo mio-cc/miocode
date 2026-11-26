@@ -6,9 +6,9 @@
 | 类型 | 实施 |
 | 上级 | E 内核 engine/ |
 | 下级 | 无 |
-| 状态 | 草稿 |
+| 状态 | 已审 |
 | 素材 | 引04 |
-| 最后修改 | 2026-11-22 |
+| 最后修改 | 2026-11-26 |
 
 ## 1. 职责
 内容寻址存储：大文本、模型请求与响应、工具结果、上下文包、检查点状态、上传文件，都按 sha256 存一份，用 `ws://sha256:<hex>` 引用。
@@ -22,47 +22,60 @@
 
 ## 4. 接口
 ```go
-type Store interface {
-    Put(ctx context.Context, r io.Reader, mediaType string) (Ref, error)
+// engine/blob/blob.go
+type Ref string                                       // "ws://sha256:<64 位小写十六进制>"
+func ParseRef(s string) (Ref, error)                  // 格式不对：ErrBadRef
+func (r Ref) Hash() string
+type Meta struct { Size int64; MediaType string }
+type Reader interface {                               // 给执行器的只读视图
     Get(ctx context.Context, ref Ref) (io.ReadCloser, Meta, error)
     Stat(ctx context.Context, ref Ref) (Meta, error)
-    Incr(ctx context.Context, ref Ref, delta int) error
-    GC(ctx context.Context, olderThan time.Duration) (removed int, err error)
 }
-type Reader interface { Get(…); Stat(…) }            // 给执行器的只读视图
-type Ref string                                       // "ws://sha256:<64 hex>"
-func ParseRef(s string) (Ref, error)
-func New(dir string, meta MetaRepo) Store             // fsblob 实现
+type Store interface {
+    Reader
+    Put(ctx context.Context, r io.Reader, mediaType string) (Ref, error)
+}
+var ErrNotFound, ErrBadRef, ErrCorrupt = errors.New(…), errors.New(…), errors.New(…)
+
+// engine/blob/fsblob/fsblob.go
+func New(dir string) (blob.Store, error)              // dir 是 <DataDir>/blobs；不存在就建
 ```
 
 ## 5. 行为
-- 路径：`<DataDir>/blobs/ab/cd/<hash>`（前两级分桶）。
-- 写入：边写临时文件边算 sha256 → `rename` 到目标位置（原子）→ upsert 元数据；内容已存在时只更新 `last_access`。
-- 引用计数：图版本、运行快照、检查点、事件里的引用写入时 `Incr`，删除对应记录时 `Decr`。
-- GC：引用计数为 0 且超过保留期（默认 30 天，`P.09` Q8）的删除；每天一次，分批（`B.09`）。
-- 运行内读取限制（`ws_read`，`E.11.01`）：执行器只能读本运行里出现过的引用——检查由 `RunCtx.Blobs()` 的包装做，不在这里。
+- 路径：`<dir>/<前 2 位>/<3–4 位>/<hash>`，媒体类型和大小写在旁边的 `<hash>.meta.json`。
+- 写入：在 `<dir>/.tmp/` 边写临时文件边算 sha256 → 关闭 → 内容已存在时删掉临时文件（去重）；不存在时先写 `.meta.json`（同样先写临时文件再改名），再把内容文件改名到目标位置。改名失败（另一个写入者先到了）且目标已存在时按去重处理。
+- `New` 时清掉 `.tmp/` 里留下的临时文件（上次中途崩溃留下的）。
+- 读取：边读边算 sha256，读到结尾时和引用里的不一致 → 这次 `Read` 返回 `ErrCorrupt`（记日志由调用方做）。
+- 引用计数和过期清理（GC）以后在数据维护（`B.09`）做；运行内读取限制（`ws_read`）在 `RunCtx.Blobs()` 的包装里做（`P.09` K265）。
 
 ## 6. 不变量
 - 同一内容只存一份
-- 读出内容的 sha256 等于引用里的哈希（读取时校验）
+- 读出内容的 sha256 等于引用里的哈希
 
 ## 7. 错误处理
-哈希不匹配：返回 `ErrCorrupt` 并记 error；引用格式错误：`ErrBadRef`。
+哈希不匹配：`ErrCorrupt`；引用格式错误：`ErrBadRef`；没有这个内容：`ErrNotFound`。
 
 ## 8. 验收标准
-1. 写入 1 万个随机内容后逐个读回校验
+1. 写入随机内容后逐个读回校验（平时 1000 个，`ANYDOOR_PERF=1` 时 1 万个）
 2. 重复写入不产生新文件
-3. GC 只删除计数为 0 且过期的
-4. 写入中途崩溃不留下半个文件
+3. 写入中途出错不留下半个文件
+4. 内容被改过时读出报错
 
 ### 实施卡
-- 要建 / 要改的文件：`engine/blob/blob.go`、`engine/blob/fsblob/*.go`、`engine/blob/blob_test.go`
-- 不许碰的文件：`schema/`、`gen/`、其他包的实现文件（只能 import 它们的导出接口）
+- 要建 / 要改的文件：`engine/blob/blob.go`、`engine/blob/fsblob/fsblob.go`、`engine/blob/fsblob/fsblob_test.go`
+- 不许碰的文件：`schema/`、`gen/`、`internal/`、`cmd/`、`web/`、`engine/graph/`、`engine/schema/`、`engine/store/`、`engine/op/`、`engine/authz/`、`engine/llm/`
 - 测试用例：
-  - `E08-T1 往返校验`
-  - `E08-T2 去重`
-  - `E08-T3 GC`
-  - `E08-T4 原子写`
+  - `E08-T1 往返校验`：随机内容写入后读回相同，`Stat` 的大小和媒体类型对；`ParseRef` 正反例
+  - `E08-T2 去重`：同样内容写两次引用相同、只有一个内容文件
+  - `E08-T4 原子写`：读到一半出错的 `io.Reader` 写入失败，不留下内容文件和 `.meta.json`；`New` 清掉 `.tmp/` 里的旧文件
+  - `E08-T5 损坏`：改掉内容文件的一个字节，读出时 `ErrCorrupt`；读不存在的引用 `ErrNotFound`
+- 在其他叶子跑的测试用例（不算本叶子的完成条件）：
+  - `E08-T3 GC`：引用计数和过期清理，在 `B.09` 跑
 - 允许使用的依赖：标准库
 - 禁止事项：`G.02.05` 全部
-- 完成标志：`G.14` 全部条件
+- 完成标志：`relay check` ①–⑥ 通过；所在片整片验证通过（`G.02.06-R23`）
+
+## 变更记录
+| 日期 | 变更 | 原因 |
+|---|---|---|
+| 2026-11-26 | 第 ④ 片（`m1-base`）开工前复查：只做写入、读取、校验和去重，引用计数和 GC 推到 `B.09`（用户决定）；媒体类型写在旁边的 `.meta.json`；加 `E08-T5`；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K265 |
