@@ -6,15 +6,15 @@
 | 类型 | 实施 |
 | 上级 | C 契约层 |
 | 下级 | 无 |
-| 状态 | 冻结 |
+| 状态 | 已审 |
 | 素材 | 引01§4 |
-| 最后修改 | 2026-11-23 |
+| 最后修改 | 2026-11-26 |
 
 ## 1. 职责
 定义 `schema/` 到 Go 代码和 TypeScript 代码的生成规则，特别是生成器处理不好的情况（判别联合、可空、开放对象）怎么办；实现生成器 `tools/gen`。生成流程和生成物清单见 `G.16`。本叶子是 `tools/gen` 唯一的负责叶子：`G.16` 清单里以后要补的生成物（令牌、主题、图标、字体、布局常数、快捷键），源文件出现后由本叶子改回"已审"再实施（`P.09` K234）。
 
 ## 2. 工具与输出
-生成器是自研的 Go 程序 `tools/gen`（一个 `package main`），读 `schema/*.schema.json` 和 `schema/builtin/`，同时输出 Go 和 TS；不用第三方生成工具，不依赖 Node（`P.09` K234）。`go run ./tools/gen` 一次生成下表全部文件；`tokens`、`icons`、`fonts` 子命令在源文件出现前报"还没有源文件"并以 1 退出。
+生成器是自研的 Go 程序 `tools/gen`（一个 `package main`），读 `schema/*.schema.json`、`schema/builtin/` 和 `design/`，同时输出 Go 和 TS/CSS；不用第三方生成工具，不依赖 Node（`P.09` K234、K303）。`go run ./tools/gen` 一次生成下表全部文件；`tokens`、`icons` 子命令分别只生成令牌/主题和图标表；`fonts` 子命令在字体源文件出现前报"还没有源文件"并以 1 退出。
 
 | 输出 | 内容 |
 |---|---|
@@ -24,9 +24,13 @@
 | `gen/tables.go` | 数据表与状态机转换函数（§5.3） |
 | `web/src/lib/protocol/generated/types.ts` | 全部 schema 类型、`withDefaults…`；与类型同名的常量对象（`RunStatus.Done`） |
 | `web/src/lib/protocol/generated/consts.ts` | 与类型不同名的常量对象：`Ev`、`ErrCode`、`DiagCode`、`Act`、`SseControl`、`NodeType` |
-| `web/src/lib/protocol/generated/tables.ts` | 数据表（`AUTHZ_MATRIX` 等）与转换函数 |
+| `web/src/lib/protocol/generated/tables.ts` | 数据表（`AUTHZ_MATRIX`、`SHORTCUTS` 等）与转换函数 |
 | `web/src/lib/protocol/generated/wire.ts` | 前端字段映射表 `WIRE_TYPES`（§5.1，按类型） |
 | `web/src/lib/i18n/generated/messages.ts` | `ERRORS`、`ASSIGN`（`W.10` §4.5） |
+| `web/src/styles/tokens.css` | 设计令牌副本（源 `design/tokens.css`，`U.02-R1`） |
+| `web/src/styles/themes.css` | 四套配色 × 浅色 / 深色的主题样式（源 `design/themes/*.css`，`U.03.05` §4） |
+| `web/src/styles/themes.ts` | `THEMES` 列表与 `DEFAULT_PALETTE`（`U.03.05` §4、`W.02.03` §4.3） |
+| `web/src/styles/icons.ts` | 图标表 `ICONS`、`IconName`、`IconShape`、`ICON_FALLBACK`（源 `design/icons/`，`U.08-R2`、`W.08.01` §4.2） |
 
 Go 包名 `gen`（`github.com/mio-cc/anywhere-door/gen`）。Go 输出经 `go/format` 格式化；每个文件第一行是生成标记（`G.04.03`）。
 
@@ -93,8 +97,13 @@ Op 的 `payload`、事件的 `data`、`MessageBlock`、`MessageRef`、`NodeDef.i
 | `aggregate_ops.yaml` | `AggregateOps map[string]string` | `AGGREGATE_OPS` |
 | `authz_matrix.yaml` | `AuthzRows []AuthzRow`（每行 `Actions []Action`、`Levels [5]AuthzCell`，格是判定或 `{If, Then, Else}`）、`AuthzFixed map[Action]ActorKind`、`AuthzOpActions map[OpKind]string` | `AUTHZ_MATRIX` |
 | `state_machine.yaml` | `RunCanTransition(from, to RunStatus) bool`、`RunIsTerminal`、`NodeCanTransition`、`NodeIsTerminal` | `STATE_MACHINE`、`runCanTransition`、`runIsTerminal`、`nodeCanTransition`、`nodeIsTerminal` |
+| `shortcuts.yaml` | —（只给前端） | `SHORTCUTS` |
 
-Go 侧按固定结构读这些 YAML，不认识的键报错；`authz_matrix.yaml` 里的动作、Op 种类、actor 必须是枚举里的值，状态机里的状态必须是 `RunStatus` / `NodeState` 的值，否则生成失败。TS 侧照 YAML 原样输出（`as const`，键不转换，只有 `lib/protocol` 读它们，`W.04.04-R1`）。
+Go 侧按固定结构读这些 YAML，不认识的键报错；`authz_matrix.yaml` 里的动作、Op 种类、actor 必须是枚举里的值，状态机里的状态必须是 `RunStatus` / `NodeState` 的值，`shortcuts.yaml` 每项必填 `id`、`keys`、`layer`、`label`、`group` 且 `id` 唯一、`layer ∈ {global, canvas, nest, composer}`，否则生成失败。TS 侧照 YAML 原样输出（`as const`，键不转换，只有 `lib/protocol` 读它们，`W.04.04-R1`）。
+
+### 5.4 设计令牌、主题与图标（`P.09` K303）
+- 令牌与主题（`go run ./tools/gen tokens` 及默认 `go run ./tools/gen`）：读 `design/tokens.css` 与 `design/themes/{paper,graphite,whale}.css`，检查 4 套配色 × 明暗共 8 组全部定义 `U.03.05` §5 与 `U.03.01` 颜色令牌、主题文件不定义非颜色/阴影令牌（`U.03.05-R6`）、对比度满足 `U.03.05-R3`（`text-1..3`/`accent-strong`/`ok`/`danger`/`wait`/`model` 在 `bg-1`/`bg-2` ≥ 4.5:1，在 `bg-4` 上 `text-3` ≥ 4.0:1 其余 ≥ 4.5:1；`primary-fg` 在 `primary` ≥ 4.5:1；8 种 `type-*` 与 6 种 `mark-c1..c6` 在 `bg-3` ≥ 3.0:1）及 `accent` 与 `model` HSL 色相差 ≥ 35°（K303）；校验通过后生成 `web/src/styles/tokens.css`、`web/src/styles/themes.css`、`web/src/styles/themes.ts`。
+- 图标表（`go run ./tools/gen icons` 及默认 `go run ./tools/gen`）：读 `design/icons/*.svg`、`design/icons/node/*.svg` 与 `schema/builtin/aliases.yaml`（13 个原子节点按别名换回中文名，`node/Extension.svg` 映射为 `扩展`）；检查 `U.08-R1`、`R4`（`viewBox="0 0 16 16"`、只允许 `path`/`circle`/`rect`/`line`/`polyline` 五种形状、禁止 `<script>`/`style`/`on*`/外链、非 `solid` 图标禁止颜色 `fill`），生成 `web/src/styles/icons.ts`（`IconShape`、`ICONS`、`IconName`、`ICON_FALLBACK`）。
 `messages.ts`：`ERRORS` 的键恰好是 `ApiErrorCode` 的全部取值，`ASSIGN` 的键恰好是 C1、C2、C4、C6、C8、C10（`G.16`），否则生成失败。
 
 ## 6. 不允许
@@ -107,17 +116,20 @@ Go 侧按固定结构读这些 YAML，不认识的键报错；`authz_matrix.yaml
 3. CI 里 `make gen && git diff --exit-code` 通过。
 
 ### 实施卡
-- 要建 / 要改的文件：`tools/gen/main.go`、`tools/gen/`（生成器的其他源文件、测试、testdata 目录）、`schema/builtin/aliases.yaml`、`schema/builtin/sse_control.yaml`、`gen/types.go`、`gen/union.go`、`gen/consts.go`、`gen/tables.go`、`web/src/lib/protocol/generated/types.ts`、`web/src/lib/protocol/generated/consts.ts`、`web/src/lib/protocol/generated/tables.ts`、`web/src/lib/protocol/generated/wire.ts`、`web/src/lib/i18n/generated/messages.ts`
-- `tools/gen/main.go` 现在是 `O.01` 留下的桩（`STUB(G.16)`），整体替换（`G.02.06-R10`）。生成物由验证者运行 `go run ./tools/gen` 产出并提交，实施者不手写（`G.02.05-R1`）。
+- 要建 / 要改的文件：`tools/gen/main.go`、`tools/gen/`、`schema/builtin/aliases.yaml`、`schema/builtin/sse_control.yaml`、`schema/builtin/shortcuts.yaml`、`design/tokens.css`、`design/themes/paper.css`、`design/themes/graphite.css`、`design/themes/whale.css`、`design/icons/`、`gen/types.go`、`gen/union.go`、`gen/consts.go`、`gen/tables.go`、`web/src/lib/protocol/generated/types.ts`、`web/src/lib/protocol/generated/consts.ts`、`web/src/lib/protocol/generated/tables.ts`、`web/src/lib/protocol/generated/wire.ts`、`web/src/lib/protocol/index.ts`、`web/src/lib/i18n/generated/messages.ts`、`web/src/styles/tokens.css`、`web/src/styles/themes.css`、`web/src/styles/themes.ts`、`web/src/styles/icons.ts`、`web/eslint.config.js`
+- 说明：生成物由 `go run ./tools/gen` 产出并提交，不手写（`G.02.05-R1`）；`web/src/lib/protocol/index.ts` 只补转发 `SHORTCUTS`；`web/eslint.config.js` 只在生成物忽略列表加入 `src/styles/themes.ts`、`src/styles/icons.ts`（`P.09` K303）。
 - 不许碰的文件：`engine/`、`internal/`、`cmd/`、`schema/`、`tools/relay/`、`tools/build/`、`tools/schemacheck/`、`web/src/`
 - 测试用例：
-  - `C14-T1 确定性`：对仓库的 schema 生成两次到两个临时目录，逐字节相同；也和仓库里提交的生成物相同
+  - `C14-T1 确定性`：对仓库的 schema 与 design 生成两次，逐字节相同；也和仓库里提交的生成物相同
   - `C14-T2 往返`：`op_vectors.json`、`run_event_vectors.json`、`graph_event_vectors.json`、`session_event_vectors.json` 里全部合法的项，示例清单里全部合法的示例，`schema/builtin/` 的内置节点定义、类型、配方、角色卡：严格解码成生成的类型 → 联合解码（分支再编码也与原文相同）→ 编码，与原文语义相同；每个联合的每个分支至少覆盖一次（按 schema 里的分支名单逐个检查）
   - `C14-T3 黄金文件`：`tools/gen/testdata/` 下一组固定的 schema（覆盖 §3 的每一行、两种联合、内联类型、`$ref` 到属性和 `#`），生成结果与黄金文件相同（`G.16-R5`；`-update` 重写黄金文件）
   - `C14-T4 命名与拒绝`：字段名、常量名的换算（含缩写、`tool.L0`、`V09`）；`x_2`、`a__b`、类型重名、常量重名、根类型名没登记都生成失败
   - `C14-T5 状态机`：生成的 `RunCanTransition` 6×6、`NodeCanTransition` 9×9 逐格与 `C.07` §2、§3.1 一致（期望表写在测试里），终态函数与 `terminal` 一致（`C.07` §7 验收 1）
   - `C14-T6 字段映射表`：同名字段在不同类型里分别正确：`Node.params` 为 `"raw"`、`NodeDef.params` 为 `{map: {t: ParamDef}}`、`Mandate.overrides` 为 `{t: Overrides}`、`SubgraphRef.overrides` 为 `"raw"`、`Overrides.budget` 为结构而 `run.created` 的 `budget` 为 `"raw"`、`Message.usage` 为结构；映射的值不用转换时为 `"raw"`（`orchestrator_effort`、`decisions`、`id_map`）；`Op`、三条事件流是字段联合、`MessageBlock`、`MessageRef`、`Impl` 是整体联合，分支数与 schema 一致；testdata 的 schema 上 `$ref` 到属性、`$ref: "#"`、数组、映射各一例
   - `C14-T7 数据表与文案`：`tables.go` 的数据与 YAML 一致；`authz_matrix.yaml` 里写一个不存在的动作时生成失败；`ERRORS` 少一个错误码、`ASSIGN` 多一条时生成失败
+  - `C14-T8 令牌与主题生成`：4 套配色 × 明暗 8 组合全部通过完整性、非颜色令牌禁止与 WCAG 对比度检查；反例（缺颜色令牌、主题含字号令牌、低对比度色值）生成失败
+  - `C14-T9 图标生成与校验`：`design/icons/` 与 `design/icons/node/` 72 个图标覆盖 `U.08` §2 全部名字，节点英文别名换回中文名；反例（非法 viewBox、含 `<script>`、含 `on*`、含 `style`、非法 `fill`、未允许元素）生成失败
+  - `C14-T10 快捷键表生成`：`schema/builtin/shortcuts.yaml` 全部项生成为 `SHORTCUTS`；反例（重复 `id`、非法 `layer`、空 `keys`）生成失败
 - 在其他叶子跑的测试用例（不算本叶子的完成条件）：
   - TS 侧往返（R4）：`W.04.03`（复查 `W.04.03` 时写进它的实施卡）
 - 允许使用的依赖：标准库、`github.com/goccy/go-yaml`（`G.10` 已登记）
@@ -133,3 +145,4 @@ Go 侧按固定结构读这些 YAML，不认识的键报错；`authz_matrix.yaml
 | 2026-11-23 | 第 5 片开工前复查：生成器改为自研（不用 `go-jsonschema`、`json-schema-to-typescript`）；§3 写全映射规则（可选字段一律指针、`Timestamp` 包装类型、内联类型命名、`$ref` 到属性）；§4 按实际 schema 的 `if/then` 写法写两种联合；§5.2 常量来源（新增 `sse_control.yaml`）、§5.3 数据表；R8 联合字段名按结构处理；Go 侧往返在本叶子，TS 侧在 `W.04.03`；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K234 |
 | 2026-11-23 | R8 改为按类型生成字段映射表（`WIRE_TYPES`），不按字段名汇总；`C14-T6` 相应改 | 第 5 片实施中检查生成结果：按名字汇总让 `budget`、`usage`、`params`、`ui`、`overrides`、`note` 里的结构字段不转换；`P.09` K235 |
 | 2026-11-24 | 状态改为"冻结"：第 5 片 squash 合并进代码仓库 `main`，提交 `209a9b940d6f17d5c03b87805c36770440ba7854`（`G.02.06-R21`） | `relay check` 七项通过；评审 9 条全部符合；按 `G.08-R3` 由验证者合并 |
+| 2026-11-26 | 按 K234 / K303 改回"已审"：补齐令牌/主题（`design/tokens.css`、`design/themes/*.css`）、图标（`design/icons/`）与快捷键表（`schema/builtin/shortcuts.yaml`）的生成与测试（`C14-T8`–`T10`） | 第 ⑨a 片 `m1-web-assets` 前置生成物落地；`P.09` K303 |
