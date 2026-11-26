@@ -139,8 +139,8 @@ export { fromWire, toWire, toWireQuery, camelKey, snakeKey, type FromWire, type 
 5. `web/src/` 里 `lib/protocol/` 以外搜索不到 snake_case 的字段访问（开放对象的字符串键除外；ESLint `@typescript-eslint/naming-convention` 对属性名检查，`G.04.02` §3）。
 
 ### 实施卡
-- 要建 / 要改的文件：`web/src/lib/protocol/mapping.ts`、`web/src/lib/protocol/mapping.test.ts`、`web/src/lib/protocol/mapping.test-d.ts`、`web/src/lib/protocol/types.ts`、`web/src/lib/protocol/index.ts`。
-- 说明：`assemble.ts` 推到第 ⑩ 片 `W.04.05`，待 `client.ts` / `events.ts` / `offline.ts` 就位后建（`P.09` K300）。
+- 要建 / 要改的文件：`web/src/lib/protocol/mapping.ts`、`web/src/lib/protocol/mapping.test.ts`、`web/src/lib/protocol/mapping.test-d.ts`、`web/src/lib/protocol/types.ts`、`web/src/lib/protocol/index.ts`、`web/eslint.config.js`、`web/stylelint.config.js`、`web/vitest.config.ts`、`web/tests/kit/setup.ts`、`web/tests/kit/time.ts`、`web/tests/kit/dom.ts`、`web/tests/kit/render.tsx`、`web/tests/kit/user.ts`、`web/tests/kit/data.ts`、`web/tests/kit/ids.mjs`、`web/tests/kit/kit.test.tsx`、`web/tests/kit/lint.test.ts`、`web/tests/lint/canvas-core/bad/src/canvas/core/bad.ts`、`web/src/lib/i18n/format.ts`、`web/src/lib/i18n/format.test.ts`、`web/src/lib/i18n/clock.test.ts`、`web/src/lib/i18n/zh.test.ts`。
+- 说明：`assemble.ts` 推到第 ⑩ 片 `W.04.05`，待 `client.ts` / `events.ts` / `offline.ts` 就位后建（`P.09` K300）；其余文件为第 ⑧ 片 `m1-web-base` 整片交叉评审返工（`P.09` K302、K238）。
 - 不许碰的文件：`web/src/lib/protocol/generated/`、`web/src/lib/protocol/client.ts`、`web/src/lib/protocol/events.ts`、`web/src/lib/protocol/offline.ts`、`web/src/state/`、`schema/`、`tools/`。
 - 函数签名：见 §4。
 - 测试用例：
@@ -165,3 +165,4 @@ export { fromWire, toWire, toWireQuery, camelKey, snakeKey, type FromWire, type 
 | 2026-11-23 | §6.1 映射类的值是数组时逐项转换；§5.1 `payload`、`data` 在所有位置按结构 | `P.09` K234 |
 | 2026-11-23 | 字段映射表改为按类型（`WIRE_TYPES`）：`fromWire`、`toWire` 带根类型名；§5.1、§6.1、§6.2、`FromWire<T>`、`W0403-T1`、`T2`、`T8` 相应改；补上漏掉的"变更记录"标题 | `P.09` K235 |
 | 2026-11-26 | 状态改为"已审"；对齐已冻结的 `generated/{types,consts,tables,wire}.ts` 导出结构；实施卡按 `G.02.06-R24` 重写，`assemble.ts` 推到第 ⑩ 片 `W.04.05`，`W0403-T10` 移到 `W.11` | M1 第 ⑧ 片 `m1-web-base` 复查（`P.09` K300、K301） |
+| 2026-11-26 | 实施卡补入第 ⑧ 片整片评审返工涉及的片内文件（按 K238 记入片内最后一个叶子） | 第 ⑧ 片独立交叉评审返工（`P.09` K302） |
