@@ -6,7 +6,7 @@
 | 类型 | 实施 |
 | 上级 | W.04 协议层 |
 | 下级 | 无 |
-| 状态 | 已审 |
+| 状态 | 冻结 |
 | 素材 | 引01 §3；`G.04.02` §2；`C.01-R4`、`R19`；`C.14` §3；`P.09` K84、K235、K300、K301 |
 | 最后修改 | 2026-11-26 |
 
@@ -166,3 +166,4 @@ export { fromWire, toWire, toWireQuery, camelKey, snakeKey, type FromWire, type 
 | 2026-11-23 | 字段映射表改为按类型（`WIRE_TYPES`）：`fromWire`、`toWire` 带根类型名；§5.1、§6.1、§6.2、`FromWire<T>`、`W0403-T1`、`T2`、`T8` 相应改；补上漏掉的"变更记录"标题 | `P.09` K235 |
 | 2026-11-26 | 状态改为"已审"；对齐已冻结的 `generated/{types,consts,tables,wire}.ts` 导出结构；实施卡按 `G.02.06-R24` 重写，`assemble.ts` 推到第 ⑩ 片 `W.04.05`，`W0403-T10` 移到 `W.11` | M1 第 ⑧ 片 `m1-web-base` 复查（`P.09` K300、K301） |
 | 2026-11-26 | 实施卡补入第 ⑧ 片整片评审返工涉及的片内文件（按 K238 记入片内最后一个叶子） | 第 ⑧ 片独立交叉评审返工（`P.09` K302） |
+| 2026-11-26 | 状态改为"冻结"：M1 第 ⑧ 片 `m1-web-base` squash 合并进代码仓库 `main`，提交 `946ea537a25e22e9d2c18962aa659abab71613ef`（`G.02.06-R21`） | 独立交叉评审与复核通过（`docs/relay/m1-web-base.review.md`）；Codex 合并推送 |

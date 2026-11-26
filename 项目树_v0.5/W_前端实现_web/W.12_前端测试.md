@@ -6,7 +6,7 @@
 | 类型 | 实施 |
 | 上级 | W 前端实现 web/ |
 | 下级 | 无 |
-| 状态 | 已审 |
+| 状态 | 冻结 |
 | 素材 | 引12（只作参考）；`G.06.04` §1；`U.20`；设计规范 v0.3 `test_core.js`、`test_smoke.js`、`check_syntax.js` 与 `U.20` 补充第 1 条（只靠 Node 假 DOM 冒烟测试的教训）；`P.09` K172–K176、K300 |
 | 最后修改 | 2026-11-26 |
 
@@ -288,3 +288,4 @@ export const tag: { chromiumOnly(reason: string): string };   // 只在 Chromium
 |---|---|---|
 | 2026-11-23 | 首版 | 第 10 棒；`P.09` K172–K176 |
 | 2026-11-26 | 状态改为"已审"；实施卡按 `G.02.06-R24` 重写，拆分 M1 第 ⑧ 片与第 ⑨/⑩/⑫ 片范围，明确替换 `web/package.json`、`tsconfig.json`、`scripts/stub.mjs` 桩 | M1 第 ⑧ 片 `m1-web-base` 复查（`P.09` K300） |
+| 2026-11-26 | 状态改为"冻结"：M1 第 ⑧ 片 `m1-web-base` squash 合并进代码仓库 `main`，提交 `946ea537a25e22e9d2c18962aa659abab71613ef`（`G.02.06-R21`） | 独立交叉评审与复核通过（`docs/relay/m1-web-base.review.md`）；Codex 合并推送 |
