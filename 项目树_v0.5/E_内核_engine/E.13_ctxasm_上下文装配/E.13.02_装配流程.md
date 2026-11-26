@@ -6,9 +6,9 @@
 | 类型 | 实施 |
 | 上级 | E.13 ctxasm 上下文装配 |
 | 下级 | 无 |
-| 状态 | 已审 |
+| 状态 | 冻结 |
 | 素材 | 引06 |
-| 最后修改 | 2026-11-26 |
+| 最后修改 | 2026-11-27 |
 
 ## 1. 职责
 执行装配：分配来源 → 取值 → 排除 → 变换 → 加入 inherit 锁定段 → 预算与溢出处理 → 排序 → 产出上下文包；给出 `ctx.assembled` 事件的数据。
@@ -110,3 +110,4 @@ func Assemble(ctx context.Context, plan *Plan, in []Value, env Env) (Packet, err
 | 2026-11-23 | `Vars` 来自配方段的 `var`；补 `E1302-T5` | `P.09` K222 |
 | 2026-11-26 | 第 ⑤b 片（`m1-tools-ctx`）开工前复查：输入改用本包的 `Value`；事件和存包交给执行器；`Packet` 加 `Clamped`、`Inherit`、`Pointers`、`Warnings` 和 `Value()`、`Event()`；黄金文件用 `-update` 生成后由实施者确认；加 `E1302-T6`；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K271 |
 | 2026-11-26 | 实施卡加 `inherit.go`、`inherit_test.go`（K273 的合并规则在本叶子里改） | `P.09` K273 |
+| 2026-11-27 | 状态改为"冻结"：第 ⑤b 片（`m1-tools-ctx`） squash 合并进代码仓库 `main`，提交 `615eb8b1256f0420807f72afa2cc11c02490caab`（`G.02.06-R21`） | `relay slice` 通过；评审 18 条全部符合（第 18 行按 `P.09` K274 修复后由 Codex 复核）；按 `G.08-R3` 由验证者合并 |

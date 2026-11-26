@@ -6,7 +6,7 @@
 | 类型 | 实施 |
 | 上级 | E.13 ctxasm 上下文装配 |
 | 下级 | 无 |
-| 状态 | 已审 |
+| 状态 | 冻结 |
 | 素材 | 引06 |
 | 最后修改 | 2026-11-27 |
 
@@ -97,3 +97,4 @@ func ResolveRoleCard(ref string, v schema.View) (*gen.Rolecard, error)
 | 2026-11-23 | ② 角色卡改为来自 Agent 的 `rolecard` 参数；⑥ 加 `instruction`；验收 2 的引用改正 | `P.09` K213、K222 |
 | 2026-11-26 | 第 ⑤b 片（`m1-tools-ctx`）开工前复查：输入改成 `Agent`（不读 `graph.Node`）、底座原文由组装处传入；`escalate` 推到 M2、授权档位说明推到 M3（`E1305-T4` 改为模板变量）；写明每段的写法和继承规则；黄金文件用 `-update` 生成后由实施者确认；实施卡按 `G.02.06-R24` 重写；状态改为"已审" | `P.09` K271 |
 | 2026-11-27 | 第 ⑤b 片整片评审后：§5 ⑤ 段只读规则写成"只有带「X」标签的节点能改"；实施卡加 `engine/tools/handle.go`、`engine/tools/handle_test.go`（`E.11.01`）、`engine/ctxasm/assemble_test.go`（`E.13.02`），评审第 18 行和建议 3 在本叶子里改 | `P.09` K274 |
+| 2026-11-27 | 状态改为"冻结"：第 ⑤b 片（`m1-tools-ctx`） squash 合并进代码仓库 `main`，提交 `615eb8b1256f0420807f72afa2cc11c02490caab`（`G.02.06-R21`） | `relay slice` 通过；评审 18 条全部符合（第 18 行按 `P.09` K274 修复后由 Codex 复核）；按 `G.08-R3` 由验证者合并 |
