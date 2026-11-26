@@ -6,9 +6,9 @@
 | 类型 | 实施 |
 | 上级 | W 前端实现 web/ |
 | 下级 | W.08.01 按钮类、W.08.02 输入类、W.08.03 选择类、W.08.04 浮层类、W.08.05 反馈类 |
-| 状态 | 草稿 |
+| 状态 | 已审 |
 | 素材 | 设10；设计规范 v0.3 `src/06_controls.css`、`src/20_icons.js`；demo v0.5（v0.5.11）`21_flow.css`、`43_float.js`（流动高亮）、`15_art.css`、`17_fix.css`；`W.07` §4.3；`P.09` K121–K130 |
-| 最后修改 | 2026-11-23 |
+| 最后修改 | 2026-11-26 |
 
 ## 1. 职责
 `web/src/components/ui/`：全前端共用的、只拿 props 的基础控件——按钮、图标、输入、选择、浮层、提示与反馈，以及没有对应叶子的四个通用组件（`Icon`、`GlideGroup`、`ScrollArea`、`ErrorBoundary`）。`W.07` 面板、`W.09` 页面、`canvas/Canvas.tsx` 与 `CanvasOverlays.tsx` 只组合这些控件，不自建通用控件（`W.07` §4.3 末尾）。

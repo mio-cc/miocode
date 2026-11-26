@@ -6,9 +6,9 @@
 | 类型 | 实施 |
 | 上级 | W.08 基础组件库 |
 | 下级 | 无 |
-| 状态 | 草稿 |
+| 状态 | 已审 |
 | 素材 | 设10 §10.9、§10.11、§10.12、§10.25；设计规范 v0.3 `src/06_controls.css`（`.hx-select`）；demo v0.5（v0.5.11）`17_fix.css`（节点库筛选纯文字 + 下划线）、`21_flow.css`（思考强度分段）；`P.09` K123、K125–K127、K130 |
-| 最后修改 | 2026-11-23 |
+| 最后修改 | 2026-11-26 |
 
 ## 1. 职责
 下拉 `Select`、分段 `Segmented`、开关 `Switch`、标签页 `Tabs`、选择列表 `Picker`（`U.11` 的"选择器 picker"，`P.09` K130），以及它们共用的列表导航与窗口化计算 `listNav.ts`。
@@ -212,8 +212,8 @@ export function matchSpan(label: string, q: string): [number, number] | null;   
 6. 500 项的 `Picker`、`Select` 打开流畅（≤ 50ms），滚动到底所有项都能选到。
 
 ### 实施卡
-- 要建 / 要改的文件：`web/src/components/ui/select/Select.tsx`、`Segmented.tsx`、`Switch.tsx`、`Tabs.tsx`、`Picker.tsx`，每个同名 `.css`、`.test.tsx`；`select/listNav.ts`、`listNav.test.ts`；`web/src/components/ui/index.ts`（只加本文的导出行）。
-- 不许碰的文件：`web/src/components/ui/` 的其他子目录、`types.ts`、`base.css`；`web/src/styles/`（生成物，`--hx-bg-seg` 由令牌任务加入 `design/tokens.css`）；`state/`、`ops/`、`shell/`、`panels/`、`pages/`、`canvas/`、`lib/protocol/`。
+- 要建 / 要改的文件：`web/src/components/ui/select/Select.tsx`、`web/src/components/ui/select/Select.css`、`web/src/components/ui/select/Select.test.tsx`、`web/src/components/ui/select/Segmented.tsx`、`web/src/components/ui/select/Segmented.css`、`web/src/components/ui/select/Segmented.test.tsx`、`web/src/components/ui/select/Switch.tsx`、`web/src/components/ui/select/Switch.css`、`web/src/components/ui/select/Switch.test.tsx`、`web/src/components/ui/select/Tabs.tsx`、`web/src/components/ui/select/Tabs.css`、`web/src/components/ui/select/Tabs.test.tsx`、`web/src/components/ui/select/Picker.tsx`、`web/src/components/ui/select/Picker.css`、`web/src/components/ui/select/Picker.test.tsx`、`web/src/components/ui/select/listNav.ts`、`web/src/components/ui/select/listNav.test.ts`、`web/src/components/ui/index.ts`
+- 不许碰的文件：`web/src/styles/`、`web/src/state/`、`web/src/ops/`、`web/src/shell/`、`web/src/panels/`、`web/src/pages/`、`web/src/canvas/`、`web/src/lib/protocol/`
 - 函数签名：见 §4。
 - 测试用例：
   - `W0803-T1 props 对照`：五个组件含 `W.07` §4.3 对应行的全部 props（`expectTypeOf`），补充 props 与 `W.08` §4.5 一致

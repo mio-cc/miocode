@@ -6,9 +6,9 @@
 | 类型 | 实施 |
 | 上级 | W.08 基础组件库 |
 | 下级 | 无 |
-| 状态 | 草稿 |
+| 状态 | 已审 |
 | 素材 | 设10 §10.15–§10.17、§10.22、§10.28；demo v0.5（v0.5.11）`21_flow.css`（隐藏式滚动条）、`17_fix.css`；`U.14.01`、`U.14.02`；`P.09` K123、K124、K126、K128、K129 |
-| 最后修改 | 2026-11-23 |
+| 最后修改 | 2026-11-26 |
 
 ## 1. 职责
 单条提示 `Toast`、徽标 `Badge`、状态点 `StatusDot`、旋转弧 `Spinner`、进度条 `ProgressBar`、空状态 `EmptyState`，以及区域容器 `ScrollArea`（滚动条平时隐藏）和 `ErrorBoundary`（区域出错时的兜底）。
@@ -213,8 +213,9 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, { error: 
 8. `ErrorBoundary`：右侧栏监控页里一个组件抛错 → 只有监控页显示兜底内容，画布和左栏照常；点"重新加载这一块"恢复；`resetKey` 变化自动恢复；控制台有带 `name` 的错误。
 
 ### 实施卡
-- 要建 / 要改的文件：`web/src/components/ui/feedback/Toast.tsx`、`Badge.tsx`、`StatusDot.tsx`、`Spinner.tsx`、`ProgressBar.tsx`、`EmptyState.tsx`、`ScrollArea.tsx`、`ErrorBoundary.tsx`，每个同名 `.css`（`ErrorBoundary` 没有 `.css`）、`.test.tsx`；`web/src/components/ui/index.ts`（只加本文的导出行）；`web/eslint.config.js` 只给 `ErrorBoundary.tsx` 一处加"允许 class 组件"的豁免（规则所在处按 `G.06.04-R2` 写原因）。
-- 不许碰的文件：`web/src/components/ui/` 的其他子目录、`types.ts`、`base.css`；`web/src/styles/`（`--hx-bg-thumb`、`--hx-t-spin`、`--hx-t-breath` 由令牌任务加入 `design/tokens.css`）；`state/`、`ops/`、`shell/`、`panels/`、`pages/`、`canvas/`、`lib/protocol/`。
+- 要建 / 要改的文件：`web/src/components/ui/feedback/Toast.tsx`、`web/src/components/ui/feedback/Toast.css`、`web/src/components/ui/feedback/Toast.test.tsx`、`web/src/components/ui/feedback/Badge.tsx`、`web/src/components/ui/feedback/Badge.css`、`web/src/components/ui/feedback/Badge.test.tsx`、`web/src/components/ui/feedback/StatusDot.tsx`、`web/src/components/ui/feedback/StatusDot.css`、`web/src/components/ui/feedback/StatusDot.test.tsx`、`web/src/components/ui/feedback/Spinner.tsx`、`web/src/components/ui/feedback/Spinner.css`、`web/src/components/ui/feedback/Spinner.test.tsx`、`web/src/components/ui/feedback/ProgressBar.tsx`、`web/src/components/ui/feedback/ProgressBar.css`、`web/src/components/ui/feedback/ProgressBar.test.tsx`、`web/src/components/ui/feedback/EmptyState.tsx`、`web/src/components/ui/feedback/EmptyState.css`、`web/src/components/ui/feedback/EmptyState.test.tsx`、`web/src/components/ui/feedback/ScrollArea.tsx`、`web/src/components/ui/feedback/ScrollArea.css`、`web/src/components/ui/feedback/ScrollArea.test.tsx`、`web/src/components/ui/feedback/ErrorBoundary.tsx`、`web/src/components/ui/feedback/ErrorBoundary.test.tsx`、`web/src/components/ui/index.ts`
+- 说明：`ErrorBoundary` 是全前端唯一 class 组件（`W.08-R13`），当前 `web/eslint.config.js` 无需额外豁免（`P.09` K304）。
+- 不许碰的文件：`web/src/styles/`、`web/src/state/`、`web/src/ops/`、`web/src/shell/`、`web/src/panels/`、`web/src/pages/`、`web/src/canvas/`、`web/src/lib/protocol/`
 - 函数签名：见 §4。
 - 测试用例：
   - `W0805-T1 props 对照`：八个组件含 `W.07` §4.3 对应行的全部 props（`expectTypeOf`）；`Toast` 用 `actions`（`W.08` §4.5，`P.09` K126）

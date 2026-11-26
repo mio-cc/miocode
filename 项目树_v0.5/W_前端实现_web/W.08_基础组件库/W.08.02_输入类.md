@@ -6,9 +6,9 @@
 | 类型 | 实施 |
 | 上级 | W.08 基础组件库 |
 | 下级 | 无 |
-| 状态 | 草稿 |
+| 状态 | 已审 |
 | 素材 | 设10 §10.4–§10.7；设计规范 v0.3 `src/06_controls.css`（`.hx-input`、`.hx-step`）；demo v0.5（v0.5.11）`17_fix.css`（搜索框透明底、聚焦 `bg-2`）；`P.09` K125–K127 |
-| 最后修改 | 2026-11-23 |
+| 最后修改 | 2026-11-26 |
 
 ## 1. 职责
 单行输入 `TextInput`、多行输入 `TextArea`、数字步进 `NumberStepper`、滑块 `Slider`、搜索框 `SearchInput`，以及它们共用的字段错误行 `FieldError`、数值计算 `stepMath.ts`、自动增高 `autosize.ts`。
@@ -221,8 +221,8 @@ export function fitRows(el: HTMLTextAreaElement, minRows: number, maxRows: numbe
 7. 锁定的输入框：只读、右侧锁图标、悬停说明原因。
 
 ### 实施卡
-- 要建 / 要改的文件：`web/src/components/ui/input/TextInput.tsx`、`TextArea.tsx`、`NumberStepper.tsx`、`Slider.tsx`、`SearchInput.tsx`、`FieldError.tsx`，每个同名 `.css`、`.test.tsx`；`input/stepMath.ts`、`stepMath.test.ts`、`autosize.ts`、`autosize.test.ts`；`web/src/components/ui/index.ts`（只加本文的导出行）。
-- 不许碰的文件：`web/src/components/ui/` 的其他子目录、`types.ts`、`base.css`（需要新的共用类时上报 `W.08.01`）；`web/src/styles/`（生成物）；`state/`、`ops/`、`shell/`、`panels/`、`pages/`、`canvas/`、`lib/protocol/`。
+- 要建 / 要改的文件：`web/src/components/ui/input/TextInput.tsx`、`web/src/components/ui/input/TextInput.css`、`web/src/components/ui/input/TextInput.test.tsx`、`web/src/components/ui/input/TextArea.tsx`、`web/src/components/ui/input/TextArea.css`、`web/src/components/ui/input/TextArea.test.tsx`、`web/src/components/ui/input/NumberStepper.tsx`、`web/src/components/ui/input/NumberStepper.css`、`web/src/components/ui/input/NumberStepper.test.tsx`、`web/src/components/ui/input/Slider.tsx`、`web/src/components/ui/input/Slider.css`、`web/src/components/ui/input/Slider.test.tsx`、`web/src/components/ui/input/SearchInput.tsx`、`web/src/components/ui/input/SearchInput.css`、`web/src/components/ui/input/SearchInput.test.tsx`、`web/src/components/ui/input/FieldError.tsx`、`web/src/components/ui/input/FieldError.css`、`web/src/components/ui/input/FieldError.test.tsx`、`web/src/components/ui/input/stepMath.ts`、`web/src/components/ui/input/stepMath.test.ts`、`web/src/components/ui/input/autosize.ts`、`web/src/components/ui/input/autosize.test.ts`、`web/src/components/ui/index.ts`
+- 不许碰的文件：`web/src/styles/`、`web/src/state/`、`web/src/ops/`、`web/src/shell/`、`web/src/panels/`、`web/src/pages/`、`web/src/canvas/`、`web/src/lib/protocol/`
 - 函数签名：见 §4。
 - 测试用例：
   - `W0802-T1 props 对照`：五个组件含 `W.07` §4.3 对应行的全部 props（`expectTypeOf`）；补充 props 与 `W.08` §4.5 一致

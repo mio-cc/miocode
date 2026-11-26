@@ -6,9 +6,9 @@
 | 类型 | 实施 |
 | 上级 | W.08 基础组件库 |
 | 下级 | 无 |
-| 状态 | 草稿 |
+| 状态 | 已审 |
 | 素材 | 设10 §10.0–§10.3、§10.29；设计规范 v0.3 `src/06_controls.css`（按钮、图标按钮、`kbd`）、`src/20_icons.js`（图标名）；demo v0.5（v0.5.11）`43_float.js` ②（流动高亮）、`21_flow.css`（`.hx-glide`）、`15_art.css`、`17_fix.css`（按钮透明底、顶部图标 `text-3`）；`P.09` K118、K122、K123、K125–K128 |
-| 最后修改 | 2026-11-23 |
+| 最后修改 | 2026-11-26 |
 
 ## 1. 职责
 按钮 `Button`、图标按钮 `IconButton`、键帽 `Kbd`、图标 `Icon`（含给画布引擎用的 `iconSvg`）、流动高亮 `GlideGroup`；以及 `W.08` 的唯一出口 `index.ts`、共用类型 `types.ts`、共用样式 `base.css`。
@@ -209,8 +209,9 @@ export const ICON_FALLBACK: IconName;   // '扩展'
 7. 键盘只用 Tab、Enter、空格能操作全部按钮（`U.16-R3`）。
 
 ### 实施卡
-- 要建 / 要改的文件：`web/src/components/ui/index.ts`、`types.ts`、`base.css`；`button/Button.tsx`、`Button.css`、`Button.test.tsx`、`IconButton.tsx`、`IconButton.css`、`IconButton.test.tsx`、`Kbd.tsx`、`Kbd.css`、`Kbd.test.tsx`；`icon/Icon.tsx`、`Icon.css`、`Icon.test.tsx`、`iconSvg.ts`、`iconSvg.test.ts`；`glide/GlideGroup.tsx`、`GlideGroup.css`、`GlideGroup.test.tsx`、`glide.ts`、`glide.test.ts`；`web/eslint.config.js` 只加 `W.08-R1`、`R2` 两条 `no-restricted-imports`（`G.06.04` 统一维护的文件里追加）。
-- 不许碰的文件：`web/src/styles/icons.ts`、`tokens.css`（生成物，`G.02.05-R1`；缺图标或令牌时上报）、`design/`、`tools/gen/`（图标生成器另由 `C.14` 实施，`P.09` K234）、`web/src/shell/`、`state/`、`ops/`、`lib/protocol/`、`panels/`、`pages/`、`canvas/`、其他 `components/ui/` 子目录（`index.ts` 除外）。
+- 要建 / 要改的文件：`web/src/components/ui/index.ts`、`web/src/components/ui/types.ts`、`web/src/components/ui/base.css`、`web/src/components/ui/button/Button.tsx`、`web/src/components/ui/button/Button.css`、`web/src/components/ui/button/Button.test.tsx`、`web/src/components/ui/button/IconButton.tsx`、`web/src/components/ui/button/IconButton.css`、`web/src/components/ui/button/IconButton.test.tsx`、`web/src/components/ui/button/Kbd.tsx`、`web/src/components/ui/button/Kbd.css`、`web/src/components/ui/button/Kbd.test.tsx`、`web/src/components/ui/icon/Icon.tsx`、`web/src/components/ui/icon/Icon.css`、`web/src/components/ui/icon/Icon.test.tsx`、`web/src/components/ui/icon/iconSvg.ts`、`web/src/components/ui/icon/iconSvg.test.ts`、`web/src/components/ui/glide/GlideGroup.tsx`、`web/src/components/ui/glide/GlideGroup.css`、`web/src/components/ui/glide/GlideGroup.test.tsx`、`web/src/components/ui/glide/glide.ts`、`web/src/components/ui/glide/glide.test.ts`
+- 说明：`W.08-R1`、`R2` 的 ESLint 规则已由第 ⑧ 片 `W.12` 在 `web/eslint.config.js` 落地，`W0801-T13` 直接跑 ESLint 负例验证（`P.09` K304）。
+- 不许碰的文件：`web/src/styles/icons.ts`、`web/src/styles/tokens.css`、`design/`、`tools/gen/`、`web/src/shell/`、`web/src/state/`、`web/src/ops/`、`web/src/lib/protocol/`、`web/src/panels/`、`web/src/pages/`、`web/src/canvas/`
 - 函数签名：见 §4。
 - 测试用例：
   - `W0801-T1 props 对照`：`ButtonProps`、`IconButtonProps`、`KbdProps`、`IconProps`、`GlideGroupProps` 含 `W.07` §4.3 对应行的全部 props，类型一致（类型测试 `expectTypeOf`）
@@ -226,6 +227,8 @@ export const ICON_FALLBACK: IconName;   // '扩展'
   - `W0801-T11 GlideGroup`：mock `elementFromPoint` 依次命中第 1、3 项 → 第二次先写 `flipFrom` 再写 `at`；离开 → 去掉 `is-on`；命中分组外元素 → 不显示；整个过程组件渲染次数为 1（只有首次）
   - `W0801-T12 减少动效`：`fakeEnv.reducedMotion=true` → 第 3 步只走直接到位分支（不写 `scale`）
   - `W0801-T13 ESLint`：`components/ui/button/Button.tsx` 里加 `import '@/state/types'` → lint 报错；`panels/x.tsx` 里 `import { Button } from '@/components/ui/button/Button'` → 报错
+- 在其他叶子跑的测试用例（不算本叶子的完成条件）：
+  - 基础组件陈列页 4 套配色 × 明暗视觉截图：`W.12`（第 ⑫ 片，`P.09` K175、K304）
 - 允许使用的依赖：`react`、`react-dom`；测试用 `vitest`、`jsdom`。
 - 禁止事项：`G.02.05` 全部；另：不对 `width` / `height` / `left` / `top` 做过渡；不用 `innerHTML` / `dangerouslySetInnerHTML` 插图标；不在按钮里写中文字面量；不给按钮加 `border` 或悬停外框；不在组件里拼按键文字。
 - 完成标志：`G.14` 全部条件；§10 七条验收通过；`W.07` §4.3 中本文五个组件的 props 全部可用。

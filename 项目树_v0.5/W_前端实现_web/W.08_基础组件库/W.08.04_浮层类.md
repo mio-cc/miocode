@@ -6,9 +6,9 @@
 | 类型 | 实施 |
 | 上级 | W.08 基础组件库 |
 | 下级 | 无 |
-| 状态 | 草稿 |
+| 状态 | 已审 |
 | 素材 | 设10 §10.18–§10.20、§10.23；`U.06` §3；`U.16-R6`；`W.02.04` §6.1；`G.06.01-R9`；`P.09` K121、K125、K126 |
-| 最后修改 | 2026-11-23 |
+| 最后修改 | 2026-11-26 |
 
 ## 1. 职责
 所有浮层的唯一实现：界面环境 `UiEnvProvider` / `useUiEnv`、浮层底座 `Overlay`（顶层容器、层级、按键压栈、焦点移入 / 回位 / 循环、外部点击、进出动画）、锚定弹层 `Popover`（`@floating-ui/dom` 定位）、菜单 `Menu`（含子菜单）、确认框 `Dialog`、提示框 `Tooltip`；以及内部的浮层栈 `layerStack.ts`、定位 `position.ts`、焦点工具 `focus.ts`。
@@ -242,8 +242,9 @@ export function resolveRestore(r: OverlayProps['restoreFocus'], opener: Element 
 8. 打开、关闭各类浮层 100 次后：`document` 上没有残留的 `pointerdown` 监听，`W.02.04` 栈为空（用 `fakeEnv` 计数）。
 
 ### 实施卡
-- 要建 / 要改的文件：`web/src/components/ui/overlay/UiEnv.tsx`、`Overlay.tsx`、`Popover.tsx`、`Menu.tsx`、`Dialog.tsx`、`Tooltip.tsx`，每个同名 `.css`（`UiEnv` 没有 `.css`）、`.test.tsx`；`overlay/layerStack.ts`、`position.ts`、`focus.ts` 及各自的 `.test.ts`；`web/src/components/ui/index.ts`（只加本文的导出行）。
-- 不许碰的文件：`web/src/shell/`（`shellUiEnv` 与 `App.tsx` 由 `W.02` 实施）、`web/src/components/ui/` 的其他子目录、`types.ts`、`base.css`；`web/src/styles/`；`state/`、`ops/`、`panels/`、`pages/`、`canvas/`、`lib/protocol/`。
+- 要建 / 要改的文件：`web/package.json`、`web/pnpm-lock.yaml`、`web/tests/kit/shell.ts`、`web/tests/kit/index.ts`、`web/src/components/ui/overlay/UiEnv.tsx`、`web/src/components/ui/overlay/UiEnv.test.tsx`、`web/src/components/ui/overlay/Overlay.tsx`、`web/src/components/ui/overlay/Overlay.css`、`web/src/components/ui/overlay/Overlay.test.tsx`、`web/src/components/ui/overlay/Popover.tsx`、`web/src/components/ui/overlay/Popover.css`、`web/src/components/ui/overlay/Popover.test.tsx`、`web/src/components/ui/overlay/Menu.tsx`、`web/src/components/ui/overlay/Menu.css`、`web/src/components/ui/overlay/Menu.test.tsx`、`web/src/components/ui/overlay/Dialog.tsx`、`web/src/components/ui/overlay/Dialog.css`、`web/src/components/ui/overlay/Dialog.test.tsx`、`web/src/components/ui/overlay/Tooltip.tsx`、`web/src/components/ui/overlay/Tooltip.css`、`web/src/components/ui/overlay/Tooltip.test.tsx`、`web/src/components/ui/overlay/layerStack.ts`、`web/src/components/ui/overlay/layerStack.test.ts`、`web/src/components/ui/overlay/position.ts`、`web/src/components/ui/overlay/position.test.ts`、`web/src/components/ui/overlay/focus.ts`、`web/src/components/ui/overlay/focus.test.ts`、`web/src/components/ui/index.ts`
+- 说明：`web/package.json`、`web/pnpm-lock.yaml` 只安装已登记的 `@floating-ui/dom`（`G.10` §3.3）；`web/tests/kit/shell.ts` 提供 `fakeEnv` 并经 `web/tests/kit/index.ts` 导出（`P.09` K304）。
+- 不许碰的文件：`web/src/shell/`、`web/src/styles/`、`web/src/state/`、`web/src/ops/`、`web/src/panels/`、`web/src/pages/`、`web/src/canvas/`、`web/src/lib/protocol/`
 - 函数签名：见 §4。
 - 测试用例（`fakeEnv` 记录 `pushOverlay` 的种类、处理函数与出栈；测试直接调用栈顶处理函数模拟注册中心的分发）：
   - `W0804-T1 props 对照`：五个组件含 `W.07` §4.3 对应行的全部 props（`expectTypeOf`），补充 props 与 `W.08` §4.5 一致
