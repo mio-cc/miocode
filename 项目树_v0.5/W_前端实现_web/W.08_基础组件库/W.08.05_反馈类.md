@@ -6,7 +6,7 @@
 | 类型 | 实施 |
 | 上级 | W.08 基础组件库 |
 | 下级 | 无 |
-| 状态 | 已审 |
+| 状态 | 冻结 |
 | 素材 | 设10 §10.15–§10.17、§10.22、§10.28；demo v0.5（v0.5.11）`21_flow.css`（隐藏式滚动条）、`17_fix.css`；`U.14.01`、`U.14.02`；`P.09` K123、K124、K126、K128、K129 |
 | 最后修改 | 2026-11-27 |
 
@@ -241,3 +241,4 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, { hasErro
 | 2026-11-23 | 首版 | 第 9 棒；`P.09` K123、K124、K126、K128、K129 |
 | 2026-11-23 | `ErrorBoundary` 的日志规则改为引用 `G.12` §2.1 | W 全枝复查；`P.09` K180 |
 | 2026-11-27 | `ScrollArea` 增加 `onScroll`、`ErrorBoundary` 改为独立 `hasError` 标志并补 `throw null` 用例 | 第 ⑨b 片主线评审修复片 `m1-web-ui-fix`（`P.09` K307） |
+| 2026-11-27 | 状态改为"冻结"：M1 修复片 `m1-web-ui-fix` squash 合并进代码仓库 `main`，提交 `8ddbed404ad1e4de9fb1ba1cd8e3c76a195ef345`（`G.02.06-R21`、`P.09` K307） | 两轮独立评审通过（`docs/relay/m1-web-ui-fix.review.md`）；Codex 合并推送；前端线余额用完，由主线（Quick）代写冻结 |

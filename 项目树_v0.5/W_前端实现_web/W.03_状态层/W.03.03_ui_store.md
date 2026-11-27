@@ -6,7 +6,7 @@
 | 类型 | 实施 |
 | 上级 | W.03 状态层 |
 | 下级 | 无 |
-| 状态 | 已审 |
+| 状态 | 冻结 |
 | 素材 | 设18 §3.2（`ui` 一节）；demo `设计规范_v0.3/src/22_state.js`（`sel`、`tool`、`focus`）；demo v0.5 `32_sessions.js`（切换会话保存 / 恢复选中）、`39_monitor.js`（筛选记住）；`W.02.02` §4.2（`ShellLayout`） |
 | 最后修改 | 2026-11-27 |
 
@@ -209,3 +209,4 @@ export function canvasReadonly(s: UiState): boolean;                       // ne
 | 2026-11-23 | `selectionKey` 为空的例子改为子图库预览 | `P.09` K103（第 7 棒） |
 | 2026-11-23 | `Toast` 加 `actions`、`sticky`；新增 `composerPrefill` 与 `prefillComposer` | 第 8 棒写 `W.07.07`、`W.07.10`；`P.09` K114 |
 | 2026-11-23 | 新增 `history` / `openHistory` / `closeHistory`、`tour` / `setTour`（`hx:tour`）、`libQuery` / `revealInLibrary` | 第 9 棒写 `W.09.03`–`W.09.05`；`P.09` K146、K147、K149 |
+| 2026-11-27 | 状态改为"冻结"：M1 第 ⑨c 片 `m1-web-shell` squash 合并进代码仓库 `main`，提交 `2c2d8465a059267659e776e8d7d04d2a56bfb277`（`G.02.06-R21`、`P.09` K305、K308、K309） | 两轮独立评审通过（`docs/relay/m1-web-shell.review.md`）；单二进制冒烟通过；Codex 合并推送；前端线余额用完，由主线（Quick）代写冻结 |

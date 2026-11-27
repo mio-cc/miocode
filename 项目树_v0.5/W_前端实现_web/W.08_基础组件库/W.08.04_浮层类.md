@@ -6,7 +6,7 @@
 | 类型 | 实施 |
 | 上级 | W.08 基础组件库 |
 | 下级 | 无 |
-| 状态 | 已审 |
+| 状态 | 冻结 |
 | 素材 | 设10 §10.18–§10.20、§10.23；`U.06` §3；`U.16-R6`；`W.02.04` §6.1；`G.06.01-R9`；`P.09` K121、K125、K126 |
 | 最后修改 | 2026-11-27 |
 
@@ -271,3 +271,4 @@ export function resolveRestore(r: OverlayProps['restoreFocus'], opener: Element 
 |---|---|---|
 | 2026-11-23 | 首版 | 第 9 棒；`P.09` K121、K125、K126 |
 | 2026-11-27 | `Overlay` 初始焦点仅 `false→true` 触发、`Menu` 点坐标 `useMemo` 缓存且默认 `ariaLabel` 用 `t('ui.menu')`、`Dialog` `error` 进 `aria-describedby` | 第 ⑨b 片主线评审修复片 `m1-web-ui-fix`（`P.09` K307） |
+| 2026-11-27 | 状态改为"冻结"：M1 修复片 `m1-web-ui-fix` squash 合并进代码仓库 `main`，提交 `8ddbed404ad1e4de9fb1ba1cd8e3c76a195ef345`（`G.02.06-R21`、`P.09` K307） | 两轮独立评审通过（`docs/relay/m1-web-ui-fix.review.md`）；Codex 合并推送；前端线余额用完，由主线（Quick）代写冻结 |

@@ -6,7 +6,7 @@
 | 类型 | 实施 |
 | 上级 | W.02 应用外壳与路由 |
 | 下级 | 无 |
-| 状态 | 已审 |
+| 状态 | 冻结 |
 | 素材 | demo v0.5（v0.5.11）`10_body.html`、`40_tidy.js`（`fitTarget`）；demo v0.4 `30_layout.js`、`08_layout.css`；`U.09.01`–`U.09.03` |
 | 最后修改 | 2026-11-27 |
 
@@ -191,3 +191,4 @@ export function bpOf(width: number): ShellLayout['bp'];
 | 2026-11-23 | `AppShell` 新增 `canvasOverlay`、`cover` 两个插槽（§4.1、§6.5a） | 第 9 棒写 `W.09`；`P.09` K146、K148 |
 | 2026-11-23 | §4.1：各区域包 `PerfRegion` | 第 10 棒写 `W.11`；`P.09` K167 |
 | 2026-11-27 | 实施卡补入第 ⑨c 片整片评审返工涉及的片内文件（按 K238 记入片内最后一个叶子） | 第 ⑨c 片第 1 轮独立交叉评审返工（`P.09` K309） |
+| 2026-11-27 | 状态改为"冻结"：M1 第 ⑨c 片 `m1-web-shell` squash 合并进代码仓库 `main`，提交 `2c2d8465a059267659e776e8d7d04d2a56bfb277`（`G.02.06-R21`、`P.09` K305、K308、K309） | 两轮独立评审通过（`docs/relay/m1-web-shell.review.md`）；单二进制冒烟通过；Codex 合并推送；前端线余额用完，由主线（Quick）代写冻结 |

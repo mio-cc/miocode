@@ -6,7 +6,7 @@
 | 类型 | 实施 |
 | 上级 | W.08 基础组件库 |
 | 下级 | 无 |
-| 状态 | 已审 |
+| 状态 | 冻结 |
 | 素材 | 设10 §10.9、§10.11、§10.12、§10.25；设计规范 v0.3 `src/06_controls.css`（`.hx-select`）；demo v0.5（v0.5.11）`17_fix.css`（节点库筛选纯文字 + 下划线）、`21_flow.css`（思考强度分段）；`P.09` K123、K125–K127、K130 |
 | 最后修改 | 2026-11-27 |
 
@@ -240,3 +240,4 @@ export function matchSpan(label: string, q: string): [number, number] | null;   
 | 2026-11-23 | 首版 | 第 9 棒；`P.09` K123、K125–K127、K130 |
 | 2026-11-23 | `SelectOption.desc` 的示例改为"12.8 万" | 第 10 棒；`P.09` K163 |
 | 2026-11-27 | `Select`/`Picker` 窗口化 `onScroll` 移至 `ScrollArea`、`Picker` 用 ref 读 `scrollTop`、选项 `id` 无空格编码，补 `W0803-T12` 滚动测试 | 第 ⑨b 片主线评审修复片 `m1-web-ui-fix`（`P.09` K307） |
+| 2026-11-27 | 状态改为"冻结"：M1 修复片 `m1-web-ui-fix` squash 合并进代码仓库 `main`，提交 `8ddbed404ad1e4de9fb1ba1cd8e3c76a195ef345`（`G.02.06-R21`、`P.09` K307） | 两轮独立评审通过（`docs/relay/m1-web-ui-fix.review.md`）；Codex 合并推送；前端线余额用完，由主线（Quick）代写冻结 |
